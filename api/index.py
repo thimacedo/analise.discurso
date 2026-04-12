@@ -2,237 +2,242 @@ from flask import Flask, render_template_string, jsonify
 import os
 import sys
 
-# Adiciona o diretório raiz ao path para importar os módulos do pipeline
+# Ajuste do path para o ambiente serverless
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 app = Flask(__name__)
 
-@app.route('/')
-def home():
-    html_content = """
-    <!DOCTYPE html>
-    <html lang="pt-br">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>ForenseNet | Análise de Discurso de Ódio</title>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-        <style>
-            :root {
-                --primary: #6366f1;
-                --primary-dark: #4f46e5;
-                --bg: #0f172a;
-                --card-bg: #1e293b;
-                --text: #f8fafc;
-                --text-muted: #94a3b8;
-                --accent: #f43f5e;
-            }
+# Design System & UI HTML
+HTML_TEMPLATE = """
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ForenseNet | Inteligência em Discurso de Ódio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #818cf8;
+            --primary-dark: #6366f1;
+            --secondary: #f43f5e;
+            --glass: rgba(30, 41, 59, 0.7);
+            --bg: #020617;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+        }
 
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-            body {
-                font-family: 'Inter', sans-serif;
-                background-color: var(--bg);
-                color: var(--text);
-                line-height: 1.6;
-                overflow-x: hidden;
-            }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(244, 63, 94, 0.1) 0%, transparent 50%);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
 
-            .container {
-                max-width: 1200px;
-                margin: 0 auto;
-                padding: 0 2rem;
-            }
+        .navbar {
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
 
-            header {
-                height: 100vh;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                text-align: center;
-                background: radial-gradient(circle at center, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
-            }
+        .logo {
+            font-weight: 800;
+            font-size: 1.5rem;
+            background: linear-gradient(to right, #818cf8, #f43f5e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-            .hero-content h1 {
-                font-size: 4rem;
-                font-weight: 800;
-                margin-bottom: 1rem;
-                letter-spacing: -0.02em;
-                background: linear-gradient(to right, #fff, #94a3b8);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-            }
+        .container { max-width: 1200px; margin: 0 auto; padding: 4rem 2rem; }
 
-            .hero-content p {
-                font-size: 1.25rem;
-                color: var(--text-muted);
-                max-width: 600px;
-                margin: 0 auto 2rem;
-            }
+        .hero { text-align: center; margin-bottom: 6rem; }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.5rem 1.25rem;
+            background: rgba(129, 140, 248, 0.1);
+            border: 1px solid rgba(129, 140, 248, 0.2);
+            border-radius: 99px;
+            color: var(--primary);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 2rem;
+        }
 
-            .badge {
-                display: inline-block;
-                padding: 0.5rem 1rem;
-                background: rgba(99, 102, 241, 0.1);
-                border: 1px solid rgba(99, 102, 241, 0.2);
-                border-radius: 99px;
-                color: var(--primary);
-                font-size: 0.875rem;
-                font-weight: 600;
-                margin-bottom: 2rem;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-            }
+        h1 {
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.03em;
+        }
 
-            .btn {
-                display: inline-block;
-                padding: 1rem 2.5rem;
-                background-color: var(--primary);
-                color: white;
-                text-decoration: none;
-                border-radius: 8px;
-                font-weight: 600;
-                transition: all 0.3s ease;
-                border: none;
-                cursor: pointer;
-                box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4);
-            }
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto 3rem;
+        }
 
-            .btn:hover {
-                background-color: var(--primary-dark);
-                transform: translateY(-2px);
-                box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.5);
-            }
+        .btn-group { display: flex; gap: 1rem; justify-content: center; }
 
-            .features {
-                padding: 100px 0;
-            }
+        .btn {
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            border: none;
+        }
 
-            .grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-                gap: 2rem;
-            }
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
+        }
 
-            .card {
-                background: var(--card-bg);
-                padding: 2.5rem;
-                border-radius: 20px;
-                border: 1px solid rgba(255, 255, 255, 0.05);
-                transition: transform 0.3s ease;
-            }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            background: var(--primary-dark);
+            box-shadow: 0 20px 30px -10px rgba(99, 102, 241, 0.5);
+        }
 
-            .card:hover {
-                transform: translateY(-5px);
-                border-color: rgba(99, 102, 241, 0.3);
-            }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text);
+        }
 
-            .card h3 {
-                font-size: 1.5rem;
-                margin-bottom: 1rem;
-                color: var(--primary);
-            }
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
 
-            .card p {
-                color: var(--text-muted);
-            }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 4rem;
+        }
 
-            .status-indicator {
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                margin-top: 2rem;
-                font-size: 0.875rem;
-                color: var(--text-muted);
-            }
+        .card {
+            background: var(--glass);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 2.5rem;
+            border-radius: 24px;
+            transition: all 0.3s ease;
+        }
 
-            .dot {
-                width: 8px;
-                height: 8px;
-                background-color: #10b981;
-                border-radius: 50%;
-                box-shadow: 0 0 10px #10b981;
-                animation: pulse 2s infinite;
-            }
+        .card:hover { border-color: var(--primary); transform: scale(1.02); }
 
-            @keyframes pulse {
-                0% { opacity: 1; }
-                50% { opacity: 0.4; }
-                100% { opacity: 1; }
-            }
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(129, 140, 248, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
 
-            footer {
-                padding: 4rem 0;
-                text-align: center;
-                border-top: 1px solid rgba(255, 255, 255, 0.05);
-                color: var(--text-muted);
-                font-size: 0.875rem;
-            }
-        </style>
-    </head>
-    <body>
-        <header>
-            <div class="container hero-content">
-                <span class="badge">Linguística Forense + Tecnologia Digital</span>
-                <h1>ForenseNet v1.0</h1>
-                <p>Plataforma avançada de monitoramento e análise de discurso de ódio em contextos políticos digitais.</p>
-                <div style="display: flex; gap: 1rem; justify-content: center;">
-                    <a href="/status" class="btn">Ver Status do Sistema</a>
-                </div>
-                <div class="status-indicator">
-                    <div class="dot"></div>
-                    <span>Pipeline operacional e pronto para análise</span>
-                </div>
-            </div>
-        </header>
+        .card h3 { font-size: 1.5rem; margin-bottom: 1rem; }
+        .card p { color: var(--text-muted); font-size: 1rem; }
 
-        <section class="features">
-            <div class="container">
-                <div class="grid">
-                    <div class="card">
-                        <h3>Coleta Automatizada</h3>
-                        <p>Extração profunda de comentários e interações de perfis políticos via InstagramCollector.</p>
-                    </div>
-                    <div class="card">
-                        <h3>Análise Linguística</h3>
-                        <p>Processamento de linguagem natural (NLP) para identificação de padrões de ódio e preconceito.</p>
-                    </div>
-                    <div class="card">
-                        <h3>Relatórios Periciais</h3>
-                        <p>Geração de evidências estruturadas com visualizações dinâmicas e métricas temporais.</p>
-                    </div>
-                </div>
+        .warning-box {
+            background: rgba(244, 63, 94, 0.05);
+            border: 1px solid rgba(244, 63, 94, 0.2);
+            padding: 1.5rem;
+            border-radius: 16px;
+            margin-top: 4rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .warning-box span { color: var(--secondary); font-weight: 700; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">ForenseNet</div>
+        <div class="nav-links">
+            <a href="/status" class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.8rem;">API Status</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <section class="hero">
+            <span class="badge">Vercel Serverless Ready</span>
+            <h1>Análise Forense de Discurso.</h1>
+            <p>Integração de metodologias linguísticas com inteligência computacional para identificação e monitoramento de ódio no debate político.</p>
+            <div class="btn-group">
+                <a href="#github" class="btn btn-primary">Documentação</a>
+                <a href="/status" class="btn btn-outline">Monitorar Operação</a>
             </div>
         </section>
 
-        <footer>
-            <div class="container">
-                <p>&copy; 2026 ForenseNet. Desenvolvido para pesquisa em análise do discurso e tecnologia.</p>
+        <div class="grid">
+            <div class="card">
+                <div class="card-icon">📊</div>
+                <h3>Linguística Digital</h3>
+                <p>Processamento automatizado seguindo a metodologia pericial para detecção de marcadores discursivos.</p>
             </div>
-        </footer>
-    </body>
-    </html>
-    """
-    return html_content
+            <div class="card">
+                <div class="card-icon">🧠</div>
+                <h3>Inteligência Híbrida</h3>
+                <p>Uso combinado de modelos locais e LLMs (OpenAI/Claude) para alta precisão taxonômica.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">🛡️</div>
+                <h3>Proteção de Dados</h3>
+                <p>Monitoramento ético focado em segurança digital e transparência democrática.</p>
+            </div>
+        </div>
+
+        <div class="warning-box">
+            <span>⚠️ Nota de Deployment:</span>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">
+                Este ambiente Vercel atua como interface de consulta e dashboard. A coleta intensiva (Scraping) e processamento pesado de corpus devem ser executados em workers dedicados ou ambiente local devido a restrições de tempo de execução serverless.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+"""
+
+@app.route('/')
+def home():
+    return render_template_string(HTML_TEMPLATE)
 
 @app.route('/status')
 def status():
     return jsonify({
-        "status": "operational",
-        "version": "1.0.0",
-        "modules": [
-            "InstagramCollector",
-            "CorpusBuilder",
-            "HateSpeechClassifier",
-            "DataMiner",
-            "DataVisualizer"
-        ],
-        "environment": "Vercel Serverless"
+        "system": "ForenseNet",
+        "runtime": "Vercel Serverless (Python 3.9+)",
+        "status": "online",
+        "api_endpoints": ["/status", "/"],
+        "notice": "Long-running tasks (scraping/NLP) disabled in serverless mode."
     })
 
+# Exportação do app para o Vercel
+app_handler = app
 if __name__ == "__main__":
     app.run(debug=True)
