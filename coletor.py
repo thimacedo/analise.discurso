@@ -177,3 +177,40 @@ class ColetorSeguro:
             self.log(f"⚠️ Não foi possível obter bio de @{username}: {e}")
             return {"nome_completo": "", "bio": ""}
 
+    def obter_perfis_seguidos(self):
+        """Retorna lista de perfis que a conta monitoradora está seguindo"""
+        self.login()
+        try:
+            user_id = self.client.user_id_from_username(self.username)
+            seguindo = self.client.user_following(user_id)
+            return [user.username for user in seguindo.values()]
+        except Exception as e:
+            self.log(f"❌ Erro ao obter perfis seguidos: {e}")
+            return []
+
+    def coletar_todos_seguidos(self, posts_por_perfil=2, limite_perfis=5):
+        """Coleta comentários de todos os perfis seguidos"""
+        perfis = self.obter_perfis_seguidos()
+        self.log(f"✅ Encontrados {len(perfis)} perfis seguidos.")
+        
+        if limite_perfis > 0 and len(perfis) > limite_perfis:
+            perfis = perfis[:limite_perfis]
+            self.log(f"🔹 Limite de {limite_perfis} perfis aplicado.")
+        
+        dfs = []
+        for idx, perfil in enumerate(perfis):
+            self.log(f"\n[{idx+1}/{len(perfis)}] Processando @{perfil}...")
+            df = self.coletar_comentarios_perfil(perfil, posts_limit=posts_por_perfil)
+            if not df.empty:
+                dfs.append(df)
+            
+            if idx < len(perfis) - 1:
+                pausa = int(os.getenv('COLETA_PAUSA_ENTRE_PERFIS', 180))
+                self.log(f"⏱️ Pausa de {pausa}s entre perfis...")
+                time.sleep(pausa)
+        
+        if not dfs:
+            return pd.DataFrame()
+        
+        return pd.concat(dfs, ignore_index=True)
+
