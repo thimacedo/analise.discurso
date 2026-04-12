@@ -1,41 +1,76 @@
 # classificador.py
 import pandas as pd
+import json
+import os
 from collections import defaultdict
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Tenta importar Anthropic apenas se a chave existir
+try:
+    from anthropic import Anthropic
+    ANTHROPIC_AVAILABLE = True
+except ImportError:
+    ANTHROPIC_AVAILABLE = False
 
 class ClassificadorOdio:
     def __init__(self):
-        # Dicionário Forense Baseado na Metodologia
-        self.termos_odio = {
-            'racismo': ['macaco', 'preto', 'crioulo', 'selvagem', 'negro', 'raça', 'inferior', 'escravo'],
-            'homofobia': ['viado', 'bicha', 'gay', 'sapatão', 'bixa', 'veado', 'baitola', 'boiola'],
-            'transfobia': ['traveco', 'travesti', 'transexual', 'aberração', 'anormal'],
-            'misoginia': ['puta', 'vadia', 'cadela', 'vagabunda', 'prostituta', 'piranha'],
-            'xenofobia': ['nordestino', 'baiano', 'paraíba', 'cearense', 'norte', 'invasor']
+        self.hate_terms = {
+            'racismo': ['macaco', 'preto', 'crioulo', 'selvagem', 'negro', 'raça', 'inferior', 'escravo', 'senzala', 'quilombo', 'neguinho', 'africano', 'tribo', 'primitivo', 'animal'],
+            'homofobia': ['viado', 'bicha', 'gay', 'lésbica', 'sapatão', 'bixa', 'veado', 'maricon', 'afeminado', 'baitola', 'boiola', 'queima rosca', 'lampiao'],
+            'transfobia': ['traveco', 'travesti', 'transexual', 'transformado', 'homem de saia', 'mulher de pênis', 'aberração', 'mutante', 'deformado', 'anormal', 'doente', 'falsa mulher'],
+            'misoginia': ['puta', 'vadia', 'cadela', 'vagabunda', 'prostituta', 'piranha', 'safada', 'feminista', 'lugar de mulher', 'cozinha', 'lavar louça', 'sexo frágil'],
+            'xenofobia': ['nordestino', 'baiano', 'paraíba', 'cearense', 'norte', 'sertanejo', 'migrante', 'refugiado', 'estrangeiro', 'forasteiro', 'invasor', 'sem terra', 'favelado']
         }
-    
-    def classificar_comentario(self, texto_limpo):
-        if not isinstance(texto_limpo, str): return 'neutro', 0
-        
-        texto_lower = texto_limpo.lower()
-        categorias_encontradas = defaultdict(int)
-        
-        for categoria, termos in self.termos_odio.items():
-            for termo in termos:
-                if termo in texto_lower:
-                    categorias_encontradas[categoria] += 1
-        
-        if categorias_encontradas:
-            categoria_principal = max(categorias_encontradas, key=categorias_encontradas.get)
-            severidade = min(10, categorias_encontradas[categoria_principal] * 2)
-            return categoria_principal, severidade
-        else:
-            return 'neutro', 0
-    
+        api_key = os.getenv('ANTHROPIC_API_KEY')
+        self.anthropic = Anthropic(api_key=api_key) if ANTHROPIC_AVAILABLE and api_key else None
+
+    def _keyword_matches(self, text):
+        if not isinstance(text, str):
+            return []
+        text_lower = text.lower()
+        matches = []
+        for cat, termos in self.hate_terms.items():
+            for term in termos:
+                if term in text_lower:
+                    matches.append({'category': cat, 'term': term, 'severity': 7})  # severidade padrão
+        return matches
+
+    def _claude_classify(self, text):
+        if not self.anthropic:
+            return {'is_hate_speech': False, 'category': None, 'confidence': 0.0, 'severity': 0}
+        prompt = f"""Analise o comentário e responda apenas JSON:
+Comentário: "{text}"
+JSON: {{"is_hate_speech": true/false, "category": "racismo|homofobia|transfobia|misoginia|xenofobia|null", "confidence": 0.0-1.0, "severity": 1-10}}"""
+        try:
+            resp = self.anthropic.messages.create(
+                model="claude-3-haiku-20240307",
+                max_tokens=150,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            return json.loads(resp.content[0].text)
+        except:
+            return {'is_hate_speech': False, 'category': None, 'confidence': 0.0, 'severity': 0}
+
     def classificar_dataframe(self, df, coluna_texto='texto_limpo'):
-        print("🏷️ Iniciando classificação do discurso de ódio...")
-        results = df[coluna_texto].apply(self.classificar_comentario)
-        df['categoria_odio'], df['severidade'] = zip(*results)
+        print("🏷️ Classificando discurso de ódio...")
+        resultados = []
+        for idx, row in df.iterrows():
+            texto = row.get(coluna_texto, '')
+            kw = self._keyword_matches(texto)
+            claude = self._claude_classify(texto)
+            is_hate = claude['is_hate_speech'] or len(kw) > 0
+            cat = claude['category'] if claude['category'] else (kw[0]['category'] if kw else 'neutro')
+            sev = max(claude['severity'], max((m['severity'] for m in kw), default=0))
+            resultados.append({
+                'is_hate_speech': is_hate,
+                'categoria_odio': cat, 
+                'severidade': sev,
+                'confianca_classificacao': claude['confidence']
+            })
+            if (idx+1) % 100 == 0:
+                print(f"  → {idx+1} comentários classificados")
         
-        comentarios_odio = df[df['categoria_odio'] != 'neutro']
-        print(f"  → {len(comentarios_odio)} comentários identificados com discurso de ódio.")
-        return df
+        df_result = pd.DataFrame(resultados)
+        return pd.concat([df.reset_index(drop=True), df_result], axis=1)

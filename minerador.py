@@ -53,3 +53,30 @@ class MineradorCorpus:
             print(f"🖼️ Nuvem salva: {filename}")
         
         return wc
+
+    def analise_temporal(self, df, coluna_data='data_publicacao'):
+        print("📊 Analisando evolução temporal...")
+        
+        # VALIDAÇÃO CONFORME SOLICITADO
+        if 'is_hate_speech' not in df.columns:
+            print("⚠️ Coluna is_hate_speech não encontrada, inicializando com False")
+            df['is_hate_speech'] = False
+            
+        if coluna_data not in df.columns:
+            print("⚠️ Sem coluna de data para análise temporal")
+            return pd.DataFrame(), pd.DataFrame()
+            
+        df['data'] = pd.to_datetime(df[coluna_data]).dt.date
+        daily = df.groupby('data').agg(
+            total_comentarios=('id', 'count'),
+            hate_comentarios=('is_hate_speech', 'sum')
+        )
+        daily['hate_rate'] = (daily['hate_comentarios'] / daily['total_comentarios']) * 100
+        
+        # Detecta picos (acima de 2 desvios padrão)
+        media = daily['hate_rate'].mean()
+        desvio = daily['hate_rate'].std()
+        picos = daily[daily['hate_rate'] > media + (2 * desvio)]
+        
+        print(f"✅ Análise temporal concluída: {len(daily)} dias, {len(picos)} picos detectados")
+        return daily, picos

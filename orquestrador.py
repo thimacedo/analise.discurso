@@ -50,17 +50,18 @@ def main():
         log("COLETA", "FALHA", "Sem dados coletados.")
         return
 
-    # 2. PROCESSAMENTO E MINERAÇÃO
+    # 2. PROCESSAMENTO
     proc = ProcessadorCorpus()
     df_proc, freq = proc.processar_dataframe(df_bruto)
     proc.gerar_nuvem_palavras(freq, salvar=True)
-    
-    miner = MineradorCorpus()
-    miner.analisar_frequencia_ngrams(df_proc)
 
-    # 3. CLASSIFICAÇÃO
+    # 3. CLASSIFICAÇÃO (GERA is_hate_speech)
     clas = ClassificadorOdio()
     df_final = clas.classificar_dataframe(df_proc)
+    
+    # 4. MINERAÇÃO (AGORA TEM A COLUNA is_hate_speech)
+    miner = MineradorCorpus()
+    miner.analisar_frequencia_ngrams(df_final)
 
     # 4. EXPORTAÇÃO AUTOMÁTICA PARA DASHBOARD
     # Salva com timestamp para histórico local
