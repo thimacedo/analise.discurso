@@ -1,16 +1,20 @@
-from flask import Flask, send_from_directory
+#!/usr/bin/env python3
+from http.server import BaseHTTPRequestHandler, HTTPServer
 import os
 
-app = Flask(__name__, static_folder='../')
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html; charset=utf-8')
+        self.end_headers()
+        
+        with open(os.path.join(os.path.dirname(__file__), '..', 'dashboard.html'), 'r', encoding='utf-8') as f:
+            html = f.read()
+        
+        self.wfile.write(html.encode('utf-8'))
 
-@app.route('/')
-def home():
-    return send_from_directory('../', 'dashboard.html')
-
-@app.route('/<path:filename>')
-def serve_static(filename):
-    return send_from_directory('../', filename)
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+if __name__ == '__main__':
+    PORT = int(os.environ.get('PORT', 3000))
+    server = HTTPServer(('0.0.0.0', PORT), Handler)
+    print(f"Dashboard rodando na porta {PORT}")
+    server.serve_forever()

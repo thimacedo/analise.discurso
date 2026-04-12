@@ -13,3 +13,5 @@ venv/
 
 # NÃO ignorar o arquivo de dados do dashboard
 !api/dados_latest.csv
+.vercel
+.env*.local
