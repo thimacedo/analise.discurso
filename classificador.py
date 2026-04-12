@@ -1,4 +1,3 @@
-# classificador.py
 import pandas as pd
 import json
 import os
@@ -7,7 +6,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Tenta importar Anthropic apenas se a chave existir
 try:
     from anthropic import Anthropic
     ANTHROPIC_AVAILABLE = True
@@ -26,15 +24,16 @@ class ClassificadorOdio:
         api_key = os.getenv('ANTHROPIC_API_KEY')
         self.anthropic = Anthropic(api_key=api_key) if ANTHROPIC_AVAILABLE and api_key else None
 
+    # CORREÇÃO #2: método _keyword_matches com acesso correto às listas
     def _keyword_matches(self, text):
         if not isinstance(text, str):
             return []
         text_lower = text.lower()
         matches = []
-        for cat, termos in self.hate_terms.items():
+        for cat, termos in self.hate_terms.items():   # 'termos' é a lista
             for term in termos:
                 if term in text_lower:
-                    matches.append({'category': cat, 'term': term, 'severity': 7})  # severidade padrão
+                    matches.append({'category': cat, 'term': term, 'severity': 7})
         return matches
 
     def _claude_classify(self, text):
@@ -53,24 +52,16 @@ JSON: {{"is_hate_speech": true/false, "category": "racismo|homofobia|transfobia|
         except:
             return {'is_hate_speech': False, 'category': None, 'confidence': 0.0, 'severity': 0}
 
+    # CORREÇÃO #6: usar .apply() para performance
     def classificar_dataframe(self, df, coluna_texto='texto_limpo'):
         print("🏷️ Classificando discurso de ódio...")
-        resultados = []
-        for idx, row in df.iterrows():
-            texto = row.get(coluna_texto, '')
+        def classificar_linha(texto):
             kw = self._keyword_matches(texto)
             claude = self._claude_classify(texto)
             is_hate = claude['is_hate_speech'] or len(kw) > 0
             cat = claude['category'] if claude['category'] else (kw[0]['category'] if kw else 'neutro')
             sev = max(claude['severity'], max((m['severity'] for m in kw), default=0))
-            resultados.append({
-                'is_hate_speech': is_hate,
-                'categoria_odio': cat, 
-                'severidade': sev,
-                'confianca_classificacao': claude['confidence']
-            })
-            if (idx+1) % 100 == 0:
-                print(f"  → {idx+1} comentários classificados")
-        
-        df_result = pd.DataFrame(resultados)
+            return pd.Series({'categoria_odio': cat, 'severidade': sev})
+        df_result = df[coluna_texto].apply(classificar_linha)
+        print(f"  → {len(df)} comentários classificados")
         return pd.concat([df.reset_index(drop=True), df_result], axis=1)
