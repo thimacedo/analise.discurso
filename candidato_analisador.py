@@ -1,7 +1,7 @@
 import os
 import json
 import time
-import google.generativeai as genai
+import requests
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -11,19 +11,11 @@ class AnalisadorPerfis:
         self.cache_file = cache_file
         self.cache = self._load_cache()
         
-        api_key = os.getenv("GEMINI_API_KEY")
-        if not api_key:
+        self.api_key = os.getenv("GEMINI_API_KEY")
+        if not self.api_key:
             print("⚠️ GEMINI_API_KEY não configurada. Análise de perfis desativada.")
-            self.model = None
+            self.api_key = None
             return
-        
-        try:
-            genai.configure(api_key=api_key)
-            # Usando o modelo Flash (100% gratuito e rápido)
-            self.model = genai.GenerativeModel('gemini-1.5-flash')
-        except Exception as e:
-            print(f"❌ Erro ao inicializar Gemini: {e}")
-            self.model = None
 
     def _load_cache(self):
         if os.path.exists(self.cache_file):
@@ -40,7 +32,7 @@ class AnalisadorPerfis:
         if username in self.cache:
             return self.cache[username]
         
-        if not self.model:
+        if not self.api_key:
             return self._dados_padrao(username)
 
         print(f"  🤖 Consultando IA gratuita para @{username}...")
@@ -61,8 +53,30 @@ class AnalisadorPerfis:
         JSON:"""
 
         try:
-            response = self.model.generate_content(prompt)
-            text_response = response.text.strip()
+            # Chamada HTTP DIRETA (sem dependências pesadas)
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.api_key}"
+            
+            payload = {
+                "contents": [{
+                    "parts": [{
+                        "text": prompt
+                    }]
+                }],
+                "generationConfig": {
+                    "temperature": 0.1,
+                    "maxOutputTokens": 1024
+                }
+            }
+            
+            headers = {
+                "Content-Type": "application/json"
+            }
+            
+            response = requests.post(url, json=payload, headers=headers, timeout=30)
+            response.raise_for_status()
+            result = response.json()
+            
+            text_response = result['candidates'][0]['content']['parts'][0]['text'].strip()
             
             # Limpeza de segurança (caso a IA coloque crases do markdown)
             if text_response.startswith("```json"):
