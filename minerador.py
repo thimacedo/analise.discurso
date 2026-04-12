@@ -1,82 +1,65 @@
-# minerador.py
-from collections import Counter
 import pandas as pd
-import matplotlib.pyplot as plt
-from wordcloud import WordCloud
-from datetime import datetime
+from collections import Counter
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.cluster import KMeans
 
 class MineradorCorpus:
     def analisar_frequencia_ngrams(self, df, coluna_tokens='tokens', top_n=30):
-        print("⛏️ Iniciando mineração do corpus...")
-        
+        print("⛏️ Iniciando mineração de n-gramas...")
         all_tokens = df[coluna_tokens].tolist()
         all_bigrams = []
         all_trigrams = []
-        
         for tokens in all_tokens:
             if len(tokens) >= 2:
                 all_bigrams.extend(list(zip(tokens, tokens[1:])))
             if len(tokens) >= 3:
                 all_trigrams.extend(list(zip(tokens, tokens[2:])))
-        
-        freq_bigramas = Counter(all_bigrams).most_common(top_n)
-        freq_trigramas = Counter(all_trigrams).most_common(top_n)
-        
         return {
-            'bigramas': [{'ngram': ng, 'freq': freq} for ng, freq in freq_bigramas],
-            'trigramas': [{'ngram': ng, 'freq': freq} for ng, freq in freq_trigramas]
+            'bigramas': [{'ngram': ng, 'freq': freq} for ng, freq in Counter(all_bigrams).most_common(top_n)],
+            'trigramas': [{'ngram': ng, 'freq': freq} for ng, freq in Counter(all_trigrams).most_common(top_n)]
         }
-    
-    def gerar_nuvem_ngrams(self, ngrams_freq, titulo, salvar=False):
-        if not ngrams_freq:
-            print(f"⚠️ Sem n-gramas para: {titulo}")
-            return
-        
-        # Converte lista de dicts para dict formatado para WordCloud
-        freq_dict = {" ".join(item['ngram']): item['freq'] for item in ngrams_freq}
-        
-        wc = WordCloud(
-            width=1200, height=800, 
-            background_color='white',
-            max_words=50, 
-            colormap='viridis'
-        ).generate_from_frequencies(freq_dict)
-        
-        plt.figure(figsize=(15, 10))
-        plt.imshow(wc, interpolation='bilinear')
-        plt.axis('off')
-        plt.title(titulo)
-        
-        if salvar:
-            filename = f"nuvem_{titulo.lower().replace(' ', '_')}_{datetime.now().strftime('%H%M%S')}.png"
-            plt.savefig(filename, dpi=300)
-            print(f"🖼️ Nuvem salva: {filename}")
-        
-        return wc
 
-    def analise_temporal(self, df, coluna_data='data_publicacao'):
-        print("📊 Analisando evolução temporal...")
-        
-        # VALIDAÇÃO CONFORME SOLICITADO
-        if 'is_hate_speech' not in df.columns:
-            print("⚠️ Coluna is_hate_speech não encontrada, inicializando com False")
-            df['is_hate_speech'] = False
-            
-        if coluna_data not in df.columns:
-            print("⚠️ Sem coluna de data para análise temporal")
-            return pd.DataFrame(), pd.DataFrame()
-            
-        df['data'] = pd.to_datetime(df[coluna_data]).dt.date
-        daily = df.groupby('data').agg(
-            total_comentarios=('id', 'count'),
-            hate_comentarios=('is_hate_speech', 'sum')
-        )
-        daily['hate_rate'] = (daily['hate_comentarios'] / daily['total_comentarios']) * 100
-        
-        # Detecta picos (acima de 2 desvios padrão)
-        media = daily['hate_rate'].mean()
-        desvio = daily['hate_rate'].std()
-        picos = daily[daily['hate_rate'] > media + (2 * desvio)]
-        
-        print(f"✅ Análise temporal concluída: {len(daily)} dias, {len(picos)} picos detectados")
-        return daily, picos
+    def analise_temporal(self, df):
+        print("⏳ Processando análise temporal...")
+        if 'timestamp' in df.columns:
+            df_temp = df.copy()
+            df_temp['date'] = pd.to_datetime(df_temp['timestamp']).dt.date
+            daily_hate = df_temp.groupby('date')['is_hate_speech'].agg(['count', 'sum'])
+            daily_hate['hate_rate'] = daily_hate['sum'] / daily_hate['count'] * 100
+            mean_hate = daily_hate['hate_rate'].mean()
+            std_hate = daily_hate['hate_rate'].std()
+            peaks = daily_hate[daily_hate['hate_rate'] > mean_hate + 2*std_hate]
+            return daily_hate, peaks
+        return pd.DataFrame(), pd.DataFrame()
+
+    def analise_comportamento_usuario(self, df):
+        print("👤 Analisando comportamento de usuários...")
+        if 'autor_username' in df.columns:
+            user_stats = df.groupby('autor_username').agg({
+                'texto': 'count',
+                'is_hate_speech': 'sum'
+            }).rename(columns={'texto': 'total_comments', 'is_hate_speech': 'hate_comments'})
+            user_stats['hate_rate'] = user_stats['hate_comments'] / user_stats['total_comments'] * 100
+            user_stats['risk_score'] = user_stats['hate_comments'] * user_stats['hate_rate']
+            return user_stats.sort_values('risk_score', ascending=False)
+        return pd.DataFrame()
+
+    # CORREÇÃO #7: garantir n_clusters >= 2
+    def clusterizacao_tematica(self, df):
+        print("🧩 Aplicando clusterização temática...")
+        hate_df = df[df['is_hate_speech'] == True].copy()
+        if len(hate_df) > 10:
+            vectorizer = TfidfVectorizer(max_features=100)
+            X = vectorizer.fit_transform(hate_df['texto_limpo'].fillna(''))
+            n_clusters = max(2, min(5, len(hate_df)//10))
+            kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init='auto')
+            clusters = kmeans.fit_predict(X)
+            terms = vectorizer.get_feature_names_out()
+            cluster_topics = {}
+            for i in range(kmeans.n_clusters):
+                center = kmeans.cluster_centers_[i]
+                top_indices = center.argsort()[-10:][::-1]
+                cluster_topics[f'cluster_{i}'] = [terms[idx] for idx in top_indices]
+            hate_df['cluster'] = clusters
+            return hate_df, cluster_topics
+        return hate_df, {}

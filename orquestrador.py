@@ -1,12 +1,9 @@
 import sys
 import os
-import shutil
-import traceback
 from datetime import datetime
+import pandas as pd
 from dotenv import load_dotenv
 
-# Prioriza variáveis de ambiente do sistema (GitHub Actions)
-# Carrega .env APENAS se existir (desenvolvimento local)
 if os.path.exists('.env'):
     load_dotenv()
 
@@ -14,72 +11,65 @@ from coletor import ColetorSeguro
 from processador import ProcessadorCorpus
 from minerador import MineradorCorpus
 from classificador import ClassificadorOdio
+from visualizer import DataVisualizer
+
+# CORREÇÃO #5: importação opcional do cloud_utils
+try:
+    from cloud_utils import upload_para_s3
+except ImportError:
+    upload_para_s3 = None
 
 def log(etapa, status, msg=""):
     print(f"[{datetime.now().strftime('%H:%M:%S')}] {etapa:20} | {status:8} | {msg}")
 
 def main():
-    # Verifica credenciais antes de começar
     IG_USERNAME = os.getenv('IG_USERNAME')
     IG_PASSWORD = os.getenv('IG_PASSWORD')
-    
     if not IG_USERNAME or not IG_PASSWORD:
         print("❌ ERRO: IG_USERNAME e IG_PASSWORD não foram encontrados.")
-        print("   Configure no .env (local) ou nos Secrets do GitHub Actions.")
         sys.exit(1)
 
-    # Lê limites configuráveis por variável de ambiente
-    limite_perfis = int(os.getenv('COLETA_LIMITE_PERFIS', 1))
-    posts_por_perfil = int(os.getenv('COLETA_POSTS_POR_PERFIL', 1))
-    pausa_entre_perfis = int(os.getenv('COLETA_PAUSA_ENTRE_PERFIS', 180))
-    comments_por_post = int(os.getenv('COLETA_COMMENTS_POR_POST', 50))
+    limite_perfis = int(os.getenv('COLETA_LIMITE_PERFIS', 5))
+    posts_por_perfil = int(os.getenv('COLETA_POSTS_POR_PERFIL', 2))
 
     print(f"🚀 INICIANDO PIPELINE ANÁLISE DISCURSO")
-    print(f"   Configuração:")
-    print(f"     - {limite_perfis} perfis")
-    print(f"     - {posts_por_perfil} posts por perfil")
-    print(f"     - {comments_por_post} comentários por post")
-    print(f"     - Pausa de {pausa_entre_perfis}s entre perfis\n")
-
-    # 1. COLETA
     coletor = ColetorSeguro()
-    
-    df_bruto = coletor.coletar_todos_seguidos(
-        posts_por_perfil=posts_por_perfil,
-        limite_perfis=limite_perfis,
-        pausa_entre_perfis=pausa_entre_perfis,
-        comments_por_post=comments_por_post
-    )
-    
+    df_bruto = coletor.coletar_todos_seguidos(posts_por_perfil=posts_por_perfil, limite_perfis=limite_perfis)
     if df_bruto.empty:
         log("COLETA", "FALHA", "Sem dados coletados.")
         return
 
-    # 2. PROCESSAMENTO
     proc = ProcessadorCorpus()
-    df_proc, freq = proc.processar_dataframe(df_bruto)
-    proc.gerar_nuvem_palavras(freq, salvar=True)
+    df_proc, freq = proc.processar_dataframe(df_bruto, coluna_texto='texto')
+    proc.gerar_estatisticas(df_proc)
 
-    # 3. CLASSIFICAÇÃO (GERA is_hate_speech)
     clas = ClassificadorOdio()
     df_final = clas.classificar_dataframe(df_proc)
-    
-    # 4. MINERAÇÃO (AGORA TEM A COLUNA is_hate_speech)
+    df_final['is_hate_speech'] = df_final['categoria_odio'] != 'neutro'
+    df_final['primary_category'] = df_final['categoria_odio']
+
     miner = MineradorCorpus()
-    miner.analisar_frequencia_ngrams(df_final)
+    ngrams_freq = miner.analisar_frequencia_ngrams(df_final)
+    daily_hate, peaks = miner.analise_temporal(df_final)
 
-    # 4. EXPORTAÇÃO AUTOMÁTICA PARA DASHBOARD
-    # Salva com timestamp para histórico local
+    viz = DataVisualizer(df_final, freq)
+    viz.create_wordcloud(save_path='nuvem_geral.png')
+    viz.plot_category_distribution(save_path='categories.png')
+    viz.plot_top_terms(n=25, save_path='top_terms.png')
+    if not daily_hate.empty:
+        viz.plot_hate_timeline(daily_hate, peaks, save_path='timeline.png')
+    viz.generate_report(output_path='relatorio_pericial.html')
+
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    hist_file = f"resultado_{ts}.csv"
-    df_final.to_csv(hist_file, index=False, encoding='utf-8-sig')
-
-    # Copia para a pasta api (onde a Vercel vai ler)
+    df_final.to_csv(f"resultado_{ts}.csv", index=False, encoding='utf-8-sig')
+    os.makedirs("api", exist_ok=True)
     dashboard_file = os.path.join("api", "dados_latest.csv")
     df_final.to_csv(dashboard_file, index=False, encoding='utf-8-sig')
-    
-    log("DASHBOARD", "PRONTO", f"Arquivo api/dados_latest.csv atualizado.")
-    print("\n✅ TUDO PRONTO! Pipeline executado com sucesso.")
+    # CORREÇÃO #5: só tenta upload se a função existir e a chave estiver configurada
+    if os.getenv('AWS_BUCKET_NAME') and upload_para_s3:
+        upload_para_s3(dashboard_file, "dados_latest.csv")
+
+    log("ORQUESTRADOR", "PRONTO", "Pipeline executado com sucesso.")
 
 if __name__ == "__main__":
     main()
