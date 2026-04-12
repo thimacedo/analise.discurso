@@ -3,58 +3,54 @@ import traceback
 from datetime import datetime
 from coletor import ColetorSeguro
 from processador import ProcessadorCorpus
+from minerador import MineradorCorpus
+from classificador import ClassificadorOdio
 
 def log_etapa(etapa, status, mensagem=""):
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {etapa:.<20} {status:.<10} {mensagem}")
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] {etapa:.<25} {status:.<10} {mensagem}")
 
 def executar_etapa(nome, funcao, *args, **kwargs):
     log_etapa(nome, "INICIADO")
     try:
-        resultado = funcao(*args, **kwargs)
+        res = funcao(*args, **kwargs)
         log_etapa(nome, "SUCESSO")
-        return resultado
-    except Exception as e:
-        log_etapa(nome, "FALHA", str(e))
+        return res
+    except Exception:
+        log_etapa(nome, "FALHA")
         traceback.print_exc()
         sys.exit(1)
 
-def fase_processamento(df):
-    """Integração da Etapa 2: Processamento do Corpus"""
-    proc = ProcessadorCorpus()
-    df_proc, freq = proc.processar_dataframe(df)
-    proc.gerar_nuvem_palavras(freq)
-    proc.salvar_corpus(df_proc)
-    return df_proc, freq
-
 def main():
-    print("=== ForenseNet | Orquestrador de Pipeline ===\n")
-    
-    # ETAPA 1: COLETA
-    candidatos_alvo = ["lulaoficial", "jairmessiasbolsonaro"] 
+    print("="*50)
+    print("   FORENSENET | PIPELINE DE ANÁLISE POLÍTICA")
+    print("="*50 + "\n")
+
+    # 1. COLETA
+    candidatos = ["lulaoficial", "jairmessiasbolsonaro"] # Exemplo
     coletor = ColetorSeguro()
-    df_bruto = executar_etapa(
-        "COLETA INSTAGRAM", 
-        coletor.coletar_multiplos_candidatos, 
-        lista_candidatos=candidatos_alvo, 
-        posts_por_candidato=3 # Reduzido para teste rápido
-    )
+    df_bruto = executar_etapa("COLETA INSTAGRAM", coletor.coletar_multiplos_candidatos, candidatos, posts_por_candidato=3)
+    
+    if df_bruto.empty: return
 
-    if df_bruto.empty:
-        log_etapa("COLETA", "AVISO", "Nenhum dado coletado.")
-        return
+    # 2. PROCESSAMENTO
+    proc = ProcessadorCorpus()
+    df_proc, frequencias = executar_etapa("PRÉ-PROCESSAMENTO", proc.processar_dataframe, df_bruto)
 
-    # ETAPA 2: PRÉ-PROCESSAMENTO
-    df_processado, frequencias = executar_etapa(
-        "PROCESSAMENTO",
-        fase_processamento,
-        df_bruto
-    )
+    # 3. MINERAÇÃO
+    miner = MineradorCorpus()
+    executar_etapa("MINERAÇÃO (NUVEM)", miner.gerar_nuvem_geral, frequencias)
+    ngrams = executar_etapa("MINERAÇÃO (N-GRAMAS)", miner.analisar_frequencia_ngrams, df_proc)
 
-    # PRÓXIMAS ETAPAS:
-    # 3. Classificação de Ódio (IA)
-    # 4. Sincronização Cloud
+    # 4. CLASSIFICAÇÃO
+    clas = ClassificadorOdio()
+    df_final = executar_etapa("CLASSIFICAÇÃO DE ÓDIO", clas.processar_dataframe, df_proc)
 
-    print("\n✅ Fluxo orquestrado concluído com sucesso.")
+    # 5. SALVAMENTO
+    fname = f"resultado_final_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    df_final.to_csv(fname, index=False, encoding='utf-8-sig')
+    log_etapa("EXPORTAÇÃO", "CONCLUÍDO", f"Relatório salvo em {fname}")
+
+    print("\n✅ Fluxo Forense concluído com sucesso.")
 
 if __name__ == "__main__":
     main()
