@@ -1,11 +1,14 @@
 from flask import Flask, render_template_string, jsonify
 import os
 import csv
+import pandas as pd
+import requests
+from io import StringIO
 
 app = Flask(__name__)
 
-# O arquivo será servido localmente pela Vercel após o commit do GitHub Action
-DATA_PATH = os.path.join(os.path.dirname(__file__), 'dados_latest.csv')
+# URL pública dos dados no GitHub Raw (atualize com seu usuário e repositório)
+DATA_URL = "https://raw.githubusercontent.com/thimacedo/analise.discurso/main/corpus_classificado_latest.csv"
 
 @app.route('/')
 def home():
@@ -62,16 +65,23 @@ def home():
 
 @app.route('/api/stats')
 def stats():
-    if not os.path.exists(DATA_PATH):
-        return jsonify({"total": 0, "hate": 0, "hate_rate": 0})
-    
-    with open(DATA_PATH, mode='r', encoding='utf-8-sig') as f:
-        reader = csv.DictReader(f)
-        data = list(reader)
-        total = len(data)
-        hate_count = sum(1 for row in data if row.get('categoria_odio') != 'neutro')
-        rate = round((hate_count / total * 100), 1) if total > 0 else 0
-        return jsonify({'total': total, 'hate': hate_count, 'hate_rate': rate})
+    try:
+        # Baixa dados diretamente do GitHub Raw
+        response = requests.get(DATA_URL, timeout=10)
+        response.raise_for_status()
+        
+        df = pd.read_csv(StringIO(response.text))
+        total = len(df)
+        hate = df[df['categoria_odio'] != 'neutro']
+        
+        return jsonify({
+            'total': total,
+            'hate': len(hate),
+            'hate_rate': round(len(hate)/total*100, 2),
+            'categories': hate['categoria_odio'].value_counts().to_dict()
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(debug=True)
