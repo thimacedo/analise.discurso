@@ -1,38 +1,39 @@
-name: ForenseNet Monitor Auto-Update
+name: Atualizar Dados ForenseNet
 
 on:
   schedule:
-    - cron: '0 */6 * * *' # Roda a cada 6 horas
-  workflow_dispatch: # Permite rodar manualmente pelo site do GitHub
+    - cron: '0 */6 * * *'   # Roda a cada 6 horas
+  workflow_dispatch:         # Permite rodar manualmente pelo GitHub
 
 jobs:
-  build-and-run:
+  coleta-e-atualizacao:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Essencial para permitir que a Action faça commit e push
     steps:
       - uses: actions/checkout@v4
 
-      - name: Configurar Python
-        uses: actions/setup-python@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: '3.10'
 
-      - name: Instalar Dependências
+      - name: Instalar dependências
         run: |
           pip install -r requirements-full.txt
           python -m spacy download pt_core_news_sm
 
-      - name: Executar Pipeline
+      - name: Executar pipeline
         env:
           IG_USERNAME: ${{ secrets.IG_USERNAME }}
           IG_PASSWORD: ${{ secrets.IG_PASSWORD }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: python orquestrador.py
 
-      - name: Commit e Push dos Resultados
+      - name: Commit e push dos resultados
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action Bot"
-          git add api/dados_latest.csv *.png
-          git commit -m "auto: atualização de dados [skip ci]" || echo "Sem mudanças"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add api/dados_latest.csv nuvem_*.png
+          git commit -m "auto: atualização de dados [skip ci]" || echo "Sem alterações"
           git push

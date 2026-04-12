@@ -3,7 +3,7 @@ import os
 import shutil
 import traceback
 from datetime import datetime
-from coletor_seguidos import ColetorSeguro
+from coletor import ColetorSeguro
 from processador import ProcessadorCorpus
 from minerador import MineradorCorpus
 from classificador import ClassificadorOdio
@@ -14,9 +14,10 @@ def log(etapa, status, msg=""):
 def main():
     print("🚀 INICIANDO PIPELINE (Fluxo Git-Local)\n")
 
-    # 1. COLETA
+    # 1. COLETA (MODO TESTE: APENAS 5 PERFIS INICIALMENTE)
+    # Aumente limite_perfis gradualmente conforme o script funcionar sem erros 429
     coletor = ColetorSeguro()
-    df_bruto, _ = coletor.coletar_todos_seguidos(posts_por_perfil=3)
+    df_bruto = coletor.coletar_todos_seguidos(posts_por_perfil=3, limite_perfis=5)
     
     if df_bruto.empty:
         log("COLETA", "FALHA", "Sem dados coletados.")
