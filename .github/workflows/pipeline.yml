@@ -1,0 +1,38 @@
+name: ForenseNet Monitor Auto-Update
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # Roda a cada 6 horas
+  workflow_dispatch: # Permite rodar manualmente pelo site do GitHub
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Instalar Dependências
+        run: |
+          pip install -r requirements-full.txt
+          python -m spacy download pt_core_news_sm
+
+      - name: Executar Pipeline
+        env:
+          IG_USERNAME: ${{ secrets.IG_USERNAME }}
+          IG_PASSWORD: ${{ secrets.IG_PASSWORD }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: python orquestrador.py
+
+      - name: Commit e Push dos Resultados
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action Bot"
+          git add api/dados_latest.csv *.png
+          git commit -m "auto: atualização de dados [skip ci]" || echo "Sem mudanças"
+          git push
