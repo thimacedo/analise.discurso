@@ -1,9 +1,5 @@
 from flask import Flask, render_template_string, jsonify
 import os
-import sys
-
-# Ajuste do path para o ambiente serverless
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 app = Flask(__name__)
 
@@ -237,7 +233,5 @@ def status():
         "notice": "Long-running tasks (scraping/NLP) disabled in serverless mode."
     })
 
-# Exportação do app para o Vercel
-app_handler = app
 if __name__ == "__main__":
     app.run(debug=True)
