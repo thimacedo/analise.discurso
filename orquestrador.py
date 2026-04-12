@@ -13,6 +13,7 @@ from minerador import MineradorCorpus
 from classificador import ClassificadorOdio
 from visualizer import DataVisualizer
 from candidato_analisador import AnalisadorPerfis
+from database.repository import DatabaseRepository
 
 # CORREÇÃO #5: importação opcional do cloud_utils
 try:
@@ -31,6 +32,10 @@ def main():
     from memoria import MemoriaExecucao
     memoria = MemoriaExecucao()
     memoria.registrar_execucao()
+    
+    # Inicializa banco de dados
+    db = DatabaseRepository()
+    execucao_db = db.iniciar_execucao()
 
     limite_perfis = int(os.getenv('COLETA_LIMITE_PERFIS', 5))
     posts_por_perfil = int(os.getenv('COLETA_POSTS_POR_PERFIL', 2))
@@ -58,6 +63,12 @@ def main():
             nome_completo=bio_data.get('nome_completo', '')
         )
         metadados_perfis[perfil] = info_candidato
+
+    # Salva candidatos no banco de dados
+    candidatos_db = {}
+    for perfil, dados in metadados_perfis.items():
+        candidato = db.salvar_candidato(perfil, dados)
+        candidatos_db[perfil] = candidato.id
 
     # Adiciona as colunas de metadata ao DataFrame bruto
     for coluna in ['cargo', 'sexo', 'raca', 'estado', 'partido', 'ideologia']:
@@ -93,6 +104,37 @@ def main():
     # CORREÇÃO #5: só tenta upload se a função existir e a chave estiver configurada
     if os.getenv('AWS_BUCKET_NAME') and upload_para_s3:
         upload_para_s3(dashboard_file, "dados_latest.csv")
+
+    # SALVA NO BANCO DE DADOS POSTGRESQL
+    log("BANCO_DADOS", "INICIO", "Salvando resultados no PostgreSQL...")
+    total_salvo = 0
+    
+    for _, row in df_final.iterrows():
+        candidato_id = candidatos_db.get(row['candidato'])
+        if not candidato_id:
+            continue
+            
+        comentario = db.salvar_comentario(candidato_id, {
+            'id_externo': row.get('id_comentario'),
+            'post_id': row.get('id_post'),
+            'autor_username': row.get('autor'),
+            'texto_bruto': row['texto'],
+            'texto_limpo': row.get('texto_limpo'),
+            'data_publicacao': row.get('data'),
+            'likes': row.get('likes', 0)
+        })
+        
+        if comentario:
+            db.salvar_classificacao(comentario.id, {
+                'categoria_odio': row['categoria_odio'],
+                'score': row.get('score', 0.5),
+                'confianca': row.get('confianca', 0.7),
+                'modelo_versao': 'legacy'
+            })
+            total_salvo += 1
+    
+    db.finalizar_execucao(execucao_db.id, 'SUCESSO', len(df_bruto), total_salvo)
+    log("BANCO_DADOS", "PRONTO", f"{total_salvo} comentários salvos no banco")
 
     log("ORQUESTRADOR", "PRONTO", "Pipeline executado com sucesso.")
 
