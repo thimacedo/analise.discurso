@@ -1,6 +1,6 @@
 from flask import Flask, render_template_string, jsonify, send_file
-import pandas as pd
 import requests
+import csv
 from io import StringIO
 import os
 
@@ -166,16 +166,30 @@ def stats():
     path = os.path.join(os.path.dirname(__file__), 'dados_latest.csv')
     if not os.path.exists(path):
         return jsonify({"error": "Arquivo de dados não encontrado"}), 404
-    df = pd.read_csv(path)
-    hate = df[df['categoria_odio'] != 'neutro']
-    cat_counts = hate['categoria_odio'].value_counts().to_dict()
-    return jsonify({
-        'total': len(df),
-        'hate': len(hate),
-        'hate_rate': round(len(hate)/len(df)*100, 2) if len(df) else 0,
-        'categories': cat_counts,
-        'last_update': pd.Timestamp.now().isoformat()
-    })
+    
+    try:
+        with open(path, mode='r', encoding='utf-8-sig') as f:
+            reader = csv.DictReader(f)
+            data = list(reader)
+            
+            total = len(data)
+            hate_count = sum(1 for row in data if row.get('categoria_odio') != 'neutro')
+            
+            # Conta categorias
+            cat_counts = {}
+            for row in data:
+                cat = row.get('categoria_odio', 'neutro')
+                if cat != 'neutro':
+                    cat_counts[cat] = cat_counts.get(cat, 0) + 1
+            
+            return jsonify({
+                'total': total,
+                'hate': hate_count,
+                'hate_rate': round((hate_count / total * 100), 2) if total > 0 else 0,
+                'categories': cat_counts
+            })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
