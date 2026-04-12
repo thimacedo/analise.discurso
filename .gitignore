@@ -2,6 +2,7 @@
 .env.local
 .env.*.local
 session.json
+execucao_memoria.json
 __pycache__/
 *.pyc
 .venv/

@@ -28,6 +28,11 @@ def main():
     if not IG_USERNAME or not IG_PASSWORD:
         print("❌ ERRO: IG_USERNAME e IG_PASSWORD não foram encontrados.")
         sys.exit(1)
+    
+    # Registrar esta execução
+    from memoria import MemoriaExecucao
+    memoria = MemoriaExecucao()
+    memoria.registrar_execucao()
 
     limite_perfis = int(os.getenv('COLETA_LIMITE_PERFIS', 5))
     posts_por_perfil = int(os.getenv('COLETA_POSTS_POR_PERFIL', 2))
