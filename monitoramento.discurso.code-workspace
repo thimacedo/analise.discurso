@@ -12,7 +12,7 @@
 		"git.confirmSync": false,
 		"git.countBadge": "all",
 		"git.decorations.enabled": true,
-		"git.inputValidation": "warning",
+		"git.inputValidation": true,
 		"git.openRepositoryInParentFolders": "always",
 		"git.pruneOnFetch": true,
 		"scm.defaultViewMode": "tree",

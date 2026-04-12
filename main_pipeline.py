@@ -1,4 +1,4 @@
-from instagram_collector import InstagramCollector
+from instagram_collector import ForensicCollector
 from corpus_builder import CorpusBuilder
 from hate_classifier import HateSpeechClassifier
 from data_mining import DataMiner
@@ -9,111 +9,93 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-def run_forensic_analysis(candidates, posts_per_candidate=20):
+# Configuração de Candidatos (Pode ser movido para um arquivo JSON ou DB no futuro)
+CANDIDATES = [
+    "candidato_a_oficial",
+    "candidato_b_oficial",
+    "candidato_c_oficial"
+]
+
+def run_full_analysis():
     """
-    Pipeline completo seguindo metodologia do prof. Leonardo Vichi
+    Executa o pipeline completo de Análise Forense seguindo a metodologia
+    do Prof. Leonardo Vichi.
     """
     print("="*60)
-    print("🔬 FORENSENET - Análise de Discurso de Ódio")
-    print("Metodologia: Linguística Forense + Tecnologia Digital")
+    print("🔬 FORENSENET - MONITORAMENTO DE DISCURSO POLÍTICO")
     print("="*60)
     
-    # 1. Coleta de dados
-    print("\n[1/5] Coletando dados do Instagram...")
-    collector = InstagramCollector(
-        username=os.getenv('INSTAGRAM_USERNAME'),
-        password=os.getenv('INSTAGRAM_PASSWORD')
-    )
-    
-    all_comments = []
-    for candidate in candidates:
-        try:
-            df = collector.collect_politician_posts(candidate, posts_per_candidate)
-            all_comments.append(df)
-            print(f"  ✓ Coletados {len(df)} comentários de @{candidate}")
-        except Exception as e:
-            print(f"  ✗ Erro ao coletar @{candidate}: {e}")
-    
-    if not all_comments:
-        print("❌ Nenhum comentário coletado. Verifique as credenciais.")
+    # 1. Coleta baseada na conta @monitoramento.discurso
+    print("\n[1/5] Iniciando coleta com @monitoramento.discurso...")
+    try:
+        collector = ForensicCollector()
+        raw_df = collector.monitor_multiple_candidates(CANDIDATES, posts_per_candidate=15)
+        
+        if raw_df.empty:
+            print("❌ Falha crítica: Nenhum dado coletado. Abortando pipeline.")
+            return
+            
+        print(f"📊 Total de comentários brutos: {len(raw_df)}")
+    except Exception as e:
+        print(f"❌ Erro na fase de coleta: {e}")
         return
     
-    raw_df = pd.concat(all_comments, ignore_index=True)
-    raw_df.to_csv('dados_brutos.csv', index=False, encoding='utf-8')
-    print(f"  ✓ Total de comentários coletados: {len(raw_df)}")
+    # 2. Construção de Corpus Linguístico
+    print("\n[2/5] Construindo corpus e limpando metadados...")
+    builder = CorpusBuilder()
+    processed_df, freq_dist = builder.build_corpus(raw_df, text_column='text')
+    builder.save_corpus_stats(processed_df)
     
-    # 2. Construção do corpus
-    print("\n[2/5] Construindo corpus linguístico...")
-    corpus_builder = CorpusBuilder()
-    processed_df, freq_dist = corpus_builder.build_corpus(raw_df)
-    corpus_builder.save_corpus_stats(processed_df)
-    print(f"  ✓ Corpus construído: {len(processed_df)} documentos, {len(freq_dist)} termos únicos")
-    
-    # 3. Classificação de discurso de ódio
-    print("\n[3/5] Classificando discurso de ódio...")
+    # 3. Classificação com Inteligência Híbrida
+    print("\n[3/5] Classificando discurso de ódio (Metodologia Forense)...")
     classifier = HateSpeechClassifier()
     classified_results = classifier.classify_batch(processed_df['clean_text'].tolist())
-    classified_df = pd.concat([processed_df, classified_results], axis=1)
-    classified_df.to_csv('corpus_classificado.csv', index=False, encoding='utf-8')
     
-    hate_count = classified_df['is_hate_speech'].sum()
-    print(f"  ✓ {hate_count} comentários classificados como discurso de ódio ({hate_count/len(classified_df)*100:.2f}%)")
+    # Merge dos resultados
+    final_df = pd.concat([processed_df, classified_results], axis=1)
+    final_df.to_csv('corpus_classificado.csv', index=False, encoding='utf-8')
     
-    # 4. Mineração de dados
-    print("\n[4/5] Realizando mineração de dados...")
-    miner = DataMiner(classified_df)
-    
+    # 4. Mineração de Dados e Análise de Redes
+    print("\n[4/5] Minerando padrões e tendências temporais...")
+    miner = DataMiner(final_df)
     temporal_data, peaks = miner.temporal_analysis()
     user_stats = miner.user_behavior_analysis()
-    clustered_df, cluster_topics = miner.thematic_clustering()
-    co_occurrence_network = miner.co_occurrence_network()
+    clustered_df, topics = miner.thematic_clustering()
     
-    print(f"  ✓ Picos detectados: {len(peaks)} eventos")
-    if len(user_stats) > 0:
-        print(f"  ✓ Usuários com maior risco: {user_stats.head(3).index.tolist()}")
+    # 5. Visualização e Relatório Pericial
+    print("\n[5/5] Gerando visualizações cinematográficas e relatório...")
+    viz = DataVisualizer(final_df, freq_dist)
     
-    # 5. Visualizações
-    print("\n[5/5] Gerando visualizações...")
-    visualizer = DataVisualizer(classified_df, freq_dist)
+    # Exportação de ativos visuais
+    viz.create_wordcloud(save_path='nuvem_geral.png')
+    viz.plot_category_distribution()
+    viz.plot_top_terms(n=25)
     
-    # Nuvem de palavras geral
-    visualizer.create_wordcloud(save_path='nuvem_geral.png')
+    if temporal_data is not None and not temporal_data.empty:
+        viz.plot_hate_timeline(temporal_data, peaks)
+        
+    # Geração do output final (HTML)
+    viz.generate_report()
     
-    # Nuvens por categoria
-    for category in ['racismo', 'homofobia', 'transfobia', 'misoginia', 'xenofobia']:
-        if category in classified_df['primary_category'].values:
-            visualizer.create_wordcloud(category=category, save_path=f'nuvem_{category}.png')
-    
-    # Gráficos
-    if len(temporal_data) > 0:
-        visualizer.plot_hate_timeline(temporal_data, peaks)
-    visualizer.plot_category_distribution()
-    visualizer.plot_top_terms(n=25)
-    
-    # Relatório final
-    visualizer.generate_report()
+    # 6. Upload para Cloud (Opcional - para Dashboard Vercel)
+    print("\n[6/5] Sincronizando resultados com a nuvem...")
+    from cloud_utils import upload_results_to_s3
+    files_to_upload = [
+        'corpus_classificado.csv',
+        'relatorio_pericial.html',
+        'nuvem_geral.png',
+        'categories.png',
+        'top_terms.png'
+    ]
+    upload_results_to_s3(files_to_upload)
     
     print("\n" + "="*60)
-    print("✅ ANÁLISE CONCLUÍDA!")
-    print("Arquivos gerados:")
-    print("  - dados_brutos.csv")
-    print("  - corpus_processado.csv")
-    print("  - corpus_classificado.csv")
-    print("  - frequencias_terminos.csv")
-    print("  - relatorio_pericial.html")
-    print("  - nuvem_*.png (vários formatos)")
-    print("  - timeline.png, categories.png, top_terms.png")
+    print("✅ ANÁLISE CONCLUÍDA COM SUCESSO")
+    print("  -> Relatório: relatorio_pericial.html")
+    print("  -> Dados: corpus_classificado.csv")
     print("="*60)
     
-    return classified_df
+    return final_df
 
 if __name__ == "__main__":
-    # Configurar candidatos para monitoramento
-    CANDIDATES = [
-        "candidato_a_instagram",
-        "candidato_b_instagram",
-        "candidato_c_instagram"
-    ]
-    
-    # Executar análise
-    results = run_forensic_analysis(CANDIDATES, posts_per_candidate=20)
+    run_full_analysis()

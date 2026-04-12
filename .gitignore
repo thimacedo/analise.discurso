@@ -2,7 +2,8 @@
 forense_env/
 venv/
 env/
-.env
+.env*
+session.json
 
 # Arquivos de dados gerados
 *.csv
