@@ -10,14 +10,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class ColetorSeguro:
-    def __init__(self, session_file="session.json"):
+    def __init__(self, username=None, password=None, session_file="session.json"):
         self.client = Client()
         self.session_file = session_file
-        self.username = os.getenv("IG_USERNAME")
-        self.password = os.getenv("IG_PASSWORD")
+        self.username = username or os.getenv("IG_USERNAME")
+        self.password = password or os.getenv("IG_PASSWORD")
         
         if not self.username or not self.password:
-            raise ValueError("IG_USERNAME ou IG_PASSWORD não configurados no .env")
+            raise ValueError("IG_USERNAME ou IG_PASSWORD não configurados. Use .env ou variáveis de ambiente.")
 
     def log(self, msg):
         print(f"[{datetime.now().strftime('%H:%M:%S')}] [Coletor] {msg}")
