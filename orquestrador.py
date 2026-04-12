@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 if os.path.exists('.env'):
     load_dotenv()
 
-from coletor import ColetorSeguro
+from coletor_seguidos import ColetorSeguro
 from processador import ProcessadorCorpus
 from minerador import MineradorCorpus
 from classificador import ClassificadorOdio
@@ -27,7 +27,7 @@ def main():
     IG_USERNAME = os.getenv('IG_USERNAME')
     IG_PASSWORD = os.getenv('IG_PASSWORD')
     if not IG_USERNAME or not IG_PASSWORD:
-        print("❌ ERRO: IG_USERNAME e IG_PASSWORD não foram encontrados.")
+        print("ERROR: IG_USERNAME e IG_PASSWORD nao foram encontrados.")
         sys.exit(1)
     
     # Registrar esta execução
@@ -38,7 +38,7 @@ def main():
     limite_perfis = int(os.getenv('COLETA_LIMITE_PERFIS', 5))
     posts_por_perfil = int(os.getenv('COLETA_POSTS_POR_PERFIL', 2))
 
-    print(f"🚀 INICIANDO PIPELINE ANÁLISE DISCURSO")
+    print(f"--- INICIANDO PIPELINE ANALISE DISCURSO ---")
     
     # 1. COLETA
     coletor = ColetorSeguro()
@@ -48,7 +48,7 @@ def main():
         return
 
     # 2. ENRIQUECIMENTO DE PERFIS (IA Gratuita)
-    log("ENRIQUECIMENTO", "INÍCIO", "Analisando perfis dos candidatos com IA...")
+    log("ENRIQUECIMENTO", "INICIO", "Analisando perfis dos candidatos com IA...")
     analisador = AnalisadorPerfis()
     perfis_unicos = df_bruto['candidato'].unique().tolist()
     
