@@ -162,3 +162,18 @@ class ColetorSeguro:
         
         self.log(f"  📦 Total de novos comentários de @{username}: {len(todos)}")
         return pd.DataFrame(todos)
+
+    def obter_bio_perfil(self, username):
+        """Obtém o nome completo e a biografia de um perfil"""
+        self.login()
+        try:
+            user_id = self.client.user_id_from_username(username)
+            user_info = self.client.user_info(user_id)
+            return {
+                "nome_completo": user_info.full_name,
+                "bio": user_info.biography
+            }
+        except Exception as e:
+            self.log(f"⚠️ Não foi possível obter bio de @{username}: {e}")
+            return {"nome_completo": "", "bio": ""}
+

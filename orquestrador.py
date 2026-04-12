@@ -12,6 +12,7 @@ from processador import ProcessadorCorpus
 from minerador import MineradorCorpus
 from classificador import ClassificadorOdio
 from visualizer import DataVisualizer
+from candidato_analisador import AnalisadorPerfis
 
 # CORREÇÃO #5: importação opcional do cloud_utils
 try:
@@ -38,12 +39,34 @@ def main():
     posts_por_perfil = int(os.getenv('COLETA_POSTS_POR_PERFIL', 2))
 
     print(f"🚀 INICIANDO PIPELINE ANÁLISE DISCURSO")
+    
+    # 1. COLETA
     coletor = ColetorSeguro()
     df_bruto = coletor.coletar_todos_seguidos(posts_por_perfil=posts_por_perfil, limite_perfis=limite_perfis)
     if df_bruto.empty:
         log("COLETA", "FALHA", "Sem dados coletados.")
         return
 
+    # 2. ENRIQUECIMENTO DE PERFIS (IA Gratuita)
+    log("ENRIQUECIMENTO", "INÍCIO", "Analisando perfis dos candidatos com IA...")
+    analisador = AnalisadorPerfis()
+    perfis_unicos = df_bruto['candidato'].unique().tolist()
+    
+    metadados_perfis = {}
+    for perfil in perfis_unicos:
+        bio_data = coletor.obter_bio_perfil(perfil)
+        info_candidato = analisador.analisar_perfil(
+            username=perfil, 
+            bio=bio_data.get('bio', ''), 
+            nome_completo=bio_data.get('nome_completo', '')
+        )
+        metadados_perfis[perfil] = info_candidato
+
+    # Adiciona as colunas de metadata ao DataFrame bruto
+    for coluna in ['cargo', 'sexo', 'raca', 'estado', 'partido', 'ideologia']:
+        df_bruto[coluna] = df_bruto['candidato'].map(lambda x: metadados_perfis.get(x, {}).get(coluna, 'N/A'))
+
+    # 3. PROCESSAMENTO
     proc = ProcessadorCorpus()
     df_proc, freq = proc.processar_dataframe(df_bruto, coluna_texto='texto')
     proc.gerar_estatisticas(df_proc)
