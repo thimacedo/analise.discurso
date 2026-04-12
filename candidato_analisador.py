@@ -1,6 +1,7 @@
 import os
 import json
 import time
+import instaloader
 import google.generativeai as genai
 from dotenv import load_dotenv
 
@@ -87,6 +88,19 @@ class AnalisadorPerfis:
         except Exception as e:
             print(f"  ⚠️ Erro na IA para @{username}: {e}")
             return self._dados_padrao(username)
+
+    def obter_bio_perfil(self, username):
+        """Obtém a bio via instaloader anônimo"""
+        try:
+            L = instaloader.Instaloader(download_pictures=False, save_metadata=False)
+            profile = instaloader.Profile.from_username(L.context, username)
+            return {
+                "nome_completo": profile.full_name,
+                "bio": profile.biography
+            }
+        except Exception as e:
+            print(f"  ⚠️ Não foi possível obter bio de @{username}: {e}")
+            return {"nome_completo": "", "bio": ""}
 
     def _dados_padrao(self, username):
         return {

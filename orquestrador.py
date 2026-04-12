@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 if os.path.exists('.env'):
     load_dotenv()
 
-from coletor_seguidos import ColetorSeguro
+from coletor import ColetorPublico
 from processador import ProcessadorCorpus
 from minerador import MineradorCorpus
 from classificador import ClassificadorOdio
@@ -24,11 +24,8 @@ def log(etapa, status, msg=""):
     print(f"[{datetime.now().strftime('%H:%M:%S')}] {etapa:20} | {status:8} | {msg}")
 
 def main():
-    IG_USERNAME = os.getenv('IG_USERNAME')
-    IG_PASSWORD = os.getenv('IG_PASSWORD')
-    if not IG_USERNAME or not IG_PASSWORD:
-        print("ERROR: IG_USERNAME e IG_PASSWORD nao foram encontrados.")
-        sys.exit(1)
+    # Credenciais NÃO SÃO MAIS NECESSÁRIAS para a coleta anônima!
+    # Apenas o script atualizar_perfis.py precisa de login eventualmente
     
     # Registrar esta execução
     from memoria import MemoriaExecucao
@@ -40,11 +37,11 @@ def main():
 
     print(f"--- INICIANDO PIPELINE ANALISE DISCURSO ---")
     
-    # 1. COLETA
-    coletor = ColetorSeguro()
-    df_bruto = coletor.coletar_todos_seguidos(posts_por_perfil=posts_por_perfil, limite_perfis=limite_perfis)
+    # 1. COLETA (100% ANÔNIMA)
+    coletor = ColetorPublico()
+    df_bruto = coletor.coletar_todos(posts_por_perfil=posts_por_perfil)
     if df_bruto.empty:
-        log("COLETA", "FALHA", "Sem dados coletados.")
+        log("COLETA", "FALHA", "Sem dados coletados. Rode 'python atualizar_perfis.py' primeiro?")
         return
 
     # 2. ENRIQUECIMENTO DE PERFIS (IA Gratuita)
@@ -54,7 +51,7 @@ def main():
     
     metadados_perfis = {}
     for perfil in perfis_unicos:
-        bio_data = coletor.obter_bio_perfil(perfil)
+        bio_data = analisador.obter_bio_perfil(perfil)
         info_candidato = analisador.analisar_perfil(
             username=perfil, 
             bio=bio_data.get('bio', ''), 
