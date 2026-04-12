@@ -63,19 +63,22 @@ class ColetorSeguro:
             except Exception: continue
         return todos
 
-    def coletar_todos_seguidos(self, posts_por_perfil=3):
+    def coletar_todos_seguidos(self, posts_por_perfil=3, limite_perfis=None):
         perfis = self.obter_perfis_seguidos()
+        
+        # Respeita o limite de perfis (evita 429)
+        if limite_perfis:
+            perfis = perfis[:limite_perfis]
+            
         self.log(f"Monitorando {len(perfis)} perfis.")
         
         todos_dados = []
         for perfil in perfis:
             dados = self.coletar_comentarios_perfil(perfil, posts_limit=posts_por_perfil)
             todos_dados.extend(dados)
-            time.sleep(random.uniform(10, 15))
+            time.sleep(random.uniform(10, 15)) # Pausa entre perfis
         
         if todos_dados:
             df = pd.DataFrame(todos_dados)
-            filename = f"dados_brutos_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-            df.to_csv(filename, index=False, encoding='utf-8-sig')
-            return df, filename
-        return pd.DataFrame(), None
+            return df
+        return pd.DataFrame()

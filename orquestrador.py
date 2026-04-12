@@ -1,9 +1,8 @@
 import sys
 import os
-import shutil
 import traceback
 from datetime import datetime
-from coletor import ColetorSeguro
+from coletor_seguidos import ColetorSeguro
 from processador import ProcessadorCorpus
 from minerador import MineradorCorpus
 from classificador import ClassificadorOdio
@@ -12,12 +11,18 @@ def log(etapa, status, msg=""):
     print(f"[{datetime.now().strftime('%H:%M:%S')}] {etapa:20} | {status:8} | {msg}")
 
 def main():
-    print("🚀 INICIANDO PIPELINE (Fluxo Git-Local)\n")
+    # LER LIMITES DO AMBIENTE (Segurança contra 429)
+    LIMITE_PERFIS = int(os.getenv('COLETA_LIMITE_PERFIS', 5))
+    POSTS_POR_PERFIL = int(os.getenv('COLETA_POSTS_POR_PERFIL', 2))
 
-    # 1. COLETA (MODO TESTE: APENAS 5 PERFIS INICIALMENTE)
-    # Aumente limite_perfis gradualmente conforme o script funcionar sem erros 429
+    print(f"🚀 INICIANDO PIPELINE (Limite: {LIMITE_PERFIS} perfis, {POSTS_POR_PERFIL} posts/cada)\n")
+
+    # 1. COLETA
     coletor = ColetorSeguro()
-    df_bruto = coletor.coletar_todos_seguidos(posts_por_perfil=3, limite_perfis=5)
+    df_bruto = coletor.coletar_todos_seguidos(
+        posts_por_perfil=POSTS_POR_PERFIL, 
+        limite_perfis=LIMITE_PERFIS
+    )
     
     if df_bruto.empty:
         log("COLETA", "FALHA", "Sem dados coletados.")
@@ -35,18 +40,12 @@ def main():
     clas = ClassificadorOdio()
     df_final = clas.classificar_dataframe(df_proc)
 
-    # 4. EXPORTAÇÃO AUTOMÁTICA PARA DASHBOARD
-    # Salva com timestamp para histórico local
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    hist_file = f"resultado_{ts}.csv"
-    df_final.to_csv(hist_file, index=False, encoding='utf-8-sig')
-
-    # Copia para a pasta api (onde a Vercel vai ler)
+    # 4. EXPORTAÇÃO PARA DASHBOARD
     dashboard_file = os.path.join("api", "dados_latest.csv")
     df_final.to_csv(dashboard_file, index=False, encoding='utf-8-sig')
     
-    log("DASHBOARD", "PRONTO", f"Arquivo api/dados_latest.csv atualizado.")
-    print("\n✅ TUDO PRONTO! Agora rode: git add . ; git commit -m 'atualizar dados' ; git push")
+    log("DASHBOARD", "PRONTO", f"Arquivo {dashboard_file} atualizado.")
+    print("\n✅ PIPELINE CONCLUÍDO COM SUCESSO!")
 
 if __name__ == "__main__":
     main()
