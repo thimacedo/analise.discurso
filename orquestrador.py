@@ -29,21 +29,26 @@ def main():
         sys.exit(1)
 
     # Lê limites configuráveis por variável de ambiente
-    limite_perfis = int(os.getenv('COLETA_LIMITE_PERFIS', 5))
-    posts_por_perfil = int(os.getenv('COLETA_POSTS_POR_PERFIL', 2))
+    limite_perfis = int(os.getenv('COLETA_LIMITE_PERFIS', 1))
+    posts_por_perfil = int(os.getenv('COLETA_POSTS_POR_PERFIL', 1))
+    pausa_entre_perfis = int(os.getenv('COLETA_PAUSA_ENTRE_PERFIS', 180))
+    comments_por_post = int(os.getenv('COLETA_COMMENTS_POR_POST', 50))
 
     print(f"🚀 INICIANDO PIPELINE ANÁLISE DISCURSO")
-    print(f"   Configuração: {limite_perfis} perfis, {posts_por_perfil} posts cada\n")
+    print(f"   Configuração:")
+    print(f"     - {limite_perfis} perfis")
+    print(f"     - {posts_por_perfil} posts por perfil")
+    print(f"     - {comments_por_post} comentários por post")
+    print(f"     - Pausa de {pausa_entre_perfis}s entre perfis\n")
 
     # 1. COLETA
-    coletor = ColetorSeguro(
-        username=IG_USERNAME,
-        password=IG_PASSWORD
-    )
+    coletor = ColetorSeguro()
     
     df_bruto = coletor.coletar_todos_seguidos(
         posts_por_perfil=posts_por_perfil,
-        limite_perfis=limite_perfis
+        limite_perfis=limite_perfis,
+        pausa_entre_perfis=pausa_entre_perfis,
+        comments_por_post=comments_por_post
     )
     
     if df_bruto.empty:
