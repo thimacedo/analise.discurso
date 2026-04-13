@@ -25,8 +25,8 @@ def log(etapa, status, msg=""):
     print(f"[{datetime.now().strftime('%H:%M:%S')}] {etapa:20} | {status:8} | {msg}")
 
 def main():
-    # Credenciais NÃO SÃO MAIS NECESSÁRIAS para a coleta anônima!
-    # Apenas o script atualizar_perfis.py precisa de login eventualmente
+    # As credenciais no .env agora sao usadas para a coleta segura via instagrapi
+    # Isso evita o erro 403 Forbidden do Instagram
     
     # Registrar esta execução
     from memoria import MemoriaExecucao
