@@ -97,11 +97,24 @@ class DatabaseRepository:
         with self.get_session() as session:
             total_comentarios = session.query(func.count(Comentario.id)).scalar()
             total_odio = session.query(func.count(Classificacao.id)).filter(Classificacao.categoria_odio != 'neutro').scalar()
-            taxa_odio = round((total_odio / total_comentarios * 100), 2) if total_comentarios > 0 else 0
+            taxa_odio = round((total_odio / total_comentarios * 100), 1) if total_comentarios > 0 else 0
+            
+            # Métricas exatas do dashboard ForenseNet
+            total_candidatos = session.query(func.count(Candidato.id)).scalar()
+            revisao_pendente = session.query(func.count(Classificacao.id)).filter(Classificacao.revisado == False).scalar()
+            alertas_nao_lidos = session.query(func.count(Classificacao.id)).filter(Classificacao.alerta_enviado == True, Classificacao.alerta_lido == False).scalar()
+            jobs_recentes = session.query(func.count(ExecucaoPipeline.id)).filter(ExecucaoPipeline.inicio >= datetime.utcnow().replace(hour=0, minute=0, second=0)).scalar()
+            confianca_media = session.query(func.avg(Classificacao.confianca)).scalar() or 0
+            severidade_alta = session.query(func.count(Classificacao.id)).filter(Classificacao.score >= 0.7).scalar()
             
             return {
                 'total_comentarios': total_comentarios,
-                'total_classificados': total_odio,
-                'taxa_odio_percentual': taxa_odio,
-                'total_candidatos': session.query(func.count(Candidato.id)).scalar()
+                'total_discurso_odio': total_odio,
+                'percentual_odio': taxa_odio,
+                'candidatos_ativos': total_candidatos,
+                'revisao_pendente': revisao_pendente,
+                'alertas_nao_lidos': alertas_nao_lidos,
+                'jobs_recentes_24h': jobs_recentes,
+                'confianca_media': round(confianca_media * 100, 1),
+                'severidade_alta': severidade_alta
             }
