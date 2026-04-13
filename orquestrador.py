@@ -14,8 +14,9 @@ from classificador import ClassificadorOdio
 from visualizer import DataVisualizer
 from candidato_analisador import AnalisadorPerfis
 from database.repository import DatabaseRepository
+from memoria import MemoriaExecucao
 
-# CORREÇÃO #5: importação opcional do cloud_utils
+# Importação opcional do cloud_utils
 try:
     from cloud_utils import upload_para_s3
 except ImportError:
@@ -25,17 +26,13 @@ def log(etapa, status, msg=""):
     print(f"[{datetime.now().strftime('%H:%M:%S')}] {etapa:20} | {status:8} | {msg}")
 
 def main():
-    # As credenciais no .env agora sao usadas para a coleta segura via instagrapi
-    # Isso evita o erro 403 Forbidden do Instagram
-    
     # Registrar esta execução
-    from memoria import MemoriaExecucao
     memoria = MemoriaExecucao()
     memoria.registrar_execucao()
     
     # Inicializa banco de dados
     db = DatabaseRepository()
-    db.criar_tabelas() # Garante que o arquivo .db e as tabelas existam
+    db.criar_tabelas()
     execucao_db = db.iniciar_execucao()
 
     limite_perfis = int(os.getenv('COLETA_LIMITE_PERFIS', 5))
@@ -48,6 +45,7 @@ def main():
     df_bruto = coletor.coletar_todos(posts_por_perfil=posts_por_perfil)
     if df_bruto.empty:
         log("COLETA", "FALHA", "Sem dados coletados. Rode 'python atualizar_perfis.py' primeiro?")
+        db.finalizar_execucao(execucao_db.id, 'FALHA_COLETA', 0, 0)
         return
 
     # 2. ENRIQUECIMENTO DE PERFIS (IA Gratuita)
@@ -80,15 +78,18 @@ def main():
     df_proc, freq = proc.processar_dataframe(df_bruto, coluna_texto='texto')
     proc.gerar_estatisticas(df_proc)
 
+    # 4. CLASSIFICAÇÃO
     clas = ClassificadorOdio()
     df_final = clas.classificar_dataframe(df_proc)
     df_final['is_hate_speech'] = df_final['categoria_odio'] != 'neutro'
     df_final['primary_category'] = df_final['categoria_odio']
 
+    # 5. MINERAÇÃO
     miner = MineradorCorpus()
     ngrams_freq = miner.analisar_frequencia_ngrams(df_final)
     daily_hate, peaks = miner.analise_temporal(df_final)
 
+    # 6. VISUALIZAÇÃO
     viz = DataVisualizer(df_final, freq)
     viz.create_wordcloud(save_path='nuvem_geral.png')
     viz.plot_category_distribution(save_path='categories.png')
@@ -97,40 +98,45 @@ def main():
         viz.plot_hate_timeline(daily_hate, peaks, save_path='timeline.png')
     viz.generate_report(output_path='relatorio_pericial.html')
 
+    # 7. EXPORTAÇÃO CSV
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     df_final.to_csv(f"resultado_{ts}.csv", index=False, encoding='utf-8-sig')
     os.makedirs("api", exist_ok=True)
     dashboard_file = os.path.join("api", "dados_latest.csv")
     df_final.to_csv(dashboard_file, index=False, encoding='utf-8-sig')
-    # CORREÇÃO #5: só tenta upload se a função existir e a chave estiver configurada
+    
     if os.getenv('AWS_BUCKET_NAME') and upload_para_s3:
         upload_para_s3(dashboard_file, "dados_latest.csv")
 
-    # SALVA NO BANCO DE DADOS POSTGRESQL
-    log("BANCO_DADOS", "INICIO", "Salvando resultados no PostgreSQL...")
+    # 8. SALVA NO BANCO DE DADOS
+    log("BANCO_DADOS", "INICIO", "Salvando resultados no banco local...")
     total_salvo = 0
     
     for _, row in df_final.iterrows():
         candidato_id = candidatos_db.get(row['candidato'])
         if not candidato_id:
             continue
+        
+        # Gera um ID único se o scraper não trouxer um
+        id_externo = str(row.get('id_comentario')) if row.get('id_comentario') else str(hash(row.get('texto', '') + row.get('autor', '')))
+        post_id = str(row.get('id_post')) if row.get('id_post') else 'unknown'
             
         comentario = db.salvar_comentario(candidato_id, {
-            'id_externo': row.get('id_comentario'),
-            'post_id': row.get('id_post'),
-            'autor_username': row.get('autor'),
-            'texto_bruto': row['texto'],
-            'texto_limpo': row.get('texto_limpo'),
-            'data_publicacao': row.get('data'),
+            'id_externo': id_externo,
+            'post_id': post_id,
+            'autor_username': row.get('autor', 'anon'),
+            'texto_bruto': row.get('texto', ''),
+            'texto_limpo': row.get('texto_limpo', ''),
+            'data_publicacao': row.get('data', None),
             'likes': row.get('likes', 0)
         })
         
         if comentario:
             db.salvar_classificacao(comentario.id, {
-                'categoria_odio': row['categoria_odio'],
-                'score': row.get('score', 0.5),
-                'confianca': row.get('confianca', 0.7),
-                'modelo_versao': 'legacy'
+                'categoria_odio': row.get('categoria_odio', 'neutro'),
+                'score': row.get('severidade', 0) / 10.0, # Converte 0-10 para 0-1
+                'confianca': 0.75 if row.get('categoria_odio') != 'neutro' else 0.99,
+                'modelo_versao': 'hybrid_v1'
             })
             total_salvo += 1
     

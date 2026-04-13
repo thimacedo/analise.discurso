@@ -1,125 +1,112 @@
-from datetime import datetime
-from typing import List, Optional, Dict
-from sqlalchemy import create_engine, func
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.exc import IntegrityError
-from .models import Base, Candidato, Comentario, Classificacao, ExecucaoPipeline
+# database/repository.py
+import sqlite3
 import os
-from dotenv import load_dotenv
+from datetime import datetime
 
-load_dotenv()
+class SimpleObject:
+    """Classe auxiliar para simular objetos de banco com .id"""
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
 
 class DatabaseRepository:
-    def __init__(self):
-        # Tenta pegar a URL do .env, se não houver, usa SQLite local por padrão
-        self.database_url = os.getenv('DATABASE_URL', 'sqlite:///./odio_politica.db')
-        
-        # SQLite precisa de uma configuração extra para threads no Flask, mas o SQLAlchemy lida bem com isso
-        connect_args = {"check_same_thread": False} if self.database_url.startswith("sqlite") else {}
-        
-        self.engine = create_engine(self.database_url, connect_args=connect_args)
-        self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
-        
+    def __init__(self, db_path="analise_discurso.db"):
+        self.db_path = db_path
+        self.conn = sqlite3.connect(self.db_path)
+        self.conn.row_factory = sqlite3.Row
+        self.cursor = self.conn.cursor()
+
     def criar_tabelas(self):
-        Base.metadata.create_all(bind=self.engine)
+        self.cursor.executescript("""
+            CREATE TABLE IF NOT EXISTS execucoes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                data_inicio TEXT,
+                data_fim TEXT,
+                status TEXT,
+                total_bruto INTEGER,
+                total_salvo INTEGER
+            );
+            CREATE TABLE IF NOT EXISTS candidatos (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE,
+                cargo TEXT,
+                sexo TEXT,
+                raca TEXT,
+                estado TEXT,
+                partido TEXT,
+                ideologia TEXT,
+                data_atualizacao TEXT
+            );
+            CREATE TABLE IF NOT EXISTS comentarios (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                candidato_id INTEGER,
+                id_externo TEXT,
+                post_id TEXT,
+                autor_username TEXT,
+                texto_bruto TEXT,
+                texto_limpo TEXT,
+                data_publicacao TEXT,
+                likes INTEGER,
+                UNIQUE(id_externo, post_id),
+                FOREIGN KEY(candidato_id) REFERENCES candidatos(id)
+            );
+            CREATE TABLE IF NOT EXISTS classificacoes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                comentario_id INTEGER,
+                categoria_odio TEXT,
+                score REAL,
+                confianca REAL,
+                modelo_versao TEXT,
+                FOREIGN KEY(comentario_id) REFERENCES comentarios(id)
+            );
+        """)
+        self.conn.commit()
+
+    def iniciar_execucao(self):
+        self.cursor.execute("INSERT INTO execucoes (data_inicio, status) VALUES (?, ?)", (datetime.now().isoformat(), "EM_ANDAMENTO"))
+        self.conn.commit()
+        return SimpleObject(id=self.cursor.lastrowid)
+
+    def finalizar_execucao(self, exec_id, status, total_bruto, total_salvo):
+        self.cursor.execute("UPDATE execucoes SET data_fim=?, status=?, total_bruto=?, total_salvo=? WHERE id=?",
+                           (datetime.now().isoformat(), status, total_bruto, total_salvo, exec_id))
+        self.conn.commit()
+
+    def salvar_candidato(self, username, dados):
+        self.cursor.execute("""
+            INSERT INTO candidatos (username, cargo, sexo, raca, estado, partido, ideologia, data_atualizacao)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(username) DO UPDATE SET cargo=?, sexo=?, raca=?, estado=?, partido=?, ideologia=?, data_atualizacao=?
+        """, (username, dados.get('cargo'), dados.get('sexo'), dados.get('raca'), 
+              dados.get('estado'), dados.get('partido'), dados.get('ideologia'), datetime.now().isoformat(),
+              dados.get('cargo'), dados.get('sexo'), dados.get('raca'), 
+              dados.get('estado'), dados.get('partido'), dados.get('ideologia'), datetime.now().isoformat()))
+        self.conn.commit()
         
-    def get_session(self):
-        return self.SessionLocal()
-    
-    def salvar_candidato(self, username: str, dados: Dict) -> Candidato:
-        with self.get_session() as session:
-            candidato = session.query(Candidato).filter(Candidato.username == username).first()
-            
-            if not candidato:
-                candidato = Candidato(username=username)
-            
-            for chave, valor in dados.items():
-                if hasattr(candidato, chave):
-                    setattr(candidato, chave, valor)
-            
-            session.add(candidato)
-            session.commit()
-            session.refresh(candidato)
-            return candidato
-    
-    def salvar_comentario(self, candidato_id: int, dados: Dict) -> Optional[Comentario]:
-        with self.get_session() as session:
-            try:
-                comentario = Comentario(
-                    candidato_id=candidato_id,
-                    id_externo=dados.get('id_externo'),
-                    post_id=dados.get('post_id'),
-                    autor_username=dados.get('autor_username'),
-                    texto_bruto=dados.get('texto_bruto'),
-                    texto_limpo=dados.get('texto_limpo'),
-                    data_publicacao=dados.get('data_publicacao'),
-                    likes=dados.get('likes', 0)
-                )
-                session.add(comentario)
-                session.commit()
-                session.refresh(comentario)
-                return comentario
-            except IntegrityError:
-                session.rollback()
-                return None
-    
-    def salvar_classificacao(self, comentario_id: int, dados: Dict) -> Classificacao:
-        with self.get_session() as session:
-            classificacao = session.query(Classificacao).filter(Classificacao.comentario_id == comentario_id).first()
-            
-            if not classificacao:
-                classificacao = Classificacao(comentario_id=comentario_id)
-            
-            classificacao.categoria_odio = dados.get('categoria_odio')
-            classificacao.score = dados.get('score')
-            classificacao.confianca = dados.get('confianca')
-            classificacao.modelo_versao = dados.get('modelo_versao', 'v1.0')
-            
-            session.add(classificacao)
-            session.commit()
-            session.refresh(classificacao)
-            return classificacao
-    
-    def iniciar_execucao(self) -> ExecucaoPipeline:
-        with self.get_session() as session:
-            execucao = ExecucaoPipeline(status='INICIADO')
-            session.add(execucao)
-            session.commit()
-            session.refresh(execucao)
-            return execucao
-    
-    def finalizar_execucao(self, execucao_id: int, status: str, total_coletado: int, total_classificado: int, erro: str = None):
-        with self.get_session() as session:
-            execucao = session.query(ExecucaoPipeline).get(execucao_id)
-            execucao.fim = datetime.utcnow()
-            execucao.status = status
-            execucao.total_coletado = total_coletado
-            execucao.total_classificado = total_classificado
-            execucao.erro_mensagem = erro
-            session.commit()
-    
-    def estatisticas_resumo(self) -> Dict:
-        with self.get_session() as session:
-            total_comentarios = session.query(func.count(Comentario.id)).scalar()
-            total_odio = session.query(func.count(Classificacao.id)).filter(Classificacao.categoria_odio != 'neutro').scalar()
-            taxa_odio = round((total_odio / total_comentarios * 100), 1) if total_comentarios > 0 else 0
-            
-            # Métricas exatas do dashboard ForenseNet
-            total_candidatos = session.query(func.count(Candidato.id)).scalar()
-            revisao_pendente = session.query(func.count(Classificacao.id)).filter(Classificacao.revisado == False).scalar()
-            alertas_nao_lidos = session.query(func.count(Classificacao.id)).filter(Classificacao.alerta_enviado == True, Classificacao.alerta_lido == False).scalar()
-            jobs_recentes = session.query(func.count(ExecucaoPipeline.id)).filter(ExecucaoPipeline.inicio >= datetime.utcnow().replace(hour=0, minute=0, second=0)).scalar()
-            confianca_media = session.query(func.avg(Classificacao.confianca)).scalar() or 0
-            severidade_alta = session.query(func.count(Classificacao.id)).filter(Classificacao.score >= 0.7).scalar()
-            
-            return {
-                'total_comentarios': total_comentarios,
-                'total_discurso_odio': total_odio,
-                'percentual_odio': taxa_odio,
-                'candidatos_ativos': total_candidatos,
-                'revisao_pendente': revisao_pendente,
-                'alertas_nao_lidos': alertas_nao_lidos,
-                'jobs_recentes_24h': jobs_recentes,
-                'confianca_media': round(confianca_media * 100, 1),
-                'severidade_alta': severidade_alta
-            }
+        self.cursor.execute("SELECT id FROM candidatos WHERE username=?", (username,))
+        row = self.cursor.fetchone()
+        return SimpleObject(id=row['id'])
+
+    def salvar_comentario(self, candidato_id, dados):
+        try:
+            self.cursor.execute("""
+                INSERT INTO comentarios (candidato_id, id_externo, post_id, autor_username, texto_bruto, texto_limpo, data_publicacao, likes)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (candidato_id, dados.get('id_externo'), dados.get('post_id'), 
+                  dados.get('autor_username'), dados.get('texto_bruto'), dados.get('texto_limpo'),
+                  dados.get('data_publicacao'), dados.get('likes', 0)))
+            self.conn.commit()
+            return SimpleObject(id=self.cursor.lastrowid)
+        except sqlite3.IntegrityError:
+            # Comentário já existe no banco, ignora
+            return None
+
+    def salvar_classificacao(self, comentario_id, dados):
+        self.cursor.execute("""
+            INSERT INTO classificacoes (comentario_id, categoria_odio, score, confianca, modelo_versao)
+            VALUES (?, ?, ?, ?, ?)
+        """, (comentario_id, dados.get('categoria_odio'), dados.get('score'), dados.get('confianca'), dados.get('modelo_versao')))
+        self.conn.commit()
+
+    def __del__(self):
+        if hasattr(self, 'conn'):
+            self.conn.close()
