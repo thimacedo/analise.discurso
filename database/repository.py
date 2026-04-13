@@ -11,8 +11,13 @@ load_dotenv()
 
 class DatabaseRepository:
     def __init__(self):
-        self.database_url = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/odio_politica')
-        self.engine = create_engine(self.database_url)
+        # Tenta pegar a URL do .env, se não houver, usa SQLite local por padrão
+        self.database_url = os.getenv('DATABASE_URL', 'sqlite:///./odio_politica.db')
+        
+        # SQLite precisa de uma configuração extra para threads no Flask, mas o SQLAlchemy lida bem com isso
+        connect_args = {"check_same_thread": False} if self.database_url.startswith("sqlite") else {}
+        
+        self.engine = create_engine(self.database_url, connect_args=connect_args)
         self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
         
     def criar_tabelas(self):

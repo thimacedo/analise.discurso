@@ -35,6 +35,7 @@ def main():
     
     # Inicializa banco de dados
     db = DatabaseRepository()
+    db.criar_tabelas() # Garante que o arquivo .db e as tabelas existam
     execucao_db = db.iniciar_execucao()
 
     limite_perfis = int(os.getenv('COLETA_LIMITE_PERFIS', 5))

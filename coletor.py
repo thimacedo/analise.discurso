@@ -26,7 +26,9 @@ class ColetorPublico:
         })
 
     def log(self, msg):
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] [Anônimo] {msg}")
+        # Remove emojis ou caracteres não-ascii da mensagem antes de imprimir
+        msg_limpa = msg.encode('ascii', 'ignore').decode('ascii')
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] [Anonimo] {msg_limpa}")
 
     def coletar_comentarios_perfil(self, username, posts_limit=2):
         self.log(f"🕵️ Acessando perfil público: @{username}")
