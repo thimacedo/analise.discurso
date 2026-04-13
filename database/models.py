@@ -59,6 +59,9 @@ class Classificacao(Base):
     classificado_em = Column(DateTime, default=datetime.utcnow)
     validado_humanamente = Column(Boolean, default=False)
     validado_por = Column(String(100))
+    revisado = Column(Boolean, default=False)
+    alerta_enviado = Column(Boolean, default=False)
+    alerta_lido = Column(Boolean, default=False)
     
     comentario = relationship("Comentario", back_populates="classificacao")
 
