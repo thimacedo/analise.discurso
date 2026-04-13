@@ -1,4 +1,5 @@
 from flask import Flask, render_template_string, jsonify, send_file
+from datetime import datetime
 import csv
 import os
 
@@ -154,37 +155,43 @@ def home():
 # CORREÇÃO #4: usar send_file (evita memory leak)
 @app.route('/dados_latest.csv')
 def dados_csv():
-    path = os.path.join(os.path.dirname(__file__), 'dados_latest.csv')
-    if os.path.exists(path):
-        return send_file(path, mimetype='text/csv')
-    return "Arquivo não encontrado", 404
+    try:
+        path = os.path.join(os.path.dirname(__file__), 'dados_latest.csv')
+        # Verifica se arquivo existe e se tem pelo menos os cabeçalhos (50 bytes)
+        if os.path.exists(path) and os.path.getsize(path) > 50:
+            return send_file(path, mimetype='text/csv')
+        return "Arquivo vazio ou nao encontrado", 404
+    except Exception as e:
+        return str(e), 500
 
 @app.route('/stats')
 def stats():
-    path = os.path.join(os.path.dirname(__file__), 'dados_latest.csv')
-    if not os.path.exists(path):
-        return jsonify({"error": "Arquivo de dados não encontrado"}), 404
-    
     try:
+        path = os.path.join(os.path.dirname(__file__), 'dados_latest.csv')
+        if not os.path.exists(path) or os.path.getsize(path) < 50:
+            return jsonify({"total": 0, "hate": 0, "hate_rate": 0, "categories": {}, "last_update": "N/A"}), 200
+        
         with open(path, mode='r', encoding='utf-8-sig') as f:
             reader = csv.DictReader(f)
             data = list(reader)
             
+            if not data:
+                return jsonify({"total": 0, "hate": 0, "hate_rate": 0, "categories": {}, "last_update": "N/A"}), 200
+
             total = len(data)
-            hate_count = sum(1 for row in data if row.get('categoria_odio') != 'neutro')
+            hate_data = [row for row in data if row.get('categoria_odio') and row.get('categoria_odio') != 'neutro']
             
-            # Conta categorias
             cat_counts = {}
-            for row in data:
-                cat = row.get('categoria_odio', 'neutro')
-                if cat != 'neutro':
-                    cat_counts[cat] = cat_counts.get(cat, 0) + 1
+            for row in hate_data:
+                cat = row['categoria_odio']
+                cat_counts[cat] = cat_counts.get(cat, 0) + 1
             
             return jsonify({
                 'total': total,
-                'hate': hate_count,
-                'hate_rate': round((hate_count / total * 100), 2) if total > 0 else 0,
-                'categories': cat_counts
+                'hate': len(hate_data),
+                'hate_rate': round(len(hate_data)/total*100, 2) if total else 0,
+                'categories': cat_counts,
+                'last_update': datetime.now().isoformat()
             })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
