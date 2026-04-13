@@ -13,7 +13,6 @@ load_dotenv()
 # ========================================================
 try:
     from instagrapi import Client
-    from instagrapi.exceptions import LoginRequired, ClientThrottledError
     INSTAGRAPI_OK = True
 except ImportError:
     INSTAGRAPI_OK = False
@@ -28,7 +27,6 @@ class ColetorSeguro:
         self.password = os.getenv("IG_PASSWORD")
     
     def log(self, msg):
-        # Limpa emojis para o console Windows (evita UnicodeEncodeError)
         msg_limpa = msg.encode('ascii', 'ignore').decode('ascii')
         print(f"[{datetime.now().strftime('%H:%M:%S')}] [Seguro] {msg_limpa}")
 
@@ -43,7 +41,7 @@ class ColetorSeguro:
                 self.log("Sessao expirada. Fazendo novo login...")
 
         if not self.username or not self.password:
-            self.log("Erro: IG_USERNAME ou IG_PASSWORD nao configurados no .env")
+            self.log("Erro: IG_USERNAME ou IG_PASSWORD nao configurados.")
             return
 
         self.client.login(self.username, self.password)
@@ -62,7 +60,7 @@ class ColetorSeguro:
 
 
 # ========================================================
-# 2. COLETOR PÚBLICO (Raspa comentários sem login/sem risco)
+# 2. COLETOR PÚBLICO (Usa instaloader + sessão para evitar 403)
 # ========================================================
 try:
     import instaloader
@@ -71,7 +69,7 @@ except ImportError:
     INSTALOADER_OK = False
 
 class ColetorPublico:
-    def __init__(self):
+    def __init__(self, session_file="session.json"):
         if not INSTALOADER_OK:
             raise ImportError("Biblioteca 'instaloader' não instalada. Rode: pip install instaloader")
         self.L = instaloader.Instaloader(
@@ -83,19 +81,28 @@ class ColetorPublico:
             save_metadata=False,
             compress_json=False,
             post_metadata_txt_pattern="",
+            sleep=True, 
+            max_connection_attempts=3
         )
-        # User-Agent disfarçado para evitar bloqueios primários
-        self.L.context._session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
-        })
+        
+        self.session_file = session_file
+        self.ig_username = os.getenv("IG_USERNAME")
+        if os.path.exists(self.session_file) and self.ig_username:
+            try:
+                # Importante: Instaloader precisa carregar a sessão para o usuário correto
+                self.L.load_session_from_file(self.ig_username, filename=self.session_file)
+                self.log("Instaloader carregou a sessao (Blindado contra 403).")
+            except Exception as e:
+                self.log(f"Aviso: Nao foi possivel carregar sessao no Instaloader: {e}")
+        else:
+            self.log("Aviso: Sessao ou Usuario nao encontrados. Rode 'python atualizar_perfis.py'.")
 
     def log(self, msg):
-        # Limpa emojis para o console Windows
         msg_limpa = msg.encode('ascii', 'ignore').decode('ascii')
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] [Anonimo] {msg_limpa}")
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] [Coletor] {msg_limpa}")
 
     def coletar_comentarios_perfil(self, username, posts_limit=2):
-        self.log(f"Acessando perfil publico: @{username}")
+        self.log(f"Acessando perfil: @{username}")
         todos = []
         
         try:
@@ -124,45 +131,51 @@ class ColetorPublico:
                         })
                     
                     count += 1
-                    time.sleep(random.uniform(5, 10))
+                    self.log(f"    - {len(todos)} comentarios coletados ate agora.")
+                    time.sleep(random.uniform(8, 15))
                     
                 except instaloader.exceptions.ConnectionException as e:
                     if "429" in str(e) or "rate limit" in str(e).lower():
-                        self.log("    IP bloqueado temporariamente (429). Pausa de 15min.")
+                        self.log("    Rate Limit (429). Pausa de 15min.")
                         time.sleep(900)
                     else:
-                        self.log(f"    Erro de conexao no post: {e}")
+                        self.log(f"    Erro de conexao: {e}")
                         break
                 except Exception as e:
-                    self.log(f"    Erro inesperado no post: {e}")
+                    self.log(f"    Erro no post: {e}")
                     break
                     
         except instaloader.exceptions.ProfileNotExistsException:
             self.log(f"Perfil @{username} nao existe ou e privado.")
+        except instaloader.exceptions.ConnectionException as e:
+            self.log(f"Erro de conexao geral em @{username}: {e}")
         except Exception as e:
-            self.log(f"Erro ao acessar @{username}: {e}")
+            self.log(f"Erro inesperado em @{username}: {e}")
             
         return todos
 
     def coletar_todos(self, arquivo_perfis="perfis_monitorados.json", posts_por_perfil=2):
         if not os.path.exists(arquivo_perfis):
-            self.log("Arquivo de perfis nao encontrado. Rode atualizar_perfis.py primeiro.")
+            self.log("Arquivo de perfis nao encontrado. Rode 'python atualizar_perfis.py' primeiro.")
             return pd.DataFrame()
 
         with open(arquivo_perfis, 'r', encoding='utf-8') as f:
             dados = json.load(f)
             perfis = dados.get("perfis", [])
 
-        self.log(f"Iniciando coleta anonima para {len(perfis)} perfis.")
+        self.log(f"Iniciando coleta para {len(perfis)} perfis.")
         todos_dados = []
         
         for i, perfil in enumerate(perfis, 1):
             self.log(f"=== Coletando {i}/{len(perfis)}: @{perfil} ===")
-            dados_perfil = self.coletar_comentarios_perfil(perfil, posts_limit=posts_por_perfil)
-            todos_dados.extend(dados_perfil)
+            try:
+                dados_perfil = self.coletar_comentarios_perfil(perfil, posts_limit=posts_por_perfil)
+                todos_dados.extend(dados_perfil)
+            except Exception as e:
+                self.log(f"Erro critico ao processar @{perfil}: {e}")
             
             if i < len(perfis):
-                pausa = random.uniform(30, 60)
+                pausa = random.uniform(45, 90)
                 self.log(f"Aguardando {pausa:.1f}s antes do proximo perfil...")
                 time.sleep(pausa)
                 
