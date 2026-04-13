@@ -43,7 +43,7 @@ def main():
 
     print(f"--- INICIANDO PIPELINE ANALISE DISCURSO ---")
     
-    # 1. COLETA (100% ANÔNIMA)
+    # 1. COLETA SEGURA (VIA INSTAGRAPI)
     coletor = ColetorPublico()
     df_bruto = coletor.coletar_todos(posts_por_perfil=posts_por_perfil)
     if df_bruto.empty:
