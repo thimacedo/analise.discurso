@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import datetime
 from instagrapi import Client
 from dotenv import load_dotenv
 
@@ -13,10 +14,10 @@ def sincronizar_perfis():
         print("❌ Credenciais não encontradas no .env")
         return
 
-    print("🔐 Logando para buscar lista de seguidos (isso será rápido)...")
+    print("--- Logando para buscar lista de seguidos ---")
     cl = Client()
     
-    # Tenta carregar sessão salva
+    # Tenta carregar sessao salva
     if os.path.exists("session.json"):
         cl.load_settings("session.json")
     
@@ -28,18 +29,18 @@ def sincronizar_perfis():
         perfis = [user.username for user in following.values()]
         
         dados = {
-            "ultima_atualizacao": os.popen('date /t & time /t').read() if os.name == 'nt' else os.popen('date').read(),
+            "ultima_atualizacao": datetime.now().strftime("%Y-%m-%d %H:%M:%S") if os.name == 'nt' else os.popen('date').read(),
             "perfis": perfis
         }
         
         with open("perfis_monitorados.json", "w", encoding="utf-8") as f:
             json.dump(dados, f, ensure_ascii=False, indent=2)
             
-        print(f"✅ {len(perfis)} perfis salvos em 'perfis_monitorados.json'")
-        print("⚠️ Você já pode fazer logout do Instagram se quiser segurança extra.")
+        print(f"Pronto: {len(perfis)} perfis salvos em 'perfis_monitorados.json'")
+        print("Dica: Voce ja pode fazer logout do Instagram se quiser seguranca extra.")
         
     except Exception as e:
-        print(f"❌ Erro ao buscar seguidos: {e}")
+        print(f"Erro ao buscar seguidos: {e}")
 
 if __name__ == "__main__":
     sincronizar_perfis()
