@@ -18,7 +18,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
+          pip install -r requirements-pipeline.txt
           python -m spacy download pt_core_news_sm
 
       - name: Run pipeline (Modo Anonimo)
