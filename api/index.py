@@ -1,200 +1,177 @@
-from flask import Flask, render_template_string, jsonify, send_file
-from datetime import datetime
-import csv
-import os
+from fastapi import FastAPI, Query, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+from database.repository import DatabaseRepository
+from typing import Optional
 
-app = Flask(__name__)
+app = FastAPI(
+    title="API Análise Ódio Político",
+    description="API para monitoramento e análise de discurso de ódio em redes sociais",
+    version="1.0.0"
+)
 
-# HTML completo com PapaParse e função loadData corrigida
-HTML_TEMPLATE = """<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Política com Lupa | Monitor de Discurso e Ódio</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #f4f7fc; color: #1e2a3e; line-height: 1.5; padding: 2rem 1.5rem; }
-        .container { max-width: 1400px; margin: 0 auto; }
-        .header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; margin-bottom: 2rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 1rem; }
-        .logo h1 { font-size: 1.8rem; font-weight: 700; background: linear-gradient(135deg, #0f3b5c, #e67e22); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .logo p { font-size: 0.85rem; color: #5a6e7c; margin-top: 0.2rem; }
-        .badge { background: #e2e8f0; padding: 0.3rem 1rem; border-radius: 30px; font-size: 0.8rem; font-weight: 500; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
-        .card { background: white; border-radius: 24px; padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid #e9edf2; }
-        .card-title { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; color: #5a6e7c; margin-bottom: 0.75rem; }
-        .card-number { font-size: 2.8rem; font-weight: 800; color: #0f3b5c; line-height: 1.2; }
-        .insight-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.8rem; margin-bottom: 2.5rem; }
-        .insight-card { background: white; border-radius: 24px; padding: 1.5rem; border: 1px solid #e9edf2; }
-        .insight-title { font-weight: 700; font-size: 1.2rem; margin-bottom: 1.2rem; border-left: 4px solid #e67e22; padding-left: 0.8rem; }
-        canvas { max-height: 280px; width: 100%; }
-        .term-list { list-style: none; }
-        .term-list li { display: flex; justify-content: space-between; padding: 0.6rem 0; border-bottom: 1px solid #edf2f7; font-size: 0.9rem; }
-        .comments-section { background: white; border-radius: 24px; padding: 1.5rem; margin-bottom: 2rem; border: 1px solid #e9edf2; }
-        .comment-item { background: #f8fafc; padding: 1rem; border-radius: 16px; margin-bottom: 0.8rem; border-left: 3px solid #e67e22; }
-        .comment-text { font-size: 0.9rem; margin-bottom: 0.3rem; }
-        .comment-meta { font-size: 0.7rem; color: #7c8b9c; display: flex; gap: 1rem; align-items: center; }
-        .badge-cat { background: #ffe8e0; color: #e67e22; padding: 0.2rem 0.6rem; border-radius: 20px; font-weight: 600; font-size: 0.7rem; }
-        .footer { text-align: center; margin-top: 2rem; font-size: 0.75rem; color: #8ba0ae; border-top: 1px solid #e2e8f0; padding-top: 1.5rem; }
-        @media (max-width: 700px) { .insight-row { grid-template-columns: 1fr; } body { padding: 1rem; } }
-    </style>
-</head>
-<body>
-<div class="container">
-    <div class="header">
-        <div class="logo"><h1>🔍 Política com Lupa</h1><p>Observatório independente de discurso e ódio nas eleições</p></div>
-        <div class="badge" id="statusBadge">📡 Carregando...</div>
-    </div>
-    <div class="stats-grid">
-        <div class="card"><div class="card-title">Total analisado</div><div class="card-number" id="totalCount">—</div></div>
-        <div class="card"><div class="card-title">Discurso de ódio</div><div class="card-number" id="hateCount">—</div></div>
-        <div class="card"><div class="card-title">Taxa de risco</div><div class="card-number" id="riskRate">—<span class="card-unit">%</span></div></div>
-        <div class="card"><div class="card-title">Última atualização</div><div class="card-number" id="lastUpdate" style="font-size:1.1rem;">—</div></div>
-    </div>
-    <div class="insight-row">
-        <div class="insight-card"><div class="insight-title">🗂️ Categorias de ódio</div><canvas id="categoryChart"></canvas></div>
-        <div class="insight-card"><div class="insight-title">📌 Termos mais frequentes</div><ul class="term-list" id="termList"><li>Carregando...</li></ul></div>
-    </div>
-    <div class="comments-section"><h3>💬 Últimos comentários classificados como ódio</h3><div id="commentsList"></div></div>
-    <div class="footer">Projeto independente | Coleta a cada 12h | Dados públicos do Instagram</div>
-</div>
-<script>
-    const CSV_URL = "/dados_latest.csv";
-    let categoryChart = null;
-    const hateTerms = {
-        'racismo': ['macaco', 'preto', 'crioulo', 'selvagem', 'negro', 'raça', 'inferior', 'escravo', 'primitivo', 'animal'],
-        'homofobia': ['viado', 'bicha', 'gay', 'sapatão', 'bixa', 'veado', 'baitola', 'boiola'],
-        'transfobia': ['traveco', 'travesti', 'transexual', 'transformado', 'aberração', 'mutante', 'anormal', 'doente'],
-        'misoginia': ['puta', 'vadia', 'cadela', 'vagabunda', 'prostituta', 'piranha', 'safada', 'feminista', 'lugar de mulher', 'cozinha'],
-        'xenofobia': ['nordestino', 'baiano', 'paraíba', 'cearense', 'norte', 'sertanejo', 'migrante', 'refugiado', 'invasor', 'sem terra']
-    };
-    function classifyText(text) {
-        if (!text) return 'neutro';
-        const lower = text.toLowerCase();
-        for (const [cat, terms] of Object.entries(hateTerms)) {
-            if (terms.some(t => lower.includes(t))) return cat;
-        }
-        return 'neutro';
-    }
-    function getTopTerms(texts, topN=15) {
-        const stop = new Set(['de','a','o','que','e','do','da','em','um','para','com','não','uma','os','as','se','na','por','mais','dos','das','mas','ao','ele','como','seu','sua','meu','minha','você','pra','pro','tá','né','vai','ser','ter','aquele','aquela','isso','isto','aquilo','está','estão','era','aí','então','foi','são','tudo','muito','bem','vamos','tem','porque']);
-        const freq = new Map();
-        texts.forEach(t => {
-            if (!t) return;
-            t.toLowerCase().split(/\s+/).forEach(w => {
-                w = w.replace(/[^\wáéíóúâêôãõç]/g,'');
-                if (w.length<3 || stop.has(w)) return;
-                freq.set(w, (freq.get(w)||0)+1);
-            });
-        });
-        return Array.from(freq.entries()).sort((a,b)=>b[1]-a[1]).slice(0,topN);
-    }
-    async function loadData() {
-        try {
-            const res = await fetch(CSV_URL);
-            if (!res.ok) throw new Error('CSV não encontrado');
-            const text = await res.text();
-            Papa.parse(text, {
-                header: true,
-                skipEmptyLines: true,
-                complete: function(results) {
-                    const data = results.data;
-                    const classified = data.map(row => ({ ...row, category: classifyText(row.texto) }));
-                    const hate = classified.filter(c => c.category !== 'neutro');
-                    document.getElementById('totalCount').innerText = data.length;
-                    document.getElementById('hateCount').innerText = hate.length;
-                    const rate = data.length ? (hate.length/data.length*100).toFixed(2) : 0;
-                    document.getElementById('riskRate').innerHTML = rate+'<span class="card-unit">%</span>';
-                    document.getElementById('lastUpdate').innerText = new Date().toLocaleString();
-                    const catCount = {};
-                    hate.forEach(c => catCount[c.category] = (catCount[c.category]||0)+1);
-                    if (categoryChart) categoryChart.destroy();
-                    const ctx = document.getElementById('categoryChart').getContext('2d');
-                    categoryChart = new Chart(ctx, {
-                        type: 'bar',
-                        data: { labels: Object.keys(catCount), datasets: [{ label: 'Comentários', data: Object.values(catCount), backgroundColor: '#e67e22' }] }
-                    });
-                    const topTerms = getTopTerms(data.map(d=>d.texto));
-                    const termList = document.getElementById('termList');
-                    termList.innerHTML = '';
-                    topTerms.forEach(([term, freq]) => {
-                        const li = document.createElement('li');
-                        li.innerHTML = `<span class="term">${term}</span><span class="freq">${freq}</span>`;
-                        termList.appendChild(li);
-                    });
-                    const commentsDiv = document.getElementById('commentsList');
-                    commentsDiv.innerHTML = '';
-                    hate.slice(0,5).forEach(c => {
-                        const div = document.createElement('div');
-                        div.className = 'comment-item';
-                        div.innerHTML = `<div class="comment-text">${escapeHtml(c.texto)}</div><div class="comment-meta"><span>@${c.autor_username||'anon'}</span><span class="badge-cat">${c.category}</span></div>`;
-                        commentsDiv.appendChild(div);
-                    });
-                    document.getElementById('statusBadge').innerHTML = '📡 Dados carregados';
-                }
-            });
-        } catch(e) {
-            console.error(e);
-            document.getElementById('statusBadge').innerHTML = '❌ Erro ao carregar';
-        }
-    }
-    function escapeHtml(str) { return str ? str.replace(/[&<>]/g, function(m){return m==='&'?'&':m==='<'?'<':'>';}) : ''; }
-    loadData();
-</script>
-</body>
-</html>
-"""
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-@app.route('/')
-def home():
-    return render_template_string(HTML_TEMPLATE)
+db = DatabaseRepository()
 
-# CORREÇÃO #4: usar send_file (evita memory leak)
-@app.route('/dados_latest.csv')
-def dados_csv():
+def get_db():
+    session = db.get_session()
     try:
-        path = os.path.join(os.path.dirname(__file__), 'dados_latest.csv')
-        # Verifica se arquivo existe e se tem pelo menos os cabeçalhos (50 bytes)
-        if os.path.exists(path) and os.path.getsize(path) > 50:
-            return send_file(path, mimetype='text/csv')
-        return "Arquivo vazio ou nao encontrado", 404
-    except Exception as e:
-        return str(e), 500
+        yield session
+    finally:
+        session.close()
 
-@app.route('/stats')
-def stats():
-    try:
-        path = os.path.join(os.path.dirname(__file__), 'dados_latest.csv')
-        if not os.path.exists(path) or os.path.getsize(path) < 50:
-            return jsonify({"total": 0, "hate": 0, "hate_rate": 0, "categories": {}, "last_update": "N/A"}), 200
+@app.get("/api/v1/status")
+def get_status():
+    return {
+        "status": "online",
+        "version": "1.0.0",
+        "database": "connected"
+    }
+
+@app.get("/api/v1/estatisticas/resumo")
+def get_estatisticas_resumo():
+    with db.get_session() as session:
+        from database.models import Comentario, Classificacao
+        from sqlalchemy import func
         
-        with open(path, mode='r', encoding='utf-8-sig') as f:
-            reader = csv.DictReader(f)
-            data = list(reader)
-            
-            if not data:
-                return jsonify({"total": 0, "hate": 0, "hate_rate": 0, "categories": {}, "last_update": "N/A"}), 200
+        total_comentarios = session.query(Comentario).count()
+        total_odio = session.query(Classificacao).filter(Classificacao.categoria_odio != 'neutro').count()
+        
+        # Categorias de ódio
+        categorias = session.query(
+            Classificacao.categoria_odio, 
+            func.count(Classificacao.id)
+        ).filter(Classificacao.categoria_odio != 'neutro')\
+         .group_by(Classificacao.categoria_odio).all()
+         
+        return {
+            "total_comentarios": total_comentarios,
+            "total_odio": total_odio,
+            "taxa_odio": round((total_odio / total_comentarios * 100), 2) if total_comentarios > 0 else 0,
+            "distribuicao_categorias": {k: v for k, v in categorias}
+        }
 
-            total = len(data)
-            hate_data = [row for row in data if row.get('categoria_odio') and row.get('categoria_odio') != 'neutro']
-            
-            cat_counts = {}
-            for row in hate_data:
-                cat = row['categoria_odio']
-                cat_counts[cat] = cat_counts.get(cat, 0) + 1
-            
-            return jsonify({
-                'total': total,
-                'hate': len(hate_data),
-                'hate_rate': round(len(hate_data)/total*100, 2) if total else 0,
-                'categories': cat_counts,
-                'last_update': datetime.now().isoformat()
-            })
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+@app.get("/api/v1/estatisticas/linha-do-tempo")
+def get_linha_do_tempo():
+    with db.get_session() as session:
+        from database.models import Comentario, Classificacao
+        from sqlalchemy import func, String, cast
+        
+        resultados = session.query(
+            func.date(Comentario.data_publicacao).label('dia'),
+            func.count(Comentario.id).label('total'),
+            func.sum(func.case((Classificacao.categoria_odio != 'neutro', 1), else_=0)).label('odio')
+        ).join(Classificacao, isouter=True)\
+         .group_by(func.date(Comentario.data_publicacao))\
+         .order_by(func.date(Comentario.data_publicacao))\
+         .all()
+         
+        return [
+            {
+                "data": str(r.dia),
+                "total": r.total,
+                "odio": r.odio
+            } for r in resultados if r.dia
+        ]
 
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+@app.get("/api/v1/candidatos")
+def listar_candidatos():
+    with db.get_session() as session:
+        from database.models import Candidato
+        candidatos = session.query(Candidato).all()
+        return [
+            {
+                "id": c.id,
+                "username": c.username,
+                "nome_completo": c.nome_completo,
+                "partido": c.partido,
+                "cargo": c.cargo,
+                "estado": c.estado
+            } for c in candidatos
+        ]
+
+@app.get("/api/v1/comentarios")
+def listar_comentarios(
+    hate: Optional[bool] = None,
+    party: Optional[str] = None,
+    candidate: Optional[str] = None,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0)
+):
+    with db.get_session() as session:
+        from database.models import Comentario, Classificacao, Candidato
+        query = session.query(Comentario, Classificacao, Candidato)\
+            .join(Classificacao, isouter=True)\
+            .join(Candidato)
+        
+        if hate is not None:
+            if hate:
+                query = query.filter(Classificacao.categoria_odio != 'neutro')
+            else:
+                query = query.filter(Classificacao.categoria_odio == 'neutro')
+        
+        if party:
+            query = query.filter(Candidato.partido == party)
+        
+        if candidate:
+            query = query.filter(Candidato.username == candidate)
+        
+        total = query.count()
+        resultados = query.offset(offset).limit(limit).all()
+        
+        return {
+            "total": total,
+            "limit": limit,
+            "offset": offset,
+            "dados": [
+                {
+                    "id": c.id,
+                    "texto": c.texto_bruto,
+                    "data": c.data_publicacao,
+                    "autor": c.autor_username,
+                    "candidato": can.username,
+                    "partido": can.partido,
+                    "categoria": cl.categoria_odio if cl else None,
+                    "score": cl.score if cl else None
+                } for c, cl, can in resultados
+            ]
+        }
+
+@app.get("/api/v1/estatisticas/por-partido")
+def estatisticas_por_partido():
+    with db.get_session() as session:
+        from sqlalchemy import func
+        from database.models import Candidato, Comentario, Classificacao
+        
+        resultados = session.query(
+            Candidato.partido,
+            func.count(Comentario.id).label('total_comentarios'),
+            func.sum(func.case((Classificacao.categoria_odio != 'neutro', 1), else_=0)).label('total_odio')
+        ).join(Comentario).join(Classificacao, isouter=True)\
+         .group_by(Candidato.partido)\
+         .order_by(func.count(Comentario.id).desc())\
+         .all()
+        
+        return [
+            {
+                "partido": r.partido,
+                "total_comentarios": r.total_comentarios,
+                "total_odio": r.total_odio,
+                "taxa_odio": round((r.total_odio / r.total_comentarios * 100), 2) if r.total_comentarios > 0 else 0
+            } for r in resultados
+        ]
+
+@app.get("/")
+def read_root():
+    return {"message": "Bem-vindo à API ForenseNet v2.0 (FastAPI em Vercel)"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

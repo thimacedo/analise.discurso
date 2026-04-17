@@ -17,7 +17,19 @@ class DatabaseRepository:
     """
     def __init__(self):
         # Default to SQLite if DATABASE_URL is not set
-        db_url = os.getenv("DATABASE_URL", "sqlite:///./odio_politica.db")
+        db_url = os.getenv("DATABASE_URL")
+        
+        # Detecção de ambiente Vercel (read-only)
+        is_vercel = os.getenv("VERCEL") or os.getenv("VERCEL_ENV")
+        
+        if not db_url:
+            if is_vercel:
+                # No Vercel sem DB remoto, usa SQLite em memória (volátil, mas não crasha)
+                db_url = "sqlite:///:memory:"
+                print("⚠️ Ambiente Vercel detectado sem DATABASE_URL. Usando SQLite em memória.")
+            else:
+                # Local usa arquivo persistente
+                db_url = "sqlite:///./odio_politica.db"
         
         # SQLite specifics
         connect_args = {}
