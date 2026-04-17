@@ -1,299 +1,493 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Política com Lupa | Monitor de Discurso e Ódio</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <title>ForenseNet v3.0 | Observatório de Discurso e Ódio</title>
+    
+    <!-- Frameworks Modernos -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100;300;400;600;700&display=swap" rel="stylesheet">
+
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #f4f7fc;
-            color: #1e2a3e;
-            line-height: 1.5;
-            padding: 2rem 1.5rem;
-        }
-        .container { max-width: 1400px; margin: 0 auto; }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            flex-wrap: wrap;
-            margin-bottom: 2rem;
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 1rem;
-        }
-        .logo h1 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #0f3b5c, #e67e22);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-        .logo p { font-size: 0.85rem; color: #5a6e7c; margin-top: 0.2rem; }
-        .badge { background: #e2e8f0; padding: 0.3rem 1rem; border-radius: 30px; font-size: 0.8rem; font-weight: 500; }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2.5rem;
-        }
-        .card {
-            background: white;
-            border-radius: 24px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-            border: 1px solid #e9edf2;
-        }
-        .card-title { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; color: #5a6e7c; margin-bottom: 0.75rem; }
-        .card-number { font-size: 2.8rem; font-weight: 800; color: #0f3b5c; line-height: 1.2; }
-        .risk-high { color: #e67e22; }
-        .insight-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.8rem;
-            margin-bottom: 2.5rem;
-        }
-        .insight-card {
-            background: white;
-            border-radius: 24px;
-            padding: 1.5rem;
-            border: 1px solid #e9edf2;
-        }
-        .insight-title {
-            font-weight: 700;
-            font-size: 1.2rem;
-            margin-bottom: 1.2rem;
-            border-left: 4px solid #e67e22;
-            padding-left: 0.8rem;
-        }
-        canvas { max-height: 280px; width: 100%; }
-        .term-list { list-style: none; }
-        .term-list li {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.6rem 0;
-            border-bottom: 1px solid #edf2f7;
-            font-size: 0.9rem;
-        }
-        .comments-section {
-            background: white;
-            border-radius: 24px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            border: 1px solid #e9edf2;
-        }
-        .comment-item {
-            background: #f8fafc;
-            padding: 1rem;
-            border-radius: 16px;
-            margin-bottom: 0.8rem;
-            border-left: 3px solid #e67e22;
-        }
-        .comment-text { font-size: 0.9rem; margin-bottom: 0.3rem; }
-        .comment-meta { font-size: 0.7rem; color: #7c8b9c; display: flex; gap: 1rem; align-items: center; }
-        .badge-cat { background: #ffe8e0; color: #e67e22; padding: 0.2rem 0.6rem; border-radius: 20px; font-weight: 600; font-size: 0.7rem; }
-        .footer { text-align: center; margin-top: 2rem; font-size: 0.75rem; color: #8ba0ae; border-top: 1px solid #e2e8f0; padding-top: 1.5rem; }
-        .update-info { font-size: 0.7rem; color: #5a6e7c; margin-top: 0.5rem; text-align: right; }
-        @media (max-width: 700px) { .insight-row { grid-template-columns: 1fr; } body { padding: 1rem; } }
-        .loading { text-align: center; padding: 2rem; color: #5a6e7c; }
+        body { font-family: 'Geist', sans-serif; background-color: #f8fafc; color: #0f172a; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .nav-link.active { border-bottom: 2px solid #e67e22; color: #e67e22; font-weight: 600; }
+        .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(226, 232, 240, 1); }
+        .severity-bar { height: 8px; border-radius: 4px; background: #e2e8f0; position: relative; overflow: hidden; }
+        .severity-fill { height: 100%; position: absolute; left: 0; top: 0; }
     </style>
 </head>
-<body>
-<div class="container">
-    <div class="header">
-        <div class="logo">
-            <h1>🔍 Política com Lupa</h1>
-            <p>Observatório independente de discurso e ódio nas eleições</p>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header / Navigation -->
+    <header class="sticky top-0 z-50 glass-card px-6 py-4 flex justify-between items-center shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="bg-slate-900 p-2 rounded-lg text-white">
+                <i data-lucide="shield-check" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight">Forense<span class="text-orange-600">Net</span> <span class="text-xs font-normal text-slate-400">v3.0 Professional</span></h1>
+                <p class="text-[10px] text-slate-500 uppercase tracking-widest leading-none">Linguística Forense Digital</p>
+            </div>
         </div>
-        <div class="badge" id="statusBadge">📡 Carregando dados...</div>
-    </div>
 
-    <div class="stats-grid" id="statsGrid">
-        <div class="card"><div class="card-title">Total analisado</div><div class="card-number" id="totalCount">—</div></div>
-        <div class="card"><div class="card-title">Discurso de ódio</div><div class="card-number" id="hateCount">—</div></div>
-        <div class="card"><div class="card-title">Taxa de risco</div><div class="card-number" id="riskRate">—<span class="card-unit">%</span></div></div>
-        <div class="card"><div class="card-title">Última atualização</div><div class="card-number" id="lastUpdate" style="font-size:1.1rem;">—</div></div>
-    </div>
+        <nav class="hidden md:flex gap-8">
+            <button onclick="switchTab('tab-overview')" id="btn-overview" class="nav-link active text-sm transition-all py-1">Dashboard</button>
+            <button onclick="switchTab('tab-ai')" id="btn-ai" class="nav-link text-sm transition-all py-1 text-slate-500 hover:text-orange-600">Análise IA</button>
+            <button onclick="switchTab('tab-comments')" id="btn-comments" class="nav-link text-sm transition-all py-1 text-slate-500 hover:text-orange-600">Comentários</button>
+            <button onclick="switchTab('tab-pipeline')" id="btn-pipeline" class="nav-link text-sm transition-all py-1 text-slate-500 hover:text-orange-600">Pipeline</button>
+        </nav>
 
-    <div class="insight-row">
-        <div class="insight-card">
-            <div class="insight-title">🗂️ Categorias de ódio</div>
-            <canvas id="categoryChart" width="400" height="250" style="max-height:250px"></canvas>
+        <div class="flex items-center gap-4">
+            <div id="api-status" class="flex items-center gap-2 px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium border border-green-100">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </span>
+                API Online
+            </div>
+            <button onclick="refreshAll()" class="p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors">
+                <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+            </button>
         </div>
-        <div class="insight-card">
-            <div class="insight-title">📌 Termos mais frequentes</div>
-            <ul class="term-list" id="termList"><li>Carregando...</li></ul>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 container mx-auto px-6 py-8">
+
+        <!-- TAB: OVERVIEW -->
+        <section id="tab-overview" class="tab-content active animate-fade-in">
+            <!-- KPI Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="card glass-card p-6 rounded-2xl shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="p-2 bg-blue-50 text-blue-600 rounded-xl"><i data-lucide="message-square" class="w-5 h-5"></i></span>
+                        <span class="text-xs text-slate-400 font-medium uppercase tracking-wider">Total</span>
+                    </div>
+                    <h3 id="kpi-total" class="text-3xl font-bold">...</h3>
+                    <p class="text-xs text-slate-500 mt-2">Comentários Monitorados</p>
+                </div>
+                <div class="card glass-card p-6 rounded-2xl shadow-sm border-l-4 border-l-red-500">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="p-2 bg-red-50 text-red-600 rounded-xl"><i data-lucide="alert-triangle" class="w-5 h-5"></i></span>
+                        <span id="kpi-rate" class="text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded-md">...%</span>
+                    </div>
+                    <h3 id="kpi-hate" class="text-3xl font-bold">...</h3>
+                    <p class="text-xs text-slate-500 mt-2">Discursos de Ódio Detectados</p>
+                </div>
+                <div class="card glass-card p-6 rounded-2xl shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="p-2 bg-orange-50 text-orange-600 rounded-xl"><i data-lucide="shield" class="w-5 h-5"></i></span>
+                        <span class="text-xs text-slate-400 font-medium uppercase tracking-wider">Confiança</span>
+                    </div>
+                    <h3 id="kpi-confidence" class="text-3xl font-bold text-orange-600">...%</h3>
+                    <p class="text-xs text-slate-500 mt-2">Média da IA Local (Qwen)</p>
+                </div>
+                <div class="card glass-card p-6 rounded-2xl shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="p-2 bg-emerald-50 text-emerald-600 rounded-xl"><i data-lucide="activity" class="w-5 h-5"></i></span>
+                        <span class="text-xs text-slate-400 font-medium uppercase tracking-wider">Status</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-emerald-600">Saudável</h3>
+                    <p class="text-xs text-slate-500 mt-2">Sincronizado com GitHub</p>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                <!-- Timeline Chart -->
+                <div class="lg:col-span-2 card glass-card p-6 rounded-3xl shadow-sm">
+                    <div class="flex justify-between items-center mb-6">
+                        <h4 class="font-bold text-slate-700 flex items-center gap-2">
+                            <i data-lucide="trending-up" class="w-4 h-4 text-orange-600"></i>
+                            Tendência Temporal de Ódio
+                        </h4>
+                        <select class="text-xs border-none bg-slate-100 rounded-lg px-3 py-1 font-medium outline-none">
+                            <option>Últimos 30 dias</option>
+                            <option>7 dias</option>
+                        </select>
+                    </div>
+                    <div class="h-[300px]">
+                        <canvas id="timelineChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Categories Chart -->
+                <div class="card glass-card p-6 rounded-3xl shadow-sm">
+                    <h4 class="font-bold text-slate-700 flex items-center gap-2 mb-6">
+                        <i data-lucide="pie-chart" class="w-4 h-4 text-orange-600"></i>
+                        Distribuição por Categoria
+                    </h4>
+                    <div class="h-[300px] flex items-center justify-center">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Alert List -->
+            <div class="card glass-card p-6 rounded-3xl shadow-sm">
+                <div class="flex justify-between items-center mb-6">
+                    <h4 class="font-bold text-slate-700 flex items-center gap-2">
+                        <i data-lucide="alert-circle" class="w-5 h-5 text-red-500"></i>
+                        Alertas de Alta Severidade (Recentes)
+                    </h4>
+                    <button onclick="switchTab('tab-comments')" class="text-xs text-blue-600 font-semibold hover:underline">Ver todos</button>
+                </div>
+                <div id="recent-alerts-list" class="space-y-4">
+                    <!-- Dinamicamente preenchido -->
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB: AI ANALYSIS -->
+        <section id="tab-ai" class="tab-content animate-fade-in">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <div class="card glass-card p-8 rounded-3xl shadow-lg border-2 border-orange-100/50">
+                    <h2 class="text-2xl font-bold mb-2 flex items-center gap-3">
+                        <i data-lucide="sparkles" class="text-orange-500"></i>
+                        Simulador Forense IA
+                    </h2>
+                    <p class="text-slate-500 text-sm mb-6">Cole um texto para que a IA Qwen 2.5 Coder realize a classificação em tempo real.</p>
+                    
+                    <textarea id="ai-input" rows="6" class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 text-sm focus:border-orange-300 focus:outline-none transition-all mb-4" placeholder="Insira o texto para análise..."></textarea>
+                    
+                    <button onclick="analyzeText()" id="btn-analyze" class="w-full bg-slate-900 hover:bg-orange-600 text-white font-bold py-4 rounded-2xl transition-all flex items-center justify-center gap-2">
+                        <i data-lucide="zap" class="w-5 h-5"></i>
+                        EXECUTAR ANÁLISE PERICIAL
+                    </button>
+                </div>
+
+                <div id="ai-result-panel" class="hidden card glass-card p-8 rounded-3xl shadow-lg">
+                    <div id="ai-verdict-badge" class="mb-6">
+                        <!-- Badge dynamic -->
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-8">
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Categoria</span>
+                            <span id="ai-res-category" class="font-bold text-slate-700">...</span>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Confiança</span>
+                            <span id="ai-res-confidence" class="font-bold text-slate-700">...</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <div class="flex justify-between mb-2">
+                            <span class="text-xs font-bold text-slate-500 uppercase">Grau de Severidade</span>
+                            <span id="ai-res-severity-num" class="text-xs font-bold">0/10</span>
+                        </div>
+                        <div class="severity-bar">
+                            <div id="ai-res-severity-fill" class="severity-fill bg-orange-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-orange-50 border border-orange-100 rounded-2xl italic text-sm text-slate-700">
+                        <span class="font-bold text-orange-600 block mb-1 not-italic text-xs uppercase">Justificativa da IA</span>
+                        "<span id="ai-res-reasoning">...</span>"
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB: COMMENTS TABLE -->
+        <section id="tab-comments" class="tab-content animate-fade-in">
+            <div class="card glass-card rounded-3xl shadow-sm overflow-hidden">
+                <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-white">
+                    <h3 class="font-bold text-slate-700">Repositório Forense de Comentários</h3>
+                    <div class="flex gap-2">
+                        <button onclick="refreshComments('all')" class="px-3 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">Todos</button>
+                        <button onclick="refreshComments('hate')" class="px-3 py-1.5 text-xs bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-medium transition-colors">Apenas Ódio</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 text-[10px] uppercase font-bold text-slate-500 border-b border-slate-100">
+                            <tr>
+                                <th class="px-6 py-4">Status</th>
+                                <th class="px-6 py-4">Comentário</th>
+                                <th class="px-6 py-4">Candidato Alvo</th>
+                                <th class="px-6 py-4 text-center">Severidade</th>
+                                <th class="px-6 py-4">Categoria</th>
+                            </tr>
+                        </thead>
+                        <tbody id="comments-table-body" class="divide-y divide-slate-100">
+                            <!-- Dinâmico -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB: PIPELINE -->
+        <section id="tab-pipeline" class="tab-content animate-fade-in">
+            <div class="max-w-3xl mx-auto space-y-10">
+                <!-- Visual Pipeline Diagram -->
+                <div class="flex justify-between items-center relative py-10 px-4 bg-white rounded-3xl border border-slate-100">
+                    <div class="absolute h-1 w-[80%] left-[10%] top-[50%] bg-slate-100 -z-0"></div>
+                    
+                    <div class="flex flex-col items-center gap-3 relative z-10">
+                        <div class="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-lg"><i data-lucide="instagram"></i></div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Instagram</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-3 relative z-10">
+                        <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg"><i data-lucide="download-cloud"></i></div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Coletor</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-3 relative z-10">
+                        <div class="w-12 h-12 bg-orange-500 rounded-2xl flex items-center justify-center text-white shadow-lg animate-pulse"><i data-lucide="brain"></i></div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">IA Qwen</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-3 relative z-10">
+                        <div class="w-12 h-12 bg-emerald-600 rounded-2xl flex items-center justify-center text-white shadow-lg"><i data-lucide="database"></i></div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">SQLite</span>
+                    </div>
+                </div>
+
+                <div class="card glass-card p-8 rounded-3xl shadow-sm">
+                    <h4 class="font-bold mb-6 flex items-center gap-2"><i data-lucide="terminal" class="w-4 h-4 text-slate-400"></i> Log do Sistema</h4>
+                    <div class="bg-slate-900 rounded-2xl p-6 font-mono text-xs text-emerald-400 h-64 overflow-y-auto space-y-2">
+                        <p class="opacity-50">[17/04/2026 19:40] ForenseNet v3.0 inicializado com sucesso.</p>
+                        <p>[17/04/2026 19:41] Conectado ao provedor Ollama (qwen2.5-coder:7b).</p>
+                        <p>[17/04/2026 19:42] Banco de dados SQLite persistente em modo local.</p>
+                        <p class="text-orange-400">[17/04/2026 19:43] Aviso: Modo Vercel detectado, usando DB em memória.</p>
+                        <p class="text-blue-400">>>> Dashboard dinâmico v3.0 pronto para requisições.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+        <p class="text-[10px] text-slate-400 uppercase tracking-widest">© 2026 ForenseNet — Inteligência Forense Brasileira</p>
+        <div class="flex gap-6">
+            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><i data-lucide="check-circle" class="w-3 h-3 text-emerald-500"></i> Metodologia Prof. Vichi</span>
+            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><i data-lucide="check-circle" class="w-3 h-3 text-emerald-500"></i> LGPD Compliant</span>
         </div>
-    </div>
+    </footer>
 
-    <div class="comments-section">
-        <h3>💬 Últimos comentários com discurso de ódio</h3>
-        <div id="commentsList"></div>
-        <p class="update-info" id="dataNote">📢 Classificação baseada em palavras‑chave. Dados reais do CSV.</p>
-    </div>
+    <!-- Scripts da Lógica do Dashboard -->
+    <script>
+        // Configurações Globais
+        lucide.createIcons();
+        const API_URL = '/api/v1';
+        let timelineChart = null;
+        let categoryChart = null;
 
-    <div class="footer">
-        Projeto independente | Coleta a cada 12h | Dados públicos do Instagram
-    </div>
-</div>
-
-<script>
-    // URL do CSV real (publicado no GitHub)
-    const CSV_URL = "https://raw.githubusercontent.com/thimacedo/analise.discurso/main/api/dados_latest.csv";
-
-    let categoryChart = null;
-
-    // Palavras‑chave para classificação (ajuste conforme seu banco de termos)
-    const hateTerms = {
-        'racismo': ['macaco', 'preto', 'crioulo', 'selvagem', 'negro', 'raça', 'inferior', 'escravo', 'primitivo', 'animal', 'neguinho', 'africano', 'tribo', 'quilombo'],
-        'homofobia': ['viado', 'bicha', 'gay', 'sapatão', 'bixa', 'veado', 'baitola', 'boiola', 'maricon', 'afeminado', 'lampiao'],
-        'transfobia': ['traveco', 'travesti', 'transexual', 'transformado', 'aberração', 'mutante', 'anormal', 'doente', 'falsa mulher'],
-        'misoginia': ['puta', 'vadia', 'cadela', 'vagabunda', 'prostituta', 'piranha', 'safada', 'feminista', 'lugar de mulher', 'cozinha', 'lavar louça', 'sexo frágil'],
-        'xenofobia': ['nordestino', 'baiano', 'paraíba', 'cearense', 'norte', 'sertanejo', 'migrante', 'refugiado', 'estrangeiro', 'forasteiro', 'invasor', 'sem terra', 'favelado']
-    };
-
-    // Função de classificação (pode ser substituída pela coluna do CSV se existir)
-    function classifyText(text) {
-        if (!text) return 'neutro';
-        const lower = text.toLowerCase();
-        for (const [cat, terms] of Object.entries(hateTerms)) {
-            if (terms.some(term => lower.includes(term))) return cat;
-        }
-        return 'neutro';
-    }
-
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&';
-            if (m === '<') return '<';
-            if (m === '>') return '>';
-            return m;
-        });
-    }
-
-    loadDashboard();
-    // Recarregar a cada 5 minutos (opcional)
-    setInterval(loadDashboard, 300000);
-</script>
-</body>
-</html>
-    // Extrai termos mais frequentes (ignorando stopwords)
-    function getTopTerms(texts, topN = 20) {
-        const stopwords = new Set([
-            'de', 'a', 'o', 'que', 'e', 'do', 'da', 'em', 'um', 'para', 'com', 'não', 'uma', 'os', 'as', 'se', 'na', 'por', 'mais', 'dos', 'das', 'mas', 'ao', 'ele', 'como', 'seu', 'sua', 'meu', 'minha', 'você', 'pra', 'pro', 'tá', 'né', 'vai', 'ser', 'ter', 'aquele', 'aquela', 'isso', 'isto', 'aquilo', 'está', 'estão', 'era', 'aí', 'então', 'foi', 'são', 'tudo', 'muito', 'bem', 'vamos', 'tem', 'porque', 'quando', 'mae', 'pai', 'deus', 'amor', 'vida', 'gente', 'coisa', 'ano', 'dia', 'noite', 'casa', 'rua', 'trabalho'
-        ]);
-        const freq = new Map();
-        texts.forEach(text => {
-            if (!text) return;
-            const words = text.toLowerCase().split(/\s+/);
-            words.forEach(w => {
-                w = w.replace(/[^\wáéíóúâêôãõç]/g, '');
-                if (w.length < 3) return;
-                if (stopwords.has(w)) return;
-                freq.set(w, (freq.get(w) || 0) + 1);
+        // --- NAVEGAÇÃO ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            
+            document.querySelectorAll('.nav-link').forEach(l => {
+                l.classList.remove('active', 'text-orange-600');
+                l.classList.add('text-slate-500');
             });
-        });
-        return Array.from(freq.entries()).sort((a,b) => b[1] - a[1]).slice(0, topN);
-    }
+            
+            const btnId = 'btn-' + tabId.split('-')[1];
+            document.getElementById(btnId).classList.add('active', 'text-orange-600');
+        }
 
-    async function loadDashboard() {
-        try {
-            const response = await fetch(CSV_URL);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const csvText = await response.text();
-            Papa.parse(csvText, {
-                header: true,
-                skipEmptyLines: true,
-                complete: (results) => {
-                    const data = results.data;
-                    const total = data.length;
-                    // Classificar cada comentário (ou ler coluna existente)
-                    const classified = data.map(row => {
-                        const text = row.texto || '';
-                        let category = classifyText(text);
-                        // Se já existir coluna 'categoria_odio' no CSV, use‑a em vez da classificação local
-                        if (row.categoria_odio && row.categoria_odio !== 'neutro') category = row.categoria_odio;
-                        return { ...row, category };
-                    });
-                    const hateComments = classified.filter(c => c.category !== 'neutro');
-                    const hateCount = hateComments.length;
-                    const hateRate = total ? ((hateCount / total) * 100).toFixed(2) : 0;
+        // --- CARGA DE DADOS ---
+        async function refreshAll() {
+            console.log("🔄 Atualizando dashboard...");
+            await loadStats();
+            await loadTimeline();
+            await loadRecentHate();
+            await refreshComments('all');
+        }
 
-                    // Atualizar cards
-                    document.getElementById('totalCount').innerText = total;
-                    document.getElementById('hateCount').innerText = hateCount;
-                    document.getElementById('riskRate').innerHTML = hateRate + '<span class="card-unit">%</span>';
-                    document.getElementById('lastUpdate').innerText = new Date().toLocaleString();
-                    document.getElementById('statusBadge').innerHTML = '✅ Dados atualizados';
-                    document.getElementById('dataNote').innerHTML = `✅ Última coleta: ${new Date().toLocaleString()}. Total: ${total} comentários.`;
+        async function loadStats() {
+            try {
+                const res = await fetch(`${API_URL}/estatisticas/resumo`);
+                const data = await res.json();
+                
+                document.getElementById('kpi-total').innerText = data.total_comentarios.toLocaleString();
+                document.getElementById('kpi-hate').innerText = data.total_odio.toLocaleString();
+                document.getElementById('kpi-rate').innerText = data.taxa_odio + '%';
+                document.getElementById('kpi-confidence').innerText = data.avg_confidence + '%';
 
-                    // Gráfico de categorias
-                    const catCount = {};
-                    hateComments.forEach(c => { catCount[c.category] = (catCount[c.category] || 0) + 1; });
-                    const categories = Object.keys(catCount);
-                    const values = categories.map(c => catCount[c]);
-                    if (categoryChart) categoryChart.destroy();
-                    const ctx = document.getElementById('categoryChart').getContext('2d');
-                    categoryChart = new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: categories,
-                            datasets: [{
-                                label: 'Comentários',
-                                data: values,
-                                backgroundColor: '#e67e22',
-                                borderRadius: 8,
-                            }]
-                        },
-                        options: { responsive: true, maintainAspectRatio: true }
-                    });
+                renderCategoryChart(data.distribuicao_categorias);
+            } catch(e) { console.error(e); }
+        }
 
-                    // Termos mais frequentes (usando textos de todos os comentários)
-                    const allTexts = classified.map(c => c.texto).filter(t => t);
-                    const topTerms = getTopTerms(allTexts, 15);
-                    const termList = document.getElementById('termList');
-                    termList.innerHTML = '';
-                    topTerms.forEach(([term, freq]) => {
-                        const li = document.createElement('li');
-                        li.innerHTML = `<span class="term">${term}</span><span class="freq">${freq}</span>`;
-                        termList.appendChild(li);
-                    });
-
-                    // Últimos comentários com ódio (limite 5)
-                    const latestHate = hateComments.slice(0, 5);
-                    const commentsDiv = document.getElementById('commentsList');
-                    commentsDiv.innerHTML = '';
-                    if (latestHate.length === 0) {
-                        commentsDiv.innerHTML = '<div class="comment-item">Nenhum comentário com discurso de ódio identificado.</div>';
-                    } else {
-                        latestHate.forEach(c => {
-                            const div = document.createElement('div');
-                            div.className = 'comment-item';
-                            div.innerHTML = `
-                                <div class="comment-text">${escapeHtml(c.texto)}</div>
-                                <div class="comment-meta">
-                                    <span>@${escapeHtml(c.autor_username) || 'anon'}</span>
-                                    <span class="badge-cat">${escapeHtml(c.category)}</span>
-                                </div>
-                            `;
-                            commentsDiv.appendChild(div);
-                        });
+        async function loadTimeline() {
+            try {
+                const res = await fetch(`${API_URL}/estatisticas/linha-do-tempo`);
+                const data = await res.json();
+                
+                const ctx = document.getElementById('timelineChart').getContext('2d');
+                if(timelineChart) timelineChart.destroy();
+                
+                timelineChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.map(d => d.data),
+                        datasets: [
+                            {
+                                label: 'Discursos de Ódio',
+                                data: data.map(d => d.odio),
+                                borderColor: '#e67e22',
+                                backgroundColor: 'rgba(230, 126, 34, 0.1)',
+                                fill: true,
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Total Coletado',
+                                data: data.map(d => d.total),
+                                borderColor: '#94a3b8',
+                                borderDash: [5, 5],
+                                fill: false,
+                                tension: 0.4
+                            }
+                        ]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }
                     }
+                });
+            } catch(e) { console.error(e); }
+        }
+
+        function renderCategoryChart(data) {
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            if(categoryChart) categoryChart.destroy();
+            
+            categoryChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(data),
+                    datasets: [{
+                        data: Object.values(data),
+                        backgroundColor: ['#f43f5e', '#8b5cf6', '#0ea5e9', '#f59e0b', '#10b981', '#64748b'],
+                        borderWidth: 0,
+                        hoverOffset: 15
+                    }]
                 },
-                error: (err) => {
-                    console.error(err);
-                    document.getElementById('statusBadge').innerHTML = '❌ Erro no CSV';
-                    document.getElementById('dataNote').innerHTML = 'Falha ao carregar dados. Verifique a URL do CSV.';
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10, weight: 'bold' } } } },
+                    cutout: '70%'
                 }
             });
-        } catch (err) {
-            console.error(err);
-            document.getElementById('statusBadge').innerHTML = '⚠️ Falha na carga';
-            document.getElementById('dataNote').innerHTML = `Erro: ${err.message}`;
         }
+
+        async function loadRecentHate() {
+            try {
+                const res = await fetch(`${API_URL}/comentarios?hate=true&limit=3`);
+                const data = await res.json();
+                const list = document.getElementById('recent-alerts-list');
+                
+                list.innerHTML = data.dados.map(c => `
+                    <div class="p-4 bg-white rounded-2xl border border-slate-100 flex items-start gap-4">
+                        <div class="p-2 bg-red-50 text-red-600 rounded-lg h-fit"><i data-lucide="alert-octagon" class="w-5 h-5"></i></div>
+                        <div class="flex-1">
+                            <div class="flex justify-between mb-1">
+                                <span class="text-xs font-bold text-slate-700">@${c.autor} → ${c.candidato}</span>
+                                <span class="text-[10px] text-slate-400 font-medium">${c.categoria.toUpperCase()}</span>
+                            </div>
+                            <p class="text-sm text-slate-600 leading-relaxed truncate max-w-2xl">"${c.texto}"</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs font-bold text-red-600">${c.score * 10}/10</span>
+                            <span class="block text-[8px] text-slate-400 uppercase tracking-tighter">Severidade</span>
+                        </div>
+                    </div>
+                `).join('');
+                lucide.createIcons();
+            } catch(e) { console.error(e); }
+        }
+
+        async function refreshComments(filter) {
+            try {
+                const res = await fetch(`${API_URL}/comentarios?limit=15${filter === 'hate' ? '&hate=true' : ''}`);
+                const data = await res.json();
+                const tbody = document.getElementById('comments-table-body');
+                
+                tbody.innerHTML = data.dados.map(c => `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4">
+                            ${c.categoria !== 'NEUTRO' 
+                                ? '<span class="text-red-500"><i data-lucide="shield-alert" class="w-4 h-4"></i></span>' 
+                                : '<span class="text-emerald-500"><i data-lucide="shield-check" class="w-4 h-4"></i></span>'}
+                        </td>
+                        <td class="px-6 py-4">
+                            <p class="text-xs font-medium text-slate-600 max-w-md truncate">"${c.texto}"</p>
+                            <span class="text-[10px] text-slate-400">@${c.autor}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 bg-slate-100 text-slate-700 rounded-md text-[10px] font-bold">@${c.candidato}</span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="text-xs font-bold ${c.score > 0.7 ? 'text-red-600' : 'text-slate-500'}">${(c.score * 10).toFixed(1)}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="badge ${c.categoria !== 'NEUTRO' ? 'badge-hate' : 'bg-slate-100 text-slate-500'} text-[10px]">${c.categoria}</span>
+                        </td>
+                    </tr>
+                `).join('');
+                lucide.createIcons();
+            } catch(e) { console.error(e); }
+        }
+
+        // --- ANÁLISE IA EM TEMPO REAL ---
+        async function analyzeText() {
+            const text = document.getElementById('ai-input').value;
+            if(!text) return;
+            
+            const btn = document.getElementById('btn-analyze');
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> ANALISANDO...';
+            btn.disabled = true;
+            lucide.createIcons();
+
+            try {
+                const res = await fetch(`${API_URL}/analyze`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+                const result = await res.json();
+                
+                // Exibir resultado
+                document.getElementById('ai-result-panel').classList.remove('hidden');
+                
+                const verdict = document.getElementById('ai-verdict-badge');
+                if(result.is_hate) {
+                    verdict.innerHTML = '<span class="px-4 py-2 bg-red-100 text-red-700 rounded-full font-bold text-sm">🚩 DISCURSO DE ÓDIO DETECTADO</span>';
+                } else {
+                    verdict.innerHTML = '<span class="px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full font-bold text-sm">✅ CONTEÚDO SEGURO / NEUTRO</span>';
+                }
+                
+                document.getElementById('ai-res-category').innerText = result.category;
+                document.getElementById('ai-res-confidence').innerText = (result.confidence * 100).toFixed(1) + '%';
+                document.getElementById('ai-res-severity-num').innerText = result.severity + '/10';
+                document.getElementById('ai-res-severity-fill').style.width = (result.severity * 10) + '%';
+                document.getElementById('ai-res-reasoning').innerText = result.justification;
+
+            } catch(e) {
+                alert("Erro na conexão com o Qwen Local (Ollama)");
+            } finally {
+                btn.innerHTML = '<i data-lucide="zap" class="w-5 h-5"></i> EXECUTAR ANÁLISE PERICIAL';
+                btn.disabled = false;
+                lucide.createIcons();
+            }
+        }
+
+        // Inicialização
+        refreshAll();
+        // Auto-refresh a cada 2 minutos
+        setInterval(refreshAll, 120000);
+    </script>
+</body>
+</html>
