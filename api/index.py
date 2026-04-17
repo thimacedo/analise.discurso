@@ -117,9 +117,43 @@ def listar_comentarios(
             ]
         }
 
-# --- ENDPOINT DE ANÁLISE EM TEMPO REAL ---
-
-@app.post("/api/v1/analyze")
+@app.patch("/api/v1/comments/review")
+def review_comment(payload: Dict = Body(...)):
+    comment_id = payload.get("comment_id")
+    new_category = payload.get("category")
+    is_confirmed = payload.get("confirmed", False)
+    
+    if not comment_id:
+        return {"error": "ID do comentário é obrigatório"}, 400
+        
+    with db.get_session() as session:
+        from database.models import Classificacao
+        classificacao = session.query(Classificacao).filter(Classificacao.commentId == comment_id).first()
+        
+        if not classificacao:
+            # Se não existir classificação, cria uma nova "Manual"
+            from database.models import Classificacao as NovoClass
+            classificacao = NovoClass(
+                commentId=comment_id,
+                isHateSpeech=True if new_category and new_category.lower() != 'neutro' else False,
+                category=new_category or 'NEUTRO',
+                confidence=1.0,
+                severity=8 if new_category and new_category.lower() != 'neutro' else 0,
+                classifierType='manual'
+            )
+            session.add(classificacao)
+        else:
+            # Atualiza a existente
+            if new_category:
+                classificacao.category = new_category
+                classificacao.isHateSpeech = True if new_category.lower() != 'neutro' else False
+            
+            # Registra quem revisou (Simulado como 'analista_forense')
+            classificacao.classifierType = 'hybrid_reviewed'
+            classificacao.confidence = 1.0 # Confiança máxima após revisão humana
+            
+        session.commit()
+        return {"status": "success", "message": "Classificação validada pelo perito."}
 def analyze_text(payload: Dict = Body(...)):
     text = payload.get("text")
     if not text:

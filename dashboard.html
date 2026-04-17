@@ -214,6 +214,7 @@
                                 <th class="px-6 py-4">Candidato Alvo</th>
                                 <th class="px-6 py-4 text-center">Severidade</th>
                                 <th class="px-6 py-4">Categoria</th>
+                                <th class="px-6 py-4 text-right">Ações Periciais</th>
                             </tr>
                         </thead>
                         <tbody id="comments-table-body" class="divide-y divide-slate-100">
@@ -490,10 +491,41 @@
                         <td class="px-6 py-4">
                             <span class="badge ${c.categoria !== 'NEUTRO' ? 'badge-hate' : 'bg-slate-100 text-slate-500'} text-[10px]">${c.categoria}</span>
                         </td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex justify-end gap-2">
+                                <button onclick="reviewComment('${c.id}', '${c.categoria}', true)" class="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors" title="Validar Classificação">
+                                    <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="openCorrectionModal('${c.id}')" class="p-1.5 bg-slate-50 text-slate-600 rounded-lg hover:bg-slate-100 transition-colors" title="Corrigir Categoria">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </td>
                     </tr>
                 `).join('');
                 lucide.createIcons();
             } catch(e) { console.error(e); }
+        }
+
+        async function reviewComment(commentId, category, confirmed) {
+            try {
+                const res = await fetch(`${API_URL}/comments/review`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ comment_id: commentId, category: category, confirmed: confirmed })
+                });
+                if(res.ok) {
+                    console.log("✅ Revisão salva com sucesso");
+                    refreshComments('all');
+                }
+            } catch(e) { alert("Falha ao salvar revisão"); }
+        }
+
+        function openCorrectionModal(commentId) {
+            const newCat = prompt("Digite a nova categoria (RACISMO, MISOGINIA, HOMOFOBIA, XENOFOBIA, ODIO_POLITICO, NEUTRO):");
+            if(newCat) {
+                reviewComment(commentId, newCat.toUpperCase(), false);
+            }
         }
 
         // --- ANÁLISE IA EM TEMPO REAL ---
