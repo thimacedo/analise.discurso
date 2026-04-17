@@ -1,112 +1,135 @@
 # database/repository.py
-import sqlite3
 import os
 from datetime import datetime
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from dotenv import load_dotenv
 
-class SimpleObject:
-    """Classe auxiliar para simular objetos de banco com .id"""
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
+# Importing models
+from database.models import Base, Candidato, Comentario, Classificacao, ExecucaoPipeline
+
+load_dotenv()
 
 class DatabaseRepository:
-    def __init__(self, db_path="analise_discurso.db"):
-        self.db_path = db_path
-        self.conn = sqlite3.connect(self.db_path)
-        self.conn.row_factory = sqlite3.Row
-        self.cursor = self.conn.cursor()
-
+    """
+    Repositório de Banco de Dados via SQLAlchemy.
+    Suporta PostgreSQL (Produção) ou SQLite (Desenvolvimento).
+    """
+    def __init__(self):
+        # Default to SQLite if DATABASE_URL is not set
+        db_url = os.getenv("DATABASE_URL", "sqlite:///./odio_politica.db")
+        
+        # SQLite specifics
+        connect_args = {}
+        if db_url.startswith("sqlite"):
+            connect_args["check_same_thread"] = False
+            
+        self.engine = create_engine(db_url, connect_args=connect_args)
+        self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
+        
     def criar_tabelas(self):
-        self.cursor.executescript("""
-            CREATE TABLE IF NOT EXISTS execucoes (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                data_inicio TEXT,
-                data_fim TEXT,
-                status TEXT,
-                total_bruto INTEGER,
-                total_salvo INTEGER
-            );
-            CREATE TABLE IF NOT EXISTS candidatos (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE,
-                cargo TEXT,
-                sexo TEXT,
-                raca TEXT,
-                estado TEXT,
-                partido TEXT,
-                ideologia TEXT,
-                data_atualizacao TEXT
-            );
-            CREATE TABLE IF NOT EXISTS comentarios (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                candidato_id INTEGER,
-                id_externo TEXT,
-                post_id TEXT,
-                autor_username TEXT,
-                texto_bruto TEXT,
-                texto_limpo TEXT,
-                data_publicacao TEXT,
-                likes INTEGER,
-                UNIQUE(id_externo, post_id),
-                FOREIGN KEY(candidato_id) REFERENCES candidatos(id)
-            );
-            CREATE TABLE IF NOT EXISTS classificacoes (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                comentario_id INTEGER,
-                categoria_odio TEXT,
-                score REAL,
-                confianca REAL,
-                modelo_versao TEXT,
-                FOREIGN KEY(comentario_id) REFERENCES comentarios(id)
-            );
-        """)
-        self.conn.commit()
+        """Cria as tabelas no banco de dados, se não existirem."""
+        Base.metadata.create_all(bind=self.engine)
+        
+    def get_session(self):
+        return self.SessionLocal()
 
     def iniciar_execucao(self):
-        self.cursor.execute("INSERT INTO execucoes (data_inicio, status) VALUES (?, ?)", (datetime.now().isoformat(), "EM_ANDAMENTO"))
-        self.conn.commit()
-        return SimpleObject(id=self.cursor.lastrowid)
+        session = self.get_session()
+        try:
+            execucao = ExecucaoPipeline(status="EM_ANDAMENTO")
+            session.add(execucao)
+            session.commit()
+            session.refresh(execucao)
+            return execucao
+        finally:
+            session.close()
 
-    def finalizar_execucao(self, exec_id, status, total_bruto, total_salvo):
-        self.cursor.execute("UPDATE execucoes SET data_fim=?, status=?, total_bruto=?, total_salvo=? WHERE id=?",
-                           (datetime.now().isoformat(), status, total_bruto, total_salvo, exec_id))
-        self.conn.commit()
+    def finalizar_execucao(self, exec_id, status, total_bruto, total_salvo, erro_mensagem=""):
+        session = self.get_session()
+        try:
+            execucao = session.query(ExecucaoPipeline).filter(ExecucaoPipeline.id == exec_id).first()
+            if execucao:
+                execucao.fim = datetime.utcnow()
+                execucao.status = status
+                execucao.total_coletado = total_bruto
+                execucao.total_classificado = total_salvo
+                execucao.erro_mensagem = erro_mensagem
+                session.commit()
+        finally:
+            session.close()
 
     def salvar_candidato(self, username, dados):
-        self.cursor.execute("""
-            INSERT INTO candidatos (username, cargo, sexo, raca, estado, partido, ideologia, data_atualizacao)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(username) DO UPDATE SET cargo=?, sexo=?, raca=?, estado=?, partido=?, ideologia=?, data_atualizacao=?
-        """, (username, dados.get('cargo'), dados.get('sexo'), dados.get('raca'), 
-              dados.get('estado'), dados.get('partido'), dados.get('ideologia'), datetime.now().isoformat(),
-              dados.get('cargo'), dados.get('sexo'), dados.get('raca'), 
-              dados.get('estado'), dados.get('partido'), dados.get('ideologia'), datetime.now().isoformat()))
-        self.conn.commit()
-        
-        self.cursor.execute("SELECT id FROM candidatos WHERE username=?", (username,))
-        row = self.cursor.fetchone()
-        return SimpleObject(id=row['id'])
+        session = self.get_session()
+        try:
+            candidato = session.query(Candidato).filter(Candidato.username == username).first()
+            if not candidato:
+                candidato = Candidato(username=username)
+                session.add(candidato)
+            
+            candidato.nome_completo = dados.get('nome_completo', candidato.nome_completo)
+            candidato.bio = dados.get('bio', candidato.bio)
+            candidato.cargo = dados.get('cargo', candidato.cargo)
+            candidato.sexo = dados.get('sexo', candidato.sexo)
+            candidato.raca = dados.get('raca', candidato.raca)
+            candidato.estado = dados.get('estado', candidato.estado)
+            candidato.partido = dados.get('partido', candidato.partido)
+            candidato.ideologia = dados.get('ideologia', candidato.ideologia)
+            candidato.seguidores = dados.get('seguidores', candidato.seguidores)
+            
+            session.commit()
+            session.refresh(candidato)
+            return candidato
+        finally:
+            session.close()
 
     def salvar_comentario(self, candidato_id, dados):
+        session = self.get_session()
         try:
-            self.cursor.execute("""
-                INSERT INTO comentarios (candidato_id, id_externo, post_id, autor_username, texto_bruto, texto_limpo, data_publicacao, likes)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """, (candidato_id, dados.get('id_externo'), dados.get('post_id'), 
-                  dados.get('autor_username'), dados.get('texto_bruto'), dados.get('texto_limpo'),
-                  dados.get('data_publicacao'), dados.get('likes', 0)))
-            self.conn.commit()
-            return SimpleObject(id=self.cursor.lastrowid)
-        except sqlite3.IntegrityError:
-            # Comentário já existe no banco, ignora
-            return None
+            id_externo = dados.get('id_externo')
+            post_id = dados.get('post_id')
+            
+            # Verifica se o comentário já existe para evitar duplicidade
+            existente = session.query(Comentario).filter(
+                Comentario.id_externo == id_externo,
+                Comentario.post_id == post_id
+            ).first()
+            
+            if existente:
+                return existente
+                
+            comentario = Comentario(
+                candidato_id=candidato_id,
+                id_externo=id_externo,
+                post_id=post_id,
+                autor_username=dados.get('autor_username'),
+                texto_bruto=dados.get('texto_bruto'),
+                texto_limpo=dados.get('texto_limpo'),
+                data_publicacao=dados.get('data_publicacao'),
+                likes=dados.get('likes', 0)
+            )
+            session.add(comentario)
+            session.commit()
+            session.refresh(comentario)
+            return comentario
+        finally:
+            session.close()
 
     def salvar_classificacao(self, comentario_id, dados):
-        self.cursor.execute("""
-            INSERT INTO classificacoes (comentario_id, categoria_odio, score, confianca, modelo_versao)
-            VALUES (?, ?, ?, ?, ?)
-        """, (comentario_id, dados.get('categoria_odio'), dados.get('score'), dados.get('confianca'), dados.get('modelo_versao')))
-        self.conn.commit()
-
-    def __del__(self):
-        if hasattr(self, 'conn'):
-            self.conn.close()
+        session = self.get_session()
+        try:
+            classificacao = session.query(Classificacao).filter(Classificacao.comentario_id == comentario_id).first()
+            if not classificacao:
+                classificacao = Classificacao(comentario_id=comentario_id)
+                session.add(classificacao)
+                
+            classificacao.categoria_odio = dados.get('categoria_odio')
+            classificacao.score = dados.get('score')
+            classificacao.confianca = dados.get('confianca')
+            classificacao.modelo_versao = dados.get('modelo_versao')
+            
+            session.commit()
+            session.refresh(classificacao)
+            return classificacao
+        finally:
+            session.close()

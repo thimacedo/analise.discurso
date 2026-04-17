@@ -1,25 +1,19 @@
 {
-  "ultima_atualizacao": "2026-04-12T22:38:55.181562",
-  "perfis": [
-    "flaviobolsonaro",
-    "hilton_erika",
-    "lindberghfarias",
-    "jairmessiasbolsonaro",
-    "nikolasferreiradm",
-    "dep.eduardobolsonaro",
-    "guilhermeboulos.oficial",
-    "vereadoriraniguedes",
-    "michaelborgesrn",
-    "vereadorederqueiroz",
-    "rodrigocruz_rn",
-    "drjonasgodeiro",
-    "binhodeambrosio",
-    "cctv.parnamirim",
-    "professordiegoamerico",
-    "vereadoreuricodajapao",
-    "marleidecunharn",
-    "vereadorarhalessarn",
-    "thiagofernandesrn",
-    "lulaoficial"
+  "ultima_atualizacao": "2026-04-14T10:00:00.000000",
+  "perfis_detalhes": [
+    {"username": "jairmessiasbolsonaro", "categoria": "nacional", "subcategoria": "ex-presidente", "prioridade": 1},
+    {"username": "lulaoficial", "categoria": "nacional", "subcategoria": "presidente", "prioridade": 1},
+    {"username": "guilhermeboulos.oficial", "categoria": "nacional", "subcategoria": "deputado_federal", "prioridade": 2},
+    {"username": "nikolasferreiradm", "categoria": "nacional", "subcategoria": "deputado_federal", "prioridade": 2},
+    {"username": "flaviobolsonaro", "categoria": "regional", "subcategoria": "senador", "prioridade": 2},
+    {"username": "lindberghfarias", "categoria": "regional", "subcategoria": "deputado_federal", "prioridade": 3},
+    {"username": "hilton_erika", "categoria": "regional", "subcategoria": "deputado_federal", "prioridade": 3},
+    {"username": "thiagofernandesrn", "categoria": "estadual_local", "subcategoria": "deputado_estadual", "prioridade": 4},
+    {"username": "marleidecunharn", "categoria": "estadual_local", "subcategoria": "vereadora", "prioridade": 5},
+    {"username": "vereadorarhalessarn", "categoria": "estadual_local", "subcategoria": "vereadora", "prioridade": 5},
+    {"username": "professordiegoamerico", "categoria": "estadual_local", "subcategoria": "vereador", "prioridade": 5},
+    {"username": "vereadoriraniguedes", "categoria": "estadual_local", "subcategoria": "vereador", "prioridade": 5},
+    {"username": "michaelborgesrn", "categoria": "estadual_local", "subcategoria": "vereador", "prioridade": 5},
+    {"username": "vereadoreuricodajapao", "categoria": "estadual_local", "subcategoria": "vereador", "prioridade": 5}
   ]
 }

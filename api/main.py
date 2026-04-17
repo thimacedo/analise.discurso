@@ -35,9 +35,56 @@ def get_status():
         "database": "connected"
     }
 
-@app.get("/api/v1/dashboard/stats")
+@app.get("/api/v1/estatisticas/resumo")
 def get_estatisticas_resumo():
-    return db.estatisticas_resumo()
+    with db.get_session() as session:
+        from database.models import Comentario, Classificacao
+        from sqlalchemy import func
+        
+        total_comentarios = session.query(Comentario).count()
+        total_odio = session.query(Classificacao).filter(Classificacao.categoria_odio != 'neutro').count()
+        
+        # Categorias de ódio
+        categorias = session.query(
+            Classificacao.categoria_odio, 
+            func.count(Classificacao.id)
+        ).filter(Classificacao.categoria_odio != 'neutro')\
+         .group_by(Classificacao.categoria_odio).all()
+         
+        return {
+            "total_comentarios": total_comentarios,
+            "total_odio": total_odio,
+            "taxa_odio": round((total_odio / total_comentarios * 100), 2) if total_comentarios > 0 else 0,
+            "distribuicao_categorias": {k: v for k, v in categorias}
+        }
+
+@app.get("/api/v1/estatisticas/linha-do-tempo")
+def get_linha_do_tempo():
+    with db.get_session() as session:
+        from database.models import Comentario, Classificacao
+        from sqlalchemy import func, String, cast
+        
+        # Agrupando por dia (depende do dialect do BD, no sqlite e pg é ligeiramente diferente, vamos usar substr para data ISO ou date)
+        # SQLite: substr(data_publicacao, 1, 10)
+        # Postgres: cast(data_publicacao as date)
+        # Como o BD pode ser SQLite ou PG, faremos um cast genérico ou processaremos no Python se for leve. 
+        # Aqui, vamos pegar a data formatada:
+        resultados = session.query(
+            func.date(Comentario.data_publicacao).label('dia'),
+            func.count(Comentario.id).label('total'),
+            func.sum(func.case((Classificacao.categoria_odio != 'neutro', 1), else_=0)).label('odio')
+        ).join(Classificacao, isouter=True)\
+         .group_by(func.date(Comentario.data_publicacao))\
+         .order_by(func.date(Comentario.data_publicacao))\
+         .all()
+         
+        return [
+            {
+                "data": str(r.dia),
+                "total": r.total,
+                "odio": r.odio
+            } for r in resultados if r.dia
+        ]
 
 @app.get("/api/v1/candidatos")
 def listar_candidatos():
