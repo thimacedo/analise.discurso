@@ -2,6 +2,7 @@
 import requests
 import json
 import os
+import re
 import pandas as pd
 from typing import List, Dict
 
@@ -9,15 +10,20 @@ class QwenLocalClassifier:
     """
     Classificador de Discurso de Ódio híbrido:
     1. Tenta o Ollama local (qwen2.5-coder:7b) para máxima privacidade e custo zero.
-    2. Se falhar ou estiver no Vercel, usa a API Gratuita do Hugging Face (Qwen 2.5 Coder Online).
+    2. Se falhar ou estiver no Vercel, tenta múltiplos modelos gratuitos no Hugging Face.
     """
     def __init__(self, model="qwen2.5-coder:7b", host="http://localhost:11434"):
         self.model = model
         self.host = host
         self.local_url = f"{host}/api/generate"
-        # Endpoint gratuito do Hugging Face (requer token gratuito no .env ou funciona limitado sem)
-        self.hf_model = "Qwen/Qwen2.5-Coder-7B-Instruct"
-        self.hf_url = f"https://api-inference.huggingface.co/models/{self.hf_model}"
+        
+        # Lista de modelos estáveis para fallback online (camada gratuita HF)
+        self.online_models = [
+            "Qwen/Qwen2.5-7B-Instruct",
+            "Qwen/Qwen2.5-Coder-32B-Instruct",
+            "google/gemma-2-9b-it",
+            "microsoft/Phi-3-mini-4k-instruct"
+        ]
         self.hf_token = os.getenv("HUGGINGFACE_TOKEN")
 
     def _get_system_prompt(self):
@@ -37,72 +43,81 @@ class QwenLocalClassifier:
         """
 
     def classify_online(self, text: str) -> Dict:
-        """Fallback para a versão gratuita online do Qwen via Hugging Face."""
-        headers = {}
-        if self.hf_token:
-            headers["Authorization"] = f"Bearer {self.hf_token}"
-        
-        prompt = f"<|im_start|>system\n{self._get_system_prompt()}<|im_end|>\n<|im_start|>user\nAnalise: \"{text}\"<|im_end|>\n<|im_start|>assistant\n"
-        
-        payload = {
-            "inputs": prompt,
-            "parameters": {"max_new_tokens": 200, "return_full_text": False}
-        }
-        
-        try:
-            response = requests.post(self.hf_url, headers=headers, json=payload, timeout=15)
-            response.raise_for_status()
+        """Tenta múltiplos modelos na nuvem gratuita do Hugging Face para garantir resiliência."""
+        headers = {"Authorization": f"Bearer {self.hf_token}"} if self.hf_token else {}
+        last_error = "Nenhum modelo online disponível"
+
+        for model_id in self.online_models:
+            url = f"https://api-inference.huggingface.co/models/{model_id}"
+            # Formato de prompt chat-ml
+            prompt = f"<|im_start|>system\n{self._get_system_prompt()}<|im_end|>\n<|im_start|>user\nAnalise este comentário: \"{text}\"<|im_end|>\n<|im_start|>assistant\n"
             
-            # O HF retorna uma lista com o texto gerado
-            result = response.json()
-            generated_text = result[0]['generated_text'] if isinstance(result, list) else str(result)
-            
-            # Limpeza básica do JSON retornado
-            json_match = generated_text[generated_text.find("{"):generated_text.rfind("}")+1]
-            data = json.loads(json_match)
-            data["provider"] = "Qwen Online (Free)"
-            return data
-        except Exception as e:
-            return {
-                "is_hate": False,
-                "category": "IA_INDISPONIVEL",
-                "score": 0.0,
-                "confidence": 0.0,
-                "justification": f"Limite de cota da IA Online atingido ou falha: {str(e)}",
-                "severity": 0,
-                "provider": "ERROR"
+            payload = {
+                "inputs": prompt,
+                "parameters": {"max_new_tokens": 250, "return_full_text": False}
             }
+            
+            try:
+                response = requests.post(url, headers=headers, json=payload, timeout=12)
+                if response.status_code == 200:
+                    result = response.json()
+                    # Diferentes modelos no HF podem retornar estruturas variadas
+                    generated_text = ""
+                    if isinstance(result, list) and len(result) > 0:
+                        generated_text = result[0].get('generated_text', '')
+                    elif isinstance(result, dict):
+                        generated_text = result.get('generated_text', '')
+                    
+                    if generated_text:
+                        # Extração robusta de JSON do texto gerado
+                        match = re.search(r'\{.*\}', generated_text, re.DOTALL)
+                        if match:
+                            data = json.loads(match.group())
+                            data["provider"] = f"Cloud ({model_id})"
+                            return data
+                
+                last_error = f"Modelo {model_id} retornou status {response.status_code}"
+            except Exception as e:
+                last_error = f"Erro em {model_id}: {str(e)}"
+                continue
+
+        return {
+            "is_hate": False,
+            "category": "IA_INDISPONIVEL",
+            "score": 0.0,
+            "confidence": 0.0,
+            "justification": f"Todos os modelos online falharam ou estão em manutenção. {last_error}",
+            "severity": 0,
+            "provider": "ERROR"
+        }
 
     def classify_comment(self, text: str) -> Dict:
-        """Tenta local primeiro, se falhar ou estiver no Vercel, vai para online."""
+        """Tenta local primeiro (Ollama), se falhar ou estiver no Vercel, vai para online."""
         is_vercel = os.getenv("VERCEL") or os.getenv("VERCEL_ENV")
         
-        # Se NÃO estiver no Vercel, tenta o Ollama Local
         if not is_vercel:
+            # Local: tenta Ollama
             payload = {
                 "model": self.model,
-                "prompt": f"{self._get_system_prompt()}\n\nAnalise: \"{text}\"\n\nJSON:",
+                "prompt": f"{self._get_system_prompt()}\n\nAnalise este comentário: \"{text}\"\n\nJSON:",
                 "stream": False,
                 "format": "json"
             }
             try:
                 response = requests.post(self.local_url, json=payload, timeout=5)
-                response.raise_for_status()
-                result_text = response.json().get("response", "{}")
-                data = json.loads(result_text)
-                data["provider"] = "Qwen Local (Ollama)"
-                return data
-            except requests.exceptions.ConnectionError:
-                # Local offline, tenta o online
-                pass
+                if response.status_code == 200:
+                    data = response.json()
+                    res_json = json.loads(data.get("response", "{}"))
+                    res_json["provider"] = "Qwen Local (Ollama)"
+                    return res_json
             except Exception:
-                pass
+                pass # Fallback para online se local falhar
         
-        # Se chegou aqui, usa a versão gratuita online
+        # Fallback Online Resiliente
         return self.classify_online(text)
 
     def classify_batch(self, texts: List[str]) -> pd.DataFrame:
-        print(f"🚀 Iniciando classificação híbrida (Local/Online)...")
+        print(f"🚀 Iniciando classificação híbrida resiliente...")
         results = []
         for i, text in enumerate(texts):
             analysis = self.classify_comment(text)
@@ -114,5 +129,5 @@ class QwenLocalClassifier:
 
 if __name__ == "__main__":
     classifier = QwenLocalClassifier()
-    test_text = "Esse comentário é apenas um teste neutro."
+    test_text = "Esse comentário é um teste de ódio simulado."
     print(json.dumps(classifier.classify_comment(test_text), indent=2, ensure_ascii=False))
