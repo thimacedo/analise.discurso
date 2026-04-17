@@ -29,10 +29,11 @@ Consolidar a plataforma como referência em monitoramento pericial de ódio pol�
 - [x] **Prompt Pericial:** IA treinada localmente para identificar Xenofobia, Misoginia e Ódio Político.
 - [x] **Integração Total:** Pipeline utiliza o Qwen como motor primário de análise (Custo Zero).
 
-### 🟡 Sprint 4: API & Visualização Moderna (EM ANDAMENTO)
-- [ ] **Expansão de Endpoints:** Adicionar filtros avançados por "Grau de Severidade" na API.
-- [ ] **Dashboard Realtime:** Criar interface web que consome os dados do SQLite via FastAPI.
-- [ ] **Worker de Monitoramento:** Implementar execução agendada (Cron/Task Scheduler).
+### 🟢 Sprint 4: API & Visualização Moderna (CONCLUÍDA)
+- [x] **Unificação FastAPI:** Backend unificado e migrado de Flask para FastAPI (v1.0).
+- [x] **Deploy Vercel:** Sistema online e estável em ambiente serverless.
+- [x] **Resiliência Serverless:** Banco de dados adaptado para modo "Memória" em produção (Read-Only fix).
+- [ ] **Interface Web Dinâmica:** Próximo passo é criar o frontend que consome esta API.
 
 ---
 
