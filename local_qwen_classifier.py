@@ -55,17 +55,26 @@ class QwenLocalClassifier:
         }
         
         try:
-            response = requests.post(self.url, json=payload, timeout=30)
+            response = requests.post(self.url, json=payload, timeout=5)
             response.raise_for_status()
             result_text = response.json().get("response", "{}")
             return json.loads(result_text)
+        except requests.exceptions.ConnectionError:
+            return {
+                "is_hate": False,
+                "category": "AGENTE_OFFLINE",
+                "score": 0.0,
+                "confidence": 0.0,
+                "justification": "O motor de IA Local (Ollama) não foi detectado. Se você está usando a versão web, certifique-se de que o Agente Desktop está rodando localmente.",
+                "severity": 0
+            }
         except Exception as e:
             return {
                 "is_hate": False,
-                "category": "ERRO",
+                "category": "ERRO_IA",
                 "score": 0.0,
                 "confidence": 0.0,
-                "justification": f"Erro na conexão local: {str(e)}",
+                "justification": f"Falha na análise contextual: {str(e)}",
                 "severity": 0
             }
 
