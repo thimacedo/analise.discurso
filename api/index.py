@@ -129,9 +129,38 @@ def analyze_text(payload: Dict = Body(...)):
     result = qwen.classify_comment(text)
     return result
 
-# --- SERVIR DASHBOARD ---
+@app.get("/api/v1/pipeline/history")
+def get_pipeline_history(limit: int = Query(10, ge=1, le=50)):
+    with db.get_session() as session:
+        from database.models import ExecucaoPipeline
+        historico = session.query(ExecucaoPipeline).order_by(ExecucaoPipeline.inicio.desc()).limit(limit).all()
+        
+        return [
+            {
+                "id": h.id,
+                "inicio": h.inicio.isoformat() if h.inicio else None,
+                "fim": h.fim.isoformat() if h.fim else None,
+                "status": h.status,
+                "total_coletado": h.total_coletado,
+                "total_classificado": h.total_classificado,
+                "erro": h.erro_mensagem
+            } for h in historico
+        ]
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/api/v1/pipeline/status")
+def get_pipeline_status():
+    with db.get_session() as session:
+        from database.models import ExecucaoPipeline
+        ultima = session.query(ExecucaoPipeline).order_by(ExecucaoPipeline.inicio.desc()).first()
+        
+        if not ultima:
+            return {"status": "INATIVO", "last_run": None}
+            
+        return {
+            "status": ultima.status,
+            "last_run": ultima.inicio.isoformat() if ultima.inicio else None,
+            "total_items": ultima.total_coletado
+        }
 def read_root():
     try:
         path = os.path.join(os.getcwd(), "dashboard.html")

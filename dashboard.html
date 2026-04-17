@@ -226,37 +226,53 @@
 
         <!-- TAB: PIPELINE -->
         <section id="tab-pipeline" class="tab-content animate-fade-in">
-            <div class="max-w-3xl mx-auto space-y-10">
+            <div class="max-w-4xl mx-auto space-y-10">
+                <!-- Status Atual -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="card glass-card p-6 rounded-2xl shadow-sm text-center">
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block mb-2">Status do Sistema</span>
+                        <div id="pipeline-status-badge" class="inline-block px-3 py-1 rounded-full text-xs font-bold">...</div>
+                    </div>
+                    <div class="card glass-card p-6 rounded-2xl shadow-sm text-center">
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block mb-2">Última Coleta</span>
+                        <div id="pipeline-last-run" class="text-sm font-bold text-slate-700">...</div>
+                    </div>
+                    <div class="card glass-card p-6 rounded-2xl shadow-sm text-center">
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block mb-2">Itens Coletados</span>
+                        <div id="pipeline-total-items" class="text-sm font-bold text-slate-700">...</div>
+                    </div>
+                </div>
+
                 <!-- Visual Pipeline Diagram -->
                 <div class="flex justify-between items-center relative py-10 px-4 bg-white rounded-3xl border border-slate-100">
                     <div class="absolute h-1 w-[80%] left-[10%] top-[50%] bg-slate-100 -z-0"></div>
                     
                     <div class="flex flex-col items-center gap-3 relative z-10">
                         <div class="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-lg"><i data-lucide="instagram"></i></div>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase">Instagram</span>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Coleta IG</span>
                     </div>
                     <div class="flex flex-col items-center gap-3 relative z-10">
-                        <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg"><i data-lucide="download-cloud"></i></div>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase">Coletor</span>
+                        <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg"><i data-lucide="database"></i></div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Persistência</span>
                     </div>
                     <div class="flex flex-col items-center gap-3 relative z-10">
-                        <div class="w-12 h-12 bg-orange-500 rounded-2xl flex items-center justify-center text-white shadow-lg animate-pulse"><i data-lucide="brain"></i></div>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase">IA Qwen</span>
+                        <div class="w-12 h-12 bg-orange-500 rounded-2xl flex items-center justify-center text-white shadow-lg"><i data-lucide="brain"></i></div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">IA Local</span>
                     </div>
                     <div class="flex flex-col items-center gap-3 relative z-10">
-                        <div class="w-12 h-12 bg-emerald-600 rounded-2xl flex items-center justify-center text-white shadow-lg"><i data-lucide="database"></i></div>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase">SQLite</span>
+                        <div class="w-12 h-12 bg-emerald-600 rounded-2xl flex items-center justify-center text-white shadow-lg"><i data-lucide="layout-dashboard"></i></div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Dashboard</span>
                     </div>
                 </div>
 
+                <!-- Histórico de Execuções -->
                 <div class="card glass-card p-8 rounded-3xl shadow-sm">
-                    <h4 class="font-bold mb-6 flex items-center gap-2"><i data-lucide="terminal" class="w-4 h-4 text-slate-400"></i> Log do Sistema</h4>
-                    <div class="bg-slate-900 rounded-2xl p-6 font-mono text-xs text-emerald-400 h-64 overflow-y-auto space-y-2">
-                        <p class="opacity-50">[17/04/2026 19:40] ForenseNet v3.0 inicializado com sucesso.</p>
-                        <p>[17/04/2026 19:41] Conectado ao provedor Ollama (qwen2.5-coder:7b).</p>
-                        <p>[17/04/2026 19:42] Banco de dados SQLite persistente em modo local.</p>
-                        <p class="text-orange-400">[17/04/2026 19:43] Aviso: Modo Vercel detectado, usando DB em memória.</p>
-                        <p class="text-blue-400">>>> Dashboard dinâmico v3.0 pronto para requisições.</p>
+                    <h4 class="font-bold mb-6 flex items-center gap-2">
+                        <i data-lucide="history" class="w-5 h-5 text-slate-400"></i> 
+                        Histórico de Execuções do Worker
+                    </h4>
+                    <div id="pipeline-history-list" class="space-y-3 font-mono text-[11px]">
+                        <!-- Dinâmico -->
                     </div>
                 </div>
             </div>
@@ -301,7 +317,46 @@
             await loadStats();
             await loadTimeline();
             await loadRecentHate();
+            await loadPipelineStatus();
             await refreshComments('all');
+        }
+
+        async function loadPipelineStatus() {
+            try {
+                // 1. Carregar Status Global
+                const resStatus = await fetch(`${API_URL}/pipeline/status`);
+                const status = await resStatus.json();
+                
+                const badge = document.getElementById('pipeline-status-badge');
+                badge.innerText = status.status || 'INATIVO';
+                badge.className = `inline-block px-3 py-1 rounded-full text-xs font-bold ${
+                    status.status === 'SUCESSO' ? 'bg-emerald-100 text-emerald-700' : 
+                    status.status === 'EM_ANDAMENTO' ? 'bg-blue-100 text-blue-700 animate-pulse' : 'bg-slate-100 text-slate-700'
+                }`;
+
+                document.getElementById('pipeline-last-run').innerText = status.last_run ? new Date(status.last_run).toLocaleString() : 'Nunca executado';
+                document.getElementById('pipeline-total-items').innerText = status.total_items || 0;
+
+                // 2. Carregar Histórico
+                const resHistory = await fetch(`${API_URL}/pipeline/history`);
+                const history = await resHistory.json();
+                const list = document.getElementById('pipeline-history-list');
+                
+                list.innerHTML = history.map(h => `
+                    <div class="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors border-b border-slate-50">
+                        <div class="flex items-center gap-3">
+                            <span class="w-2 h-2 rounded-full ${h.status === 'SUCESSO' ? 'bg-emerald-500' : 'bg-red-500'}"></span>
+                            <span class="text-slate-400 font-bold">${new Date(h.inicio).toLocaleString()}</span>
+                            <span class="text-slate-600">ID: ${h.id}</span>
+                        </div>
+                        <div class="flex gap-4">
+                            <span class="text-blue-600 font-bold">Coletados: ${h.total_coletado}</span>
+                            <span class="${h.status === 'SUCESSO' ? 'text-emerald-600' : 'text-red-600'} font-bold">${h.status}</span>
+                        </div>
+                    </div>
+                `).join('');
+                if(history.length === 0) list.innerHTML = '<p class="text-center text-slate-400 py-10">Nenhum log de execução encontrado no banco.</p>';
+            } catch(e) { console.error("Erro no Pipeline Status:", e); }
         }
 
         async function loadStats() {

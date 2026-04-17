@@ -32,8 +32,14 @@ Consolidar a plataforma como referência em monitoramento pericial de ódio pol�
 ### 🟢 Sprint 4: API & Visualização Moderna (CONCLUÍDA)
 - [x] **Unificação FastAPI:** Backend unificado e migrado de Flask para FastAPI (v1.0).
 - [x] **Deploy Vercel:** Sistema online e estável em ambiente serverless.
-- [x] **Resiliência Serverless:** Banco de dados adaptado para modo "Memória" em produção (Read-Only fix).
-- [ ] **Interface Web Dinâmica:** Próximo passo é criar o frontend que consome esta API.
+- [x] **Dashboard Premium v3.0:** Interface dinâmica com abas, gráficos e simulador de IA.
+- [x] **IA Híbrida:** Fallback automático entre Ollama Local e Nuvem Gratuita (HF).
+
+### 🟡 Sprint 5: Automação & Operação Forense (EM DEFINIÇÃO)
+- [ ] **Carga de Dados:** Executar migração total de CSVs legados para o DB.
+- [ ] **Worker de Coleta:** Implementar agendamento automático do pipeline.
+- [ ] **Alertas Críticos:** Integração com Telegram/Discord para detecções de alta severidade.
+- [ ] **Human-in-the-loop:** Interface para validação pericial das classificações.
 
 ---
 

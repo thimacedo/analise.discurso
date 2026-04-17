@@ -7,6 +7,9 @@ from database.models import Comentario
 from datetime import datetime
 
 def migrar():
+    # Garante que o script rode no diretório correto para o glob funcionar
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    
     print("="*60)
     print("🚚 MIGRANDO DADOS HISTÓRICOS (CSV -> SQLITE)")
     print("="*60)
@@ -15,31 +18,34 @@ def migrar():
     db.criar_tabelas()
     
     # 1. Localizar arquivos de dados brutos
-    arquivos_brutos = glob.glob("dados_brutos_*.csv")
+    arquivos_brutos = glob.glob("dados_brutos*.csv")
     print(f"📂 Encontrados {len(arquivos_brutos)} arquivos de dados brutos.")
     
     for arquivo in arquivos_brutos:
         print(f"📖 Processando {arquivo}...")
         try:
             df = pd.read_csv(arquivo)
+            # Normalização de nomes de colunas
+            df.columns = [c.lower() for c in df.columns]
+            
             for _, row in df.iterrows():
                 # Salva Candidato
-                candidate_name = row.get('candidate', 'desconhecido')
+                candidate_name = row.get('candidate', row.get('candidato', 'desconhecido'))
                 candidato = db.salvar_candidato(candidate_name, {})
                 
                 # Salva Comentário
                 db.salvar_comentario(candidato.id, {
-                    'id_externo': str(row.get('id', row.get('id_externo'))),
-                    'post_id': str(row.get('post_id')),
-                    'autor_username': row.get('owner_username', row.get('autor_username')),
-                    'texto_bruto': row.get('text', row.get('texto_bruto')),
-                    'data_publicacao': pd.to_datetime(row.get('timestamp', row.get('data_publicacao')))
+                    'id_externo': str(row.get('id', row.get('id_externo', ''))),
+                    'post_id': str(row.get('post_id', '')),
+                    'autor_username': row.get('owner_username', row.get('autor_username', 'anonimo')),
+                    'texto_bruto': row.get('text', row.get('texto_bruto', row.get('texto', ''))),
+                    'data_publicacao': pd.to_datetime(row.get('timestamp', row.get('data_publicacao', datetime.now())))
                 })
         except Exception as e:
             print(f"⚠️ Erro ao processar {arquivo}: {e}")
 
     # 2. Localizar arquivos classificados
-    arquivos_classificados = glob.glob("corpus_classificado_*.csv")
+    arquivos_classificados = glob.glob("corpus_classificado*.csv")
     if not arquivos_classificados and os.path.exists("corpus_classificado.csv"):
         arquivos_classificados = ["corpus_classificado.csv"]
         
