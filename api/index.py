@@ -105,10 +105,6 @@ def get_pipe_status(): return {"status": "OPERACIONAL"}
 @app.get("/api/v1/pipeline/history")
 def get_pipe_history(): return []
 
-@app.get("/")
 @app.get("/api")
 def read_root():
-    path = os.path.join(os.getcwd(), "dashboard.html")
-    if os.path.exists(path):
-        with open(path, "r", encoding="utf-8") as f: return HTMLResponse(content=f.read())
-    return HTMLResponse(content="<h1>Dashboard Offline</h1>")
+    return {"status": "ForenseNet API v2.7 Online"}
