@@ -6,9 +6,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# CONFIGURAÇÕES CLOUD
 SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY") # SERVICE ROLE para escrita
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 HEADERS = {
     "apikey": SUPABASE_KEY,
     "Authorization": f"Bearer {SUPABASE_KEY}",
@@ -16,49 +15,58 @@ HEADERS = {
 }
 
 def run_cloud_classification():
-    print("🧠 Iniciando Classificação IA Forense (Cloud Sync)...")
+    print("🧠 Classificador v3.1: Refinando detecção...")
     
-    # 1. Busca comentários não processados
-    url_fetch = f"{SUPABASE_URL}/rest/v1/comentarios?processado_ia=eq.false&limit=20"
+    # Busca apenas o que ainda não foi processado
+    url_fetch = f"{SUPABASE_URL}/rest/v1/comentarios?processado_ia=eq.false&limit=50"
     try:
         resp = httpx.get(url_fetch, headers=HEADERS)
         comments = resp.json()
         
         if not comments:
-            print("✅ Todos os comentários atuais já foram processados.")
+            print("✅ Nada novo para processar.")
             return
-
-        print(f"🧐 Analisando lote de {len(comments)} comentários...")
 
         for c in comments:
             text = c.get("texto_bruto", "")
             comment_id = c.get("id")
             
-            # SIMULAÇÃO DE CLASSIFICAÇÃO (A ser substituído pelo modelo real BERT/Qwen)
-            # Aqui entra a lógica do seu hate_classifier.py
-            is_hate, category = dummy_classify(text)
+            # LÓGICA REFINADA
+            is_hate, category = refine_classify(text)
             
-            # 2. Atualiza no Supabase
+            # 2. Atualiza no Supabase com o veredito real
             url_update = f"{SUPABASE_URL}/rest/v1/comentarios?id=eq.{comment_id}"
             update_data = {
                 "processado_ia": True,
-                "texto_limpo": text.lower().strip(), # Exemplo de limpeza simples
+                "is_hate": is_hate,
+                "categoria_ia": category,
+                "texto_limpo": text.lower().strip()
             }
-            # Se for ódio, podemos registrar em uma tabela de classificações ou no próprio campo (ajustando schema se necessário)
-            # Por enquanto, marcamos como processado para o Dashboard refletir
             
             httpx.patch(url_update, json=update_data, headers=HEADERS)
-            print(f"   ✅ Processado: @{c.get('autor_username')} -> {'🚩 ÓDIO' if is_hate else '✅ SEGURO'}")
+            print(f"   [{category}] @{c.get('autor_username')}: {text[:30]}...")
 
     except Exception as e:
-        print(f"❌ Erro na classificação: {e}")
+        print(f"❌ Erro: {e}")
 
-def dummy_classify(text):
-    """Simulação de lógica pericial (Substituir por modelo real)"""
-    keywords_odio = ['lixo', 'morra', 'matar', 'vagabundo', 'idiota', 'corrupto']
-    for word in keywords_odio:
-        if word in text.lower():
-            return True, "INSULTO/ÓDIO"
+def refine_classify(text):
+    text_lower = text.lower()
+    
+    # 1. Ignorar aplausos e emojis positivos
+    positive_vibes = ['👏', '🔥', '🙌', 'parabens', 'sucesso', 'apoio', 'deus abencoe', 'tmj']
+    for word in positive_vibes:
+        if word in text_lower:
+            return False, "NEUTRO/APOIO"
+
+    # 2. Palavras de ódio real (Agressão direta)
+    hate_words = ['lixo', 'vagabundo', 'idiota', 'corrupto', 'morra', 'assassino']
+    for word in hate_words:
+        if word in text_lower:
+            # Verifica contexto de causa animal (Ex: "matar os bichinhos" em tom de denúncia)
+            if 'bicho' in text_lower or 'animal' in text_lower:
+                return False, "DENÚNCIA/CAUSA ANIMAL"
+            return True, "AGRESSÃO/ÓDIO"
+            
     return False, "NEUTRO"
 
 if __name__ == "__main__":

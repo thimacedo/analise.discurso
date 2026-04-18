@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ForenseNet v3.0 | Observatório de Discurso e Ódio</title>
+    <title>ForenseNet v3.1 | Observatório de Discurso e Ódio</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -17,8 +17,6 @@
         .badge { padding: 2px 8px; border-radius: 6px; text-transform: uppercase; font-size: 10px; font-weight: bold; }
         .badge-hate { background: #fee2e2; color: #ef4444; }
         .badge-safe { background: #ecfdf5; color: #10b981; }
-        .animate-pulse-slow { animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .7; } }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -35,15 +33,11 @@
         <nav class="hidden md:flex gap-8">
             <button onclick="switchTab('tab-overview')" id="btn-overview" class="nav-link active text-sm py-1">Dashboard</button>
             <button onclick="switchTab('tab-comments')" id="btn-comments" class="nav-link text-sm py-1 text-slate-500 hover:text-orange-600">Comentários</button>
-            <button onclick="switchTab('tab-ai')" id="btn-ai" class="nav-link text-sm py-1 text-slate-500 hover:text-orange-600">Análise IA</button>
         </nav>
 
         <div class="flex items-center gap-4">
             <div id="sync-indicator" class="flex items-center gap-2 text-[10px] font-bold text-emerald-600 uppercase">
-                <span class="relative flex h-2 w-2">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
+                <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>
                 Cloud Sync
             </div>
             <button onclick="refreshAll()" class="p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors"><i data-lucide="refresh-cw"></i></button>
@@ -51,44 +45,23 @@
     </header>
 
     <main class="flex-1 container mx-auto px-6 py-8">
-        <!-- OVERVIEW -->
         <section id="tab-overview" class="tab-content active">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div class="card glass-card p-6 rounded-2xl">
-                    <span class="text-[10px] text-slate-400 font-bold uppercase block mb-2">Total Monitorado</span>
-                    <h3 id="kpi-total" class="text-3xl font-bold">0</h3>
-                </div>
-                <div class="card glass-card p-6 rounded-2xl border-l-4 border-l-red-500">
-                    <span class="text-[10px] text-slate-400 font-bold uppercase block mb-2">Discursos de Ódio</span>
-                    <h3 id="kpi-hate" class="text-3xl font-bold">0</h3>
-                </div>
-                <div class="card glass-card p-6 rounded-2xl">
-                    <span class="text-[10px] text-slate-400 font-bold uppercase block mb-2">Engajamento Alvo</span>
-                    <h3 id="kpi-likes" class="text-3xl font-bold text-blue-600">0</h3>
-                </div>
-                <div class="card glass-card p-6 rounded-2xl">
-                    <span class="text-[10px] text-slate-400 font-bold uppercase block mb-2">Perfis Ativos</span>
-                    <h3 id="kpi-profiles" class="text-xl font-bold text-emerald-600">135</h3>
-                </div>
+                <div class="card glass-card p-6 rounded-2xl"><span class="text-[10px] text-slate-400 font-bold uppercase block mb-2">Total Monitorado</span><h3 id="kpi-total" class="text-3xl font-bold">0</h3></div>
+                <div class="card glass-card p-6 rounded-2xl border-l-4 border-l-red-500"><span class="text-[10px] text-slate-400 font-bold uppercase block mb-2">Discursos de Ódio</span><h3 id="kpi-hate" class="text-3xl font-bold">0</h3></div>
+                <div class="card glass-card p-6 rounded-2xl"><span class="text-[10px] text-slate-400 font-bold uppercase block mb-2">Perfis Ativos</span><h3 id="kpi-profiles" class="text-xl font-bold text-emerald-600">135</h3></div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-2 card glass-card p-8 rounded-3xl h-80">
-                    <h4 class="font-bold mb-4">Volume de Coleta</h4>
-                    <canvas id="timelineChart"></canvas>
-                </div>
-                <div class="card glass-card p-8 rounded-3xl h-80">
-                    <h4 class="font-bold mb-4">Detecção de Ódio</h4>
-                    <canvas id="categoryChart"></canvas>
-                </div>
+                <div class="lg:col-span-2 card glass-card p-8 rounded-3xl h-80"><h4 class="font-bold mb-4">Volume de Coleta</h4><canvas id="timelineChart"></canvas></div>
+                <div class="card glass-card p-8 rounded-3xl h-80"><h4 class="font-bold mb-4">Detecção de Ódio</h4><canvas id="categoryChart"></canvas></div>
             </div>
         </section>
 
-        <!-- COMMENTS -->
         <section id="tab-comments" class="tab-content">
             <div class="card glass-card p-8 rounded-3xl overflow-hidden">
                 <div class="flex justify-between mb-6">
-                    <h4 class="text-xl font-bold">Repositório Cloud (Real-time)</h4>
+                    <h4 class="text-xl font-bold">Repositório Cloud</h4>
                     <div class="flex gap-2">
                         <button onclick="loadComments(true)" class="bg-red-50 text-red-600 px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-100">VER ALERTAS</button>
                         <button onclick="loadComments()" class="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-800">TODOS</button>
@@ -97,33 +70,10 @@
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">
                         <thead class="bg-slate-50 text-[10px] uppercase font-bold text-slate-400">
-                            <tr>
-                                <th class="px-6 py-4">Data</th>
-                                <th class="px-6 py-4">Autor</th>
-                                <th class="px-6 py-4">Texto Periciado</th>
-                                <th class="px-6 py-4">Alvo (@)</th>
-                                <th class="px-6 py-4">Status</th>
-                            </tr>
+                            <tr><th class="px-6 py-4">Data</th><th class="px-6 py-4">Autor</th><th class="px-6 py-4">Texto Periciado</th><th class="px-6 py-4">Status</th></tr>
                         </thead>
-                        <tbody id="comments-table-body" class="divide-y divide-slate-100 text-xs">
-                            <tr><td colspan="5" class="px-6 py-8 text-center text-slate-400 animate-pulse">Sincronizando com Supabase...</td></tr>
-                        </tbody>
+                        <tbody id="comments-table-body" class="divide-y divide-slate-100 text-xs"></tbody>
                     </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- AI SIMULATOR -->
-        <section id="tab-ai" class="tab-content">
-            <div class="max-w-4xl mx-auto space-y-6">
-                <div class="card glass-card p-8 rounded-3xl">
-                    <h4 class="text-xl font-bold mb-4">Simulador IA Pericial</h4>
-                    <textarea id="ai-input" placeholder="Cole um texto para análise imediata pelo modelo BERTimbau/Qwen..." class="w-full h-32 bg-slate-50 border-none rounded-2xl p-6 text-sm mb-4 focus:ring-2 focus:ring-orange-500"></textarea>
-                    <button onclick="analyzeText()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl hover:bg-slate-800 transition-all">EXECUTAR ANÁLISE</button>
-                </div>
-                <div id="ai-result-panel" class="hidden card glass-card p-8 rounded-3xl animate-fade-in border-2 border-orange-100">
-                    <div id="ai-verdict-badge" class="mb-4 text-center text-lg font-bold"></div>
-                    <p id="ai-res-reasoning" class="italic text-slate-600 text-center"></p>
                 </div>
             </div>
         </section>
@@ -131,66 +81,50 @@
 
     <script>
         lucide.createIcons();
-
-        // CONFIGURAÇÕES SUPABASE (ANON)
         const SB_URL = "https://vhamejkldzxbeibqeqpk.supabase.co/rest/v1";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoYW1lamtsZHp4YmVpYnFlcXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0ODgxMjUsImV4cCI6MjA5MjA2NDEyNX0.RMpgx8mDRrYRNfJ_GdOrsT5o8NkJiwBgW_J7CXSznWk";
-
         let categoryChart = null;
 
         async function refreshAll() {
-            console.log("🔄 Sincronizando dados...");
             await loadStats();
             await loadComments();
         }
 
         async function loadStats() {
             try {
-                // Busca contagem total e ódio
                 const respTotal = await fetch(`${SB_URL}/comentarios?select=count`, { headers: { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}`, "Range-Unit": "items" } });
                 const total = respTotal.headers.get("content-range")?.split("/")[1] || 0;
                 
-                const respHate = await fetch(`${SB_URL}/comentarios?processado_ia=eq.true&select=count`, { headers: { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` } });
+                const respHate = await fetch(`${SB_URL}/comentarios?is_hate=eq.true&select=count`, { headers: { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` } });
                 const hate = respHate.headers.get("content-range")?.split("/")[1] || 0;
 
-                const respLikes = await fetch(`${SB_URL}/rpc/sum_likes`, { method: 'POST', headers: { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` } });
-                // Nota: rpc exige função no postgres, se falhar usamos 0
-                
                 document.getElementById('kpi-total').innerText = total;
                 document.getElementById('kpi-hate').innerText = hate;
-                
                 renderCharts(total, hate);
-            } catch(e) { console.error("Erro ao carregar stats:", e); }
+            } catch(e) {}
         }
 
         async function loadComments(onlyAlerts = false) {
             try {
-                let url = `${SB_URL}/comentarios?select=*&order=data_coleta.desc&limit=20`;
-                if(onlyAlerts) url += "&processado_ia=eq.true";
+                let url = `${SB_URL}/comentarios?select=*&order=data_coleta.desc&limit=25`;
+                if(onlyAlerts) url += "&is_hate=eq.true";
 
                 const res = await fetch(url, { headers: { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` } });
                 const data = await res.json();
 
-                const tableBody = document.getElementById('comments-table-body');
-                if(!data || data.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-slate-400">Nenhum dado encontrado na nuvem.</td></tr>';
-                    return;
-                }
-
-                tableBody.innerHTML = data.map(c => `
+                document.getElementById('comments-table-body').innerHTML = data.map(c => `
                     <tr class="hover:bg-slate-50 transition-colors">
                         <td class="px-6 py-4 text-[10px] text-slate-400">${new Date(c.data_coleta).toLocaleString()}</td>
                         <td class="px-6 py-4 font-bold text-slate-700">@${c.autor_username || 'anônimo'}</td>
                         <td class="px-6 py-4 max-w-md truncate" title="${c.texto_bruto}">${c.texto_bruto}</td>
-                        <td class="px-6 py-4 text-orange-600 font-semibold">@${c.candidato_id}</td>
                         <td class="px-6 py-4">
-                            <span class="badge ${c.processado_ia ? 'badge-hate' : 'badge-safe'}">
-                                ${c.processado_ia ? 'Flag Ódio' : 'Seguro'}
+                            <span class="badge ${c.is_hate ? 'badge-hate' : 'badge-safe'}">
+                                ${c.is_hate ? c.categoria_ia : 'Seguro'}
                             </span>
                         </td>
                     </tr>
                 `).join('');
-            } catch(e) { console.error("Erro ao carregar comentários:", e); }
+            } catch(e) {}
         }
 
         function renderCharts(total, hate) {
@@ -199,12 +133,8 @@
             categoryChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Ódio Detectado', 'Neutro/Seguro'],
-                    datasets: [{
-                        data: [hate, total - hate],
-                        backgroundColor: ['#ef4444', '#e2e8f0'],
-                        borderWidth: 0
-                    }]
+                    labels: ['Ódio', 'Seguro'],
+                    datasets: [{ data: [hate, total - hate], backgroundColor: ['#ef4444', '#e2e8f0'], borderWidth: 0 }]
                 },
                 options: { responsive: true, maintainAspectRatio: false, cutout: '80%' }
             });
@@ -219,7 +149,6 @@
         }
 
         window.onload = refreshAll;
-        setInterval(refreshAll, 30000); // Auto-refresh a cada 30s
     </script>
 </body>
 </html>
