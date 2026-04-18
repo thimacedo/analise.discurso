@@ -6,7 +6,7 @@ import pandas as pd
 from datetime import datetime
 from dotenv import load_dotenv
 
-# Configuração de caminhos para os novos diretórios
+# Configuração de caminhos
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'core')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'collectors')))
 
@@ -16,49 +16,38 @@ from database.repository import DatabaseRepository
 
 load_dotenv()
 
-# Configurações de Nuvem para Sincronização Gradual
-VERCEL_API_URL = os.getenv("VERCEL_API_URL", "https://analise-discurso.vercel.app/api/v1")
+VERCEL_API_URL = os.getenv("VERCEL_API_URL", "https://projeto-odio-politica.vercel.app/api/v1")
 DASHBOARD_PIN = os.getenv("DASHBOARD_PIN", "1234")
 
+# ESCALONAMENTO NACIONAL SOLICITADO
+CANDIDATES = [
+    "lulaoficial", 
+    "flaviobolsonaro",
+    "jairmessiasbolsonaro",
+    "nikolasferreiradm",
+    "gleisihoffmann",
+    "choquei",
+    "metropoles"
+]
+
 def emoji_safe_print(text):
-    """Imprime no console removendo emojis apenas para evitar erro de encoding no Windows."""
-    try:
-        print(text)
-    except UnicodeEncodeError:
-        clean_text = text.encode('ascii', 'ignore').decode('ascii')
-        print(clean_text)
-
-def get_monitored_candidates():
-    try:
-        # Perfis agora estão na pasta data/
-        perfis_path = os.path.join('data', 'perfis_monitorados.json')
-        if not os.path.exists(perfis_path):
-            perfis_path = 'perfis_monitorados.json' # fallback
-
-        with open(perfis_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            return [p['username'] for p in data.get('perfis_detalhes', [])]
-    except Exception as e:
-        emoji_safe_print(f"Erro ao ler perfis_monitorados.json: {e}")
-        return ["jairmessiasbolsonaro", "lulaoficial"]
-
-CANDIDATES = get_monitored_candidates()
+    try: print(text)
+    except: print(text.encode('ascii', 'ignore').decode('ascii'))
 
 def push_to_cloud(data_list: list):
-    """Envia um lote de dados para o sistema online gradualmente."""
     try:
         headers = {'X-PIN': DASHBOARD_PIN, 'Content-Type': 'application/json'}
-        res = requests.post(f"{VERCEL_API_URL}/sync", headers=headers, json=data_list, timeout=10)
+        res = requests.post(f"{VERCEL_API_URL}/sync", headers=headers, json=data_list, timeout=20)
         if res.status_code == 200:
-            emoji_safe_print(f"Sincronizados {len(data_list)} itens com a nuvem.")
+            emoji_safe_print(f"✅ Sincronizados {len(data_list)} itens com a nuvem.")
         else:
-            emoji_safe_print(f"Falha na sincronização cloud: {res.status_code}")
+            emoji_safe_print(f"❌ Falha cloud: {res.status_code}")
     except Exception as e:
-        emoji_safe_print(f"Erro de conexão com a nuvem: {e}")
+        emoji_safe_print(f"⚠️ Erro conexão nuvem: {e}")
 
-def run_full_analysis():
+def run_mass_analysis():
     emoji_safe_print("="*60)
-    emoji_safe_print("FORENSENET v2.3 - MONITORAMENTO REAL-TIME & EMOJI-SAFE")
+    emoji_safe_print("FORENSENET v5.2 - MASSIVE CONTEXTUAL COLLECTION")
     emoji_safe_print("="*60)
     
     db = DatabaseRepository()
@@ -67,43 +56,38 @@ def run_full_analysis():
     collector = ForensicCollector()
     
     for username in CANDIDATES:
-        emoji_safe_print(f"\n--- Iniciando Coleta de @{username} ---")
+        emoji_safe_print(f"\n🚀 Alvo: @{username}")
         try:
-            # 1. Coleta do Candidato Atual
-            raw_df = collector.monitor_multiple_candidates([username], posts_per_candidate=10)
+            # Aumentando volume: 20 posts por candidato, 30 comentários por post
+            raw_df = collector.monitor_multiple_candidates([username], posts_per_candidate=20)
             
             if raw_df.empty:
-                emoji_safe_print(f"Sem dados para @{username}.")
+                emoji_safe_print(f"ℹ️ Sem dados novos para @{username}.")
                 continue
             
-            emoji_safe_print(f"Coletados {len(raw_df)} comentarios de @{username}.")
-            
-            # 2. Classificação Local
-            classificacoes = []
             sync_payload = []
-            
             for _, row in raw_df.iterrows():
-                # Salva localmente primeiro
+                # 1. Salvar Local (Custódia)
                 candidato = db.salvar_candidato(row['candidate'], {})
                 comentario = db.salvar_comentario(candidato.id, {
                     'id_externo': str(row['id']),
-                    'post_id': str(row['post_id']),
+                    'post_id': str(row['post_id']), # Contexto preservado
                     'autor_username': row['owner_username'],
                     'texto_bruto': row['text'],
                     'data_publicacao': pd.to_datetime(row['timestamp'])
                 })
                 
-                # Classifica
+                # 2. IA Pericial Local
                 res = classifier.classify_comment(row['text'])
                 
                 db.salvar_classificacao(comentario.id, {
                     'categoria_odio': res.get('category', 'NEUTRO'),
                     'score': float(res.get('score', 0.0)),
                     'confianca': float(res.get('confidence', 0.0)),
-                    'modelo_versao': 'qwen2.5-coder-local'
+                    'modelo_versao': 'qwen-v5.2-local'
                 })
                 
-                # Prepara para a Nuvem
+                # 3. Payload para Cloud (v5.2 format)
                 sync_payload.append({
                     "id_external": str(row['id']),
                     "candidato": username,
@@ -112,20 +96,19 @@ def run_full_analysis():
                     "data": row['timestamp'].isoformat() if hasattr(row['timestamp'], 'isoformat') else str(row['timestamp']),
                     "categoria": res.get('category', 'NEUTRO'),
                     "score": float(res.get('score', 0.0)),
-                    "confianca": float(res.get('confidence', 0.0))
+                    "post_url": str(row['post_id']) # Enviando o link/shortcode
                 })
             
-            # 3. PUSH PARA A NUVEM
-            emoji_safe_print(f"Enviando dados de @{username} para o Dashboard Online...")
-            push_to_cloud(sync_payload)
+            if sync_payload:
+                push_to_cloud(sync_payload)
             
         except Exception as e:
-            emoji_safe_print(f"Erro no processamento de @{username}: {e}")
+            emoji_safe_print(f"❌ Erro em @{username}: {e}")
             continue
 
     emoji_safe_print("\n" + "="*60)
-    emoji_safe_print("RODADA DE MONITORAMENTO FINALIZADA")
+    emoji_safe_print("RODADA MASSIVA FINALIZADA")
     emoji_safe_print("="*60)
 
 if __name__ == "__main__":
-    run_full_analysis()
+    run_mass_analysis()
