@@ -1,0 +1,22 @@
+[
+    {
+        "start_time": "2026-04-18T07:21:31.487499",
+        "profiles_attempted": 2,
+        "profiles_success": 2,
+        "posts_scanned": 0,
+        "comments_collected": 0,
+        "errors": [],
+        "end_time": "2026-04-18T07:24:14.146656",
+        "method": "apify_full_scraper"
+    },
+    {
+        "start_time": "2026-04-18T08:08:15.920409",
+        "profiles_attempted": 2,
+        "profiles_success": 2,
+        "posts_scanned": 0,
+        "comments_collected": 0,
+        "errors": [],
+        "end_time": "2026-04-18T08:09:53.442964",
+        "method": "apify_full_scraper"
+    }
+]
