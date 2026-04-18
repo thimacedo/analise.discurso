@@ -1,17 +1,13 @@
 venv/
 .venv/
 __pycache__/
-data/
 archive/
 docs/
 pipelines/
 scripts/
 processing/
-collectors/
-core/
 *.db
 *.csv
-*.png
 *.pdf
 .git/
 .github/
