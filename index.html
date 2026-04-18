@@ -3,182 +3,318 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ForenseNet v4.0 | Intelligence Command Center</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>ForenseNet v4.0 | Flat Intelligence Center</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Outfit -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Charts.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
-        :root {
-            --sidebar-width: 280px;
-            --brand-blue: #0052FF;
-            --bg-canvas: #f8fafc;
-            --text-main: #0f172a;
-            --border-ui: #e2e8f0;
+        /* Acessibilidade: Garante que o foco seja visível para usuários de teclado */
+        *:focus-visible {
+            outline: none;
+            ring: 2px;
+            ring-offset: 2px;
+            ring-color: #3B82F6;
         }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg-canvas); color: var(--text-main); overflow: hidden; }
-        .mono { font-family: 'JetBrains Mono', monospace; }
-        
-        /* Layout Structure */
-        .app-wrapper { display: grid; grid-template-columns: var(--sidebar-width) 1fr; height: 100vh; }
-        .sidebar { background: #ffffff; border-right: 1px solid var(--border-ui); padding: 2rem; display: flex; flex-direction: column; }
-        .main-content { overflow-y: auto; display: flex; flex-direction: column; }
-        
-        /* Navigation */
-        .nav-item { display: flex; items-center; gap: 12px; padding: 12px 16px; border-radius: 12px; color: #64748b; font-weight: 500; font-size: 13px; transition: all 0.2s; margin-bottom: 4px; }
-        .nav-item:hover { background: #f1f5f9; color: var(--text-main); }
-        .nav-item.active { background: #f1f5f9; color: var(--brand-blue); border: 1px solid #dbeafe; }
 
-        /* Forensic Cards */
-        .intel-card { background: #ffffff; border: 1px solid var(--border-ui); border-radius: 24px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02); }
-        .stat-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
-        .stat-value { font-size: 32px; font-weight: 800; tracking-tighter: -0.02em; }
-        
-        /* Modern Table */
-        .evidence-row { transition: all 0.2s; cursor: pointer; border-radius: 12px; }
-        .evidence-row:hover { background: #f8fafc; transform: translateX(4px); }
-        
-        /* Badges */
-        .chip { padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
-        .chip-danger { background: #fff1f2; color: #e11d48; border: 1px solid #ffe4e6; }
-        .chip-success { background: #f0fdf4; color: #10b981; border: 1px solid #dcfce7; }
-        .chip-neutral { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #FFFFFF;
+            color: #111827;
+            overflow: hidden;
+        }
 
-        /* Animation */
-        .fade-enter { animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        /* Flat Design: Zero sombras, hierarquia por cor e blocos */
+        .sidebar {
+            background-color: #F3F4F6; /* Gray 100 - Muted Background */
+            border-right: 0; /* Sem bordas conforme filosofia Flat */
+            width: 280px;
+            height: 100vh;
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            z-index: 50;
+        }
 
-        /* Hide Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        .main-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            height: 100vh;
+        }
+
+        .content-area {
+            overflow-y: auto;
+            background-color: #FFFFFF;
+        }
+
+        /* Navegação: Estilo Confidente, sem sombras, feedback por escala */
+        .nav-button {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            width: 100%;
+            padding: 0.875rem 1.25rem;
+            border-radius: 0.5rem; /* rounded-md (6px) */
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.2s;
+            color: #4B5563; /* Gray 600 */
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-button:hover {
+            background-color: #E5E7EB; /* Gray 200 */
+            transform: scale(1.05); /* Feedback por escala conforme template */
+            color: #111827;
+        }
+
+        .nav-button.active {
+            background-color: #3B82F6; /* Primary Blue */
+            color: #FFFFFF;
+            transform: scale(1.05);
+        }
+
+        /* Cards: Color Block Style */
+        .flat-card {
+            background-color: #F3F4F6; /* Gray 100 */
+            border-radius: 0.5rem;
+            padding: 2rem;
+            transition: all 0.2s;
+            border: 0; /* Zero border/shadow */
+        }
+
+        .flat-card:hover {
+            transform: scale(1.02);
+            background-color: #E5E7EB;
+        }
+
+        .stat-value {
+            font-weight: 800;
+            font-size: 2.5rem;
+            letter-spacing: -0.02em;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #6B7280; /* Gray 500 */
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        /* Badges Flat */
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.375rem;
+            font-weight: 700;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-danger { background-color: #EF4444; color: #FFFFFF; }
+        .badge-success { background-color: #10B981; color: #FFFFFF; }
+        .badge-accent { background-color: #F59E0B; color: #FFFFFF; }
+
+        /* Tabela Flat */
+        .flat-table thead {
+            background-color: #111827;
+            color: #FFFFFF;
+        }
+
+        .flat-table tbody tr {
+            border-bottom: 2px solid #F3F4F6;
+            transition: all 0.2s;
+        }
+
+        .flat-table tbody tr:hover {
+            background-color: #F9FAFB;
+            transform: translateX(8px); /* Efeito lateral dinâmico */
+        }
+
+        /* Inputs Flat */
+        .flat-input {
+            background-color: #F3F4F6;
+            border: 0;
+            border-radius: 0.5rem;
+            padding: 1rem 1.5rem;
+            font-weight: 500;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .flat-input:focus {
+            background-color: #FFFFFF;
+            outline: none;
+            box-shadow: 0 0 0 4px #3B82F6; /* Borda grossa no foco conforme template */
+        }
+
+        /* Decoração Geométrica (Hero Background Factor) */
+        .geo-shape {
+            position: absolute;
+            background-color: #3B82F6;
+            opacity: 0.03;
+            border-radius: 9999px;
+            pointer-events: none;
+        }
+
+        /* Custom Scrollbar Flat */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #FFFFFF; }
+        ::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 4px; }
     </style>
 </head>
 <body class="antialiased">
 
-    <div class="app-wrapper">
+    <!-- Decoração Geométrica de Fundo -->
+    <div class="geo-shape w-[600px] h-[600px] -top-20 -right-20"></div>
+    <div class="geo-shape w-[300px] h-[300px] bottom-10 left-10 opacity-5"></div>
+
+    <div class="main-container">
         
-        <!-- SIDEBAR: A Identidade do Investigador -->
-        <aside class="sidebar">
-            <div class="mb-10">
-                <div class="flex items-center gap-3 mb-2">
-                    <div class="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-lg">
-                        <i data-lucide="crosshair" class="w-5 h-5"></i>
+        <!-- SIDEBAR -->
+        <aside class="sidebar" role="complementary">
+            <div class="mb-12">
+                <div class="flex items-center gap-3 mb-1">
+                    <div class="w-12 h-12 bg-[#111827] rounded-lg flex items-center justify-center text-white">
+                        <i data-lucide="shield-check" class="w-7 h-7"></i>
                     </div>
-                    <h1 class="text-xl font-800 tracking-tighter uppercase italic">Forense<span class="text-blue-600">Net</span></h1>
+                    <h1 class="text-2xl font-800 tracking-tighter uppercase leading-none">
+                        Forense<span class="text-blue-500">Net</span>
+                    </h1>
                 </div>
-                <p class="text-[10px] text-slate-400 font-bold tracking-widest pl-1">COMMAND CENTER v4.0</p>
+                <div class="text-[10px] font-800 text-blue-500 uppercase tracking-[0.2em] pl-1">Command Center v4.0</div>
             </div>
 
-            <nav class="flex-1">
-                <div class="mb-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4">Análise</div>
-                <button onclick="switchView('overview')" id="nav-overview" class="nav-item active w-full"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Vista Geral</button>
-                <button onclick="switchView('repository')" id="nav-repository" class="nav-item w-full"><i data-lucide="database" class="w-4 h-4"></i> Repositório Cloud</button>
-                <button onclick="switchView('intelligence')" id="nav-intelligence" class="nav-item w-full"><i data-lucide="brain-circuit" class="w-4 h-4"></i> IA Pericial</button>
+            <nav class="flex-1" role="navigation">
+                <div class="mb-6 text-[11px] font-800 text-gray-400 uppercase tracking-widest px-4">Análise Pericial</div>
+                <button onclick="switchView('overview')" id="nav-overview" class="nav-button active">
+                    <i data-lucide="layout-grid" class="w-5 h-5"></i> Vista Geral
+                </button>
+                <button onclick="switchView('repository')" id="nav-repository" class="nav-button">
+                    <i data-lucide="database" class="w-5 h-5"></i> Repositório
+                </button>
+                <button onclick="switchView('intelligence')" id="nav-intelligence" class="nav-button">
+                    <i data-lucide="zap" class="w-5 h-5"></i> IA Simulador
+                </button>
                 
-                <div class="mt-8 mb-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4">Relatórios</div>
-                <button class="nav-item w-full hover:bg-red-50 hover:text-red-600"><i data-lucide="file-warning" class="w-4 h-4"></i> Exportar Alertas</button>
-                <button class="nav-item w-full"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Base Completa</button>
+                <div class="mt-12 mb-6 text-[11px] font-800 text-gray-400 uppercase tracking-widest px-4">Operacional</div>
+                <button class="nav-button group">
+                    <i data-lucide="file-text" class="w-5 h-5 group-hover:text-amber-500"></i> Laudos Excel
+                </button>
+                <button class="nav-button">
+                    <i data-lucide="settings" class="w-5 h-5"></i> Configuração
+                </button>
             </nav>
 
             <div class="mt-auto">
-                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <div class="flex items-center gap-2 mb-2 text-emerald-600">
-                        <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                        <span class="text-[10px] font-bold uppercase">Sincronizado</span>
+                <div class="p-5 bg-white border-2 border-gray-100 rounded-lg">
+                    <div class="flex items-center gap-2 mb-2 text-emerald-500">
+                        <i data-lucide="check-circle" class="w-4 h-4"></i>
+                        <span class="text-[10px] font-800 uppercase tracking-wider">Cloud Ativa</span>
                     </div>
-                    <p class="text-[10px] text-slate-500 font-medium">Última atualização: <span id="last-update" class="mono">--:--</span></p>
+                    <p class="text-[11px] text-gray-500 font-semibold uppercase">Update: <span id="last-update" class="text-gray-900">--:--</span></p>
                 </div>
             </div>
         </aside>
 
         <!-- MAIN CONTENT -->
-        <main class="main-content">
+        <main class="content-area flex flex-col" role="main">
             
-            <!-- HEADER BAR -->
-            <header class="h-20 border-b border-border-ui px-10 flex justify-between items-center bg-white/50 backdrop-blur-sm sticky top-0 z-40">
-                <div class="flex items-center gap-4 flex-1 max-w-xl">
-                    <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
-                    <input type="text" placeholder="Pesquisar por alvo, autor ou termo..." class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder-slate-300">
+            <!-- HEADER (Poster Look) -->
+            <header class="h-24 px-12 flex justify-between items-center bg-white sticky top-0 z-40">
+                <div class="flex items-center gap-6 flex-1 max-w-2xl">
+                    <i data-lucide="search" class="w-6 h-6 text-gray-300"></i>
+                    <input type="text" placeholder="BUSCAR EVIDÊNCIA OU AUTOR..." class="bg-transparent border-0 focus:ring-0 text-lg font-bold placeholder-gray-200 w-full uppercase tracking-tight">
                 </div>
-                <div class="flex items-center gap-6">
-                    <button onclick="refreshAll()" class="flex items-center gap-2 text-[11px] font-bold text-slate-400 hover:text-blue-600 transition-colors">
-                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> ATUALIZAR DADOS
+                <div class="flex items-center gap-8">
+                    <button onclick="refreshAll()" class="flex items-center gap-2 text-xs font-800 text-gray-400 hover:text-blue-500 transition-all uppercase tracking-widest">
+                        <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Sync
                     </button>
-                    <div class="w-10 h-10 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-600 font-bold text-xs">TM</div>
+                    <div class="w-12 h-12 bg-blue-500 text-white rounded-lg flex items-center justify-center font-800 text-lg">P</div>
                 </div>
             </header>
 
-            <div class="p-10">
+            <div class="p-12 space-y-12">
                 
                 <!-- VIEW: OVERVIEW -->
-                <div id="view-overview" class="view-content fade-enter space-y-10">
+                <div id="view-overview" class="view-content space-y-12">
                     
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <div class="intel-card flex flex-col justify-between">
-                            <span class="stat-label">Corpus Processado</span>
-                            <div class="flex items-baseline gap-2">
-                                <h2 id="kpi-total" class="stat-value">0</h2>
-                                <span class="text-[10px] font-bold text-emerald-500">+12%</span>
+                    <!-- KPI Grid (Color Blocks) -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                        <div class="flat-card bg-blue-50">
+                            <span class="stat-label text-blue-600">Total Processado</span>
+                            <div class="flex items-baseline gap-4">
+                                <h2 id="kpi-total" class="stat-value text-blue-700">0</h2>
+                                <span class="badge badge-success">+12%</span>
                             </div>
                         </div>
-                        <div class="intel-card border-l-4 border-l-red-500 flex flex-col justify-between">
-                            <span class="stat-label text-red-400">Incidentes de Ódio</span>
-                            <h2 id="kpi-hate" class="stat-value text-slate-900">0</h2>
+                        <div class="flat-card bg-red-50">
+                            <span class="stat-label text-red-600">Discurso de Ódio</span>
+                            <h2 id="kpi-hate" class="stat-value text-red-700">0</h2>
                         </div>
-                        <div class="intel-card flex flex-col justify-between">
-                            <span class="stat-label">Taxa de Risco</span>
-                            <h2 id="kpi-percent" class="stat-value text-blue-600">0.0%</h2>
+                        <div class="flat-card bg-amber-50">
+                            <span class="stat-label text-amber-600">Taxa de Hostilidade</span>
+                            <h2 id="kpi-percent" class="stat-value text-amber-700">0.0%</h2>
                         </div>
-                        <div class="intel-card flex flex-col justify-between">
-                            <span class="stat-label">Frentes Ativas</span>
-                            <h2 class="stat-value italic">135</h2>
+                        <div class="flat-card bg-emerald-50">
+                            <span class="stat-label text-emerald-600">Perfis Ativos</span>
+                            <h2 class="stat-value text-emerald-700">135</h2>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <div class="lg:col-span-2 intel-card min-h-[400px] flex flex-col">
+                    <!-- Charts Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                        <div class="lg:col-span-2 flat-card flex flex-col min-h-[450px]">
                             <div class="flex justify-between items-center mb-10">
-                                <h3 class="text-lg font-bold tracking-tight">Timeline de Hostilidade</h3>
-                                <div class="flex gap-2">
-                                    <button class="px-3 py-1 text-[10px] font-bold bg-slate-100 rounded-md">24H</button>
-                                    <button class="px-3 py-1 text-[10px] font-bold text-slate-400">7D</button>
+                                <h3 class="text-2xl font-800 tracking-tighter uppercase italic">Timeline <span class="text-blue-500">Forense</span></h3>
+                                <div class="flex bg-white p-1 rounded-md">
+                                    <button class="px-4 py-1 text-[11px] font-800 bg-blue-500 text-white rounded-md">24H</button>
+                                    <button class="px-4 py-1 text-[11px] font-800 text-gray-400">7D</button>
                                 </div>
                             </div>
-                            <div class="flex-1 min-h-0"><canvas id="mainChart"></canvas></div>
+                            <div class="flex-1"><canvas id="mainChart"></canvas></div>
                         </div>
-                        <div class="intel-card flex flex-col">
-                            <h3 class="text-lg font-bold tracking-tight mb-8">Distribuição Jurídica</h3>
-                            <div class="flex-1 min-h-0 flex items-center justify-center">
+                        <div class="flat-card flex flex-col">
+                            <h3 class="text-2xl font-800 tracking-tighter uppercase italic mb-10">Categorias</h3>
+                            <div class="flex-1 flex items-center justify-center">
                                 <canvas id="typeChart"></canvas>
-                            </div>
-                            <div id="chart-legend" class="mt-8 space-y-3">
-                                <!-- Populado via JS -->
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- VIEW: REPOSITORY -->
-                <div id="view-repository" class="view-content hidden fade-enter">
-                    <div class="intel-card overflow-hidden">
-                        <div class="px-8 py-6 border-b border-slate-50 flex justify-between items-center">
-                            <h3 class="text-xl font-bold italic">Evidências <span class="text-blue-600">Cloud</span></h3>
-                            <div class="flex bg-slate-100 p-1 rounded-xl">
-                                <button onclick="loadComments(true)" class="px-6 py-2 rounded-lg text-[11px] font-bold uppercase hover:bg-white transition-all">Alertas</button>
-                                <button onclick="loadComments()" class="px-6 py-2 rounded-lg text-[11px] font-bold uppercase bg-white shadow-sm transition-all">Fluxo Total</button>
+                <div id="view-repository" class="view-content hidden space-y-8">
+                    <div class="flat-card p-0 overflow-hidden bg-white border-4 border-gray-100">
+                        <div class="p-10 flex justify-between items-center">
+                            <h3 class="text-3xl font-800 tracking-tighter uppercase italic">Fluxo de <span class="text-blue-500">Dados</span></h3>
+                            <div class="flex gap-4">
+                                <button onclick="loadComments(true)" class="px-8 py-3 bg-red-500 text-white font-800 text-xs uppercase tracking-widest rounded-md hover:scale-105 transition-all">Alertas</button>
+                                <button onclick="loadComments()" class="px-8 py-3 bg-gray-100 text-gray-900 font-800 text-xs uppercase tracking-widest rounded-md hover:scale-105 transition-all">Completo</button>
                             </div>
                         </div>
                         <div class="overflow-x-auto">
-                            <table class="w-full text-left">
-                                <thead class="bg-slate-50/50 text-[10px] uppercase font-bold text-slate-400">
+                            <table class="w-full text-left flat-table">
+                                <thead>
                                     <tr>
-                                        <th class="px-8 py-5">Assinatura Temporal</th>
-                                        <th class="px-8 py-5">Indivíduo Alvo</th>
-                                        <th class="px-8 py-5">Conteúdo do Discurso</th>
-                                        <th class="px-8 py-5">Veredito Forense</th>
+                                        <th class="px-10 py-6 text-[11px] font-800 uppercase tracking-widest">Timetamp</th>
+                                        <th class="px-10 py-6 text-[11px] font-800 uppercase tracking-widest">Alvo</th>
+                                        <th class="px-10 py-6 text-[11px] font-800 uppercase tracking-widest">Evidência</th>
+                                        <th class="px-10 py-6 text-[11px] font-800 uppercase tracking-widest text-right">Veredito</th>
                                     </tr>
                                 </thead>
-                                <tbody id="evidence-table-body" class="divide-y divide-slate-50 text-[12px]">
+                                <tbody id="evidence-table-body" class="font-medium text-sm">
                                     <!-- Dynamic -->
                                 </tbody>
                             </table>
@@ -187,19 +323,21 @@
                 </div>
 
                 <!-- VIEW: INTELLIGENCE -->
-                <div id="view-intelligence" class="view-content hidden fade-enter">
-                    <div class="max-w-4xl mx-auto space-y-8">
-                        <div class="text-center mb-12">
-                            <h2 class="text-4xl font-800 tracking-tighter uppercase italic mb-2">Simulador <span class="text-blue-600">IA Pericial</span></h2>
-                            <p class="text-slate-400 text-sm font-medium">Validação de algoritmos conforme Baliza de Treinamento v1.0</p>
+                <div id="view-intelligence" class="view-content hidden">
+                    <div class="max-w-5xl mx-auto space-y-12">
+                        <div class="text-center">
+                            <h2 class="text-6xl font-800 tracking-tighter uppercase italic mb-4">Simulador <span class="text-blue-500">IA</span></h2>
+                            <p class="text-gray-400 font-bold uppercase tracking-widest text-sm">Validado por Protocolo Vichi v2.0</p>
                         </div>
-                        <div class="intel-card p-10 bg-slate-900 text-white">
-                            <textarea id="ai-input" placeholder="Insira o texto para perícia imediata..." class="w-full h-48 bg-slate-800 border-none rounded-2xl p-8 text-lg font-light focus:ring-2 focus:ring-blue-500 placeholder-slate-600 resize-none mb-6"></textarea>
-                            <button onclick="simulateAI()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-5 rounded-2xl uppercase tracking-[0.2em] text-[11px] transition-all shadow-xl shadow-blue-500/20">Executar Análise de Semântica</button>
+                        <div class="bg-gray-100 p-12 rounded-lg space-y-8">
+                            <textarea id="ai-input" placeholder="COLE O CONTEÚDO PARA PERÍCIA..." class="flat-input h-64 text-2xl font-bold uppercase placeholder-gray-300 resize-none"></textarea>
+                            <button onclick="simulateAI()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-800 py-6 rounded-md text-xl uppercase tracking-[0.2em] transition-all hover:scale-[1.02]">
+                                Iniciar Análise Semântica
+                            </button>
                         </div>
-                        <div id="ai-result-panel" class="hidden intel-card border-2 border-blue-100 p-10 animate-fade-in">
-                            <div id="ai-chip-container" class="mb-6"></div>
-                            <p id="ai-reasoning" class="text-xl italic text-slate-600 leading-relaxed font-light"></p>
+                        <div id="ai-result-panel" class="hidden flat-card bg-white border-4 border-blue-500 p-12">
+                            <div id="ai-chip-container" class="mb-8"></div>
+                            <p id="ai-reasoning" class="text-3xl font-bold text-gray-900 leading-tight uppercase italic"></p>
                         </div>
                     </div>
                 </div>
@@ -248,12 +386,12 @@
 
                 const tableBody = document.getElementById('evidence-table-body');
                 tableBody.innerHTML = data.map(c => `
-                    <tr class="evidence-row border-b border-slate-50 group">
-                        <td class="px-8 py-5 text-slate-400 mono">${new Date(c.data_coleta).toLocaleString('pt-BR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'})}</td>
-                        <td class="px-8 py-5 font-bold text-slate-700">@${c.candidato_id}</td>
-                        <td class="px-8 py-5 text-slate-500 max-w-xl truncate group-hover:text-slate-900 transition-colors" title="${c.texto_bruto}">${c.texto_bruto}</td>
-                        <td class="px-8 py-5 text-right">
-                            <span class="chip ${c.is_hate ? 'chip-danger' : 'chip-success'}">
+                    <tr class="group">
+                        <td class="px-10 py-6 text-gray-400 font-bold uppercase tracking-tighter">${new Date(c.data_coleta).toLocaleString('pt-BR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'})}</td>
+                        <td class="px-10 py-6 font-800 text-blue-500 uppercase">@${c.candidato_id}</td>
+                        <td class="px-10 py-6 text-gray-900 font-bold uppercase truncate max-w-lg" title="${c.texto_bruto}">${c.texto_bruto}</td>
+                        <td class="px-10 py-6 text-right">
+                            <span class="badge ${c.is_hate ? 'badge-danger' : 'badge-success'}">
                                 ${c.is_hate ? (c.categoria_ia || 'ÓDIO') : 'SEGURO'}
                             </span>
                         </td>
@@ -269,12 +407,22 @@
                 type: 'doughnut',
                 data: {
                     labels: ['Ódio', 'Seguro'],
-                    datasets: [{ data: [hate, total - hate], backgroundColor: ['#e11d48', '#f1f5f9'], borderWidth: 0, hoverOffset: 10 }]
+                    datasets: [{ 
+                        data: [hate, total - hate], 
+                        backgroundColor: ['#EF4444', '#F3F4F6'], 
+                        borderWidth: 0,
+                        hoverOffset: 0 // Mantém flat
+                    }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, cutout: '85%', plugins: { legend: { display: false } } }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    cutout: '80%', 
+                    plugins: { legend: { display: false } },
+                    animation: { duration: 0 } // Snappy vibe
+                }
             });
 
-            // Mock Main Chart (Timeline)
             const ctxMain = document.getElementById('mainChart').getContext('2d');
             if(mainChart) mainChart.destroy();
             mainChart = new Chart(ctxMain, {
@@ -282,24 +430,33 @@
                 data: {
                     labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
                     datasets: [{
-                        label: 'Volume de Discurso',
-                        data: [12, 19, 3, 5, 2, 3],
-                        borderColor: '#0052FF',
-                        backgroundColor: 'rgba(0, 82, 255, 0.05)',
+                        label: 'Volume',
+                        data: [12, 19, 3, 45, 2, 33],
+                        borderColor: '#3B82F6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
                         fill: true,
-                        tension: 0.4,
-                        borderWidth: 3,
-                        pointRadius: 0
+                        tension: 0, // Hard edges (geometric purity)
+                        borderWidth: 4,
+                        pointRadius: 6,
+                        pointBackgroundColor: '#3B82F6'
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } },
+                    scales: { 
+                        y: { display: false }, 
+                        x: { grid: { display: false }, ticks: { font: { weight: 'bold', family: 'Outfit' } } } 
+                    } 
+                }
             });
         }
 
         function switchView(viewId) {
             document.querySelectorAll('.view-content').forEach(v => v.classList.add('hidden'));
             document.getElementById(`view-${viewId}`).classList.remove('hidden');
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll('.nav-button').forEach(n => n.classList.remove('active'));
             document.getElementById(`nav-${viewId}`).classList.add('active');
         }
 
@@ -310,15 +467,15 @@
             const chip = document.getElementById('ai-chip-container');
             const reason = document.getElementById('ai-reasoning');
             panel.classList.remove('hidden');
-            reason.innerText = "Analisando padrões linguísticos...";
+            reason.innerText = "PROCESSANDO ASSINATURA SEMÂNTICA...";
             setTimeout(() => {
-                chip.innerHTML = '<span class="chip chip-success text-sm">Veredito: Neutro</span>';
-                reason.innerText = "Nenhum marcador de desumanização ou incitação à violência foi detectado. Discurso classificado como opinião civil.";
+                chip.innerHTML = '<span class="badge badge-success text-sm">Veredito: Neutro / Opinião Civil</span>';
+                reason.innerText = "Nenhum marcador de desumanização detectado. O conteúdo enquadra-se em crítica política legítima sob a ótica da Baliza Pericial.";
             }, 600);
         }
 
         window.onload = refreshAll;
-        setInterval(refreshAll, 120000);
+        setInterval(refreshAll, 60000);
     </script>
 </body>
 </html>

@@ -1,0 +1,595 @@
+﻿candidato,texto,autor_username,timestamp,post_url,post_caption,likes_comentario,texto_limpo,tokens,categoria_odio,score,auditoria_humana,modelo_versao
+vereadoriraniguedes,👏👏👏,jkcenariopoliticorn,2026-03-30 13:21:44+00:00,https://www.instagram.com/p/C-ugv24OyXq/,,0,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.2235841006040573,True,BERTimbau_Forense_v1.2
+vereadoriraniguedes,Tudo bem,ana.damiana.3705,2026-03-28 01:40:35+00:00,https://www.instagram.com/p/C-ugv24OyXq/,,0,tudo bem,"['tudo', 'bem']",racismo,0.1902601420879364,True,BERTimbau_Forense_v1.2
+vereadoriraniguedes,Boa noite,ana.damiana.3705,2026-03-28 01:40:27+00:00,https://www.instagram.com/p/C-ugv24OyXq/,,0,boa noite,"['bom', 'noite']",insulto_direto,0.20229163765907288,True,BERTimbau_Forense_v1.2
+vereadoriraniguedes,Lost in this moment 😵‍💫 bio continues,gingerfrederick381,2025-09-26 21:44:04+00:00,https://www.instagram.com/p/C-ugv24OyXq/,,0,lost in this moment :rosto_com_olhos_em_espiral: bio continues,"['lost', 'this', 'moment', 'bio', 'continues']",insulto_direto,0.1921996772289276,True,BERTimbau_Forense_v1.2
+vereadoriraniguedes,Estamos simmm 🔥🙌,ana_bezerraoficial,2025-05-06 20:51:07+00:00,https://www.instagram.com/p/C-ugv24OyXq/,,0,estamos simmm :fogo::mãos_para_cima:,"['simmm', 'fogo::mãos_para_cima']",odio_politico,0.22280605137348175,True,BERTimbau_Forense_v1.2
+vereadoriraniguedes,💯🤝Sempre !!!,anarioslf,2025-05-06 20:49:33+00:00,https://www.instagram.com/p/C-ugv24OyXq/,,0,:cem_pontos::aperto_de_mãos:sempre,"['cem_pontos::aperto_de_mão', 'sempre']",ameaca_fisica,0.198136568069458,True,BERTimbau_Forense_v1.2
+vereadoriraniguedes,Falei no PV😉,bem_vindos_a_saude_e_bem_estar,2025-05-06 01:07:52+00:00,https://www.instagram.com/p/C-ugv24OyXq/,,0,falei no pv:rosto_com_olho_piscando:,['falar'],ameaca_fisica,0.22807516157627106,True,BERTimbau_Forense_v1.2
+vereadoriraniguedes,Vocês deveria melhorar a saúde pública pois minha irmã está com 39 semanas de gravidez sentido dores em casa e a  MATERNIDADE DIVINO AMOR SE RECUSANDO A FAZER O PARTO DELA.,brunawenia_,2025-05-04 12:35:02+00:00,https://www.instagram.com/p/C-ugv24OyXq/,,0,vocês deveria melhorar a saúde pública pois minha irmã está com 39 semanas de gravidez sentido dores em casa e a maternidade divino amor se recusando a fazer o parto dela,"['dever', 'melhorar', 'saúde', 'público', 'pois', 'irmã', 'semana', 'gravidez', 'sentido', 'dor', 'casa', 'maternidade', 'divino', 'amor', 'recusar', 'fazer', 'parto']",racismo,0.19297267496585846,True,BERTimbau_Forense_v1.2
+vereadoriraniguedes,E aí? Quando será a Missa em ação de graças? 😍😍😍,telmahrodrigues,2024-10-19 18:02:44+00:00,https://www.instagram.com/p/C-ugv24OyXq/,,0,e aí quando será a missa em ação de graças :rosto_sorridente_com_olhos_de_coração::rosto_sorridente_com_olhos_de_coração::rosto_sorridente_com_olhos_de_coração:,"['missa', 'ação', 'graças', 'rosto_sorridente_com_olhos_de_coração::rosto_sorridente_com_olhos_de_coração::rosto_sorridente_com_olhos_de_coração']",ameaca_fisica,0.2186518907546997,True,BERTimbau_Forense_v1.2
+vereadoriraniguedes,Fala comigo no privado!!,_euujessiica,2024-08-24 17:44:55+00:00,https://www.instagram.com/p/C-ugv24OyXq/,,0,fala comigo no privado,"['falar', 'comigo', 'privado']",misoginia_lgbtfobia,0.19737012684345245,True,BERTimbau_Forense_v1.2
+vereadoriraniguedes,Esse aí é o melhor e o meu veriador 👏👏👏👏👏👏,luciene_200,2024-08-18 16:34:05+00:00,https://www.instagram.com/p/C-ugv24OyXq/,,0,esse aí é o melhor e o meu veriador :mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,"['bom', 'veriador', 'mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo']",ameaca_fisica,0.23396123945713043,True,BERTimbau_Forense_v1.2
+vereadoriraniguedes,Vamo que vamos meu veriadou,jomaria4814,2024-08-17 11:24:30+00:00,https://www.instagram.com/p/C-ugv24OyXq/,,0,vamo que vamos meu veriadou,"['vamo', 'ir', 'veriadar']",misoginia_lgbtfobia,0.20896680653095245,True,BERTimbau_Forense_v1.2
+vereadoriraniguedes,Estamos juntos.,liedjatavares,2024-08-16 14:04:26+00:00,https://www.instagram.com/p/C-ugv24OyXq/,,0,estamos juntos,['junto'],ameaca_fisica,0.1940879076719284,True,BERTimbau_Forense_v1.2
+vereadoriraniguedes,Meu vereador!! O homem que trabalha por todos os cidadãos parnamirineses.,erlanefreiire,2024-08-16 14:01:50+00:00,https://www.instagram.com/p/C-ugv24OyXq/,,1,meu vereador o homem que trabalha por todos os cidadãos parnamirineses,"['vereador', 'homem', 'trabalhar', 'todo', 'cidadão', 'parnamirinês']",misoginia_lgbtfobia,0.19915854930877686,True,BERTimbau_Forense_v1.2
+vereadoriraniguedes,Simboraa para a reeleição 🚀,deborha.lima,2024-08-16 11:08:35+00:00,https://www.instagram.com/p/C-ugv24OyXq/,,0,simboraa para a reeleição :foguete:,"['simboraa', 'reeleição', 'foguete']",odio_politico,0.2159717082977295,True,BERTimbau_Forense_v1.2
+vereadoriraniguedes,Meu vereador! 🙌🏻🙏🏻,doloresfmedeiros,2024-08-16 10:53:10+00:00,https://www.instagram.com/p/C-ugv24OyXq/,,0,meu vereador :mãos_para_cima_pele_clara::mãos_juntas_pele_clara:,"['vereador', 'mãos_para_cima_pele_clara::mãos_juntas_pele_clara']",ameaca_fisica,0.2157418578863144,True,BERTimbau_Forense_v1.2
+vereadoriraniguedes,Boa compre Nossa Senhora de Fátima é protetora e Mãe de Jesus Cristo e nossa 👍🙏🏼,valmir.pereira1,2026-04-11 19:57:34+00:00,https://www.instagram.com/p/DW9zIDVGbU-/,"Recebemos, com grande alegria e devoção, a visita da imagem peregrina de Nossa Senhora de Fátima, padroeira de Parnamirim.
+
+Em nossa Casa Legislativa, celebramos uma Santa Missa presidida pelo padre Paulo Henrique, em um momento de fé, união e bênçãos para todos.
+
+Que Nossa Senhora de Fátima continue intercedendo por nosso povo! 🙏✨",0,boa compre nossa senhora de fátima é protetora e mãe de jesus cristo e nossa :polegar_para_cima::mãos_juntas_pele_morena_clara:,"['bom', 'comprar', 'senhora', 'fátima', 'protetor', 'mãe', 'Jesus', 'cristo', 'polegar_para_cima::mãos_juntas_pele_morena_clara']",ameaca_fisica,0.2374856323003769,True,BERTimbau_Forense_v1.2
+vereadoriraniguedes,👏👏,brendacardosoasuanutri,2026-04-11 11:27:32+00:00,https://www.instagram.com/p/DW9zIDVGbU-/,"Recebemos, com grande alegria e devoção, a visita da imagem peregrina de Nossa Senhora de Fátima, padroeira de Parnamirim.
+
+Em nossa Casa Legislativa, celebramos uma Santa Missa presidida pelo padre Paulo Henrique, em um momento de fé, união e bênçãos para todos.
+
+Que Nossa Senhora de Fátima continue intercedendo por nosso povo! 🙏✨",0,:mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.22357554733753204,True,BERTimbau_Forense_v1.2
+vereadoriraniguedes,🙌🏻🙏🏻,a.rafael89,2026-04-11 04:26:47+00:00,https://www.instagram.com/p/DW9zIDVGbU-/,"Recebemos, com grande alegria e devoção, a visita da imagem peregrina de Nossa Senhora de Fátima, padroeira de Parnamirim.
+
+Em nossa Casa Legislativa, celebramos uma Santa Missa presidida pelo padre Paulo Henrique, em um momento de fé, união e bênçãos para todos.
+
+Que Nossa Senhora de Fátima continue intercedendo por nosso povo! 🙏✨",0,:mãos_para_cima_pele_clara::mãos_juntas_pele_clara:,['mãos_para_cima_pele_clara::mãos_juntas_pele_clara'],ameaca_fisica,0.21842266619205475,True,BERTimbau_Forense_v1.2
+vereadoriraniguedes,Amém 🙏🤍,deborha.lima,2026-04-10 21:20:48+00:00,https://www.instagram.com/p/DW9zIDVGbU-/,"Recebemos, com grande alegria e devoção, a visita da imagem peregrina de Nossa Senhora de Fátima, padroeira de Parnamirim.
+
+Em nossa Casa Legislativa, celebramos uma Santa Missa presidida pelo padre Paulo Henrique, em um momento de fé, união e bênçãos para todos.
+
+Que Nossa Senhora de Fátima continue intercedendo por nosso povo! 🙏✨",0,amém :mãos_juntas::coração_branco:,"['amém', 'mãos_juntas::coração_branco']",ameaca_fisica,0.21351565420627594,True,BERTimbau_Forense_v1.2
+vereadoriraniguedes,👏👏👏👏👏🙏🙏🙏🙏,valdecijeronimomoura,2026-04-10 21:19:31+00:00,https://www.instagram.com/p/DW9zIDVGbU-/,"Recebemos, com grande alegria e devoção, a visita da imagem peregrina de Nossa Senhora de Fátima, padroeira de Parnamirim.
+
+Em nossa Casa Legislativa, celebramos uma Santa Missa presidida pelo padre Paulo Henrique, em um momento de fé, união e bênçãos para todos.
+
+Que Nossa Senhora de Fátima continue intercedendo por nosso povo! 🙏✨",0,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_juntas::mãos_juntas::mãos_juntas::mãos_juntas:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_juntas::mãos_juntas::mãos_juntas::mãos_juntas'],ameaca_fisica,0.2281414121389389,True,BERTimbau_Forense_v1.2
+vereadoriraniguedes,Amém Amém,rosa_lifer,2026-04-10 21:07:12+00:00,https://www.instagram.com/p/DW9zIDVGbU-/,"Recebemos, com grande alegria e devoção, a visita da imagem peregrina de Nossa Senhora de Fátima, padroeira de Parnamirim.
+
+Em nossa Casa Legislativa, celebramos uma Santa Missa presidida pelo padre Paulo Henrique, em um momento de fé, união e bênçãos para todos.
+
+Que Nossa Senhora de Fátima continue intercedendo por nosso povo! 🙏✨",0,amém amém,"['amém', 'amém']",insulto_direto,0.19765552878379822,True,BERTimbau_Forense_v1.2
+vereadoriraniguedes,🙏🏻🙏🏻,eduardoalbuquerquern,2026-04-10 22:42:02+00:00,https://www.instagram.com/p/DW9zIDVGbU-/,"Recebemos, com grande alegria e devoção, a visita da imagem peregrina de Nossa Senhora de Fátima, padroeira de Parnamirim.
+
+Em nossa Casa Legislativa, celebramos uma Santa Missa presidida pelo padre Paulo Henrique, em um momento de fé, união e bênçãos para todos.
+
+Que Nossa Senhora de Fátima continue intercedendo por nosso povo! 🙏✨",0,:mãos_juntas_pele_clara::mãos_juntas_pele_clara:,['mãos_juntas_pele_clara::mãos_juntas_pele_clara'],ameaca_fisica,0.22181503474712372,True,BERTimbau_Forense_v1.2
+michaelborgesrn,👏👏👏👏👏,drcesarmaia,2026-04-06 20:28:29+00:00,https://www.instagram.com/p/DWzV00dCX1n/,"Abril começou e, junto com ele, mais um mês de conscientização e enfrentamento aos maus-tratos contra os animais. 🐾
+
+E quando falamos em avanço na causa animal, é impossível não destacar o Decreto Cão Orelha.
+
+Antes, as multas iam de R$ 300 a R$ 3 mil. Agora, podem chegar a R$ 1 milhão nos casos mais graves.
+
+É uma mudança importante porque, além das penalidades legais, agora quem pratica maus-tratos também sente no bolso.
+
+Mas ainda há muito a ser feito.
+
+Precisamos ampliar o cuidado, fortalecer políticas públicas e garantir mais proteção para os animais.
+
+Seguimos firmes. Temos um Abril Laranja inteiro pela frente. 🧡
+
+#michaelborges #parnamirim #causaanimal #abrillaranja #rn",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.2394917607307434,True,BERTimbau_Forense_v1.2
+michaelborgesrn,👏👏👏👏👏🙌,izabelleraissaa,2026-04-07 08:55:58+00:00,https://www.instagram.com/p/DWzV00dCX1n/,"Abril começou e, junto com ele, mais um mês de conscientização e enfrentamento aos maus-tratos contra os animais. 🐾
+
+E quando falamos em avanço na causa animal, é impossível não destacar o Decreto Cão Orelha.
+
+Antes, as multas iam de R$ 300 a R$ 3 mil. Agora, podem chegar a R$ 1 milhão nos casos mais graves.
+
+É uma mudança importante porque, além das penalidades legais, agora quem pratica maus-tratos também sente no bolso.
+
+Mas ainda há muito a ser feito.
+
+Precisamos ampliar o cuidado, fortalecer políticas públicas e garantir mais proteção para os animais.
+
+Seguimos firmes. Temos um Abril Laranja inteiro pela frente. 🧡
+
+#michaelborges #parnamirim #causaanimal #abrillaranja #rn",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_para_cima:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_para_cima'],ameaca_fisica,0.24692897498607635,True,BERTimbau_Forense_v1.2
+michaelborgesrn,👏👏👏,lydia_prado,2026-04-06 20:56:16+00:00,https://www.instagram.com/p/DWzV00dCX1n/,"Abril começou e, junto com ele, mais um mês de conscientização e enfrentamento aos maus-tratos contra os animais. 🐾
+
+E quando falamos em avanço na causa animal, é impossível não destacar o Decreto Cão Orelha.
+
+Antes, as multas iam de R$ 300 a R$ 3 mil. Agora, podem chegar a R$ 1 milhão nos casos mais graves.
+
+É uma mudança importante porque, além das penalidades legais, agora quem pratica maus-tratos também sente no bolso.
+
+Mas ainda há muito a ser feito.
+
+Precisamos ampliar o cuidado, fortalecer políticas públicas e garantir mais proteção para os animais.
+
+Seguimos firmes. Temos um Abril Laranja inteiro pela frente. 🧡
+
+#michaelborges #parnamirim #causaanimal #abrillaranja #rn",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.2235841006040573,True,BERTimbau_Forense_v1.2
+michaelborgesrn,👏👏👏👏👏👏👏👏👏,felip_sonhador,2026-04-06 21:45:44+00:00,https://www.instagram.com/p/DWzV00dCX1n/,"Abril começou e, junto com ele, mais um mês de conscientização e enfrentamento aos maus-tratos contra os animais. 🐾
+
+E quando falamos em avanço na causa animal, é impossível não destacar o Decreto Cão Orelha.
+
+Antes, as multas iam de R$ 300 a R$ 3 mil. Agora, podem chegar a R$ 1 milhão nos casos mais graves.
+
+É uma mudança importante porque, além das penalidades legais, agora quem pratica maus-tratos também sente no bolso.
+
+Mas ainda há muito a ser feito.
+
+Precisamos ampliar o cuidado, fortalecer políticas públicas e garantir mais proteção para os animais.
+
+Seguimos firmes. Temos um Abril Laranja inteiro pela frente. 🧡
+
+#michaelborges #parnamirim #causaanimal #abrillaranja #rn",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.21593602001667023,True,BERTimbau_Forense_v1.2
+michaelborgesrn,👏👏👏👏👏👏👏,soululima_,2026-04-06 20:20:54+00:00,https://www.instagram.com/p/DWzV00dCX1n/,"Abril começou e, junto com ele, mais um mês de conscientização e enfrentamento aos maus-tratos contra os animais. 🐾
+
+E quando falamos em avanço na causa animal, é impossível não destacar o Decreto Cão Orelha.
+
+Antes, as multas iam de R$ 300 a R$ 3 mil. Agora, podem chegar a R$ 1 milhão nos casos mais graves.
+
+É uma mudança importante porque, além das penalidades legais, agora quem pratica maus-tratos também sente no bolso.
+
+Mas ainda há muito a ser feito.
+
+Precisamos ampliar o cuidado, fortalecer políticas públicas e garantir mais proteção para os animais.
+
+Seguimos firmes. Temos um Abril Laranja inteiro pela frente. 🧡
+
+#michaelborges #parnamirim #causaanimal #abrillaranja #rn",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.22729648649692535,True,BERTimbau_Forense_v1.2
+michaelborgesrn,👏🏻👏,edivaldoh1980,2026-04-06 20:32:07+00:00,https://www.instagram.com/p/DWzV00dCX1n/,"Abril começou e, junto com ele, mais um mês de conscientização e enfrentamento aos maus-tratos contra os animais. 🐾
+
+E quando falamos em avanço na causa animal, é impossível não destacar o Decreto Cão Orelha.
+
+Antes, as multas iam de R$ 300 a R$ 3 mil. Agora, podem chegar a R$ 1 milhão nos casos mais graves.
+
+É uma mudança importante porque, além das penalidades legais, agora quem pratica maus-tratos também sente no bolso.
+
+Mas ainda há muito a ser feito.
+
+Precisamos ampliar o cuidado, fortalecer políticas públicas e garantir mais proteção para os animais.
+
+Seguimos firmes. Temos um Abril Laranja inteiro pela frente. 🧡
+
+#michaelborges #parnamirim #causaanimal #abrillaranja #rn",1,:mãos_aplaudindo_pele_clara::mãos_aplaudindo:,['mãos_aplaudindo_pele_clara::mãos_aplaudir'],odio_politico,0.21820415556430817,True,BERTimbau_Forense_v1.2
+michaelborgesrn,👏👏👏❤️,drikaruiz_atelie,2026-04-06 21:58:55+00:00,https://www.instagram.com/p/DWzV00dCX1n/,"Abril começou e, junto com ele, mais um mês de conscientização e enfrentamento aos maus-tratos contra os animais. 🐾
+
+E quando falamos em avanço na causa animal, é impossível não destacar o Decreto Cão Orelha.
+
+Antes, as multas iam de R$ 300 a R$ 3 mil. Agora, podem chegar a R$ 1 milhão nos casos mais graves.
+
+É uma mudança importante porque, além das penalidades legais, agora quem pratica maus-tratos também sente no bolso.
+
+Mas ainda há muito a ser feito.
+
+Precisamos ampliar o cuidado, fortalecer políticas públicas e garantir mais proteção para os animais.
+
+Seguimos firmes. Temos um Abril Laranja inteiro pela frente. 🧡
+
+#michaelborges #parnamirim #causaanimal #abrillaranja #rn",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::coração_vermelho:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::coração_vermelho'],ameaca_fisica,0.21371260285377502,True,BERTimbau_Forense_v1.2
+michaelborgesrn,👏👏👏👏👏👏,luizaugustooo1,2026-04-06 19:56:44+00:00,https://www.instagram.com/p/DWzV00dCX1n/,"Abril começou e, junto com ele, mais um mês de conscientização e enfrentamento aos maus-tratos contra os animais. 🐾
+
+E quando falamos em avanço na causa animal, é impossível não destacar o Decreto Cão Orelha.
+
+Antes, as multas iam de R$ 300 a R$ 3 mil. Agora, podem chegar a R$ 1 milhão nos casos mais graves.
+
+É uma mudança importante porque, além das penalidades legais, agora quem pratica maus-tratos também sente no bolso.
+
+Mas ainda há muito a ser feito.
+
+Precisamos ampliar o cuidado, fortalecer políticas públicas e garantir mais proteção para os animais.
+
+Seguimos firmes. Temos um Abril Laranja inteiro pela frente. 🧡
+
+#michaelborges #parnamirim #causaanimal #abrillaranja #rn",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.2443879395723343,True,BERTimbau_Forense_v1.2
+michaelborgesrn,👏👏👏👏👏👏👏👏,esdrasjr_77,2026-04-06 20:34:31+00:00,https://www.instagram.com/p/DWzV00dCX1n/,"Abril começou e, junto com ele, mais um mês de conscientização e enfrentamento aos maus-tratos contra os animais. 🐾
+
+E quando falamos em avanço na causa animal, é impossível não destacar o Decreto Cão Orelha.
+
+Antes, as multas iam de R$ 300 a R$ 3 mil. Agora, podem chegar a R$ 1 milhão nos casos mais graves.
+
+É uma mudança importante porque, além das penalidades legais, agora quem pratica maus-tratos também sente no bolso.
+
+Mas ainda há muito a ser feito.
+
+Precisamos ampliar o cuidado, fortalecer políticas públicas e garantir mais proteção para os animais.
+
+Seguimos firmes. Temos um Abril Laranja inteiro pela frente. 🧡
+
+#michaelborges #parnamirim #causaanimal #abrillaranja #rn",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.22918541729450226,True,BERTimbau_Forense_v1.2
+michaelborgesrn,👏👏👏👏👏👏,ana1286paula,2026-04-06 21:34:52+00:00,https://www.instagram.com/p/DWzV00dCX1n/,"Abril começou e, junto com ele, mais um mês de conscientização e enfrentamento aos maus-tratos contra os animais. 🐾
+
+E quando falamos em avanço na causa animal, é impossível não destacar o Decreto Cão Orelha.
+
+Antes, as multas iam de R$ 300 a R$ 3 mil. Agora, podem chegar a R$ 1 milhão nos casos mais graves.
+
+É uma mudança importante porque, além das penalidades legais, agora quem pratica maus-tratos também sente no bolso.
+
+Mas ainda há muito a ser feito.
+
+Precisamos ampliar o cuidado, fortalecer políticas públicas e garantir mais proteção para os animais.
+
+Seguimos firmes. Temos um Abril Laranja inteiro pela frente. 🧡
+
+#michaelborges #parnamirim #causaanimal #abrillaranja #rn",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.2443879395723343,True,BERTimbau_Forense_v1.2
+michaelborgesrn,👏👏👏👏,marcodanielbs,2026-04-06 20:17:57+00:00,https://www.instagram.com/p/DWzV00dCX1n/,"Abril começou e, junto com ele, mais um mês de conscientização e enfrentamento aos maus-tratos contra os animais. 🐾
+
+E quando falamos em avanço na causa animal, é impossível não destacar o Decreto Cão Orelha.
+
+Antes, as multas iam de R$ 300 a R$ 3 mil. Agora, podem chegar a R$ 1 milhão nos casos mais graves.
+
+É uma mudança importante porque, além das penalidades legais, agora quem pratica maus-tratos também sente no bolso.
+
+Mas ainda há muito a ser feito.
+
+Precisamos ampliar o cuidado, fortalecer políticas públicas e garantir mais proteção para os animais.
+
+Seguimos firmes. Temos um Abril Laranja inteiro pela frente. 🧡
+
+#michaelborges #parnamirim #causaanimal #abrillaranja #rn",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.22862225770950317,True,BERTimbau_Forense_v1.2
+michaelborgesrn,👏👏👏👏👏,conceicao.oliveira205,2026-04-06 22:40:31+00:00,https://www.instagram.com/p/DWzV00dCX1n/,"Abril começou e, junto com ele, mais um mês de conscientização e enfrentamento aos maus-tratos contra os animais. 🐾
+
+E quando falamos em avanço na causa animal, é impossível não destacar o Decreto Cão Orelha.
+
+Antes, as multas iam de R$ 300 a R$ 3 mil. Agora, podem chegar a R$ 1 milhão nos casos mais graves.
+
+É uma mudança importante porque, além das penalidades legais, agora quem pratica maus-tratos também sente no bolso.
+
+Mas ainda há muito a ser feito.
+
+Precisamos ampliar o cuidado, fortalecer políticas públicas e garantir mais proteção para os animais.
+
+Seguimos firmes. Temos um Abril Laranja inteiro pela frente. 🧡
+
+#michaelborges #parnamirim #causaanimal #abrillaranja #rn",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.2394917607307434,True,BERTimbau_Forense_v1.2
+michaelborgesrn,👏👏👏👏👏,fernandesaltamir,2026-04-06 19:58:43+00:00,https://www.instagram.com/p/DWzV00dCX1n/,"Abril começou e, junto com ele, mais um mês de conscientização e enfrentamento aos maus-tratos contra os animais. 🐾
+
+E quando falamos em avanço na causa animal, é impossível não destacar o Decreto Cão Orelha.
+
+Antes, as multas iam de R$ 300 a R$ 3 mil. Agora, podem chegar a R$ 1 milhão nos casos mais graves.
+
+É uma mudança importante porque, além das penalidades legais, agora quem pratica maus-tratos também sente no bolso.
+
+Mas ainda há muito a ser feito.
+
+Precisamos ampliar o cuidado, fortalecer políticas públicas e garantir mais proteção para os animais.
+
+Seguimos firmes. Temos um Abril Laranja inteiro pela frente. 🧡
+
+#michaelborges #parnamirim #causaanimal #abrillaranja #rn",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.2394917607307434,True,BERTimbau_Forense_v1.2
+michaelborgesrn,👏🏻👏🏻👏🏻👏🏻👏🏻👏🏻👏🏻,marinanunesg_,2026-04-06 20:01:46+00:00,https://www.instagram.com/p/DWzV00dCX1n/,"Abril começou e, junto com ele, mais um mês de conscientização e enfrentamento aos maus-tratos contra os animais. 🐾
+
+E quando falamos em avanço na causa animal, é impossível não destacar o Decreto Cão Orelha.
+
+Antes, as multas iam de R$ 300 a R$ 3 mil. Agora, podem chegar a R$ 1 milhão nos casos mais graves.
+
+É uma mudança importante porque, além das penalidades legais, agora quem pratica maus-tratos também sente no bolso.
+
+Mas ainda há muito a ser feito.
+
+Precisamos ampliar o cuidado, fortalecer políticas públicas e garantir mais proteção para os animais.
+
+Seguimos firmes. Temos um Abril Laranja inteiro pela frente. 🧡
+
+#michaelborges #parnamirim #causaanimal #abrillaranja #rn",1,:mãos_aplaudindo_pele_clara::mãos_aplaudindo_pele_clara::mãos_aplaudindo_pele_clara::mãos_aplaudindo_pele_clara::mãos_aplaudindo_pele_clara::mãos_aplaudindo_pele_clara::mãos_aplaudindo_pele_clara:,['mãos_aplaudindo_pele_clara::mãos_aplaudindo_pele_clara::mãos_aplaudindo_pele_clara::mãos_aplaudindo_pele_clara::mãos_aplaudindo_pele_clara::mãos_aplaudindo_pele_clara::mãos_aplaudindo_pele_clara'],ameaca_fisica,0.23424595594406128,True,BERTimbau_Forense_v1.2
+michaelborgesrn,👏👏👏👏👏👏👏,selmalima83,2026-04-06 22:17:40+00:00,https://www.instagram.com/p/DWzV00dCX1n/,"Abril começou e, junto com ele, mais um mês de conscientização e enfrentamento aos maus-tratos contra os animais. 🐾
+
+E quando falamos em avanço na causa animal, é impossível não destacar o Decreto Cão Orelha.
+
+Antes, as multas iam de R$ 300 a R$ 3 mil. Agora, podem chegar a R$ 1 milhão nos casos mais graves.
+
+É uma mudança importante porque, além das penalidades legais, agora quem pratica maus-tratos também sente no bolso.
+
+Mas ainda há muito a ser feito.
+
+Precisamos ampliar o cuidado, fortalecer políticas públicas e garantir mais proteção para os animais.
+
+Seguimos firmes. Temos um Abril Laranja inteiro pela frente. 🧡
+
+#michaelborges #parnamirim #causaanimal #abrillaranja #rn",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.22729648649692535,True,BERTimbau_Forense_v1.2
+michaelborgesrn,👏👏👏,dorneles.marilia,2026-04-06 21:25:36+00:00,https://www.instagram.com/p/DWzV00dCX1n/,"Abril começou e, junto com ele, mais um mês de conscientização e enfrentamento aos maus-tratos contra os animais. 🐾
+
+E quando falamos em avanço na causa animal, é impossível não destacar o Decreto Cão Orelha.
+
+Antes, as multas iam de R$ 300 a R$ 3 mil. Agora, podem chegar a R$ 1 milhão nos casos mais graves.
+
+É uma mudança importante porque, além das penalidades legais, agora quem pratica maus-tratos também sente no bolso.
+
+Mas ainda há muito a ser feito.
+
+Precisamos ampliar o cuidado, fortalecer políticas públicas e garantir mais proteção para os animais.
+
+Seguimos firmes. Temos um Abril Laranja inteiro pela frente. 🧡
+
+#michaelborges #parnamirim #causaanimal #abrillaranja #rn",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.2235841006040573,True,BERTimbau_Forense_v1.2
+michaelborgesrn,👏🏼👏🏼👏🏼👏🏼👏🏼,elizasilva_sousa,2026-04-06 20:05:56+00:00,https://www.instagram.com/p/DWzV00dCX1n/,"Abril começou e, junto com ele, mais um mês de conscientização e enfrentamento aos maus-tratos contra os animais. 🐾
+
+E quando falamos em avanço na causa animal, é impossível não destacar o Decreto Cão Orelha.
+
+Antes, as multas iam de R$ 300 a R$ 3 mil. Agora, podem chegar a R$ 1 milhão nos casos mais graves.
+
+É uma mudança importante porque, além das penalidades legais, agora quem pratica maus-tratos também sente no bolso.
+
+Mas ainda há muito a ser feito.
+
+Precisamos ampliar o cuidado, fortalecer políticas públicas e garantir mais proteção para os animais.
+
+Seguimos firmes. Temos um Abril Laranja inteiro pela frente. 🧡
+
+#michaelborges #parnamirim #causaanimal #abrillaranja #rn",1,:mãos_aplaudindo_pele_morena_clara::mãos_aplaudindo_pele_morena_clara::mãos_aplaudindo_pele_morena_clara::mãos_aplaudindo_pele_morena_clara::mãos_aplaudindo_pele_morena_clara:,['mãos_aplaudindo_pele_morena_clara::mãos_aplaudindo_pele_morena_clara::mãos_aplaudindo_pele_morena_clara::mãos_aplaudindo_pele_morena_clara::mãos_aplaudindo_pele_morena_clara'],ameaca_fisica,0.2317148596048355,True,BERTimbau_Forense_v1.2
+michaelborgesrn,👏👏👏👏👏👏👏,giggy_silva,2026-04-06 20:36:05+00:00,https://www.instagram.com/p/DWzV00dCX1n/,"Abril começou e, junto com ele, mais um mês de conscientização e enfrentamento aos maus-tratos contra os animais. 🐾
+
+E quando falamos em avanço na causa animal, é impossível não destacar o Decreto Cão Orelha.
+
+Antes, as multas iam de R$ 300 a R$ 3 mil. Agora, podem chegar a R$ 1 milhão nos casos mais graves.
+
+É uma mudança importante porque, além das penalidades legais, agora quem pratica maus-tratos também sente no bolso.
+
+Mas ainda há muito a ser feito.
+
+Precisamos ampliar o cuidado, fortalecer políticas públicas e garantir mais proteção para os animais.
+
+Seguimos firmes. Temos um Abril Laranja inteiro pela frente. 🧡
+
+#michaelborges #parnamirim #causaanimal #abrillaranja #rn",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.22729648649692535,True,BERTimbau_Forense_v1.2
+michaelborgesrn,👏👏👏👏,yurizth,2026-04-06 19:50:28+00:00,https://www.instagram.com/p/DWzV00dCX1n/,"Abril começou e, junto com ele, mais um mês de conscientização e enfrentamento aos maus-tratos contra os animais. 🐾
+
+E quando falamos em avanço na causa animal, é impossível não destacar o Decreto Cão Orelha.
+
+Antes, as multas iam de R$ 300 a R$ 3 mil. Agora, podem chegar a R$ 1 milhão nos casos mais graves.
+
+É uma mudança importante porque, além das penalidades legais, agora quem pratica maus-tratos também sente no bolso.
+
+Mas ainda há muito a ser feito.
+
+Precisamos ampliar o cuidado, fortalecer políticas públicas e garantir mais proteção para os animais.
+
+Seguimos firmes. Temos um Abril Laranja inteiro pela frente. 🧡
+
+#michaelborges #parnamirim #causaanimal #abrillaranja #rn",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.22862225770950317,True,BERTimbau_Forense_v1.2
+michaelborgesrn,Muito bom! Avante sempre. 👏,gil.ambrosio.rb,2026-04-06 21:54:38+00:00,https://www.instagram.com/p/DWzV00dCX1n/,"Abril começou e, junto com ele, mais um mês de conscientização e enfrentamento aos maus-tratos contra os animais. 🐾
+
+E quando falamos em avanço na causa animal, é impossível não destacar o Decreto Cão Orelha.
+
+Antes, as multas iam de R$ 300 a R$ 3 mil. Agora, podem chegar a R$ 1 milhão nos casos mais graves.
+
+É uma mudança importante porque, além das penalidades legais, agora quem pratica maus-tratos também sente no bolso.
+
+Mas ainda há muito a ser feito.
+
+Precisamos ampliar o cuidado, fortalecer políticas públicas e garantir mais proteção para os animais.
+
+Seguimos firmes. Temos um Abril Laranja inteiro pela frente. 🧡
+
+#michaelborges #parnamirim #causaanimal #abrillaranja #rn",1,muito bom avante sempre :mãos_aplaudindo:,"['bom', 'avante', 'sempre']",ameaca_fisica,0.21278871595859528,True,BERTimbau_Forense_v1.2
+michaelborgesrn,👏👏👏👏👏,pedrocpi,2026-04-06 21:22:13+00:00,https://www.instagram.com/p/DWzV00dCX1n/,"Abril começou e, junto com ele, mais um mês de conscientização e enfrentamento aos maus-tratos contra os animais. 🐾
+
+E quando falamos em avanço na causa animal, é impossível não destacar o Decreto Cão Orelha.
+
+Antes, as multas iam de R$ 300 a R$ 3 mil. Agora, podem chegar a R$ 1 milhão nos casos mais graves.
+
+É uma mudança importante porque, além das penalidades legais, agora quem pratica maus-tratos também sente no bolso.
+
+Mas ainda há muito a ser feito.
+
+Precisamos ampliar o cuidado, fortalecer políticas públicas e garantir mais proteção para os animais.
+
+Seguimos firmes. Temos um Abril Laranja inteiro pela frente. 🧡
+
+#michaelborges #parnamirim #causaanimal #abrillaranja #rn",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.2394917607307434,True,BERTimbau_Forense_v1.2
+michaelborgesrn,👏👏👏👏,mooises_lb,2026-04-06 20:24:14+00:00,https://www.instagram.com/p/DWzV00dCX1n/,"Abril começou e, junto com ele, mais um mês de conscientização e enfrentamento aos maus-tratos contra os animais. 🐾
+
+E quando falamos em avanço na causa animal, é impossível não destacar o Decreto Cão Orelha.
+
+Antes, as multas iam de R$ 300 a R$ 3 mil. Agora, podem chegar a R$ 1 milhão nos casos mais graves.
+
+É uma mudança importante porque, além das penalidades legais, agora quem pratica maus-tratos também sente no bolso.
+
+Mas ainda há muito a ser feito.
+
+Precisamos ampliar o cuidado, fortalecer políticas públicas e garantir mais proteção para os animais.
+
+Seguimos firmes. Temos um Abril Laranja inteiro pela frente. 🧡
+
+#michaelborges #parnamirim #causaanimal #abrillaranja #rn",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.22862225770950317,True,BERTimbau_Forense_v1.2
+michaelborgesrn,Mais uma vitória em defesa da causa animal.👏🏼👏🏼👏🏼👏🏼👏🏼👏🏼👏🏼,analice_almeidaandre,2026-04-07 02:00:35+00:00,https://www.instagram.com/p/DWzV00dCX1n/,"Abril começou e, junto com ele, mais um mês de conscientização e enfrentamento aos maus-tratos contra os animais. 🐾
+
+E quando falamos em avanço na causa animal, é impossível não destacar o Decreto Cão Orelha.
+
+Antes, as multas iam de R$ 300 a R$ 3 mil. Agora, podem chegar a R$ 1 milhão nos casos mais graves.
+
+É uma mudança importante porque, além das penalidades legais, agora quem pratica maus-tratos também sente no bolso.
+
+Mas ainda há muito a ser feito.
+
+Precisamos ampliar o cuidado, fortalecer políticas públicas e garantir mais proteção para os animais.
+
+Seguimos firmes. Temos um Abril Laranja inteiro pela frente. 🧡
+
+#michaelborges #parnamirim #causaanimal #abrillaranja #rn",1,mais uma vitória em defesa da causa animal:mãos_aplaudindo_pele_morena_clara::mãos_aplaudindo_pele_morena_clara::mãos_aplaudindo_pele_morena_clara::mãos_aplaudindo_pele_morena_clara::mãos_aplaudindo_pele_morena_clara::mãos_aplaudindo_pele_morena_clara::mãos_aplaudindo_pele_morena_clara:,"['vitória', 'defesa', 'causa', 'animal', 'mãos_aplaudindo_pele_morena_clara::mãos_aplaudindo_pele_morena_clara::mãos_aplaudindo_pele_morena_clara::mãos_aplaudindo_pele_morena_clara::mãos_aplaudindo_pele_morena_clara::mãos_aplaudindo_pele_morena_clara::mãos_aplaudindo_pele_morena_clara']",ameaca_fisica,0.20709533989429474,True,BERTimbau_Forense_v1.2
+michaelborgesrn,Vingança.pelo.caozinho.orella.e.todos.animais👏👏👏👏👏🙌,regianelemes5,2026-04-08 17:18:17+00:00,https://www.instagram.com/p/DWzV00dCX1n/,"Abril começou e, junto com ele, mais um mês de conscientização e enfrentamento aos maus-tratos contra os animais. 🐾
+
+E quando falamos em avanço na causa animal, é impossível não destacar o Decreto Cão Orelha.
+
+Antes, as multas iam de R$ 300 a R$ 3 mil. Agora, podem chegar a R$ 1 milhão nos casos mais graves.
+
+É uma mudança importante porque, além das penalidades legais, agora quem pratica maus-tratos também sente no bolso.
+
+Mas ainda há muito a ser feito.
+
+Precisamos ampliar o cuidado, fortalecer políticas públicas e garantir mais proteção para os animais.
+
+Seguimos firmes. Temos um Abril Laranja inteiro pela frente. 🧡
+
+#michaelborges #parnamirim #causaanimal #abrillaranja #rn",0,vingançapelocaozinhoorellaetodosanimais:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_para_cima:,"['vingançapelocaozinhoorellaetodosanimal', 'mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_para_cima']",ameaca_fisica,0.2372003048658371,True,BERTimbau_Forense_v1.2
+michaelborgesrn,Parabéns meu vereador pelo posicionamento 👏👏👏,jaciele_pereira__,2026-04-07 12:03:09+00:00,https://www.instagram.com/p/DWzV00dCX1n/,"Abril começou e, junto com ele, mais um mês de conscientização e enfrentamento aos maus-tratos contra os animais. 🐾
+
+E quando falamos em avanço na causa animal, é impossível não destacar o Decreto Cão Orelha.
+
+Antes, as multas iam de R$ 300 a R$ 3 mil. Agora, podem chegar a R$ 1 milhão nos casos mais graves.
+
+É uma mudança importante porque, além das penalidades legais, agora quem pratica maus-tratos também sente no bolso.
+
+Mas ainda há muito a ser feito.
+
+Precisamos ampliar o cuidado, fortalecer políticas públicas e garantir mais proteção para os animais.
+
+Seguimos firmes. Temos um Abril Laranja inteiro pela frente. 🧡
+
+#michaelborges #parnamirim #causaanimal #abrillaranja #rn",0,parabéns meu vereador pelo posicionamento :mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,"['parabéns', 'vereador', 'posicionamento', 'mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo']",ameaca_fisica,0.21501414477825165,True,BERTimbau_Forense_v1.2
+michaelborgesrn,👏👏👏👏👏,jaciele_pereira__,2026-04-07 12:02:44+00:00,https://www.instagram.com/p/DWzV00dCX1n/,"Abril começou e, junto com ele, mais um mês de conscientização e enfrentamento aos maus-tratos contra os animais. 🐾
+
+E quando falamos em avanço na causa animal, é impossível não destacar o Decreto Cão Orelha.
+
+Antes, as multas iam de R$ 300 a R$ 3 mil. Agora, podem chegar a R$ 1 milhão nos casos mais graves.
+
+É uma mudança importante porque, além das penalidades legais, agora quem pratica maus-tratos também sente no bolso.
+
+Mas ainda há muito a ser feito.
+
+Precisamos ampliar o cuidado, fortalecer políticas públicas e garantir mais proteção para os animais.
+
+Seguimos firmes. Temos um Abril Laranja inteiro pela frente. 🧡
+
+#michaelborges #parnamirim #causaanimal #abrillaranja #rn",0,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.2394917607307434,True,BERTimbau_Forense_v1.2
+michaelborgesrn,👏👏👏👏👏👏👏,alexsandra_197,2026-04-06 23:12:46+00:00,https://www.instagram.com/p/DWzV00dCX1n/,"Abril começou e, junto com ele, mais um mês de conscientização e enfrentamento aos maus-tratos contra os animais. 🐾
+
+E quando falamos em avanço na causa animal, é impossível não destacar o Decreto Cão Orelha.
+
+Antes, as multas iam de R$ 300 a R$ 3 mil. Agora, podem chegar a R$ 1 milhão nos casos mais graves.
+
+É uma mudança importante porque, além das penalidades legais, agora quem pratica maus-tratos também sente no bolso.
+
+Mas ainda há muito a ser feito.
+
+Precisamos ampliar o cuidado, fortalecer políticas públicas e garantir mais proteção para os animais.
+
+Seguimos firmes. Temos um Abril Laranja inteiro pela frente. 🧡
+
+#michaelborges #parnamirim #causaanimal #abrillaranja #rn",0,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.22729648649692535,True,BERTimbau_Forense_v1.2
+michaelborgesrn,os teus eleitores agora é cachorro 🐶🐕 é o kei,juniorflores.72,2026-04-06 22:57:38+00:00,https://www.instagram.com/p/DWzV00dCX1n/,"Abril começou e, junto com ele, mais um mês de conscientização e enfrentamento aos maus-tratos contra os animais. 🐾
+
+E quando falamos em avanço na causa animal, é impossível não destacar o Decreto Cão Orelha.
+
+Antes, as multas iam de R$ 300 a R$ 3 mil. Agora, podem chegar a R$ 1 milhão nos casos mais graves.
+
+É uma mudança importante porque, além das penalidades legais, agora quem pratica maus-tratos também sente no bolso.
+
+Mas ainda há muito a ser feito.
+
+Precisamos ampliar o cuidado, fortalecer políticas públicas e garantir mais proteção para os animais.
+
+Seguimos firmes. Temos um Abril Laranja inteiro pela frente. 🧡
+
+#michaelborges #parnamirim #causaanimal #abrillaranja #rn",0,os teus eleitores agora é cachorro :rosto_de_cachorro::cachorro: é o kei,"['eleitor', 'agora', 'cachorro', 'rosto_de_cachorro::cachorro', 'kei']",ameaca_fisica,0.22616362571716309,True,BERTimbau_Forense_v1.2
+michaelborgesrn,Amém 🙌❤️,ana1286paula,2026-04-05 17:38:10+00:00,https://www.instagram.com/p/DWwDNcZkQaK/,"Ele vive e reina para sempre! Uma Páscoa abençoada e cheia de luz para todos. 🕊️🙌 
+
+#EleRessuscitou 
+#Páscoa
+#Luz
+#Fé",0,amém :mãos_para_cima::coração_vermelho:,"['amém', 'mãos_para_cima::coração_vermelho']",ameaca_fisica,0.213947132229805,True,BERTimbau_Forense_v1.2
+michaelborgesrn,🙏🏼🙏🏼🙏🏼🙌🏼,yurizth,2026-04-05 14:57:43+00:00,https://www.instagram.com/p/DWwDNcZkQaK/,"Ele vive e reina para sempre! Uma Páscoa abençoada e cheia de luz para todos. 🕊️🙌 
+
+#EleRessuscitou 
+#Páscoa
+#Luz
+#Fé",1,:mãos_juntas_pele_morena_clara::mãos_juntas_pele_morena_clara::mãos_juntas_pele_morena_clara::mãos_para_cima_pele_morena_clara:,['mãos_juntas_pele_morena_clara::mãos_juntas_pele_morena_clara::mãos_juntas_pele_morena_clara::mãos_para_cima_pele_morena_clara'],odio_politico,0.2286718636751175,True,BERTimbau_Forense_v1.2
+michaelborgesrn,🙌❤️,anderson.alwes,2026-04-05 15:28:10+00:00,https://www.instagram.com/p/DWwDNcZkQaK/,"Ele vive e reina para sempre! Uma Páscoa abençoada e cheia de luz para todos. 🕊️🙌 
+
+#EleRessuscitou 
+#Páscoa
+#Luz
+#Fé",1,:mãos_para_cima::coração_vermelho:,['mãos_para_cima::coração_vermelho'],ameaca_fisica,0.22089195251464844,True,BERTimbau_Forense_v1.2
+michaelborgesrn,Uma feliz páscoa 🙌🙌,luizaugustooo1,2026-04-05 15:36:21+00:00,https://www.instagram.com/p/DWwDNcZkQaK/,"Ele vive e reina para sempre! Uma Páscoa abençoada e cheia de luz para todos. 🕊️🙌 
+
+#EleRessuscitou 
+#Páscoa
+#Luz
+#Fé",1,uma feliz páscoa :mãos_para_cima::mãos_para_cima:,"['feliz', 'Páscoa', 'mãos_para_cima::mãos_para_cima']",ameaca_fisica,0.2003617286682129,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,Obrigada meu bem ❤️,rafaelaqueiroz0409,2026-04-09 12:33:29+00:00,https://www.instagram.com/p/DW6L9mODmb-/,"Hoje é dia Meu bem, o dia da pessoa que está em todos os momentos do meu lado, saiba que sou muito grato a Deus por ele ter colocado uma pessoa tão maravilhosa em meu caminho.  Poderia passar o dia aqui, mais só escrever não basta! vamos viver o agora e aproveitar nossa família tá, te amo a cada dia mais ❤️@rafaelaqueiroz0409 …
+
+Agradeço a Deus por você estar com saúde, o que passamos ano passado não foi fácil e hoje você está aqui com a glória do senhor!",0,obrigada meu bem :coração_vermelho:,"['obrigar', 'bem']",ameaca_fisica,0.20389993488788605,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,Parabéns feliz aniversário dona Rafaela 🙌🙌🙌,josivando61,2026-04-09 18:28:27+00:00,https://www.instagram.com/p/DW6L9mODmb-/,"Hoje é dia Meu bem, o dia da pessoa que está em todos os momentos do meu lado, saiba que sou muito grato a Deus por ele ter colocado uma pessoa tão maravilhosa em meu caminho.  Poderia passar o dia aqui, mais só escrever não basta! vamos viver o agora e aproveitar nossa família tá, te amo a cada dia mais ❤️@rafaelaqueiroz0409 …
+
+Agradeço a Deus por você estar com saúde, o que passamos ano passado não foi fácil e hoje você está aqui com a glória do senhor!",0,parabéns feliz aniversário dona rafaela :mãos_para_cima::mãos_para_cima::mãos_para_cima:,"['parabéns', 'feliz', 'aniversário', 'dona', 'rafaela', 'mãos_para_cima::mãos_para_cima::mãos_para_cima']",ameaca_fisica,0.2241217941045761,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,Feliz aniversário RAFAELA!!!👏👏👏👏👏👏🙌,alineferreiracantoraoficial21,2026-04-09 13:54:43+00:00,https://www.instagram.com/p/DW6L9mODmb-/,"Hoje é dia Meu bem, o dia da pessoa que está em todos os momentos do meu lado, saiba que sou muito grato a Deus por ele ter colocado uma pessoa tão maravilhosa em meu caminho.  Poderia passar o dia aqui, mais só escrever não basta! vamos viver o agora e aproveitar nossa família tá, te amo a cada dia mais ❤️@rafaelaqueiroz0409 …
+
+Agradeço a Deus por você estar com saúde, o que passamos ano passado não foi fácil e hoje você está aqui com a glória do senhor!",0,feliz aniversário rafaela:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_para_cima:,"['feliz', 'aniversário', 'Rafaela', 'mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_para_cima']",ameaca_fisica,0.20203325152397156,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,Parabéns Rafaela feliz vida,josileidepereirada,2026-04-09 12:34:06+00:00,https://www.instagram.com/p/DW6L9mODmb-/,"Hoje é dia Meu bem, o dia da pessoa que está em todos os momentos do meu lado, saiba que sou muito grato a Deus por ele ter colocado uma pessoa tão maravilhosa em meu caminho.  Poderia passar o dia aqui, mais só escrever não basta! vamos viver o agora e aproveitar nossa família tá, te amo a cada dia mais ❤️@rafaelaqueiroz0409 …
+
+Agradeço a Deus por você estar com saúde, o que passamos ano passado não foi fácil e hoje você está aqui com a glória do senhor!",1,parabéns rafaela feliz vida,"['parabém', 'rafaela', 'feliz', 'vida']",insulto_direto,0.1916009932756424,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,Parabéns feliz vida!! 🎂🎉🎊🎈👏🏼❤️,nilda.trajano,2026-04-09 12:20:33+00:00,https://www.instagram.com/p/DW6L9mODmb-/,"Hoje é dia Meu bem, o dia da pessoa que está em todos os momentos do meu lado, saiba que sou muito grato a Deus por ele ter colocado uma pessoa tão maravilhosa em meu caminho.  Poderia passar o dia aqui, mais só escrever não basta! vamos viver o agora e aproveitar nossa família tá, te amo a cada dia mais ❤️@rafaelaqueiroz0409 …
+
+Agradeço a Deus por você estar com saúde, o que passamos ano passado não foi fácil e hoje você está aqui com a glória do senhor!",2,parabéns feliz vida :bolo_de_aniversário::cone_de_festa::confete::balão::mãos_aplaudindo_pele_morena_clara::coração_vermelho:,"['parabéns', 'feliz', 'vida', 'bolo_de_aniversário::cone_de_festa::confete::balão::mãos_aplaudindo_pele_morena_clara::coração_vermelho']",odio_politico,0.22301946580410004,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,Parabéns que Deus te abençoe grandemente todos os dias de sua vida feliz aniversário ❤️,lucimarmartiniano,2026-04-09 16:44:56+00:00,https://www.instagram.com/p/DW6L9mODmb-/,"Hoje é dia Meu bem, o dia da pessoa que está em todos os momentos do meu lado, saiba que sou muito grato a Deus por ele ter colocado uma pessoa tão maravilhosa em meu caminho.  Poderia passar o dia aqui, mais só escrever não basta! vamos viver o agora e aproveitar nossa família tá, te amo a cada dia mais ❤️@rafaelaqueiroz0409 …
+
+Agradeço a Deus por você estar com saúde, o que passamos ano passado não foi fácil e hoje você está aqui com a glória do senhor!",0,parabéns que deus te abençoe grandemente todos os dias de sua vida feliz aniversário :coração_vermelho:,"['parabéns', 'deus', 'abençoar', 'grandemente', 'todo', 'dia', 'vida', 'feliz', 'aniversário']",odio_politico,0.21646642684936523,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,Parabéns Rafaela Queiroz te desejo muita saúde e paz e muitas felicidades 💋,lucipatriciornp,2026-04-09 13:28:42+00:00,https://www.instagram.com/p/DW6L9mODmb-/,"Hoje é dia Meu bem, o dia da pessoa que está em todos os momentos do meu lado, saiba que sou muito grato a Deus por ele ter colocado uma pessoa tão maravilhosa em meu caminho.  Poderia passar o dia aqui, mais só escrever não basta! vamos viver o agora e aproveitar nossa família tá, te amo a cada dia mais ❤️@rafaelaqueiroz0409 …
+
+Agradeço a Deus por você estar com saúde, o que passamos ano passado não foi fácil e hoje você está aqui com a glória do senhor!",0,parabéns rafaela queiroz te desejo muita saúde e paz e muitas felicidades :marca_de_beijo:,"['parabém', 'Rafaela', 'queiroz', 'desejo', 'muito', 'saúde', 'paz', 'muito', 'felicidade']",ameaca_fisica,0.2345055341720581,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,Parabéns pra ela muitas felicidades e saúde e que Deus abençoe sempre ela abraço.,katia.rosania.9,2026-04-09 11:52:07+00:00,https://www.instagram.com/p/DW6L9mODmb-/,"Hoje é dia Meu bem, o dia da pessoa que está em todos os momentos do meu lado, saiba que sou muito grato a Deus por ele ter colocado uma pessoa tão maravilhosa em meu caminho.  Poderia passar o dia aqui, mais só escrever não basta! vamos viver o agora e aproveitar nossa família tá, te amo a cada dia mais ❤️@rafaelaqueiroz0409 …
+
+Agradeço a Deus por você estar com saúde, o que passamos ano passado não foi fácil e hoje você está aqui com a glória do senhor!",1,parabéns pra ela muitas felicidades e saúde e que deus abençoe sempre ela abraço,"['parabéns', 'muito', 'felicidade', 'saúde', 'deus', 'abençoar', 'sempre', 'abraço']",ameaca_fisica,0.20268593728542328,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,"Parabéns Rafaela, Deus esteja sempre presente em sua vida e lhe conceda saúde, felicidade e paz! 👏😍",varelatila,2026-04-09 13:47:57+00:00,https://www.instagram.com/p/DW6L9mODmb-/,"Hoje é dia Meu bem, o dia da pessoa que está em todos os momentos do meu lado, saiba que sou muito grato a Deus por ele ter colocado uma pessoa tão maravilhosa em meu caminho.  Poderia passar o dia aqui, mais só escrever não basta! vamos viver o agora e aproveitar nossa família tá, te amo a cada dia mais ❤️@rafaelaqueiroz0409 …
+
+Agradeço a Deus por você estar com saúde, o que passamos ano passado não foi fácil e hoje você está aqui com a glória do senhor!",0,parabéns rafaela deus esteja sempre presente em sua vida e lhe conceda saúde felicidade e paz :mãos_aplaudindo::rosto_sorridente_com_olhos_de_coração:,"['parabéns', 'Rafaela', 'deus', 'sempre', 'presente', 'vida', 'conceda', 'saúde', 'felicidade', 'paz', 'mãos_aplaudindo::rosto_sorridente_com_olhos_de_coração']",ameaca_fisica,0.2028535157442093,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,Parabéns 👏👏👏👏👏👏👏👏,nininha_santos46,2026-04-09 14:17:50+00:00,https://www.instagram.com/p/DW6L9mODmb-/,"Hoje é dia Meu bem, o dia da pessoa que está em todos os momentos do meu lado, saiba que sou muito grato a Deus por ele ter colocado uma pessoa tão maravilhosa em meu caminho.  Poderia passar o dia aqui, mais só escrever não basta! vamos viver o agora e aproveitar nossa família tá, te amo a cada dia mais ❤️@rafaelaqueiroz0409 …
+
+Agradeço a Deus por você estar com saúde, o que passamos ano passado não foi fácil e hoje você está aqui com a glória do senhor!",0,parabéns :mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,"['parabéns', 'mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo']",ameaca_fisica,0.22850288450717926,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,"Feliz aniversário,que Deus abençoe 🙌meus parabéns 🎂🎂👏👏",natallulu,2026-04-09 13:41:29+00:00,https://www.instagram.com/p/DW6L9mODmb-/,"Hoje é dia Meu bem, o dia da pessoa que está em todos os momentos do meu lado, saiba que sou muito grato a Deus por ele ter colocado uma pessoa tão maravilhosa em meu caminho.  Poderia passar o dia aqui, mais só escrever não basta! vamos viver o agora e aproveitar nossa família tá, te amo a cada dia mais ❤️@rafaelaqueiroz0409 …
+
+Agradeço a Deus por você estar com saúde, o que passamos ano passado não foi fácil e hoje você está aqui com a glória do senhor!",0,feliz aniversárioque deus abençoe :mãos_para_cima:meus parabéns :bolo_de_aniversário::bolo_de_aniversário::mãos_aplaudindo::mãos_aplaudindo:,"['feliz', 'aniversárioque', 'deus', 'abençoar', 'parabéns', 'bolo_de_aniversário::bolo_de_aniversário::mãos_aplaudindo::mãos_aplaudindo']",ameaca_fisica,0.2351609319448471,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,"Feliz aniversário, Rafaaa 😍 saude, paz e muitas felicidadesss! Deus te abençoe sempre 🙏🏻✨",lorenascf_,2026-04-09 13:08:02+00:00,https://www.instagram.com/p/DW6L9mODmb-/,"Hoje é dia Meu bem, o dia da pessoa que está em todos os momentos do meu lado, saiba que sou muito grato a Deus por ele ter colocado uma pessoa tão maravilhosa em meu caminho.  Poderia passar o dia aqui, mais só escrever não basta! vamos viver o agora e aproveitar nossa família tá, te amo a cada dia mais ❤️@rafaelaqueiroz0409 …
+
+Agradeço a Deus por você estar com saúde, o que passamos ano passado não foi fácil e hoje você está aqui com a glória do senhor!",0,feliz aniversário rafaaa :rosto_sorridente_com_olhos_de_coração: saude paz e muitas felicidadesss deus te abençoe sempre :mãos_juntas_pele_clara::brilhos:,"['feliz', 'aniversário', 'Rafaaa', 'saude', 'paz', 'muito', 'felicidadesss', 'deus', 'abençoar', 'sempre', 'mãos_juntas_pele_clara::brilhos']",ameaca_fisica,0.22160087525844574,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,🥹🥹❤️,rafaelaqueiroz0409,2026-04-09 12:33:43+00:00,https://www.instagram.com/p/DW6L9mODmb-/,"Hoje é dia Meu bem, o dia da pessoa que está em todos os momentos do meu lado, saiba que sou muito grato a Deus por ele ter colocado uma pessoa tão maravilhosa em meu caminho.  Poderia passar o dia aqui, mais só escrever não basta! vamos viver o agora e aproveitar nossa família tá, te amo a cada dia mais ❤️@rafaelaqueiroz0409 …
+
+Agradeço a Deus por você estar com saúde, o que passamos ano passado não foi fácil e hoje você está aqui com a glória do senhor!",0,:rosto_segurando_as_lágrimas::rosto_segurando_as_lágrimas::coração_vermelho:,['rosto_segurando_as_lágrimas::rosto_segurando_as_lágrimas::coração_vermelho'],ameaca_fisica,0.23937901854515076,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,"Que o senhor abençoe com ricas bênçãos e saúde 🥂
+Parabéns 🎊🍾🎉",jannyguedesnails_,2026-04-09 14:30:11+00:00,https://www.instagram.com/p/DW6L9mODmb-/,"Hoje é dia Meu bem, o dia da pessoa que está em todos os momentos do meu lado, saiba que sou muito grato a Deus por ele ter colocado uma pessoa tão maravilhosa em meu caminho.  Poderia passar o dia aqui, mais só escrever não basta! vamos viver o agora e aproveitar nossa família tá, te amo a cada dia mais ❤️@rafaelaqueiroz0409 …
+
+Agradeço a Deus por você estar com saúde, o que passamos ano passado não foi fácil e hoje você está aqui com a glória do senhor!",0,que o senhor abençoe com ricas bênçãos e saúde :taças_brindando: parabéns :confete::garrafa_de_champanhe::cone_de_festa:,"['senhor', 'abençoar', 'rico', 'bênção', 'saúde', 'parabéns', 'confete::garrafa_de_champanhe::cone_de_festa']",ameaca_fisica,0.24035139381885529,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,Parabéns @rafaelaqueiroz0409 ! Que Deus continue te abençoando ! Feliz vida cheia de saúde e paz! Felicidades 🙏✨🌟🤗🎂🥂🌸🌹😍,corrinhapirangi,2026-04-09 12:06:59+00:00,https://www.instagram.com/p/DW6L9mODmb-/,"Hoje é dia Meu bem, o dia da pessoa que está em todos os momentos do meu lado, saiba que sou muito grato a Deus por ele ter colocado uma pessoa tão maravilhosa em meu caminho.  Poderia passar o dia aqui, mais só escrever não basta! vamos viver o agora e aproveitar nossa família tá, te amo a cada dia mais ❤️@rafaelaqueiroz0409 …
+
+Agradeço a Deus por você estar com saúde, o que passamos ano passado não foi fácil e hoje você está aqui com a glória do senhor!",1,parabéns que deus continue te abençoando feliz vida cheia de saúde e paz felicidades :mãos_juntas::brilhos::estrela_brilhante::rosto_abraçando::bolo_de_aniversário::taças_brindando::flor_de_cerejeira::rosa::rosto_sorridente_com_olhos_de_coração:,"['parabéns', 'deus', 'continuar', 'abençoar', 'feliz', 'vida', 'cheio', 'saúde', 'paz', 'felicidade', 'mãos_juntas::brilhos::estrela_brilhante::rosto_abraçando::bolo_de_aniversário::taças_brindando::flor_de_cerejeira::rosa::rosto_sorridente_com_olhos_de_coração']",ameaca_fisica,0.22794753313064575,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,Parabéns,mariazelia.nascimento.37,2026-04-09 11:54:47+00:00,https://www.instagram.com/p/DW6L9mODmb-/,"Hoje é dia Meu bem, o dia da pessoa que está em todos os momentos do meu lado, saiba que sou muito grato a Deus por ele ter colocado uma pessoa tão maravilhosa em meu caminho.  Poderia passar o dia aqui, mais só escrever não basta! vamos viver o agora e aproveitar nossa família tá, te amo a cada dia mais ❤️@rafaelaqueiroz0409 …
+
+Agradeço a Deus por você estar com saúde, o que passamos ano passado não foi fácil e hoje você está aqui com a glória do senhor!",1,parabéns,['parabéns'],insulto_direto,0.18904627859592438,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,Parabéns @rafaelaqueiroz0409 toda felicidade do mundo pra você!😍,nandinhamachado,2026-04-09 12:19:18+00:00,https://www.instagram.com/p/DW6L9mODmb-/,"Hoje é dia Meu bem, o dia da pessoa que está em todos os momentos do meu lado, saiba que sou muito grato a Deus por ele ter colocado uma pessoa tão maravilhosa em meu caminho.  Poderia passar o dia aqui, mais só escrever não basta! vamos viver o agora e aproveitar nossa família tá, te amo a cada dia mais ❤️@rafaelaqueiroz0409 …
+
+Agradeço a Deus por você estar com saúde, o que passamos ano passado não foi fácil e hoje você está aqui com a glória do senhor!",1,parabéns toda felicidade do mundo pra você:rosto_sorridente_com_olhos_de_coração:,"['parabéns', 'todo', 'felicidade', 'mundo']",ameaca_fisica,0.20021535456180573,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,Parabéns Deus te abençoe sempre 🙌,edilsonalvesdesouza24,2026-04-09 14:11:26+00:00,https://www.instagram.com/p/DW6L9mODmb-/,"Hoje é dia Meu bem, o dia da pessoa que está em todos os momentos do meu lado, saiba que sou muito grato a Deus por ele ter colocado uma pessoa tão maravilhosa em meu caminho.  Poderia passar o dia aqui, mais só escrever não basta! vamos viver o agora e aproveitar nossa família tá, te amo a cada dia mais ❤️@rafaelaqueiroz0409 …
+
+Agradeço a Deus por você estar com saúde, o que passamos ano passado não foi fácil e hoje você está aqui com a glória do senhor!",0,parabéns deus te abençoe sempre :mãos_para_cima:,"['parabéns', 'deus', 'abençoar', 'sempre']",ameaca_fisica,0.20329196751117706,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,Parabéns felicidades Deus abençoe,sidneyalvesad,2026-04-09 14:47:42+00:00,https://www.instagram.com/p/DW6L9mODmb-/,"Hoje é dia Meu bem, o dia da pessoa que está em todos os momentos do meu lado, saiba que sou muito grato a Deus por ele ter colocado uma pessoa tão maravilhosa em meu caminho.  Poderia passar o dia aqui, mais só escrever não basta! vamos viver o agora e aproveitar nossa família tá, te amo a cada dia mais ❤️@rafaelaqueiroz0409 …
+
+Agradeço a Deus por você estar com saúde, o que passamos ano passado não foi fácil e hoje você está aqui com a glória do senhor!",0,parabéns felicidades deus abençoe,"['parabéns', 'felicidade', 'deus', 'abençoar']",insulto_direto,0.195454403758049,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,Parabéns @rafaelaqueiroz0409 . Que Deus te abençoe sempre,jobsonfaustino_,2026-04-09 11:46:34+00:00,https://www.instagram.com/p/DW6L9mODmb-/,"Hoje é dia Meu bem, o dia da pessoa que está em todos os momentos do meu lado, saiba que sou muito grato a Deus por ele ter colocado uma pessoa tão maravilhosa em meu caminho.  Poderia passar o dia aqui, mais só escrever não basta! vamos viver o agora e aproveitar nossa família tá, te amo a cada dia mais ❤️@rafaelaqueiroz0409 …
+
+Agradeço a Deus por você estar com saúde, o que passamos ano passado não foi fácil e hoje você está aqui com a glória do senhor!",1,parabéns que deus te abençoe sempre,"['parabéns', 'deus', 'abençoar', 'sempre']",ameaca_fisica,0.1892077922821045,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,Meus parabéns @rafaelaqueiroz0409 muita saúde e paz. 🙌,gugualbino,2026-04-09 12:12:30+00:00,https://www.instagram.com/p/DW6L9mODmb-/,"Hoje é dia Meu bem, o dia da pessoa que está em todos os momentos do meu lado, saiba que sou muito grato a Deus por ele ter colocado uma pessoa tão maravilhosa em meu caminho.  Poderia passar o dia aqui, mais só escrever não basta! vamos viver o agora e aproveitar nossa família tá, te amo a cada dia mais ❤️@rafaelaqueiroz0409 …
+
+Agradeço a Deus por você estar com saúde, o que passamos ano passado não foi fácil e hoje você está aqui com a glória do senhor!",1,meus parabéns muita saúde e paz :mãos_para_cima:,"['parabéns', 'muito', 'saúde', 'paz']",ameaca_fisica,0.20171001553535461,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,Parabéns @rafaelaqueiroz0409 muita saúde paz felicidade 👏👏,lindembergandrade1,2026-04-09 12:35:24+00:00,https://www.instagram.com/p/DW6L9mODmb-/,"Hoje é dia Meu bem, o dia da pessoa que está em todos os momentos do meu lado, saiba que sou muito grato a Deus por ele ter colocado uma pessoa tão maravilhosa em meu caminho.  Poderia passar o dia aqui, mais só escrever não basta! vamos viver o agora e aproveitar nossa família tá, te amo a cada dia mais ❤️@rafaelaqueiroz0409 …
+
+Agradeço a Deus por você estar com saúde, o que passamos ano passado não foi fácil e hoje você está aqui com a glória do senhor!",1,parabéns muita saúde paz felicidade :mãos_aplaudindo::mãos_aplaudindo:,"['parabéns', 'muito', 'saúde', 'paz', 'felicidade', 'mãos_aplaudindo::mãos_aplaudindo']",ameaca_fisica,0.1961427927017212,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,👏👏👏👏👏😍,josyfferreira,2026-04-09 12:12:43+00:00,https://www.instagram.com/p/DW6L9mODmb-/,"Hoje é dia Meu bem, o dia da pessoa que está em todos os momentos do meu lado, saiba que sou muito grato a Deus por ele ter colocado uma pessoa tão maravilhosa em meu caminho.  Poderia passar o dia aqui, mais só escrever não basta! vamos viver o agora e aproveitar nossa família tá, te amo a cada dia mais ❤️@rafaelaqueiroz0409 …
+
+Agradeço a Deus por você estar com saúde, o que passamos ano passado não foi fácil e hoje você está aqui com a glória do senhor!",2,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::rosto_sorridente_com_olhos_de_coração:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::rosto_sorridente_com_olhos_de_coração'],ameaca_fisica,0.23861731588840485,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,❤️👏👏👏👏,anaferreira4117,2026-04-09 20:09:03+00:00,https://www.instagram.com/p/DW6L9mODmb-/,"Hoje é dia Meu bem, o dia da pessoa que está em todos os momentos do meu lado, saiba que sou muito grato a Deus por ele ter colocado uma pessoa tão maravilhosa em meu caminho.  Poderia passar o dia aqui, mais só escrever não basta! vamos viver o agora e aproveitar nossa família tá, te amo a cada dia mais ❤️@rafaelaqueiroz0409 …
+
+Agradeço a Deus por você estar com saúde, o que passamos ano passado não foi fácil e hoje você está aqui com a glória do senhor!",0,:coração_vermelho::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['coração_vermelho::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.21317550539970398,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,Aj sim 👏👏👏,janielly_silva.94,2026-04-10 00:57:49+00:00,https://www.instagram.com/p/DW37HFdDqy0/,"Na manhã de hoje, estive reunido com o nosso deputado estadual e médico @galenotorquato, apresentando importantes demandas para a melhoria da saúde, além de outras necessidades do litoral e de todo o município de Parnamirim. Seguimos trabalhando com compromisso e responsabilidade para nossa população!",0,aj sim :mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,"['sim', 'mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo']",ameaca_fisica,0.21453392505645752,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,👏👏👏👏,terciabernardo,2026-04-08 14:23:04+00:00,https://www.instagram.com/p/DW37HFdDqy0/,"Na manhã de hoje, estive reunido com o nosso deputado estadual e médico @galenotorquato, apresentando importantes demandas para a melhoria da saúde, além de outras necessidades do litoral e de todo o município de Parnamirim. Seguimos trabalhando com compromisso e responsabilidade para nossa população!",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.22862225770950317,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,👏👏👏👏,karladaiane22,2026-04-08 14:29:48+00:00,https://www.instagram.com/p/DW37HFdDqy0/,"Na manhã de hoje, estive reunido com o nosso deputado estadual e médico @galenotorquato, apresentando importantes demandas para a melhoria da saúde, além de outras necessidades do litoral e de todo o município de Parnamirim. Seguimos trabalhando com compromisso e responsabilidade para nossa população!",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.22862225770950317,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,Sempre em busca de melhorias para o nosso município 👏👏👏👏,terciabernardo,2026-04-08 14:24:29+00:00,https://www.instagram.com/p/DW37HFdDqy0/,"Na manhã de hoje, estive reunido com o nosso deputado estadual e médico @galenotorquato, apresentando importantes demandas para a melhoria da saúde, além de outras necessidades do litoral e de todo o município de Parnamirim. Seguimos trabalhando com compromisso e responsabilidade para nossa população!",1,sempre em busca de melhorias para o nosso município :mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,"['sempre', 'busca', 'melhoria', 'município', 'mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo']",ameaca_fisica,0.20656365156173706,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,👏👏👏,euallisonjordan,2026-04-08 15:32:42+00:00,https://www.instagram.com/p/DW37HFdDqy0/,"Na manhã de hoje, estive reunido com o nosso deputado estadual e médico @galenotorquato, apresentando importantes demandas para a melhoria da saúde, além de outras necessidades do litoral e de todo o município de Parnamirim. Seguimos trabalhando com compromisso e responsabilidade para nossa população!",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.2235841006040573,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,👏👏👏👏👏👏,edivanya_silva,2026-04-08 14:53:21+00:00,https://www.instagram.com/p/DW37HFdDqy0/,"Na manhã de hoje, estive reunido com o nosso deputado estadual e médico @galenotorquato, apresentando importantes demandas para a melhoria da saúde, além de outras necessidades do litoral e de todo o município de Parnamirim. Seguimos trabalhando com compromisso e responsabilidade para nossa população!",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.2443879395723343,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,👏👏👏👏,asllanyaraujo,2026-04-08 16:25:15+00:00,https://www.instagram.com/p/DW37HFdDqy0/,"Na manhã de hoje, estive reunido com o nosso deputado estadual e médico @galenotorquato, apresentando importantes demandas para a melhoria da saúde, além de outras necessidades do litoral e de todo o município de Parnamirim. Seguimos trabalhando com compromisso e responsabilidade para nossa população!",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.22862225770950317,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,👏👏,jessicadasilvapaulino,2026-04-08 14:22:39+00:00,https://www.instagram.com/p/DW37HFdDqy0/,"Na manhã de hoje, estive reunido com o nosso deputado estadual e médico @galenotorquato, apresentando importantes demandas para a melhoria da saúde, além de outras necessidades do litoral e de todo o município de Parnamirim. Seguimos trabalhando com compromisso e responsabilidade para nossa população!",1,:mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.22357554733753204,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,👏👏👏👏👏,allanmedeiros2021,2026-04-08 14:28:01+00:00,https://www.instagram.com/p/DW37HFdDqy0/,"Na manhã de hoje, estive reunido com o nosso deputado estadual e médico @galenotorquato, apresentando importantes demandas para a melhoria da saúde, além de outras necessidades do litoral e de todo o município de Parnamirim. Seguimos trabalhando com compromisso e responsabilidade para nossa população!",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.2394917607307434,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,👏👏👏👏,leticyaaxs1,2026-04-08 15:11:06+00:00,https://www.instagram.com/p/DW37HFdDqy0/,"Na manhã de hoje, estive reunido com o nosso deputado estadual e médico @galenotorquato, apresentando importantes demandas para a melhoria da saúde, além de outras necessidades do litoral e de todo o município de Parnamirim. Seguimos trabalhando com compromisso e responsabilidade para nossa população!",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.22862225770950317,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,👏👏👏,kalianypatricia26,2026-04-08 14:25:49+00:00,https://www.instagram.com/p/DW37HFdDqy0/,"Na manhã de hoje, estive reunido com o nosso deputado estadual e médico @galenotorquato, apresentando importantes demandas para a melhoria da saúde, além de outras necessidades do litoral e de todo o município de Parnamirim. Seguimos trabalhando com compromisso e responsabilidade para nossa população!",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.2235841006040573,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,👏👏👏,gerianequeiroz,2026-04-08 14:52:09+00:00,https://www.instagram.com/p/DW37HFdDqy0/,"Na manhã de hoje, estive reunido com o nosso deputado estadual e médico @galenotorquato, apresentando importantes demandas para a melhoria da saúde, além de outras necessidades do litoral e de todo o município de Parnamirim. Seguimos trabalhando com compromisso e responsabilidade para nossa população!",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.2235841006040573,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,👏🏻👏🏻👏🏻,josigomes_21,2026-04-08 14:53:10+00:00,https://www.instagram.com/p/DW37HFdDqy0/,"Na manhã de hoje, estive reunido com o nosso deputado estadual e médico @galenotorquato, apresentando importantes demandas para a melhoria da saúde, além de outras necessidades do litoral e de todo o município de Parnamirim. Seguimos trabalhando com compromisso e responsabilidade para nossa população!",1,:mãos_aplaudindo_pele_clara::mãos_aplaudindo_pele_clara::mãos_aplaudindo_pele_clara:,['mãos_aplaudindo_pele_clara::mãos_aplaudindo_pele_clara::mãos_aplaudindo_pele_clara'],ameaca_fisica,0.23075883090496063,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,👏👏👏👏,jobsonfaustino_,2026-04-08 14:41:53+00:00,https://www.instagram.com/p/DW37HFdDqy0/,"Na manhã de hoje, estive reunido com o nosso deputado estadual e médico @galenotorquato, apresentando importantes demandas para a melhoria da saúde, além de outras necessidades do litoral e de todo o município de Parnamirim. Seguimos trabalhando com compromisso e responsabilidade para nossa população!",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.22862225770950317,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,👏👏👏👏,msi5536,2026-04-08 14:49:10+00:00,https://www.instagram.com/p/DW37HFdDqy0/,"Na manhã de hoje, estive reunido com o nosso deputado estadual e médico @galenotorquato, apresentando importantes demandas para a melhoria da saúde, além de outras necessidades do litoral e de todo o município de Parnamirim. Seguimos trabalhando com compromisso e responsabilidade para nossa população!",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.22862225770950317,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,👏👏👏👏👏👏,fagundesalfarn,2026-04-08 15:59:17+00:00,https://www.instagram.com/p/DW37HFdDqy0/,"Na manhã de hoje, estive reunido com o nosso deputado estadual e médico @galenotorquato, apresentando importantes demandas para a melhoria da saúde, além de outras necessidades do litoral e de todo o município de Parnamirim. Seguimos trabalhando com compromisso e responsabilidade para nossa população!",1,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.2443879395723343,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,Nosso deputado com o nosso vereador trabalhando em pró o nosso litoral pra o povo 👏👏👏,lindembergandrade1,2026-04-08 14:27:54+00:00,https://www.instagram.com/p/DW37HFdDqy0/,"Na manhã de hoje, estive reunido com o nosso deputado estadual e médico @galenotorquato, apresentando importantes demandas para a melhoria da saúde, além de outras necessidades do litoral e de todo o município de Parnamirim. Seguimos trabalhando com compromisso e responsabilidade para nossa população!",2,nosso deputado com o nosso vereador trabalhando em pró o nosso litoral pra o povo :mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,"['deputado', 'vereador', 'trabalhar', 'pró', 'litoral', 'povo', 'mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo']",ameaca_fisica,0.21717651188373566,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,👏👏👏,gugualbino,2026-04-08 15:04:38+00:00,https://www.instagram.com/p/DW37HFdDqy0/,"Na manhã de hoje, estive reunido com o nosso deputado estadual e médico @galenotorquato, apresentando importantes demandas para a melhoria da saúde, além de outras necessidades do litoral e de todo o município de Parnamirim. Seguimos trabalhando com compromisso e responsabilidade para nossa população!",2,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.2235841006040573,True,BERTimbau_Forense_v1.2
+vereadorederqueiroz,e isso aí 👏🏼👏🏼👏🏼,osai.nascimento93,2026-04-08 15:22:38+00:00,https://www.instagram.com/p/DW37HFdDqy0/,"Na manhã de hoje, estive reunido com o nosso deputado estadual e médico @galenotorquato, apresentando importantes demandas para a melhoria da saúde, além de outras necessidades do litoral e de todo o município de Parnamirim. Seguimos trabalhando com compromisso e responsabilidade para nossa população!",1,e isso aí :mãos_aplaudindo_pele_morena_clara::mãos_aplaudindo_pele_morena_clara::mãos_aplaudindo_pele_morena_clara:,['mãos_aplaudindo_pele_morena_clara::mãos_aplaudindo_pele_morena_clara::mãos_aplaudindo_pele_morena_clara'],ameaca_fisica,0.23035268485546112,True,BERTimbau_Forense_v1.2
+rodrigocruz_rn,👏👏👏👏👏,lourdesalves753,2026-03-13 11:43:45+00:00,https://www.instagram.com/p/DVygowEgGia/,"Parnamirim não para de crescer, e o nosso mandato caminha lado a lado com a nossa cidade! 💙🏢
+
+Nossa marca está renovada, mas a missão continua a mesma: trabalhar por melhorias reais, fiscalizar de forma responsável e apoiar quem faz o bem nos nossos bairros. O mandato é nosso e a sua participação é o que dita o ritmo do nosso trabalho.
+
+💬 Deixe aqui nos comentários: qual é a prioridade do seu bairro hoje que a gente precisa fazer acontecer? 👇
+
+#RodrigoCruz #TrabalhoQueFazAcontecer #CamaraMunicipal #Parnamirim",0,:mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo:,['mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo::mãos_aplaudindo'],ameaca_fisica,0.2394917607307434,True,BERTimbau_Forense_v1.2

@@ -5,6 +5,11 @@ import json
 import pandas as pd
 from datetime import datetime
 from dotenv import load_dotenv
+
+# Configuração de caminhos para os novos diretórios
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'core')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'collectors')))
+
 from instagram_collector import ForensicCollector
 from local_qwen_classifier import QwenLocalClassifier
 from database.repository import DatabaseRepository
@@ -20,13 +25,17 @@ def emoji_safe_print(text):
     try:
         print(text)
     except UnicodeEncodeError:
-        # Se falhar, remove caracteres não-ascii apenas para o print
         clean_text = text.encode('ascii', 'ignore').decode('ascii')
         print(clean_text)
 
 def get_monitored_candidates():
     try:
-        with open('perfis_monitorados.json', 'r', encoding='utf-8') as f:
+        # Perfis agora estão na pasta data/
+        perfis_path = os.path.join('data', 'perfis_monitorados.json')
+        if not os.path.exists(perfis_path):
+            perfis_path = 'perfis_monitorados.json' # fallback
+
+        with open(perfis_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
             return [p['username'] for p in data.get('perfis_detalhes', [])]
     except Exception as e:
@@ -69,8 +78,7 @@ def run_full_analysis():
             
             emoji_safe_print(f"Coletados {len(raw_df)} comentarios de @{username}.")
             
-            # 2. Classificação Local (Mantendo Emojis no Texto)
-            # A IA Qwen adora emojis para contexto!
+            # 2. Classificação Local
             classificacoes = []
             sync_payload = []
             
@@ -81,7 +89,7 @@ def run_full_analysis():
                     'id_externo': str(row['id']),
                     'post_id': str(row['post_id']),
                     'autor_username': row['owner_username'],
-                    'texto_bruto': row['text'], # Emojis preservados aqui
+                    'texto_bruto': row['text'],
                     'data_publicacao': pd.to_datetime(row['timestamp'])
                 })
                 
@@ -97,17 +105,17 @@ def run_full_analysis():
                 
                 # Prepara para a Nuvem
                 sync_payload.append({
-                    "id_externo": str(row['id']),
+                    "id_external": str(row['id']),
                     "candidato": username,
                     "autor": row['owner_username'],
-                    "texto": row['text'], # Emojis vão para a nuvem
+                    "texto": row['text'],
                     "data": row['timestamp'].isoformat() if hasattr(row['timestamp'], 'isoformat') else str(row['timestamp']),
                     "categoria": res.get('category', 'NEUTRO'),
                     "score": float(res.get('score', 0.0)),
                     "confianca": float(res.get('confidence', 0.0))
                 })
             
-            # 3. PUSH PARA A NUVEM (Imediato por Candidato)
+            # 3. PUSH PARA A NUVEM
             emoji_safe_print(f"Enviando dados de @{username} para o Dashboard Online...")
             push_to_cloud(sync_payload)
             
