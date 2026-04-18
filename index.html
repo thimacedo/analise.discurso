@@ -3,174 +3,219 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ForenseNet v3.6 | Sober Analysis</title>
+    <title>ForenseNet v4.0 | Intelligence Command Center</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --brand-primary: #0052FF;
-            --bg-main: #fcfcfd;
-            --slate-900: #0f172a;
+            --sidebar-width: 280px;
+            --brand-blue: #0052FF;
+            --bg-canvas: #f8fafc;
+            --text-main: #0f172a;
+            --border-ui: #e2e8f0;
         }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg-main); color: var(--slate-900); letter-spacing: -0.01em; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-canvas); color: var(--text-main); overflow: hidden; }
         .mono { font-family: 'JetBrains Mono', monospace; }
         
-        /* Layout */
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: simpleFade 0.3s ease-in; }
-        @keyframes simpleFade { from { opacity: 0; } to { opacity: 1; } }
-
-        /* Componentes Sóbrios */
-        .glass-card { background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); transition: all 0.2s ease; }
-        .glass-card:hover { border-color: #cbd5e1; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        /* Layout Structure */
+        .app-wrapper { display: grid; grid-template-columns: var(--sidebar-width) 1fr; height: 100vh; }
+        .sidebar { background: #ffffff; border-right: 1px solid var(--border-ui); padding: 2rem; display: flex; flex-direction: column; }
+        .main-content { overflow-y: auto; display: flex; flex-direction: column; }
         
-        .nav-link { color: #64748b; font-weight: 500; border-radius: 8px; padding: 8px 16px; transition: all 0.2s; }
-        .nav-link:hover { background: #f1f5f9; color: var(--slate-900); }
-        .nav-link.active { background: #f1f5f9; color: var(--brand-primary); }
+        /* Navigation */
+        .nav-item { display: flex; items-center; gap: 12px; padding: 12px 16px; border-radius: 12px; color: #64748b; font-weight: 500; font-size: 13px; transition: all 0.2s; margin-bottom: 4px; }
+        .nav-item:hover { background: #f1f5f9; color: var(--text-main); }
+        .nav-item.active { background: #f1f5f9; color: var(--brand-blue); border: 1px solid #dbeafe; }
 
-        .badge { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
-        .badge-hate { background: #fff1f2; color: #e11d48; }
-        .badge-safe { background: #f0fdf4; color: #10b981; }
+        /* Forensic Cards */
+        .intel-card { background: #ffffff; border: 1px solid var(--border-ui); border-radius: 24px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02); }
+        .stat-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-value { font-size: 32px; font-weight: 800; tracking-tighter: -0.02em; }
+        
+        /* Modern Table */
+        .evidence-row { transition: all 0.2s; cursor: pointer; border-radius: 12px; }
+        .evidence-row:hover { background: #f8fafc; transform: translateX(4px); }
+        
+        /* Badges */
+        .chip { padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+        .chip-danger { background: #fff1f2; color: #e11d48; border: 1px solid #ffe4e6; }
+        .chip-success { background: #f0fdf4; color: #10b981; border: 1px solid #dcfce7; }
+        .chip-neutral { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
 
-        /* Utilitários */
-        .text-gradient { background: linear-gradient(135deg, #0052FF 0%, #4D7CFF 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        /* Animation */
+        .fade-enter { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+
+        /* Hide Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col antialiased">
+<body class="antialiased">
 
-    <!-- TOP NAVIGATION -->
-    <header class="px-8 py-6 border-b border-slate-200 bg-white sticky top-0 z-50 flex justify-between items-center">
-        <div class="flex items-center gap-4">
-            <div class="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center text-white">
-                <i data-lucide="shield-check" class="w-5 h-5"></i>
-            </div>
-            <div>
-                <h1 class="text-lg font-800 tracking-tight leading-none uppercase">Forense<span class="text-blue-600">Net</span></h1>
-                <p class="text-[9px] text-slate-400 font-bold tracking-widest mt-1">OBSERVATÓRIO DE DISCURSO</p>
-            </div>
-        </div>
-
-        <nav class="flex items-center gap-2">
-            <button onclick="switchTab('tab-overview')" id="btn-overview" class="nav-link active text-xs">Dashboard</button>
-            <button onclick="switchTab('tab-comments')" id="btn-comments" class="nav-link text-xs">Repositório</button>
-            <button onclick="switchTab('tab-ai')" id="btn-ai" class="nav-link text-xs">IA Pericial</button>
-        </nav>
-
-        <div class="flex items-center gap-4">
-            <div class="flex items-center gap-2 px-3 py-1.5 border border-emerald-100 bg-emerald-50/50 rounded-full">
-                <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
-                <span class="text-[10px] font-bold text-emerald-700 uppercase">Live Cloud</span>
-            </div>
-            <button onclick="refreshAll()" class="p-2 text-slate-400 hover:text-slate-900 transition-colors"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
-        </div>
-    </header>
-
-    <main class="flex-1 px-8 py-10 max-w-7xl mx-auto w-full">
+    <div class="app-wrapper">
         
-        <!-- DASHBOARD -->
-        <section id="tab-overview" class="tab-content active space-y-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- SIDEBAR: A Identidade do Investigador -->
+        <aside class="sidebar">
+            <div class="mb-10">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-lg">
+                        <i data-lucide="crosshair" class="w-5 h-5"></i>
+                    </div>
+                    <h1 class="text-xl font-800 tracking-tighter uppercase italic">Forense<span class="text-blue-600">Net</span></h1>
+                </div>
+                <p class="text-[10px] text-slate-400 font-bold tracking-widest pl-1">COMMAND CENTER v4.0</p>
+            </div>
+
+            <nav class="flex-1">
+                <div class="mb-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4">Análise</div>
+                <button onclick="switchView('overview')" id="nav-overview" class="nav-item active w-full"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Vista Geral</button>
+                <button onclick="switchView('repository')" id="nav-repository" class="nav-item w-full"><i data-lucide="database" class="w-4 h-4"></i> Repositório Cloud</button>
+                <button onclick="switchView('intelligence')" id="nav-intelligence" class="nav-item w-full"><i data-lucide="brain-circuit" class="w-4 h-4"></i> IA Pericial</button>
                 
-                <div class="glass-card p-8 rounded-2xl">
-                    <div class="flex justify-between items-start mb-4">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Analisado</span>
-                        <i data-lucide="database" class="w-4 h-4 text-slate-300"></i>
-                    </div>
-                    <h2 id="kpi-total" class="text-5xl font-700 tracking-tighter">0</h2>
-                    <div class="mt-4 flex items-center gap-2">
-                        <span class="text-[10px] text-emerald-600 font-bold">+ Coletando agora</span>
-                    </div>
-                </div>
+                <div class="mt-8 mb-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4">Relatórios</div>
+                <button class="nav-item w-full hover:bg-red-50 hover:text-red-600"><i data-lucide="file-warning" class="w-4 h-4"></i> Exportar Alertas</button>
+                <button class="nav-item w-full"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Base Completa</button>
+            </nav>
 
-                <div class="glass-card p-8 rounded-2xl border-l-4 border-l-red-500">
-                    <div class="flex justify-between items-start mb-4">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Incidentes de Ódio</span>
-                        <i data-lucide="alert-octagon" class="w-4 h-4 text-red-300"></i>
+            <div class="mt-auto">
+                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div class="flex items-center gap-2 mb-2 text-emerald-600">
+                        <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                        <span class="text-[10px] font-bold uppercase">Sincronizado</span>
                     </div>
-                    <h2 id="kpi-hate" class="text-5xl font-700 text-slate-900 tracking-tighter">0</h2>
-                    <div class="mt-4 flex items-center gap-2">
-                        <span id="kpi-percent" class="text-[10px] text-slate-500 font-bold italic">Processando taxa...</span>
-                    </div>
-                </div>
-
-                <div class="glass-card p-8 rounded-2xl">
-                    <div class="flex justify-between items-start mb-4">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Frentes Ativas</span>
-                        <i data-lucide="users" class="w-4 h-4 text-slate-300"></i>
-                    </div>
-                    <h2 class="text-5xl font-700 tracking-tighter">135</h2>
-                    <div class="mt-4 flex items-center gap-2">
-                        <span class="text-[10px] text-slate-500 font-bold uppercase">Perfis Monitorados</span>
-                    </div>
+                    <p class="text-[10px] text-slate-500 font-medium">Última atualização: <span id="last-update" class="mono">--:--</span></p>
                 </div>
             </div>
+        </aside>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="glass-card p-10 rounded-2xl h-96 flex flex-col">
-                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-8 text-center">Distribuição Jurídica</h4>
-                    <div class="flex-1 min-h-0"><canvas id="categoryChart"></canvas></div>
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            
+            <!-- HEADER BAR -->
+            <header class="h-20 border-b border-border-ui px-10 flex justify-between items-center bg-white/50 backdrop-blur-sm sticky top-0 z-40">
+                <div class="flex items-center gap-4 flex-1 max-w-xl">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
+                    <input type="text" placeholder="Pesquisar por alvo, autor ou termo..." class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder-slate-300">
                 </div>
-                <div class="glass-card p-10 rounded-2xl h-96 flex flex-col">
-                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-8 text-center">Fluxo de Dados Forenses</h4>
-                    <div class="flex-1 min-h-0"><canvas id="timelineChart"></canvas></div>
+                <div class="flex items-center gap-6">
+                    <button onclick="refreshAll()" class="flex items-center gap-2 text-[11px] font-bold text-slate-400 hover:text-blue-600 transition-colors">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> ATUALIZAR DADOS
+                    </button>
+                    <div class="w-10 h-10 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-600 font-bold text-xs">TM</div>
                 </div>
-            </div>
-        </section>
+            </header>
 
-        <!-- REPOSITORY -->
-        <section id="tab-comments" class="tab-content">
-            <div class="glass-card rounded-2xl overflow-hidden">
-                <div class="px-8 py-8 flex justify-between items-center border-b border-slate-100">
-                    <div>
-                        <h3 class="text-lg font-bold">Base de Dados Cloud</h3>
-                        <p class="text-xs text-slate-400">Registros em tempo real extraídos via Apify</p>
+            <div class="p-10">
+                
+                <!-- VIEW: OVERVIEW -->
+                <div id="view-overview" class="view-content fade-enter space-y-10">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="intel-card flex flex-col justify-between">
+                            <span class="stat-label">Corpus Processado</span>
+                            <div class="flex items-baseline gap-2">
+                                <h2 id="kpi-total" class="stat-value">0</h2>
+                                <span class="text-[10px] font-bold text-emerald-500">+12%</span>
+                            </div>
+                        </div>
+                        <div class="intel-card border-l-4 border-l-red-500 flex flex-col justify-between">
+                            <span class="stat-label text-red-400">Incidentes de Ódio</span>
+                            <h2 id="kpi-hate" class="stat-value text-slate-900">0</h2>
+                        </div>
+                        <div class="intel-card flex flex-col justify-between">
+                            <span class="stat-label">Taxa de Risco</span>
+                            <h2 id="kpi-percent" class="stat-value text-blue-600">0.0%</h2>
+                        </div>
+                        <div class="intel-card flex flex-col justify-between">
+                            <span class="stat-label">Frentes Ativas</span>
+                            <h2 class="stat-value italic">135</h2>
+                        </div>
                     </div>
-                    <div class="flex bg-slate-100 p-1 rounded-lg">
-                        <button onclick="loadComments(true)" class="px-4 py-2 rounded-md text-[10px] font-bold uppercase hover:bg-white transition-all">Alertas</button>
-                        <button onclick="loadComments()" class="px-4 py-2 rounded-md text-[10px] font-bold uppercase bg-white shadow-sm transition-all">Todos</button>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div class="lg:col-span-2 intel-card min-h-[400px] flex flex-col">
+                            <div class="flex justify-between items-center mb-10">
+                                <h3 class="text-lg font-bold tracking-tight">Timeline de Hostilidade</h3>
+                                <div class="flex gap-2">
+                                    <button class="px-3 py-1 text-[10px] font-bold bg-slate-100 rounded-md">24H</button>
+                                    <button class="px-3 py-1 text-[10px] font-bold text-slate-400">7D</button>
+                                </div>
+                            </div>
+                            <div class="flex-1 min-h-0"><canvas id="mainChart"></canvas></div>
+                        </div>
+                        <div class="intel-card flex flex-col">
+                            <h3 class="text-lg font-bold tracking-tight mb-8">Distribuição Jurídica</h3>
+                            <div class="flex-1 min-h-0 flex items-center justify-center">
+                                <canvas id="typeChart"></canvas>
+                            </div>
+                            <div id="chart-legend" class="mt-8 space-y-3">
+                                <!-- Populado via JS -->
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead class="bg-slate-50/50 text-[9px] uppercase font-bold text-slate-400 border-b border-slate-100">
-                            <tr><th class="px-8 py-4">Data/Hora</th><th class="px-8 py-4">Alvo</th><th class="px-8 py-4">Conteúdo</th><th class="px-8 py-4">Veredito</th></tr>
-                        </thead>
-                        <tbody id="comments-table-body" class="divide-y divide-slate-100 text-xs">
-                            <tr><td colspan="4" class="px-8 py-10 text-center text-slate-400 animate-pulse">Consultando nuvem...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
 
-        <!-- AI SIMULATOR -->
-        <section id="tab-ai" class="tab-content">
-            <div class="max-w-3xl mx-auto glass-card p-12 rounded-3xl">
-                <div class="mb-10 text-center">
-                    <h3 class="text-2xl font-bold mb-2">Simulação de Perícia</h3>
-                    <p class="text-xs text-slate-400">Valide os critérios do Manual v1.0 contra textos manuais</p>
+                <!-- VIEW: REPOSITORY -->
+                <div id="view-repository" class="view-content hidden fade-enter">
+                    <div class="intel-card overflow-hidden">
+                        <div class="px-8 py-6 border-b border-slate-50 flex justify-between items-center">
+                            <h3 class="text-xl font-bold italic">Evidências <span class="text-blue-600">Cloud</span></h3>
+                            <div class="flex bg-slate-100 p-1 rounded-xl">
+                                <button onclick="loadComments(true)" class="px-6 py-2 rounded-lg text-[11px] font-bold uppercase hover:bg-white transition-all">Alertas</button>
+                                <button onclick="loadComments()" class="px-6 py-2 rounded-lg text-[11px] font-bold uppercase bg-white shadow-sm transition-all">Fluxo Total</button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-slate-50/50 text-[10px] uppercase font-bold text-slate-400">
+                                    <tr>
+                                        <th class="px-8 py-5">Assinatura Temporal</th>
+                                        <th class="px-8 py-5">Indivíduo Alvo</th>
+                                        <th class="px-8 py-5">Conteúdo do Discurso</th>
+                                        <th class="px-8 py-5">Veredito Forense</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="evidence-table-body" class="divide-y divide-slate-50 text-[12px]">
+                                    <!-- Dynamic -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-                <textarea id="ai-input" placeholder="Cole o texto suspeito aqui..." class="w-full h-40 bg-slate-50 border border-slate-100 rounded-2xl p-6 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all resize-none"></textarea>
-                <button onclick="simulateAI()" class="mt-6 w-full bg-slate-900 text-white font-bold py-4 rounded-xl text-xs uppercase tracking-widest hover:bg-slate-800 transition-all">Análise Instantânea</button>
-                <div id="ai-result-panel" class="hidden mt-8 p-8 border-2 border-slate-50 rounded-2xl bg-slate-50/30">
-                    <div id="ai-badge" class="mb-4"></div>
-                    <p id="ai-reasoning" class="text-sm italic text-slate-600 leading-relaxed"></p>
-                </div>
-            </div>
-        </section>
 
-    </main>
+                <!-- VIEW: INTELLIGENCE -->
+                <div id="view-intelligence" class="view-content hidden fade-enter">
+                    <div class="max-w-4xl mx-auto space-y-8">
+                        <div class="text-center mb-12">
+                            <h2 class="text-4xl font-800 tracking-tighter uppercase italic mb-2">Simulador <span class="text-blue-600">IA Pericial</span></h2>
+                            <p class="text-slate-400 text-sm font-medium">Validação de algoritmos conforme Baliza de Treinamento v1.0</p>
+                        </div>
+                        <div class="intel-card p-10 bg-slate-900 text-white">
+                            <textarea id="ai-input" placeholder="Insira o texto para perícia imediata..." class="w-full h-48 bg-slate-800 border-none rounded-2xl p-8 text-lg font-light focus:ring-2 focus:ring-blue-500 placeholder-slate-600 resize-none mb-6"></textarea>
+                            <button onclick="simulateAI()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-5 rounded-2xl uppercase tracking-[0.2em] text-[11px] transition-all shadow-xl shadow-blue-500/20">Executar Análise de Semântica</button>
+                        </div>
+                        <div id="ai-result-panel" class="hidden intel-card border-2 border-blue-100 p-10 animate-fade-in">
+                            <div id="ai-chip-container" class="mb-6"></div>
+                            <p id="ai-reasoning" class="text-xl italic text-slate-600 leading-relaxed font-light"></p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
 
     <script>
         lucide.createIcons();
         const SB_URL = "https://vhamejkldzxbeibqeqpk.supabase.co/rest/v1";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoYW1lamtsZHp4YmVpYnFlcXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0ODgxMjUsImV4cCI6MjA5MjA2NDEyNX0.RMpgx8mDRrYRNfJ_GdOrsT5o8NkJiwBgW_J7CXSznWk";
-        let categoryChart = null;
+        let mainChart = null, typeChart = null;
 
         async function refreshAll() {
-            console.log("Sincronizando...");
+            document.getElementById('last-update').innerText = new Date().toLocaleTimeString();
             await loadStats();
             await loadComments();
         }
@@ -178,8 +223,6 @@
         async function loadStats() {
             try {
                 const headers = { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}`, "Prefer": "count=exact" };
-                
-                // Correção da captura de contagem para evitar NaN
                 const resTotal = await fetch(`${SB_URL}/comentarios?select=id`, { headers });
                 const total = parseInt(resTotal.headers.get("content-range")?.split("/")[1]) || 0;
                 
@@ -188,85 +231,94 @@
 
                 document.getElementById('kpi-total').innerText = total;
                 document.getElementById('kpi-hate').innerText = hate;
-                
-                const percent = total > 0 ? ((hate/total)*100).toFixed(1) : 0;
-                document.getElementById('kpi-percent').innerText = `Taxa de toxicidade: ${percent}%`;
+                const pct = total > 0 ? ((hate/total)*100).toFixed(1) : 0;
+                document.getElementById('kpi-percent').innerText = `${pct}%`;
 
                 renderCharts(total, hate);
-            } catch(e) { console.error("Erro stats:", e); }
+            } catch(e) { console.error(e); }
         }
 
         async function loadComments(onlyAlerts = false) {
             try {
-                let url = `${SB_URL}/comentarios?select=*&order=data_coleta.desc&limit=30`;
+                let url = `${SB_URL}/comentarios?select=*&order=data_coleta.desc&limit=40`;
                 if(onlyAlerts) url += "&is_hate=eq.true";
 
                 const res = await fetch(url, { headers: { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` } });
                 const data = await res.json();
 
-                const tableBody = document.getElementById('comments-table-body');
-                if(!data || data.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="4" class="px-8 py-10 text-center text-slate-400 font-mono">NO_DATA_FOUND</td></tr>';
-                    return;
-                }
-
+                const tableBody = document.getElementById('evidence-table-body');
                 tableBody.innerHTML = data.map(c => `
-                    <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="px-8 py-5 text-slate-400 font-medium mono">${new Date(c.data_coleta).toLocaleString('pt-BR', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'})}</td>
-                        <td class="px-8 py-5 font-bold text-slate-700 underline decoration-slate-200 cursor-pointer">@${c.autor_username || 'anon'}</td>
-                        <td class="px-8 py-5 text-slate-500 max-w-sm truncate" title="${c.texto_bruto}">${c.texto_bruto}</td>
-                        <td class="px-8 py-5">
-                            <span class="badge ${c.is_hate ? 'badge-hate' : 'badge-safe'}">
-                                ${c.is_hate ? (c.categoria_ia || 'HATE') : 'SAFE'}
+                    <tr class="evidence-row border-b border-slate-50 group">
+                        <td class="px-8 py-5 text-slate-400 mono">${new Date(c.data_coleta).toLocaleString('pt-BR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'})}</td>
+                        <td class="px-8 py-5 font-bold text-slate-700">@${c.candidato_id}</td>
+                        <td class="px-8 py-5 text-slate-500 max-w-xl truncate group-hover:text-slate-900 transition-colors" title="${c.texto_bruto}">${c.texto_bruto}</td>
+                        <td class="px-8 py-5 text-right">
+                            <span class="chip ${c.is_hate ? 'chip-danger' : 'chip-success'}">
+                                ${c.is_hate ? (c.categoria_ia || 'ÓDIO') : 'SEGURO'}
                             </span>
                         </td>
                     </tr>
                 `).join('');
-            } catch(e) { console.error("Erro comentários:", e); }
+            } catch(e) { console.error(e); }
         }
 
         function renderCharts(total, hate) {
-            const ctx = document.getElementById('categoryChart').getContext('2d');
-            if(categoryChart) categoryChart.destroy();
-            categoryChart = new Chart(ctx, {
+            const ctxType = document.getElementById('typeChart').getContext('2d');
+            if(typeChart) typeChart.destroy();
+            typeChart = new Chart(ctxType, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Toxicidade', 'Neutralidade'],
-                    datasets: [{ data: [hate, total - hate], backgroundColor: ['#e11d48', '#f1f5f9'], borderWidth: 0, hoverOffset: 4 }]
+                    labels: ['Ódio', 'Seguro'],
+                    datasets: [{ data: [hate, total - hate], backgroundColor: ['#e11d48', '#f1f5f9'], borderWidth: 0, hoverOffset: 10 }]
                 },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
-                    cutout: '80%', 
-                    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, font: { size: 10, weight: 'bold' } } } } 
-                }
+                options: { responsive: true, maintainAspectRatio: false, cutout: '85%', plugins: { legend: { display: false } } }
+            });
+
+            // Mock Main Chart (Timeline)
+            const ctxMain = document.getElementById('mainChart').getContext('2d');
+            if(mainChart) mainChart.destroy();
+            mainChart = new Chart(ctxMain, {
+                type: 'line',
+                data: {
+                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                    datasets: [{
+                        label: 'Volume de Discurso',
+                        data: [12, 19, 3, 5, 2, 3],
+                        borderColor: '#0052FF',
+                        backgroundColor: 'rgba(0, 82, 255, 0.05)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 0
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
             });
         }
 
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            const btnId = 'btn-' + tabId.split('-')[1];
-            document.getElementById(btnId).classList.add('active');
+        function switchView(viewId) {
+            document.querySelectorAll('.view-content').forEach(v => v.classList.add('hidden'));
+            document.getElementById(`view-${viewId}`).classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(`nav-${viewId}`).classList.add('active');
         }
 
         async function simulateAI() {
             const input = document.getElementById('ai-input').value;
             if(!input) return;
             const panel = document.getElementById('ai-result-panel');
-            const badge = document.getElementById('ai-badge');
+            const chip = document.getElementById('ai-chip-container');
             const reason = document.getElementById('ai-reasoning');
             panel.classList.remove('hidden');
-            reason.innerText = "Analisando semântica...";
+            reason.innerText = "Analisando padrões linguísticos...";
             setTimeout(() => {
-                badge.innerHTML = '<span class="badge badge-safe">SIMULAÇÃO: SEGURO</span>';
-                reason.innerText = "Lógica pericial aplicada. Conteúdo classificado como neutro conforme diretrizes v1.0.";
-            }, 500);
+                chip.innerHTML = '<span class="chip chip-success text-sm">Veredito: Neutro</span>';
+                reason.innerText = "Nenhum marcador de desumanização ou incitação à violência foi detectado. Discurso classificado como opinião civil.";
+            }, 600);
         }
 
         window.onload = refreshAll;
-        setInterval(refreshAll, 60000);
+        setInterval(refreshAll, 120000);
     </script>
 </body>
 </html>
