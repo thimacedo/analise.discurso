@@ -70,6 +70,10 @@ class ForensicCollector:
                 print(f"Coletando comentarios de {len(posts)} posts de @{username}...")
                 for post in posts:
                     comments = self.client.media_comments(post.id)
+                    # Captura metadados visuais do post original
+                    post_image = post.thumbnail_url if hasattr(post, 'thumbnail_url') else None
+                    post_caption = post.caption_text if hasattr(post, 'caption_text') else ""
+                    
                     for comment in comments:
                         all_comments.append({
                             'id': comment.pk,
@@ -77,7 +81,9 @@ class ForensicCollector:
                             'candidate': username,
                             'owner_username': comment.user.username,
                             'text': comment.text,
-                            'timestamp': comment.created_at_utc
+                            'timestamp': comment.created_at_utc,
+                            'post_image': post_image,
+                            'post_caption': post_caption
                         })
                     print(f"Aguardando 10s para proximo post de @{username}...")
                     time.sleep(10) # Pausa maior entre posts

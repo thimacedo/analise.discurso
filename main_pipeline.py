@@ -96,7 +96,9 @@ def run_mass_analysis():
                     "data": row['timestamp'].isoformat() if hasattr(row['timestamp'], 'isoformat') else str(row['timestamp']),
                     "categoria": res.get('category', 'NEUTRO'),
                     "score": float(res.get('score', 0.0)),
-                    "post_url": str(row['post_id']) # Enviando o link/shortcode
+                    "post_url": str(row['post_id']),
+                    "post_image": row.get('post_image'), # Novo campo
+                    "post_caption": row.get('post_caption') # Novo campo
                 })
             
             if sync_payload:

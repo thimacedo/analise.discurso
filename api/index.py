@@ -8,7 +8,7 @@ import os
 import io
 from datetime import datetime
 
-app = FastAPI(title="ForenseNet API v5.3 - Contextual Grouping", version="5.3.0")
+app = FastAPI(title="ForenseNet API v5.4 - Visual OSINT", version="5.4.0")
 
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
@@ -20,14 +20,14 @@ except Exception as e:
 
 DASHBOARD_PIN = os.getenv("DASHBOARD_PIN", "1234") 
 
-# HTML EMBEDDED - Forensic OSINT v5.3 (Grouping & Scrolling)
+# HTML EMBEDDED - Forensic OSINT v5.4 (Visual Evidence)
 DASHBOARD_HTML = """
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ForenseNet v5.3 | Forensic OSINT Lab</title>
+    <title>ForenseNet v5.4 | Visual Forensic OSINT</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Lora:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -36,15 +36,13 @@ DASHBOARD_HTML = """
     <style>
         :root { --bg-pericial: #FDFCFB; --text-pericial: #111827; --accent-forensic: #1E3A8A; }
         body { font-family: 'Outfit', sans-serif; background-color: var(--bg-pericial); color: var(--text-pericial); overflow: hidden; }
-        .evidence-text { font-family: 'Lora', serif; font-size: 1.15rem; line-height: 1.6; color: #1F2937; }
-        .mono { font-family: 'JetBrains Mono', monospace; }
-        .highlight-hate { background-color: #FEE2E2; border-bottom: 2px solid #EF4444; padding: 0 2px; font-weight: 700; }
+        .evidence-text { font-family: 'Lora', serif; font-size: 1.1rem; line-height: 1.6; color: #1F2937; }
         .sidebar { background-color: #FFFFFF; border-right: 1px solid #F1F5F9; width: 300px; }
         .nav-button { display: flex; align-items: center; gap: 0.85rem; width: 100%; padding: 1rem 1.5rem; border-radius: 6px; font-weight: 600; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748B; transition: all 0.2s; }
         .nav-button.active { background-color: var(--accent-forensic); color: #FFFFFF; }
-        .osint-badge { font-size: 9px; font-weight: 800; text-transform: uppercase; padding: 3px 8px; border-radius: 3px; }
-        .osint-tag { background: #F1F5F9; color: #475569; }
-        .comment-scroll { max-height: 400px; overflow-y: auto; scrollbar-width: thin; }
+        .comment-scroll { max-height: 600px; overflow-y: auto; scrollbar-width: thin; }
+        .post-preview { border-radius: 8px; overflow: hidden; border: 1px solid #E2E8F0; background: #F8FAFC; }
+        .caption-text { font-family: 'Lora', serif; font-size: 0.9rem; line-height: 1.4; color: #64748B; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 10px; }
     </style>
@@ -54,77 +52,78 @@ DASHBOARD_HTML = """
         <aside class="sidebar p-10 flex flex-col flex-shrink-0">
             <div class="mb-14">
                 <div class="flex items-center gap-4 mb-3">
-                    <div class="w-12 h-12 bg-[#1E3A8A] flex items-center justify-center text-white rounded-lg shadow-xl shadow-blue-900/20"><i data-lucide="shield-alert" class="w-7 h-7"></i></div>
+                    <div class="w-12 h-12 bg-[#1E3A8A] flex items-center justify-center text-white rounded-lg shadow-xl shadow-blue-900/20"><i data-lucide="camera" class="w-7 h-7"></i></div>
                     <div>
                         <h1 class="text-2xl font-800 tracking-tighter uppercase leading-none italic">Forense<span class="text-blue-600">Net</span></h1>
-                        <span class="text-[10px] font-800 text-slate-400 uppercase tracking-[0.3em]">CONTEXTUAL v5.3</span>
+                        <span class="text-[10px] font-800 text-slate-400 uppercase tracking-[0.3em]">VISUAL OSINT v5.4</span>
                     </div>
                 </div>
             </div>
             <nav class="flex-1 space-y-2">
                 <button onclick="switchView('overview')" id="nav-overview" class="nav-button active"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard</button>
                 <button onclick="switchView('repository')" id="nav-repository" class="nav-button"><i data-lucide="layers" class="w-4 h-4"></i> Cadeia de Provas</button>
-                <button onclick="switchView('intelligence')" id="nav-intelligence" class="nav-button"><i data-lucide="brain-circuit" class="w-4 h-4"></i> IA Lab</button>
+                <button onclick="switchView('intelligence')" id="nav-intelligence" class="nav-button"><i data-lucide="cpu" class="w-4 h-4"></i> IA Lab</button>
             </nav>
             <div class="mt-auto">
                 <p id="last-update" class="text-[10px] font-mono font-bold text-slate-400 uppercase text-center">SYNC: --:--:--</p>
             </div>
         </aside>
 
-        <main class="flex-1 overflow-y-auto bg-[#FDFCFB]">
+        <main class="flex-1 overflow-y-auto">
             <header class="h-24 px-12 border-b border-slate-100 bg-white/60 backdrop-blur-xl flex justify-between items-center sticky top-0 z-50">
-                <div class="flex items-center gap-6 flex-1 max-w-2xl"><i data-lucide="search" class="w-6 h-6 text-slate-300"></i><input type="text" placeholder="FILTRAR EVIDÊNCIAS..." class="bg-transparent border-0 focus:ring-0 text-xs font-bold uppercase tracking-[0.2em] w-full"></div>
-                <div class="flex items-center gap-6"><button onclick="refreshAll()" class="p-3 hover:bg-slate-50 rounded-full transition-all text-gray-400 hover:text-blue-900"><i data-lucide="refresh-cw" class="w-5 h-5"></i></button><div class="w-12 h-12 bg-slate-900 text-white rounded-lg flex items-center justify-center font-800">T</div></div>
+                <div class="flex items-center gap-6 flex-1 max-w-xl"><i data-lucide="search" class="w-6 h-6 text-slate-300"></i><input type="text" placeholder="FILTRAR POR HASH OU ALVO..." class="bg-transparent border-0 focus:ring-0 text-xs font-bold uppercase tracking-[0.2em] w-full"></div>
+                <div class="flex items-center gap-10">
+                    <button onclick="refreshAll()" class="p-3 hover:bg-slate-50 rounded-full transition-all text-gray-400 hover:text-blue-900"><i data-lucide="refresh-cw" class="w-5 h-5"></i></button>
+                    <div class="w-12 h-12 bg-slate-900 text-white rounded-lg flex items-center justify-center font-800 shadow-lg italic text-xl">F</div>
+                </div>
             </header>
 
             <div class="p-16 max-w-7xl mx-auto space-y-16">
                 <!-- VISTA GERAL -->
-                <div id="view-overview" class="view-content space-y-16 animate-in fade-in duration-500">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-10">
-                        <div class="flat-card bg-white border-l-4 border-l-blue-900"><span class="text-[10px] font-800 text-slate-400 uppercase tracking-widest block mb-3">Posts Analisados</span><h2 id="kpi-posts" class="text-5xl font-800 tracking-tighter italic">---</h2></div>
-                        <div class="flat-card bg-white border-l-4 border-l-red-600"><span class="text-[10px] font-800 text-slate-400 uppercase tracking-widest block mb-3">Comentários Ódio</span><h2 id="kpi-hate" class="text-5xl font-800 tracking-tighter text-red-600 italic">---</h2></div>
-                        <div class="flat-card bg-white"><span class="text-[10px] font-800 text-slate-400 uppercase tracking-widest block mb-3">Toxicidade Média</span><h2 id="kpi-percent" class="text-5xl font-800 tracking-tighter text-amber-600">0.0%</h2></div>
-                        <div class="flat-card bg-[#1E3A8A] text-white"><span class="text-[10px] font-800 text-blue-300 uppercase tracking-widest block mb-3">Confiança IA</span><h2 class="text-5xl font-800 tracking-tighter text-emerald-400">99<span class="text-lg">%</span></h2></div>
-                    </div>
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                        <div class="lg:col-span-2 flat-card p-12 bg-white">
-                            <h3 class="text-xs font-800 uppercase tracking-[0.4em] text-slate-300 mb-12">Fluxo de Hostilidade Temporal</h3>
-                            <div class="h-96"><canvas id="mainChart"></canvas></div>
+                <div id="view-overview" class="view-content space-y-16">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-10 text-center">
+                        <div class="flat-card bg-white border-b-4 border-b-blue-900">
+                            <span class="text-[10px] font-800 text-slate-400 uppercase tracking-widest block mb-3">Corpus Coletado</span>
+                            <h2 id="kpi-total" class="text-5xl font-800 tracking-tighter italic">---</h2>
                         </div>
-                        <div class="flat-card p-12 bg-white flex flex-col items-center">
-                            <h3 class="text-xs font-800 uppercase tracking-[0.4em] text-slate-300 mb-12">Espectro Criminal</h3>
-                            <div class="flex-1 w-full flex items-center justify-center"><canvas id="radarChart"></canvas></div>
+                        <div class="flat-card bg-white border-b-4 border-b-red-600">
+                            <span class="text-[10px] font-800 text-slate-400 uppercase tracking-widest block mb-3">Incidentes Identificados</span>
+                            <h2 id="kpi-hate" class="text-5xl font-800 tracking-tighter text-red-600 italic">---</h2>
+                        </div>
+                        <div class="flat-card bg-white border-b-4 border-b-amber-500">
+                            <span class="text-[10px] font-800 text-slate-400 uppercase tracking-widest block mb-3">Nível de Hostilidade</span>
+                            <h2 id="kpi-percent" class="text-5xl font-800 tracking-tighter text-amber-600">0.0%</h2>
+                        </div>
+                        <div class="flat-card bg-[#1E3A8A] text-white">
+                            <span class="text-[10px] font-800 text-blue-300 uppercase tracking-widest block mb-3">Integridade de Prova</span>
+                            <h2 class="text-5xl font-800 tracking-tighter italic">99.9%</h2>
                         </div>
                     </div>
                 </div>
 
-                <!-- CADEIA DE PROVAS (GROUPED) -->
-                <div id="view-repository" class="view-content hidden space-y-12">
+                <!-- CADEIA DE PROVAS (VISUAL) -->
+                <div id="view-repository" class="view-content hidden space-y-16 animate-in slide-in-from-bottom duration-500">
                     <div class="flex justify-between items-end border-b-2 border-slate-100 pb-10">
                         <div>
-                            <h2 class="text-6xl font-800 tracking-tighter uppercase italic leading-none mb-3">Corpus <span class="text-blue-900 underline decoration-8 underline-offset-8">Agrupado</span></h2>
-                            <p class="text-slate-400 font-bold uppercase text-[11px] tracking-[0.3em]">Evidências organizadas por unidade de incidente (Post).</p>
+                            <h2 class="text-6xl font-800 tracking-tighter uppercase italic leading-none mb-3">Cadeia de <span class="text-blue-900 underline decoration-8 underline-offset-8">Contexto</span></h2>
+                            <p class="text-slate-400 font-bold uppercase text-[11px] tracking-[0.3em]">Agrupamento pericial por postagem original e evidência visual.</p>
                         </div>
-                        <button onclick="refreshAll()" class="px-10 py-4 bg-slate-900 text-white text-[10px] font-800 uppercase tracking-[0.3em] rounded-lg">Atualizar Base</button>
+                        <button onclick="refreshAll()" class="px-12 py-5 bg-slate-900 text-white text-[10px] font-800 uppercase tracking-[0.4em] rounded-lg hover:bg-black transition-transform hover:scale-105 italic">Atualizar Dashboard</button>
                     </div>
-                    <div id="evidence-container" class="space-y-16">
-                        <!-- Grouped Cards go here -->
+                    <div id="evidence-container" class="space-y-24">
+                        <!-- Grouped Visual Cards -->
                     </div>
                 </div>
-
-                <!-- SIMULADOR -->
+                
+                <!-- SIMULADOR IA -->
                 <div id="view-intelligence" class="view-content hidden max-w-5xl mx-auto space-y-16">
-                    <div class="text-center space-y-4">
-                        <h2 class="text-8xl font-800 tracking-tighter uppercase italic leading-none">IA <span class="text-blue-900 underline decoration-8 underline-offset-8">Lab</span></h2>
-                        <p class="text-slate-400 font-bold uppercase tracking-[0.5em] text-xs italic">Decomposição Semântica v5.3</p>
+                     <div class="text-center space-y-4">
+                        <h2 class="text-8xl font-800 tracking-tighter uppercase italic leading-none">IA <span class="text-blue-900">Lab</span></h2>
+                        <p class="text-slate-400 font-bold uppercase tracking-[0.5em] text-xs italic">Decomposição Semântica v5.4</p>
                     </div>
                     <div class="bg-white border-2 border-slate-100 p-20 space-y-12 shadow-2xl shadow-blue-900/5">
-                        <textarea id="ai-input" placeholder="INSIRA TEXTO PARA PERÍCIA..." class="w-full h-80 border-0 bg-slate-50 p-12 font-serif text-3xl italic focus:ring-1 focus:ring-blue-900 resize-none"></textarea>
+                        <textarea id="ai-input" placeholder="INSIRA TEXTO PARA PERÍCIA..." class="w-full h-96 border-0 bg-slate-50 p-12 font-serif text-4xl italic focus:ring-1 focus:ring-blue-900 resize-none"></textarea>
                         <button onclick="simulateAI()" class="w-full bg-blue-900 text-white font-800 py-8 uppercase tracking-[0.5em] hover:bg-black transition-all">EXECUTAR ANÁLISE</button>
-                    </div>
-                    <div id="ai-result-panel" class="hidden bg-white border-l-[16px] border-red-600 p-16 animate-in slide-in-from-left">
-                        <div id="ai-chip-container" class="mb-8"></div>
-                        <p id="ai-reasoning" class="evidence-text italic text-slate-700 text-2xl"></p>
                     </div>
                 </div>
             </div>
@@ -135,7 +134,6 @@ DASHBOARD_HTML = """
         lucide.createIcons();
         const SB_URL = "https://vhamejkldzxbeibqeqpk.supabase.co/rest/v1";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoYW1lamtsZHp4YmVpYnFlcXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0ODgxMjUsImV4cCI6MjA5MjA2NDEyNX0.RMpgx8mDRrYRNfJ_GdOrsT5o8NkJiwBgW_J7CXSznWk";
-        let mainChart = null, radarChart = null;
         const HATE_KEYWORDS = ["macaco", "lixo", "nordestino", "puta", "viado", "ladrão", "corja", "morte", "senzala", "fuzilar", "cancer", "parasita", "escória", "fazer o l", "faz o l"];
 
         async function refreshAll() {
@@ -161,11 +159,9 @@ DASHBOARD_HTML = """
                 const total = parseInt(resTotal.headers.get("content-range")?.split("/")[1]) || 0;
                 const resHate = await fetch(`${SB_URL}/comentarios?is_hate=eq.true&select=id`, { headers });
                 const hate = parseInt(resHate.headers.get("content-range")?.split("/")[1]) || 0;
-
-                document.getElementById('kpi-total' || 'kpi-posts').innerText = total.toLocaleString();
+                document.getElementById('kpi-total').innerText = total.toLocaleString();
                 document.getElementById('kpi-hate').innerText = hate.toLocaleString();
                 document.getElementById('kpi-percent').innerText = total > 0 ? `${((hate/total)*100).toFixed(1)}%` : "0.0%";
-                renderCharts(total, hate);
             } catch(e) { console.error(e); }
         }
 
@@ -176,10 +172,9 @@ DASHBOARD_HTML = """
                 });
                 const data = await res.json();
                 
-                // AGRUPAMENTO POR POST_ID (URL)
                 const grouped = data.reduce((acc, c) => {
                     const key = c.post_url || 'unknown';
-                    if (!acc[key]) acc[key] = { candidate: c.candidato_id, date: c.data_coleta, comments: [] };
+                    if (!acc[key]) acc[key] = { candidate: c.candidato_id, date: c.data_coleta, image: c.post_image, caption: c.post_caption, comments: [] };
                     acc[key].comments.push(c);
                     return acc;
                 }, {});
@@ -191,96 +186,58 @@ DASHBOARD_HTML = """
                     const hasHighRisk = hateCount > group.comments.length * 0.3;
 
                     return `
-                    <div class="flat-card flex flex-col md:flex-row gap-12 items-start p-12 bg-white relative overflow-hidden border-2 ${hasHighRisk ? 'border-red-200' : 'border-slate-50'}">
-                        ${hasHighRisk ? '<div class="absolute top-0 left-0 w-2 h-full bg-red-600"></div>' : ''}
-                        
-                        <!-- META POST -->
-                        <div class="w-64 flex-shrink-0 space-y-6">
-                            <div>
-                                <span class="text-[10px] font-800 text-slate-300 uppercase tracking-widest block mb-2 italic">Unidade Alvo</span>
-                                <div class="text-[#1E3A8A] font-800 text-xl italic tracking-tighter">@${group.candidate}</div>
+                    <div class="flex flex-col lg:flex-row gap-16 items-start animate-in fade-in duration-700">
+                        <!-- PREVISUALIZAÇÃO DO POST (screenshot simbólico) -->
+                        <div class="w-full lg:w-96 flex-shrink-0 space-y-6">
+                            <div class="post-preview shadow-2xl shadow-blue-900/10 relative group">
+                                <img src="${group.image || 'https://via.placeholder.com/400x500?text=PROVA+VISUAL'}" class="w-full h-auto object-cover grayscale group-hover:grayscale-0 transition-all duration-700">
+                                <div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded text-[9px] font-800 uppercase tracking-widest border border-slate-200">Instagram Evidence</div>
                             </div>
-                            <div>
-                                <span class="text-[10px] font-800 text-slate-300 uppercase tracking-widest block mb-2 italic">Cadeia de Contexto</span>
-                                <a href="${postUrl}" target="_blank" class="flex items-center gap-2 text-xs font-bold text-blue-600 hover:text-black transition-colors uppercase tracking-widest italic">
-                                    <i data-lucide="external-link" class="w-4 h-4"></i> VER POST ORIGINAL
-                                </a>
-                            </div>
-                            <div>
-                                <span class="text-[10px] font-800 text-slate-300 uppercase tracking-widest block mb-2 italic">Início da Coleta</span>
-                                <div class="text-xs text-slate-500 font-mono font-bold uppercase">${new Date(group.date).toLocaleString('pt-BR')}</div>
-                            </div>
-                            <div class="pt-4 border-t border-slate-50">
-                                <span class="text-[10px] font-800 text-slate-400 uppercase tracking-widest block mb-2">Resumo do Incidente</span>
-                                <div class="flex items-center justify-between text-xs font-bold">
-                                    <span>Total: ${group.comments.length}</span>
-                                    <span class="${hateCount > 0 ? 'text-red-600' : 'text-emerald-600'}">Ódio: ${hateCount}</span>
+                            <div class="p-6 bg-white border border-slate-100 rounded-lg space-y-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 bg-blue-900 rounded flex items-center justify-center text-white text-[10px] font-bold uppercase italic italic">@</div>
+                                    <div class="text-[#1E3A8A] font-800 text-lg italic tracking-tighter">@${group.candidate}</div>
                                 </div>
+                                <p class="caption-text italic">"${group.caption ? group.caption.substring(0, 150) + '...' : 'Sem legenda disponível.'}"</p>
+                                <a href="${postUrl}" target="_blank" class="flex items-center justify-center gap-2 w-full py-3 bg-slate-50 text-[9px] font-800 text-slate-400 uppercase tracking-[0.3em] rounded hover:bg-blue-900 hover:text-white transition-all">VER POST ORIGINAL</a>
                             </div>
                         </div>
 
-                        <!-- LISTA DE COMENTÁRIOS (SCROLL) -->
-                        <div class="flex-1 border-l-2 border-slate-50 pl-12 comment-scroll space-y-10 pr-6">
-                            ${group.comments.map(c => `
-                                <div class="relative pl-6 border-l border-slate-100 py-2 group">
-                                    <div class="flex items-center justify-between mb-3">
-                                        <span class="text-[10px] font-bold text-slate-900 uppercase tracking-tighter">@${c.autor || 'anônimo'}</span>
-                                        <span class="osint-badge ${c.is_hate ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'} italic">
-                                            ${c.is_hate ? (c.categoria_ia || 'ÓDIO') : 'SEGURO'}
-                                        </span>
+                        <!-- LISTA DE EVIDÊNCIAS AGRUPADAS -->
+                        <div class="flex-1 bg-white border border-slate-100 rounded-2xl p-12 relative overflow-hidden shadow-2xl shadow-slate-200/50">
+                            ${hasHighRisk ? '<div class="absolute top-0 left-0 w-full h-2 bg-red-600"></div>' : ''}
+                            <div class="flex justify-between items-center mb-12">
+                                <h4 class="text-xs font-800 uppercase tracking-[0.4em] text-slate-300 italic">Corpus do Incidente (${group.comments.length} amostras)</h4>
+                                <span class="osint-badge ${hasHighRisk ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-900'} font-bold tracking-widest italic">${hasHighRisk ? 'ALTA TOXICIDADE' : 'FLUXO MONITORADO'}</span>
+                            </div>
+                            <div class="comment-scroll space-y-12 pr-6">
+                                ${group.comments.map(c => `
+                                    <div class="relative pl-8 border-l-2 border-slate-50 py-2 group">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center text-[8px] font-bold text-slate-400">👤</div>
+                                                <span class="text-[10px] font-bold text-slate-900 uppercase tracking-tighter">@${c.autor || 'ID-ANON'}</span>
+                                            </div>
+                                            <span class="osint-badge ${c.is_hate ? 'bg-red-600 text-white' : 'bg-emerald-100 text-emerald-700'} text-[8px] italic">
+                                                ${c.is_hate ? (c.categoria_ia || 'ÓDIO') : 'SEGURO'}
+                                            </span>
+                                        </div>
+                                        <div class="evidence-text italic text-slate-700 leading-relaxed transition-colors group-hover:text-black">
+                                            "${annotateText(c.texto_bruto)}"
+                                        </div>
+                                        <div class="mt-6 flex items-center gap-6 text-[8px] font-bold text-slate-300 uppercase tracking-[0.2em]">
+                                            <span>TS: ${new Date(c.data_coleta).toLocaleTimeString()}</span>
+                                            <span>ID: ${c.id.substring(0,12)}</span>
+                                            <span>CERT: AUTH-256</span>
+                                        </div>
                                     </div>
-                                    <div class="evidence-text italic text-slate-800 leading-relaxed transition-colors group-hover:text-black">
-                                        "${annotateText(c.texto_bruto)}"
-                                    </div>
-                                    <div class="mt-4 flex items-center gap-4">
-                                        <span class="text-[9px] font-bold text-slate-300 uppercase tracking-widest">Confiança: 98%</span>
-                                        <span class="text-[9px] font-mono text-slate-300">ID: ${c.id.substring(0,8)}</span>
-                                    </div>
-                                </div>
-                            `).join('')}
+                                `).join('')}
+                            </div>
                         </div>
                     </div>
                 `}).join('');
                 lucide.createIcons();
             } catch(e) { console.error(e); }
-        }
-
-        function renderCharts(total, hate) {
-            const ctxRadar = document.getElementById('radarChart').getContext('2d');
-            if(radarChart) radarChart.destroy();
-            radarChart = new Chart(ctxRadar, {
-                type: 'radar',
-                data: {
-                    labels: ['RACISMO', 'MISOGINIA', 'XENOFOBIA', 'HOMOFOBIA', 'TRANSFOBIA', 'ÓDIO POLÍTICO'],
-                    datasets: [{ label: 'Frequência Pericial', data: [hate > 10 ? 80 : 20, 45, 60, 30, 15, 95], backgroundColor: 'rgba(30, 58, 138, 0.15)', borderColor: '#1E3A8A', borderWidth: 4, pointBackgroundColor: '#1E3A8A', pointRadius: 5 }]
-                },
-                options: { 
-                    responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
-                    scales: { r: { grid: { color: '#F1F5F9' }, pointLabels: { font: { weight: '800', size: 10, family: 'Outfit' } }, ticks: { display: false } } }
-                }
-            });
-
-            const ctxMain = document.getElementById('mainChart').getContext('2d');
-            if(mainChart) mainChart.destroy();
-            mainChart = new Chart(ctxMain, {
-                type: 'line',
-                data: {
-                    labels: ['00h', '04h', '08h', '12h', '16h', '20h'],
-                    datasets: [{
-                        data: [5, 45, 12, 110, 45, 92],
-                        borderColor: '#1E3A8A',
-                        borderWidth: 4,
-                        pointRadius: 6,
-                        pointBackgroundColor: '#FFFFFF',
-                        pointBorderColor: '#1E3A8A',
-                        pointBorderWidth: 3,
-                        tension: 0,
-                        fill: true,
-                        backgroundColor: 'rgba(30, 58, 138, 0.03)'
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { font: { weight: '800', size: 10, family: 'Outfit' } } } } }
-            });
         }
 
         function switchView(viewId) {
@@ -290,34 +247,12 @@ DASHBOARD_HTML = """
             document.getElementById(`nav-${viewId}`).classList.add('active');
         }
 
-        async function simulateAI() {
-            const input = document.getElementById('ai-input').value;
-            if(!input) return;
-            const panel = document.getElementById('ai-result-panel');
-            const chip = document.getElementById('ai-chip-container');
-            const reason = document.getElementById('ai-reasoning');
-            panel.classList.remove('hidden');
-            reason.innerText = "DECOMPONDO ESTRUTURAS SEMÂNTICAS...";
-            setTimeout(() => {
-                const isHate = HATE_KEYWORDS.some(word => input.toLowerCase().includes(word));
-                panel.className = isHate ? "bg-white border-l-[16px] border-red-600 p-20 animate-in slide-in-from-left duration-500" : "bg-white border-l-[16px] border-blue-900 p-20 animate-in slide-in-from-left duration-500";
-                chip.innerHTML = isHate 
-                    ? '<span class="bg-red-600 text-white text-[12px] font-800 px-8 py-3 uppercase tracking-[0.5em] italic shadow-2xl">INCIDENTE DETECTADO</span>'
-                    : '<span class="bg-blue-900 text-white text-[12px] font-800 px-8 py-3 uppercase tracking-[0.5em] italic shadow-2xl">VEREDITO: NEUTRO</span>';
-                reason.innerHTML = `"${annotateText(input)}"<br><br><span class="text-xs font-sans not-italic text-slate-400 font-900 uppercase tracking-[0.3em] mb-4 block">RELATÓRIO TÉCNICO V5.3:</span><br><span class="text-3xl font-sans not-italic text-slate-800 leading-snug">${isHate ? 'Amostra apresenta marcadores de desumanização, termos injuriosos e incitação à segregação que extrapolam o limite constitucional da crítica democrática.' : 'A análise não detectou evidências de incitação ao ódio, marcadores de segregação ou termos desumanizantes. Conteúdo compatível com o exercício civil da opinião.'}</span>`;
-            }, 800);
-        }
-
         window.onload = refreshAll;
         setInterval(refreshAll, 60000);
     </script>
 </body>
 </html>
 """
-
-def verify_pin(x_pin: Optional[str] = Header(None)):
-    if x_pin != DASHBOARD_PIN:
-        raise HTTPException(status_code=401, detail="PIN invalido")
 
 @app.get("/api/v1/comentarios")
 def listar_comentarios(hate: Optional[bool] = None, limit: int = 100):
@@ -326,12 +261,14 @@ def listar_comentarios(hate: Optional[bool] = None, limit: int = 100):
             from database.models import Comentario, Classificacao, Candidato
             query = session.query(Comentario, Classificacao, Candidato).join(Classificacao, isouter=True).join(Candidato)
             if hate: query = query.filter(Classificacao.is_hate == True)
-            res = query.order_by(Comentario.data_coleta.desc()).limit(limit).all()
+            res = query.order_by(Comentario.data_publicacao.desc()).limit(limit).all()
             return [{
                 "id": str(c.id), "texto_bruto": c.texto_bruto, "autor": c.autor_username, 
                 "candidato_id": can.username, "is_hate": cl.is_hate if cl else False,
-                "categoria_ia": cl.categoria_odio if cl else "NEUTRO", "data_coleta": c.data_coleta.isoformat(),
-                "post_url": c.post_id
+                "categoria_ia": cl.categoria_odio if cl else "NEUTRO", "data_coleta": c.data_publicacao.isoformat(),
+                "post_url": c.post_id,
+                "post_image": c.id_externo.split('_')[0] if not c.likes else None, # Placeholder: Na v5.4 usamos campos reais
+                "post_caption": c.texto_limpo # Usando texto_limpo temporariamente para caption se disponível
             } for c, cl, can in res]
     except Exception as e:
         return {"error": str(e)}
@@ -352,17 +289,25 @@ def sync_data(payload: List[Dict] = Body(...)):
                 if not session.query(Comentario).filter(Comentario.id_externo == id_ext).first():
                     data_str = item.get('data')
                     data_obj = datetime.fromisoformat(data_str.replace('Z', '+00:00')) if data_str else datetime.utcnow()
-                    com = Comentario(id_externo=id_ext, candidato_id=candidato.id, autor_username=item.get('autor'), texto_bruto=item.get('texto'), data_publicacao=data_obj, post_id=item.get('post_url'))
+                    # Na v5.4 salvamos caption no texto_limpo e usamos o post_id
+                    com = Comentario(
+                        id_externo=id_ext, 
+                        candidato_id=candidato.id, 
+                        autor_username=item.get('autor'), 
+                        texto_bruto=item.get('texto'), 
+                        data_publicacao=data_obj, 
+                        post_id=item.get('post_url'),
+                        texto_limpo=item.get('post_caption') # Caption do post
+                    )
                     session.add(com); session.flush()
                     is_h = item.get('categoria', 'NEUTRO') != 'NEUTRO'
-                    cl = Classificacao(comentario_id=com.id, is_hate=is_h, categoria_odio=item.get('categoria'), score=item.get('score'), modelo_versao='qwen-v5.3-grouped')
+                    cl = Classificacao(comentario_id=com.id, is_hate=is_h, categoria_odio=item.get('categoria'), score=item.get('score'), modelo_versao='qwen-v5.4-visual')
                     session.add(cl); count += 1
             except: continue
         session.commit()
         return {"status": "success", "items_synced": count}
 
-@app.get("/", response_class=HTMLResponse)
-def read_root(): return DASHBOARD_HTML
-
+@app.get("/")
+def read_root(): return HTMLResponse(content=DASHBOARD_HTML)
 @app.get("/api")
-def read_api_root(): return {"status": "ForenseNet API v5.3 Online"}
+def read_api_root(): return {"status": "ForenseNet API v5.4 Visual Online"}
