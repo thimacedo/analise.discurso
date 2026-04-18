@@ -106,5 +106,17 @@ def get_pipe_status(): return {"status": "OPERACIONAL"}
 def get_pipe_history(): return []
 
 @app.get("/api")
-def read_root():
+def read_api_root():
     return {"status": "ForenseNet API v2.7 Online"}
+
+@app.get("/", response_class=HTMLResponse)
+def read_root():
+    # Busca o index.html na raiz do projeto (um nível acima da pasta api/)
+    try:
+        path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "index.html")
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                return f.read()
+        return "<h1>ForenseNet: Dashboard v5.0 não encontrado na raiz.</h1>"
+    except Exception as e:
+        return f"<h1>Erro ao carregar dashboard: {str(e)}</h1>"
