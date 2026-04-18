@@ -14,7 +14,7 @@ class ApifyFullScraper:
         self.api_token = os.getenv("APIFY_API_TOKEN")
         if not self.api_token:
             # Fallback for the token found in apis.txt if not in .env
-            self.api_token = "apify_api_WEwjRQe8Ax1b9e3Xl38lT8hiZPIY8R1t7mH0"
+            self.api_token = ""
         
         self.client = ApifyClient(self.api_token)
         self.db_file = "odio_politica.db"

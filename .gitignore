@@ -1,0 +1,23 @@
+.env
+.env.local
+.env.*.local
+session.json
+
+# Banco de dados local e memoria de execucao
+*.db
+execucao_memoria.json
+perfis_monitorados.json
+execucao_memoria.json
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Ignorar CSVs e PNGs da raiz para não sujar o repo
+/*.csv
+/*.png
+
+# NÃO ignorar o arquivo de dados do dashboard
+!api/dados_latest.csv
+.vercel
+.env*.local
