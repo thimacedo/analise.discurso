@@ -1,61 +1,44 @@
 # 🗺️ ROADMAP.md - Projeto Ódio Política (Mapa de Voo)
 
 ## 📌 Ponto de Partida (Status Atual)
-**Data:** 17 de Abril de 2026
-**Gerenciamento:** Gemini (Gerente de Projetos) & Qwen 2.5 Coder 7B (Analista de Sistemas / Programador Local)
-**Stack Tecnológica:** Python 3.10+, SQLite (SQLAlchemy), IA Local (Qwen via Ollama), FastAPI.
-**Situação:**
-- Pipeline v2.1: ✅ Persistência robusta em DB e IA Local ativa.
-- Sincronização GitHub: ✅ Realizada e Segura (Histórico limpo).
-- Independência de API: ✅ Migração de Claude/OpenAI para Qwen Local concluída.
-
-## 🎯 Destino Final
-Consolidar a plataforma como referência em monitoramento pericial de ódio político, com dashboard em tempo real e análise forense automatizada.
-
-## 🛤️ Caminho Traçado (Próximos Passos)
-
-### 🟢 Sprint 1: Saneamento e Segurança (CONCLUÍDA)
-- [x] **Limpeza de Histórico Git:** Removido Apify Token e segredos via squash de commits.
-- [x] **Padronização de Ambiente:** `.env.example` saneado com placeholders.
-- [x] **Push Seguro:** Sincronização total com o repositório remoto realizada em 17/04/2026.
-
-### 🟢 Sprint 2: Matar os CSVs (CONCLUÍDA)
-- [x] **Refatoração Pipeline:** `main_pipeline.py` agora salva em SQLite em tempo real.
-- [x] **Logs de Execução:** Implementado rastreamento de status de cada rodada no banco.
-- [x] **Script de Migração:** Criado `migrar_csv_para_db.py` para importar dados legados.
-
-### 🟢 Sprint 3: IA Local & Inteligência Forense (CONCLUÍDA)
-- [x] **Classificador Qwen Local:** Criado `local_qwen_classifier.py` integrado ao Ollama.
-- [x] **Prompt Pericial:** IA treinada localmente para identificar Xenofobia, Misoginia e Ódio Político.
-- [x] **Integração Total:** Pipeline utiliza o Qwen como motor primário de análise (Custo Zero).
-
-### 🟢 Sprint 4: API & Visualização Moderna (CONCLUÍDA)
-- [x] **Unificação FastAPI:** Backend unificado e migrado de Flask para FastAPI (v1.0).
-- [x] **Deploy Vercel:** Sistema online e estável em ambiente serverless.
-- [x] **Dashboard Premium v3.0:** Interface dinâmica com abas, gráficos e simulador de IA.
-- [x] **IA Híbrida:** Fallback automático entre Ollama Local e Nuvem Gratuita (HF).
-
-### 🟢 Sprint 5: Automação & Operação Forense (CONCLUÍDA)
-- [x] **Carga de Dados:** Migração total de CSVs legados para o banco SQLite centralizado.
-- [x] **Worker de Monitoramento:** Automação da coleta agendada (v1.0) via `worker_monitoramento.py`.
-- [x] **Human-in-the-loop:** Interface de validação e correção pericial integrada ao Dashboard.
-- [x] **Observabilidade Real-time:** Logs de execução do pipeline visíveis no Dashboard.
-
-### 🟢 Sprint 6: Governança, Segurança & Laudos (CONCLUÍDA)
-- [x] **Autenticação de Acesso:** Proteção do Dashboard com PIN Pericial (v1.0).
-- [x] **Laudo Forense:** Exportação dinâmica de dados validados para Excel (OpenPyXL).
-- [x] **Auditoria de Cadeia de Custódia:** Marcação visual e registro de revisões humanas.
-- [x] **Refatoração YOLO:** API otimizada para segurança e exportação de alta volumetria.
+**Data:** 18 de Abril de 2026
+**Versão Atual:** v5.5.0 Modular
+**Status:** ESTÁVEL (Deploy Vercel corrigido e online)
 
 ---
 
-## 🤝 Divisão de Comando
-- **Gemini (PM):** Gestão de Roadmap, Segurança Git e Orquestração de Arquitetura.
-- **Qwen (Analista):** Desenvolvimento Python, Classificação Local via Ollama e Otimização SQL.
+## 🚀 Conquistas do Dia (18/04/2026)
+
+### 🏁 Sprint 7: Modularização e Prova Visual
+- ✅ **Reorganização de Workspace:** Pastas `core`, `collectors`, `api`, `database` e `docs` criadas para modularidade real.
+- ✅ **Inteligência Contextual:** Implementada captura de `post_image` e `post_caption` no coletor.
+- ✅ **IA Local Híbrida:** Qwen 0.5B (Primário) e 1.5B (Fallback) configurados no Ollama.
+- ✅ **Dashboard v5.5 Modular:**
+  - Extração do HTML para `api/templates.py`.
+  - Agrupamento de comentários por "Unidade de Incidente" (Post).
+  - Scroll interno nos cards de postagem.
+  - Exibição de prova visual (thumbnails do Instagram).
+  - Radar Chart para tipificação criminal OSINT.
+- ✅ **Deploy Resiliente:** Resolvidos erros 404 e 500 na Vercel através de roteamento direto via FastAPI e separação de dependências leves/pesadas.
 
 ---
-## 🏁 Última Entrega (17/04/2026 - v2.2 Professional)
-- **Entrega:** Consolidação da Plataforma ForenseNet com Automação, Segurança e Laudos Judiciais.
-- **Impacto:** O sistema evoluiu de uma ferramenta de pesquisa para um ecossistema operacional de monitoramento político-eleitoral, com resiliência total contra falhas de IA externa e proteção de integridade dos dados.
 
-> *Encerrado Ciclo de Desenvolvimento v2.2.*
+## 🎯 Próximos Passos (Destino Final)
+
+### 📈 Escalonamento de Dados
+1.  **Monitoramento Nacional:** Finalizar o ciclo Lula → Flávio Bolsonaro → Bolsonaro → Nikolas.
+2.  **Mapeamento de Redes:** Identificar "perfis-satélite" que orbitam os alvos nacionais com discurso tóxico.
+
+### 🛡️ Refinamento Pericial
+3.  **Filtragem de Falsos Positivos:** Implementar no motor local um refinamento para desconsiderar elogios irônicos (detector de sarcasmo).
+4.  **Laudos Dinâmicos:** Exportar o novo formato "Grouped by Post" diretamente para PDF pericial.
+
+---
+
+## 🛠️ Guia de Assunção de Comando
+- **Interface:** https://projeto-odio-politica.vercel.app
+- **Pipeline Local:** `python main_pipeline.py` (usa venv com local-ai).
+- **Backend:** FastAPI modular em `api/`.
+- **Banco:** Supabase (Cloud) + SQLite (Local Cache).
+
+> *Iniciada Fase de Coleta Massiva v5.5.*
