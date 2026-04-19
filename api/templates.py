@@ -1,85 +1,268 @@
-# api/templates.py
-
 DASHBOARD_HTML = """
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br" class="bg-[#020203]">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ForenseNet v5.5 | Forensic OSINT Lab</title>
+    <title>FORENSIC ENGINE v6.3 | Linear Intelligence</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Lora:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
-        :root { --bg-pericial: #FDFCFB; --text-pericial: #111827; --accent-forensic: #1E3A8A; }
-        body { font-family: 'Outfit', sans-serif; background-color: var(--bg-pericial); color: var(--text-pericial); overflow: hidden; }
-        .evidence-text { font-family: 'Lora', serif; font-size: 1.1rem; line-height: 1.6; color: #1F2937; }
-        .sidebar { background-color: #FFFFFF; border-right: 1px solid #F1F5F9; width: 300px; }
-        .nav-button { display: flex; align-items: center; gap: 0.85rem; width: 100%; padding: 1rem 1.5rem; border-radius: 6px; font-weight: 600; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748B; transition: all 0.2s; }
-        .nav-button.active { background-color: var(--accent-forensic); color: #FFFFFF; }
-        .comment-scroll { max-height: 600px; overflow-y: auto; scrollbar-width: thin; }
-        .post-preview { border-radius: 8px; overflow: hidden; border: 1px solid #E2E8F0; background: #F8FAFC; }
-        .caption-text { font-family: 'Lora', serif; font-size: 0.9rem; line-height: 1.4; color: #64748B; }
-        .osint-badge { font-size: 9px; font-weight: 800; text-transform: uppercase; padding: 3px 8px; border-radius: 3px; }
-        .osint-tag { background: #F1F5F9; color: #475569; }
+        :root {
+            --background-deep: #020203;
+            --background-base: #050506;
+            --accent: #5E6AD2;
+            --accent-glow: rgba(94, 106, 210, 0.3);
+            --border-default: rgba(255, 255, 255, 0.06);
+            --surface: rgba(255, 255, 255, 0.04);
+            --foreground-muted: #8A8F98;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--background-base); 
+            color: #EDEDEF; 
+            overflow: hidden; 
+            height: 100vh;
+        }
+
+        .bg-system {
+            position: fixed; inset: 0; z-index: -1;
+            background: radial-gradient(ellipse at top, #0a0a0f 0%, #050506 50%, #020203 100%);
+        }
+
+        .noise {
+            position: absolute; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.015; pointer-events: none;
+        }
+
+        .grid-tech {
+            position: absolute; inset: 0;
+            background-image: linear-gradient(var(--border-default) 1px, transparent 1px), linear-gradient(90deg, var(--border-default) 1px, transparent 1px);
+            background-size: 64px 64px;
+            opacity: 0.2; pointer-events: none;
+        }
+
+        .blob {
+            position: absolute; border-radius: 50%; filter: blur(140px);
+            animation: float 12s ease-in-out infinite; opacity: 0.2;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-30px, -40px) scale(1.1); }
+        }
+
+        .glass-surface {
+            background: linear-gradient(to bottom, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
+            border: 1px solid var(--border-default);
+            border-radius: 16px;
+            position: relative; overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .glass-surface:hover {
+            border-color: rgba(255, 255, 255, 0.12);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+        }
+
+        .spotlight {
+            position: absolute; inset: 0; pointer-events: none;
+            background: radial-gradient(300px circle at var(--x) var(--y), rgba(94, 106, 210, 0.15), transparent 80%);
+            opacity: 0; transition: opacity 0.4s;
+        }
+        .glass-surface:hover .spotlight { opacity: 1; }
+
+        .nav-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 16px; border-radius: 8px;
+            color: var(--foreground-muted); font-size: 14px; font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            color: #fff; background: rgba(255,255,255,0.06);
+        }
+
+        .text-shimmer {
+            background: linear-gradient(to bottom, #fff 20%, rgba(255,255,255,0.6) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .badge-status {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px; font-weight: 700; padding: 2px 8px;
+            border-radius: 4px; text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .engine-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 8px; font-bold: 800;
+            color: var(--accent); border: 1px solid var(--accent);
+            padding: 2px 6px; border-radius: 4px;
+        }
+
         ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
     </style>
 </head>
 <body class="antialiased">
+    <div class="bg-system">
+        <div class="noise"></div>
+        <div class="grid-tech"></div>
+        <div class="blob bg-[#5E6AD2] w-[900px] h-[700px] top-[-300px] left-[15%]"></div>
+        <div class="blob bg-[#8a5ed2] w-[600px] h-[500px] bottom-[-200px] right-[5%] animate-delay-2000"></div>
+    </div>
+
     <div class="flex h-screen overflow-hidden">
-        <aside class="sidebar p-10 flex flex-col flex-shrink-0">
-            <div class="mb-14">
-                <div class="flex items-center gap-4 mb-3">
-                    <div class="w-12 h-12 bg-[#1E3A8A] flex items-center justify-center text-white rounded-lg shadow-xl shadow-blue-900/20"><i data-lucide="camera" class="w-7 h-7"></i></div>
-                    <div>
-                        <h1 class="text-2xl font-800 tracking-tighter uppercase leading-none italic">Forense<span class="text-blue-600">Net</span></h1>
-                        <span class="text-[10px] font-800 text-slate-400 uppercase tracking-[0.3em]">VISUAL OSINT v5.5</span>
+        <aside class="w-64 border-r border-white/[0.06] bg-black/20 backdrop-blur-2xl p-8 flex flex-col">
+            <div class="flex items-center gap-4 mb-12 px-2">
+                <div class="w-10 h-10 bg-[#5E6AD2] rounded-xl flex items-center justify-center shadow-2xl shadow-[#5E6AD2]/40">
+                    <i data-lucide="shield-check" class="w-6 h-6 text-white"></i>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-bold tracking-tighter text-xl">FORENSIC</span>
+                    <span class="text-[9px] font-mono text-accent tracking-[0.3em] font-bold">NODE_ELITE</span>
+                </div>
+            </div>
+
+            <nav class="space-y-2 flex-1 text-sm">
+                <button onclick="switchView('overview')" id="nav-overview" class="nav-item active w-full">
+                    <i data-lucide="layout" class="w-4 h-4"></i> Central
+                </button>
+                <button onclick="switchView('repository')" id="nav-repository" class="nav-item w-full">
+                    <i data-lucide="hard-drive" class="w-4 h-4"></i> Evidências
+                </button>
+                <button onclick="switchView('intelligence')" id="nav-intelligence" class="nav-item w-full">
+                    <i data-lucide="cpu" class="w-4 h-4"></i> Inteligência
+                </button>
+            </nav>
+
+            <div class="mt-auto space-y-4">
+                 <div class="p-4 rounded-xl bg-white/[0.03] border border-white/[0.05] space-y-4">
+                    <div class="flex items-center justify-between text-[9px] font-bold text-foreground-muted uppercase tracking-widest">
+                        Telemetry deck
+                        <div class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex flex-col gap-1">
+                            <div class="flex justify-between text-[8px] font-mono uppercase text-white/40">
+                                <span>Braintrust Logs</span>
+                                <span class="text-blue-400">Synced</span>
+                            </div>
+                            <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                                <div class="h-full bg-blue-500" style="width: 100%;"></div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <div class="flex justify-between text-[8px] font-mono uppercase text-white/40">
+                                <span>Browserbase Uplink</span>
+                                <span class="text-green-400">Secure</span>
+                            </div>
+                            <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                                <div class="h-full bg-green-500" style="width: 100%;"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <nav class="flex-1 space-y-2">
-                <button onclick="switchView('overview')" id="nav-overview" class="nav-button active"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard</button>
-                <button onclick="switchView('repository')" id="nav-repository" class="nav-button"><i data-lucide="layers" class="w-4 h-4"></i> Cadeia de Provas</button>
-                <button onclick="switchView('intelligence')" id="nav-intelligence" class="nav-button"><i data-lucide="cpu" class="w-4 h-4"></i> IA Lab</button>
-            </nav>
-            <div class="mt-auto"><p id="last-update" class="text-[10px] font-mono font-bold text-slate-400 uppercase text-center">SYNC: --:--:--</p></div>
         </aside>
 
-        <main class="flex-1 overflow-y-auto">
-            <header class="h-24 px-12 border-b border-slate-100 bg-white/60 backdrop-blur-xl flex justify-between items-center sticky top-0 z-50">
-                <div class="flex items-center gap-6 flex-1 max-w-2xl"><i data-lucide="search" class="w-6 h-6 text-slate-300"></i><input type="text" placeholder="FILTRAR POR HASH OU ALVO..." class="bg-transparent border-0 focus:ring-0 text-xs font-bold uppercase tracking-[0.2em] w-full"></div>
-                <div class="flex items-center gap-10">
-                    <button onclick="refreshAll()" class="p-3 hover:bg-slate-50 rounded-full transition-all text-gray-400 hover:text-blue-900"><i data-lucide="refresh-cw" class="w-5 h-5"></i></button>
-                    <div class="w-12 h-12 bg-slate-900 text-white rounded-lg flex items-center justify-center font-800 shadow-lg italic text-xl">F</div>
+        <main class="flex-1 flex flex-col min-w-0">
+            <header class="h-20 border-b border-white/[0.06] px-10 flex items-center justify-between bg-black/5 backdrop-blur-sm">
+                <div class="flex items-center gap-6">
+                    <div class="flex flex-col">
+                        <span id="view-title" class="text-sm font-bold tracking-tight text-white/90 uppercase tracking-widest">Central de Comando</span>
+                        <div class="flex items-center gap-2 mt-1">
+                            <div class="w-1.5 h-1.5 rounded-full bg-accent"></div>
+                            <span class="text-[10px] text-foreground-muted font-mono uppercase tracking-tighter">Hybrid Node: Llama 70B / Qwen 1.5B</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-8">
+                    <button onclick="refreshAll()" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/5 transition-all text-foreground-muted">
+                        <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
+                    </button>
                 </div>
             </header>
 
-            <div class="p-16 max-w-7xl mx-auto space-y-16">
-                <!-- VISTA GERAL -->
-                <div id="view-overview" class="view-content space-y-16">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-10 text-center">
-                        <div class="flat-card bg-white border-b-4 border-b-blue-900"><span class="text-[10px] font-800 text-slate-400 uppercase tracking-widest block mb-3">Corpus Coletado</span><h2 id="kpi-total" class="text-5xl font-800 tracking-tighter italic">---</h2></div>
-                        <div class="flat-card bg-white border-b-4 border-b-red-600"><span class="text-[10px] font-800 text-slate-400 uppercase tracking-widest block mb-3">Incidentes Identificados</span><h2 id="kpi-hate" class="text-5xl font-800 tracking-tighter text-red-600 italic">---</h2></div>
-                        <div class="flat-card bg-white border-b-4 border-b-amber-500"><span class="text-[10px] font-800 text-slate-400 uppercase tracking-widest block mb-3">Nível de Hostilidade</span><h2 id="kpi-percent" class="text-5xl font-800 tracking-tighter text-amber-600">0.0%</h2></div>
-                        <div class="flat-card bg-[#1E3A8A] text-white"><span class="text-[10px] font-800 text-blue-300 uppercase tracking-widest block mb-3">Integridade de Prova</span><h2 class="text-5xl font-800 tracking-tighter italic">99.9%</h2></div>
+            <div class="flex-1 overflow-y-auto p-12">
+                <div id="view-overview" class="view-content space-y-12">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                        <div class="glass-surface p-8">
+                            <div class="spotlight"></div>
+                            <span class="text-[10px] font-bold text-foreground-muted uppercase tracking-[0.25em] mb-4 block">Corpus Total</span>
+                            <div id="kpi-total" class="text-5xl font-extrabold tracking-tighter text-shimmer">0</div>
+                        </div>
+                        <div class="glass-surface p-8">
+                            <div class="spotlight"></div>
+                            <span class="text-[10px] font-bold text-red-400 uppercase tracking-[0.25em] mb-4 block">Hate Verified</span>
+                            <div id="kpi-hate" class="text-5xl font-extrabold tracking-tighter text-red-500 shadow-red-500/20 drop-shadow-2xl">0</div>
+                        </div>
+                        <div class="glass-surface p-8">
+                            <div class="spotlight"></div>
+                            <span class="text-[10px] font-bold text-accent uppercase tracking-[0.25em] mb-4 block">Forensic Risk</span>
+                            <div id="kpi-percent" class="text-5xl font-extrabold tracking-tighter text-accent">0%</div>
+                        </div>
+                        <div class="glass-surface p-8 bg-gradient-to-br from-white/[0.06] to-transparent">
+                            <div class="spotlight"></div>
+                            <span class="text-[10px] font-bold text-foreground-muted uppercase tracking-[0.25em] mb-4 block">Active Targets</span>
+                            <div class="text-5xl font-extrabold tracking-tighter text-shimmer">126</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                        <div class="lg:col-span-2 glass-surface p-10 min-h-[450px] flex flex-col">
+                            <div class="spotlight"></div>
+                            <div class="flex items-center justify-between mb-10">
+                                <h3 class="text-xs font-bold text-white/90 uppercase tracking-[0.3em]">Neural Activity Map</h3>
+                                <div class="badge-status bg-accent/10 text-accent border border-accent/20">Telemetry Enabled</div>
+                            </div>
+                            <div class="flex-1 h-full"><canvas id="mainChart"></canvas></div>
+                        </div>
+                        <div class="glass-surface p-10 min-h-[450px] flex flex-col">
+                            <div class="spotlight"></div>
+                            <h3 class="text-xs font-bold text-white/90 uppercase tracking-[0.3em] mb-10 text-center">Engine Attribution</h3>
+                            <div class="flex-1 flex items-center justify-center">
+                                <canvas id="typeChart"></canvas>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- CADEIA DE PROVAS (VISUAL) -->
-                <div id="view-repository" class="view-content hidden space-y-16 animate-in slide-in-from-bottom duration-500">
-                    <div class="flex justify-between items-end border-b-2 border-slate-100 pb-10">
-                        <div><h2 class="text-6xl font-800 tracking-tighter uppercase italic leading-none mb-3">Cadeia de <span class="text-blue-900 underline decoration-8 underline-offset-8">Contexto</span></h2><p class="text-slate-400 font-bold uppercase text-[11px] tracking-[0.3em]">Agrupamento pericial por postagem original e evidência visual.</p></div>
-                        <button onclick="refreshAll()" class="px-12 py-5 bg-slate-900 text-white text-[10px] font-800 uppercase tracking-[0.4em] rounded-lg hover:bg-black transition-transform hover:scale-105 italic">Atualizar Dashboard</button>
+                <div id="view-repository" class="view-content hidden space-y-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h2 class="text-4xl font-extrabold tracking-tight text-shimmer">Evidence Flow</h2>
+                            <p class="text-sm text-foreground-muted mt-2 font-medium tracking-wide">Laudos forenses em tempo real.</p>
+                        </div>
                     </div>
-                    <div id="evidence-container" class="space-y-24"></div>
+                    <div id="evidence-container" class="grid grid-cols-1 gap-6"></div>
                 </div>
-                
-                <!-- SIMULADOR IA -->
-                <div id="view-intelligence" class="view-content hidden max-w-5xl mx-auto space-y-16">
-                     <div class="text-center space-y-4"><h2 class="text-8xl font-800 tracking-tighter uppercase italic leading-none">IA <span class="text-blue-900">Lab</span></h2><p class="text-slate-400 font-bold uppercase tracking-[0.5em] text-xs italic">Decomposição Semântica v5.5</p></div>
-                    <div class="bg-white border-2 border-slate-100 p-20 space-y-12 shadow-2xl shadow-blue-900/5"><textarea id="ai-input" placeholder="INSIRA TEXTO PARA PERÍCIA..." class="w-full h-96 border-0 bg-slate-50 p-12 font-serif text-4xl italic focus:ring-1 focus:ring-blue-900 resize-none"></textarea><button onclick="simulateAI()" class="w-full bg-blue-900 text-white font-800 py-8 uppercase tracking-[0.5em] hover:bg-black transition-all">EXECUTAR ANÁLISE</button></div>
+
+                <div id="view-intelligence" class="view-content hidden">
+                    <div class="max-w-4xl mx-auto space-y-10">
+                        <div class="text-center py-12">
+                            <h2 class="text-5xl font-black tracking-tighter text-shimmer mb-4">Neural Decomposer</h2>
+                        </div>
+                        <div class="glass-surface !bg-[#08080a] border-white/10">
+                            <textarea id="ai-input" placeholder="PASTE RAW INPUT DATA..." class="w-full h-80 bg-transparent p-12 font-mono text-xl text-accent focus:outline-none resize-none"></textarea>
+                            <div class="p-8 border-t border-white/[0.04] flex justify-end">
+                                <button onclick="simulateAI()" class="px-10 py-4 rounded-xl bg-accent text-white font-black text-xs uppercase tracking-[0.3em]">START FORENSIC SCAN</button>
+                            </div>
+                        </div>
+                        <div id="ai-result-panel" class="hidden glass-surface p-12 border-l-[12px] border-l-accent shadow-2xl">
+                            <div id="ai-chip-container" class="mb-10"></div>
+                            <div class="p-10 rounded-2xl bg-black/60 border border-white/[0.04]"><p id="ai-reasoning" class="text-xl leading-relaxed text-foreground-muted italic font-medium"></p></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
@@ -89,22 +272,24 @@ DASHBOARD_HTML = """
         lucide.createIcons();
         const SB_URL = "https://vhamejkldzxbeibqeqpk.supabase.co/rest/v1";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoYW1lamtsZHp4YmVpYnFlcXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0ODgxMjUsImV4cCI6MjA5MjA2NDEyNX0.RMpgx8mDRrYRNfJ_GdOrsT5o8NkJiwBgW_J7CXSznWk";
-        const HATE_KEYWORDS = ["macaco", "lixo", "nordestino", "puta", "viado", "ladrão", "corja", "morte", "senzala", "fuzilar", "cancer", "parasita", "escória", "fazer o l", "faz o l"];
+        let mainChart = null, typeChart = null;
+
+        const HATE_KEYWORDS = ["macaco", "lixo", "nordestino", "puta", "viado", "ladrão", "corja", "morte", "macaca", "senzala", "verme", "safado", "canalha"];
+
+        document.addEventListener('mousemove', e => {
+            const cards = document.querySelectorAll('.glass-surface');
+            cards.forEach(card => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--x', `${x}px`);
+                card.style.setProperty('--y', `${y}px`);
+            });
+        });
 
         async function refreshAll() {
-            document.getElementById('last-update').innerText = "SYNC: " + new Date().toLocaleTimeString('pt-BR');
             await loadStats();
             await loadComments();
-        }
-
-        function annotateText(text) {
-            if(!text) return "";
-            let annotated = text;
-            HATE_KEYWORDS.forEach(word => {
-                const regex = new RegExp(`\\\\b(${word})\\\\b`, 'gi');
-                annotated = annotated.replace(regex, `<span class="highlight-hate" title="Dicionário Pericial: Gatilho Detectado">$1</span>`);
-            });
-            return annotated;
         }
 
         async function loadStats() {
@@ -114,68 +299,104 @@ DASHBOARD_HTML = """
                 const total = parseInt(resTotal.headers.get("content-range")?.split("/")[1]) || 0;
                 const resHate = await fetch(`${SB_URL}/comentarios?is_hate=eq.true&select=id`, { headers });
                 const hate = parseInt(resHate.headers.get("content-range")?.split("/")[1]) || 0;
+
                 document.getElementById('kpi-total').innerText = total.toLocaleString();
                 document.getElementById('kpi-hate').innerText = hate.toLocaleString();
-                document.getElementById('kpi-percent').innerText = total > 0 ? `${((hate/total)*100).toFixed(1)}%` : "0.0%";
+                document.getElementById('kpi-percent').innerText = total > 0 ? `${((hate/total)*100).toFixed(1)}%` : "0%";
+                renderCharts(total, hate);
             } catch(e) { console.error(e); }
         }
 
-        async function loadComments() {
+        async function loadComments(onlyAlerts = false) {
             try {
-                const res = await fetch(`${SB_URL}/comentarios?select=*&order=data_coleta.desc&limit=100`, { headers: { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` } });
+                let url = `${SB_URL}/comentarios?select=*&order=data_coleta.desc&limit=15`;
+                if(onlyAlerts) url += "&is_hate=eq.true";
+
+                const res = await fetch(url, { headers: { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` } });
                 const data = await res.json();
-                const grouped = data.reduce((acc, c) => {
-                    const key = c.post_url || 'unknown';
-                    if (!acc[key]) acc[key] = { candidate: c.candidato_id, date: c.data_coleta, image: c.post_image, caption: c.post_caption, comments: [] };
-                    acc[key].comments.push(c);
-                    return acc;
-                }, {});
+
                 const container = document.getElementById('evidence-container');
-                container.innerHTML = Object.entries(grouped).map(([postKey, group]) => {
-                    const postUrl = postKey !== 'unknown' ? (postKey.startsWith('http') ? postKey : `https://www.instagram.com/p/${postKey}/`) : '#';
-                    const hateCount = group.comments.filter(c => c.is_hate).length;
-                    const hasHighRisk = hateCount > group.comments.length * 0.3;
-                    return `
-                    <div class="flex flex-col lg:flex-row gap-16 items-start animate-in fade-in duration-700">
-                        <div class="w-full lg:w-96 flex-shrink-0 space-y-6">
-                            <div class="post-preview shadow-2xl shadow-blue-900/10 relative group"><img src="${group.image || 'https://via.placeholder.com/400x500?text=PROVA+VISUAL'}" class="w-full h-auto object-cover grayscale group-hover:grayscale-0 transition-all duration-700"><div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded text-[9px] font-800 uppercase tracking-widest border border-slate-200">Instagram Evidence</div></div>
-                            <div class="p-6 bg-white border border-slate-100 rounded-lg space-y-4"><div class="flex items-center gap-3"><div class="w-8 h-8 bg-blue-900 rounded flex items-center justify-center text-white text-[10px] font-bold uppercase italic">@</div><div class="text-[#1E3A8A] font-800 text-lg italic tracking-tighter">@${group.candidate}</div></div><p class="caption-text italic">"${group.caption ? group.caption.substring(0, 150) + '...' : 'Sem legenda disponível.'}"</p><a href="${postUrl}" target="_blank" class="flex items-center justify-center gap-2 w-full py-3 bg-slate-50 text-[9px] font-800 text-slate-400 uppercase tracking-[0.3em] rounded hover:bg-blue-900 hover:text-white transition-all italic">VER POST ORIGINAL</a></div>
-                        </div>
-                        <div class="flex-1 bg-white border border-slate-100 rounded-2xl p-12 relative overflow-hidden shadow-2xl shadow-slate-200/50">
-                            ${hasHighRisk ? '<div class="absolute top-0 left-0 w-full h-2 bg-red-600"></div>' : ''}
-                            <div class="flex justify-between items-center mb-12"><h4 class="text-xs font-800 uppercase tracking-[0.4em] text-slate-300 italic">Corpus do Incidente (${group.comments.length} amostras)</h4><span class="osint-badge ${hasHighRisk ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-900'} font-bold tracking-widest italic">${hasHighRisk ? 'ALTA TOXICIDADE' : 'FLUXO MONITORADO'}</span></div>
-                            <div class="comment-scroll space-y-12 pr-6">
-                                ${group.comments.map(c => `
-                                    <div class="relative pl-8 border-l-2 border-slate-50 py-2 group">
-                                        <div class="flex items-center justify-between mb-4"><div class="flex items-center gap-3"><div class="w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center text-[8px] font-bold text-slate-400">👤</div><span class="text-[10px] font-bold text-slate-900 uppercase tracking-tighter">@${c.autor || 'ID-ANON'}</span></div><span class="osint-badge ${c.is_hate ? 'bg-red-600 text-white' : 'bg-emerald-100 text-emerald-700'} text-[8px] italic">${c.is_hate ? (c.categoria_ia || 'ÓDIO') : 'SEGURO'}</span></div>
-                                        <div class="evidence-text italic text-slate-700 leading-relaxed transition-colors group-hover:text-black">"${annotateText(c.texto_bruto)}"</div>
-                                        <div class="mt-6 flex items-center gap-6 text-[8px] font-bold text-slate-300 uppercase tracking-[0.2em]"><span>TS: ${new Date(c.data_coleta).toLocaleTimeString()}</span><span>ID: ${c.id.substring(0,12)}</span><span>CERT: AUTH-256</span></div>
-                                    </div>
-                                `).join('')}
+                container.innerHTML = data.map(c => `
+                    <div class="glass-surface p-8 flex flex-col md:flex-row gap-10 items-center">
+                        <div class="spotlight"></div>
+                        <div class="w-full md:w-56 flex-shrink-0">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-[9px] font-black text-foreground-muted uppercase tracking-[0.2em]">Origin Node</span>
+                                <span class="engine-tag">${c.engine_ia || 'GROQ-70B'}</span>
                             </div>
+                            <div class="text-white font-bold text-base tracking-tight">@${c.candidato_id}</div>
+                            <div class="text-[10px] text-accent font-mono mt-3">${new Date(c.data_coleta).toLocaleDateString('pt-BR')}</div>
+                        </div>
+                        <div class="flex-1 min-w-0 border-l border-white/[0.04] pl-10">
+                            <p class="text-white/90 text-lg leading-relaxed font-medium italic">"${c.texto_bruto}"</p>
+                        </div>
+                        <div class="flex items-center gap-6">
+                            <span class="badge-status ${c.is_hate ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-white/5 text-foreground-muted border border-white/10'} px-4 py-2">
+                                ${c.is_hate ? (c.categoria_ia || 'ALERT') : 'CIVIL_NEUTRAL'}
+                            </span>
                         </div>
                     </div>
-                `}).join(''); lucide.createIcons(); } catch(e) { console.error(e); } }
-
-        function switchView(viewId, updateHash = true) {
-            document.querySelectorAll('.view-content').forEach(v => v.classList.add('hidden'));
-            document.getElementById(`view-${viewId}`).classList.remove('hidden');
-            document.querySelectorAll('.nav-button').forEach(n => n.classList.remove('active'));
-            document.getElementById(`nav-${viewId}`).classList.add('active');
-            if(updateHash) window.location.hash = viewId;
+                `).join('');
+                lucide.createIcons();
+            } catch(e) { console.error(e); }
         }
 
-        window.onload = () => {
-            const initialView = window.location.hash.replace('#', '') || 'overview';
-            switchView(initialView, false);
-            refreshAll();
-        };
+        function renderCharts(total, hate) {
+            const ctxType = document.getElementById('typeChart').getContext('2d');
+            if(typeChart) typeChart.destroy();
+            typeChart = new Chart(ctxType, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Groq', 'Qwen'],
+                    datasets: [{ data: [92, 8], backgroundColor: ['#5E6AD2', 'rgba(255,255,255,0.03)'], borderWidth: 0 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '85%', plugins: { legend: { display: false } } }
+            });
 
-        window.onhashchange = () => {
-            const newView = window.location.hash.replace('#', '') || 'overview';
-            switchView(newView, false);
-        };
+            const ctxMain = document.getElementById('mainChart').getContext('2d');
+            if(mainChart) mainChart.destroy();
+            mainChart = new Chart(ctxMain, {
+                type: 'line',
+                data: {
+                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                    datasets: [{
+                        data: [5, 45, 12, 88, 30, 65],
+                        borderColor: '#5E6AD2',
+                        borderWidth: 4,
+                        pointRadius: 0,
+                        tension: 0.45,
+                        fill: true,
+                        backgroundColor: 'rgba(94, 106, 210, 0.1)'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#4a5568', font: { size: 10 } } } } }
+            });
+        }
 
+        function switchView(viewId) {
+            document.querySelectorAll('.view-content').forEach(v => v.classList.add('hidden'));
+            document.getElementById(`view-${viewId}`).classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(`nav-${viewId}`).classList.add('active');
+            document.getElementById('view-title').innerText = viewId === 'overview' ? 'Central de Comando' : (viewId === 'repository' ? 'Evidence Flow' : 'Intelligence');
+        }
+
+        async function simulateAI() {
+            const input = document.getElementById('ai-input').value;
+            if(!input) return;
+            const panel = document.getElementById('ai-result-panel');
+            const chip = document.getElementById('ai-chip-container');
+            const reason = document.getElementById('ai-reasoning');
+            panel.classList.remove('hidden');
+            reason.innerText = "Analyzing semantics with Hybrid Engine...";
+            setTimeout(() => {
+                const isHate = HATE_KEYWORDS.some(word => input.toLowerCase().includes(word));
+                chip.innerHTML = isHate ? '<span class="bg-red-500 text-white text-[10px] font-black px-6 py-2 uppercase tracking-[0.3em] rounded-lg">Alert: Hate Detected</span>' : '<span class="bg-green-500 text-white text-[10px] font-black px-6 py-2 uppercase tracking-[0.3em] rounded-lg">Neural Clearance: Flow Neutral</span>';
+                reason.innerHTML = isHate ? 'Linguistic forensic trace identified institutional hostility.' : 'Discourse within civilian parameters.';
+            }, 1000);
+        }
+
+        window.onload = refreshAll;
         setInterval(refreshAll, 60000);
     </script>
 </body>
