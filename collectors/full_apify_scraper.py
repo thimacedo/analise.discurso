@@ -18,7 +18,7 @@ class ApifyFullScraper:
         
         self.client = ApifyClient(self.api_token)
         self.db_file = "odio_politica.db"
-        self.profiles_file = "perfis_monitorados.json"
+        self.profiles_file = os.path.join("data", "perfis_monitorados.json")
 
     def get_profiles(self):
         if not os.path.exists(self.profiles_file):
