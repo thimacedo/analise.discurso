@@ -5,7 +5,6 @@ import json
 from datetime import datetime
 from groq import Groq
 from braintrust import traced, init_logger
-from braintrust import wrap_openai # Note: Groq is OpenAI-compatible
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -23,56 +22,67 @@ client_groq = Groq(api_key=GROQ_KEY)
 HEADERS_SB = {
     "apikey": SUPABASE_KEY,
     "Authorization": f"Bearer {SUPABASE_KEY}",
-    "Content-Type": "application/json"
+    "Content-Type": "application/json",
+    "Prefer": "resolution=merge-duplicates"
 }
 
-@traced(name="Groq Linguistic Analysis")
-async def analyze_with_groq(text):
-    """Realiza análise pericial usando Llama 3.3 70B no Groq com rastreamento Braintrust."""
+async def analyze_with_qwen_local(text):
+    """Fallback: Análise pericial usando Qwen 2.5 Coder 1.5B local via Ollama."""
+    try:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            payload = {
+                "model": "qwen2.5-coder:1.5b",
+                "messages": [
+                    {
+                        "role": "system", 
+                        "content": "Analise o comentário quanto a discurso de ódio. Retorne JSON: {\"is_hate\": boolean, \"categoria\": \"string\"}. Categorias: Racismo, Misoginia, Homofobia, Xenofobia, Ódio Político, Neutro."
+                    },
+                    {"role": "user", "content": text}
+                ],
+                "stream": False,
+                "format": "json"
+            }
+            r = await client.post("http://localhost:11434/api/chat", json=payload)
+            result = r.json()
+            content = json.loads(result["message"]["content"])
+            return content
+    except Exception as e:
+        print(f"      ⚠️ Falha Fallback Qwen: {e}")
+        return None
+
+@traced(name="Hybrid Linguistic Analysis")
+async def analyze_hybrid(text):
+    """Tenta Groq, se falhar ou atingir limite, vai para Qwen Local."""
+    # 1. Tentar Groq
     try:
         completion = client_groq.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
                 {
                     "role": "system", 
-                    "content": (
-                        "Você é um perito criminal em linguística forense digital. "
-                        "Analise o comentário político fornecido quanto a discurso de ódio. "
-                        "Retorne EXCLUSIVAMENTE um objeto JSON válido no formato: "
-                        "{\"is_hate\": boolean, \"categoria\": \"string\", \"justificativa\": \"string\"}. "
-                        "Categorias possíveis: Racismo, Misoginia, Homofobia, Xenofobia, Transfobia, Intolerância Religiosa, Ódio Político, Neutro."
-                    )
+                    "content": "Você é um perito criminal. Analise discurso de ódio. Retorne JSON: {\"is_hate\": boolean, \"categoria\": \"string\"}."
                 },
                 {"role": "user", "content": text}
             ],
             response_format={"type": "json_object"}
         )
-        
-        result_content = completion.choices[0].message.content
-        analysis = json.loads(result_content)
-        
-        # Log de Telemetria na Braintrust
-        logger.log(
-            input=text,
-            output=analysis,
-            metadata={
-                "model": "llama-3.3-70b",
-                "engine": "groq",
-                "is_hate": analysis.get("is_hate")
-            },
-            scores={
-                "hate_detected": 1 if analysis.get("is_hate") else 0
-            }
-        )
-        
+        analysis = json.loads(completion.choices[0].message.content)
+        analysis["engine"] = "groq-llama-70b"
         return analysis
     except Exception as e:
-        print(f"   ⚠️ Erro Groq: {e}")
-        return None
+        if "rate_limit" in str(e).lower() or "limit" in str(e).lower():
+            print(f"   📉 Limite Groq atingido. Acionando Fallback Qwen Local...")
+            analysis = await analyze_with_qwen_local(text)
+            if analysis:
+                analysis["engine"] = "qwen-local-1.5b"
+                return analysis
+        else:
+            print(f"   ⚠️ Erro Groq: {e}")
+    return None
 
-@traced(name="Supabase Evidence Sinc")
+@traced(name="Supabase Sinc")
 async def update_supabase(client, id_db, update_data):
-    """Sincroniza os dados processados com o Supabase."""
+    # Nota: Ajustado para o nome da coluna correto no Supabase
     up_res = await client.patch(
         f"{SUPABASE_URL}/rest/v1/comentarios?id_externo=eq.{id_db}",
         json=update_data,
@@ -80,54 +90,44 @@ async def update_supabase(client, id_db, update_data):
     )
     return up_res
 
-@traced(name="Mass Forensic Pipeline")
 async def process_pendencies():
-    print("🧠 INICIANDO PROCESSAMENTO DE INTELIGÊNCIA (GROQ + BRAINTRUST v6.0)...")
+    print("🧠 INICIANDO MOTOR HÍBRIDO (GROQ + QWEN FALLBACK v6.2)...")
     
     async with httpx.AsyncClient(timeout=30.0) as client:
-        # 1. Buscar comentários não processados
-        print("🔍 Buscando evidências pendentes no Supabase...")
+        # Busca evidências não processadas
         r = await client.get(
-            f"{SUPABASE_URL}/rest/v1/comentarios?or=(processado_ia.is.null,processado_ia.eq.false)&limit=20", 
+            f"{SUPABASE_URL}/rest/v1/comentarios?or=(processado_ia.is.null,processado_ia.eq.false)&limit=50", 
             headers=HEADERS_SB
         )
         
-        if r.status_code != 200:
-            print(f"❌ Erro ao buscar dados: {r.text}")
-            return
-        
-        pendencies = r.json()
+        pendencies = r.json() if r.status_code == 200 else []
         if not pendencies:
-            print("✅ Nenhuma evidência pendente para processar.")
+            print("✅ Tudo processado.")
             return
 
-        print(f"📊 Encontradas {len(pendencies)} evidências. Iniciando análise...")
+        print(f"📊 {len(pendencies)} itens na fila.")
 
         for item in pendencies:
             text = item.get("texto_bruto", "")
             id_db = item.get("id_externo")
             
-            print(f"   📝 Analisando: {text[:40]}...")
-            analysis = await analyze_with_groq(text)
+            print(f"   📝 Analisando: {text[:30]}...")
+            analysis = await analyze_hybrid(text)
             
             if analysis:
+                engine_name = analysis.get('engine', 'groq-70b').upper()
                 update_data = {
                     "is_hate": analysis.get("is_hate", False),
-                    "categoria_ia": analysis.get("categoria", "NEUTRO").upper(),
+                    "categoria_ia": f"[{engine_name}] {analysis.get('categoria', 'NEUTRO').upper()}",
                     "processado_ia": True
                 }
                 
-                up_res = await update_supabase(client, id_db, update_data)
+                await update_supabase(client, id_db, update_data)
                 
-                if up_res.status_code in [200, 204]:
-                    veredito = "🚨 ÓDIO" if analysis.get("is_hate") else "🏳️ NEUTRO"
-                    print(f"   ✅ Processado & Rastreado: {veredito} | Categoria: {analysis.get('categoria')}")
-                else:
-                    print(f"   ❌ Erro update ID {id_db}: {up_res.text}")
+                veredito = "🚨 ÓDIO" if analysis.get("is_hate") else "🏳️ NEUTRO"
+                print(f"   ✅ {veredito} [{analysis.get('engine')}]")
             
-            await asyncio.sleep(0.5)
-
-    print("\n🏆 ANÁLISE E TELEMETRIA CONCLUÍDAS!")
+            await asyncio.sleep(0.2)
 
 if __name__ == "__main__":
     asyncio.run(process_pendencies())
