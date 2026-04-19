@@ -29,10 +29,11 @@ HEADERS_SB = {
 }
 
 @app.get("/api/collect")
+@app.get("/")
 async def collect_handler():
     """
     Coletor Serverless leve para Vercel.
-    Executa um ciclo rápido de coleta para monitorar novos ataques.
+    Responde em /api/collect ou na raiz do arquivo.
     """
     start_time = time.time()
     max_duration = 8.5  # Limite Hobby da Vercel é 10s.
@@ -72,7 +73,7 @@ async def collect_handler():
                     resp_feed = await client.get(url_feed, headers=HEADERS_IG)
                     if resp_feed.status_code != 200: continue
                     
-                    items = resp_feed.json().get("items", [])[:2] # Apenas os 2 últimos no serverless para ser rápido
+                    items = resp_feed.json().get("items", [])[:2] 
                     
                     for post in items:
                         if time.time() - start_time > max_duration: break
