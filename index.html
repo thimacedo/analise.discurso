@@ -62,6 +62,19 @@
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-pericial); }
         ::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 4px; }
+
+        /* Feed Animado */
+        @keyframes pulse-blue {
+            0% { box-shadow: 0 0 0 0 rgba(30, 58, 138, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(30, 58, 138, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(30, 58, 138, 0); }
+        }
+        .feed-item { animation: feedEntry 0.4s ease-out; }
+        @keyframes feedEntry {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .pulse-blue { animation: pulse-blue 2s infinite; }
     </style>
 </head>
 <body class="antialiased">
@@ -99,6 +112,14 @@
                     <i data-lucide="shield" class="w-4 h-4"></i> Auditoria
                 </button>
             </nav>
+
+            <!-- LIVE FEED CARD -->
+            <div class="mt-8 border-t border-gray-100 pt-8">
+                <span class="text-[10px] font-800 text-gray-400 uppercase tracking-widest px-4 block mb-4">Alimentação Realtime</span>
+                <div id="live-feed-list" class="space-y-3 px-2 overflow-hidden h-48 relative">
+                    <!-- Itens de log aparecerão aqui -->
+                </div>
+            </div>
 
             <div class="mt-auto p-5 bg-blue-50 border border-blue-100 rounded">
                 <div class="flex items-center gap-2 text-blue-900 mb-2">
@@ -218,6 +239,24 @@
             document.getElementById('last-update').innerText = new Date().toLocaleTimeString();
             await loadStats();
             await loadComments();
+            await updateLiveFeed();
+        }
+
+        async function updateLiveFeed() {
+            try {
+                const res = await fetch(`${SB_URL}/comentarios?select=candidato_id,texto_bruto,data_coleta&order=data_coleta.desc&limit=5`, { 
+                    headers: { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` } 
+                });
+                const data = await res.json();
+                const feed = document.getElementById('live-feed-list');
+                
+                feed.innerHTML = data.map((c, i) => `
+                    <div class="feed-item text-[10px] p-2 bg-gray-50 rounded border-l-2 border-blue-900 truncate ${i === 0 ? 'pulse-blue' : ''}">
+                        <span class="font-800 text-blue-900">@${c.candidato_id}:</span> 
+                        <span class="text-gray-600">${c.texto_bruto.substring(0, 30)}...</span>
+                    </div>
+                `).join('');
+            } catch(e) { console.error(e); }
         }
 
         function annotateText(text) {
