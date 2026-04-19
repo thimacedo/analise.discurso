@@ -2,19 +2,23 @@ import os
 import asyncio
 import httpx
 import time
+import json
 from datetime import datetime
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+from groq import Groq
 
 app = FastAPI()
 
-# Configurações do Ambiente (Injetadas pela Vercel)
+# Credenciais
 SESSION_ID = os.getenv("INSTAGRAM_SESSIONID")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-TARGET_ID = "69168962266" # Monitor ID: monitoramento.discurso
+GROQ_KEY = os.getenv("GROQ_API_KEY")
+TARGET_ID = "69168962266"
 
-# Headers para emular cliente mobile e evitar bloqueios
+client_groq = Groq(api_key=GROQ_KEY) if GROQ_KEY else None
+
 HEADERS_IG = {
     "User-Agent": "Instagram 123.0.0.21.114 (iPhone; iOS 13_3; en_US; en-US; scale=2.00; 750x1334) AppleWebKit/420+",
     "Cookie": f"sessionid={SESSION_ID}",
@@ -28,86 +32,86 @@ HEADERS_SB = {
     "Prefer": "resolution=merge-duplicates"
 }
 
+AI_PROMPT = """Analise este comentário político para fins periciais. 
+Retorne JSON: {is_hate: bool, categoria: str, justificativa: str, is_sarcastic: bool}"""
+
+async def analyze_with_groq(text: str):
+    if not client_groq: return None
+    try:
+        completion = client_groq.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "system", "content": AI_PROMPT}, {"role": "user", "content": text}],
+            response_format={"type": "json_object"},
+            temperature=0.0
+        )
+        return json.loads(completion.choices[0].message.content)
+    except: return None
+
 @app.get("/api/collect")
 @app.get("/")
 async def collect_handler():
-    """
-    Coletor Serverless leve para Vercel.
-    Responde em /api/collect ou na raiz do arquivo.
-    """
     start_time = time.time()
-    max_duration = 8.5  # Limite Hobby da Vercel é 10s.
+    max_duration = 9.0 # Vercel limit is 10s
     
-    stats = {
-        "status": "success",
-        "synced_comments": 0,
-        "targets_processed": 0,
-        "execution_time": 0,
-        "errors": []
-    }
+    stats = {"status": "success", "synced": 0, "analyzed": 0, "execution": 0}
     
-    if not SESSION_ID or not SUPABASE_URL:
-        return {"error": "Missing environment variables (SESSION_ID/SUPABASE_URL)"}
-
     async with httpx.AsyncClient(follow_redirects=True, timeout=10.0) as client:
         try:
-            # 1. Buscar alvos monitorados
+            # 1. Buscar alvos
             url_following = f"https://www.instagram.com/api/v1/friendships/{TARGET_ID}/following/"
             resp = await client.get(url_following, headers=HEADERS_IG)
+            if resp.status_code != 200: return {"error": "Auth Fail", "code": resp.status_code}
             
-            if resp.status_code != 200:
-                return JSONResponse(status_code=resp.status_code, content={"error": "Instagram Session Expired", "status": resp.status_code})
-            
-            targets = resp.json().get("users", [])
-            all_comments = []
+            targets = resp.json().get("users", [])[:5] # Limite para serverless
+            payload = []
 
             for user in targets:
                 if time.time() - start_time > max_duration: break
                 
-                user_id = user["pk"]
-                username = user["username"]
+                # 2. Buscar feed
+                url_feed = f"https://www.instagram.com/api/v1/feed/user/{user['pk']}/"
+                resp_feed = await client.get(url_feed, headers=HEADERS_IG)
+                if resp_feed.status_code != 200: continue
                 
-                # 2. Buscar feed rápido
-                url_feed = f"https://www.instagram.com/api/v1/feed/user/{user_id}/"
-                try:
-                    resp_feed = await client.get(url_feed, headers=HEADERS_IG)
-                    if resp_feed.status_code != 200: continue
+                posts = resp_feed.json().get("items", [])[:1] # Apenas o mais recente para velocidade
+                
+                for post in posts:
+                    # 3. Buscar comentários
+                    url_comm = f"https://www.instagram.com/api/v1/media/{post['pk']}/comments/"
+                    resp_comm = await client.get(url_comm, headers=HEADERS_IG)
+                    if resp_comm.status_code != 200: continue
                     
-                    items = resp_feed.json().get("items", [])[:2] 
-                    
-                    for post in items:
+                    comments = resp_comm.json().get("comments", [])[:10]
+                    for c in comments:
                         if time.time() - start_time > max_duration: break
-                        media_id = post["pk"]
                         
-                        # 3. Buscar comentários
-                        url_comments = f"https://www.instagram.com/api/v1/media/{media_id}/comments/"
-                        resp_comm = await client.get(url_comments, headers=HEADERS_IG)
-                        if resp_comm.status_code != 200: continue
+                        text = c["text"]
+                        # 🧠 Perícia Groq em Tempo Real
+                        ai_res = await analyze_with_groq(text)
                         
-                        comments = resp_comm.json().get("comments", [])[:20]
-                        for c in comments:
-                            all_comments.append({
-                                "id_externo": str(c["pk"]),
-                                "candidato_id": username,
-                                "post_id": str(media_id),
-                                "autor_username": c["user"]["username"],
-                                "texto_bruto": c["text"],
-                                "data_publicacao": datetime.fromtimestamp(c["created_at"]).isoformat(),
-                                "likes": c.get("comment_like_count", 0),
-                                "data_coleta": datetime.now().isoformat(),
-                                "processado_ia": False
-                            })
-                    stats["targets_processed"] += 1
-                except: continue
+                        payload.append({
+                            "id_externo": str(c["pk"]),
+                            "candidato_id": user["username"],
+                            "post_id": str(post["pk"]),
+                            "autor_username": c["user"]["username"],
+                            "texto_bruto": text,
+                            "data_publicacao": datetime.fromtimestamp(c["created_at"]).isoformat(),
+                            "data_coleta": datetime.now().isoformat(),
+                            "is_hate": ai_res.get("is_hate", False) if ai_res else False,
+                            "categoria_ia": ai_res.get("categoria", "Não Analisado") if ai_res else "Erro",
+                            "justificativa_ia": ai_res.get("justificativa", "") if ai_res else "",
+                            "processado_ia": True if ai_res else False
+                        })
+                        if ai_res: stats["analyzed"] += 1
 
-            # 4. UPSERT no Supabase
-            if all_comments:
+            # 4. Save
+            if payload:
                 url_sb = f"{SUPABASE_URL}/rest/v1/comentarios"
-                resp_sb = await client.post(url_sb, json=all_comments, headers=HEADERS_SB)
-                stats["synced_comments"] = len(all_comments) if resp_sb.status_code in [200, 201] else 0
+                await client.post(url_sb, json=payload, headers=HEADERS_SB)
+                stats["synced"] = len(payload)
 
         except Exception as e:
-            return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
+            return {"status": "error", "msg": str(e)}
 
-    stats["execution_time"] = round(time.time() - start_time, 2)
+    stats["execution"] = round(time.time() - start_time, 2)
     return stats

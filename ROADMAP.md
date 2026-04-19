@@ -9,11 +9,11 @@
 
 ## 🚀 Conquistas do Dia (18/04/2026)
 
-### 🏁 Sprint 8: Estabilidade de Coleta (v5.6)
-- ✅ **Nova Arquitetura de Coleta**: Migração total do GraphQL (hashes instáveis) para a API REST privada do Instagram (`/api/v1/...`).
-- ✅ **Motor de Upsert**: Implementada lógica de `on_conflict` no Supabase Pipeline, garantindo 0% de falhas por chaves duplicadas.
-- ✅ **Coleta em Cascata**: Automação do fluxo Seguidos -> Últimos 3 Posts -> 100 Comentários por post.
-- ✅ **Agendamento Industrial**: Configurado agendamento diário (08:00 e 20:00) via `CrawlerProcess`.
+### 🏁 Sprint 9: Inteligência Groq de Elite (v5.7)
+- ✅ **Motor Groq Integrado**: Implementação do SDK Groq com modelo Llama 3.3 70B para perícia em < 200ms.
+- ✅ **Análise Multidimensional**: Captura automática de Ódio, Categoria, Justificativa e Sarcasmo.
+- ✅ **Pipeline Inteligente**: Coleta e análise unificadas (os dados já entram no banco com veredito da IA).
+- ✅ **Interface Industrial**: Dashboard e Topbar migrados para Skeuomorphism (Realismo Tátil).
 
 ---
 
