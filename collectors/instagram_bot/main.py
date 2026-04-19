@@ -1,56 +1,54 @@
-import os
 import time
 import schedule
 import logging
-from dotenv import load_dotenv
-from scrapy.crawler import CrawlerProcess
-from scrapy.utils.project import get_project_settings
-from instagram_bot.spiders.instagram import InstagramSpider
+import os
+import subprocess
+from datetime import datetime
 
-load_dotenv()
-
-# Configure Logging
+# Configuração de log
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(message)s',
+    level=logging.INFO, 
+    format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler("collector.log"),
+        logging.FileHandler("collectors/instagram_bot/scheduler.log"),
         logging.StreamHandler()
     ]
 )
+logger = logging.getLogger(__name__)
 
 def run_spider():
-    logging.info("Starting Instagram Collection Job...")
-    
-    # Target usernames (should be configured via env or file)
-    target_usernames = os.environ.get("TARGET_USERNAMES", "jairmessiasbolsonaro,lulaoficial")
-    
-    settings = get_project_settings()
-    process = CrawlerProcess(settings)
-    
-    process.crawl(InstagramSpider, usernames=target_usernames)
-    process.start()
-    
-    logging.info("Collection Job Finished.")
+    logger.info("🚀 Iniciando a execução do Scrapy (REST API v6.0)...")
+    try:
+        # Executa via subprocess para garantir isolamento do reactor e carregar settings corretamente
+        cwd = os.path.abspath("collectors/instagram_bot")
+        result = subprocess.run(
+            ["scrapy", "crawl", "instagram"],
+            cwd=cwd,
+            capture_output=True,
+            text=True
+        )
+        
+        if result.returncode == 0:
+            logger.info("✅ Execução do Scrapy finalizada com sucesso.")
+        else:
+            logger.error(f"❌ Falha no Scrapy: {result.stderr}")
+            
+    except Exception as e:
+        logger.error(f"⚠️ Erro crítico ao executar o spider: {e}")
 
 def main():
-    # Schedule jobs
+    # Agenda para rodar 2 vezes ao dia
     schedule.every().day.at("08:00").do(run_spider)
     schedule.every().day.at("20:00").do(run_spider)
+
+    logger.info("🕵️ Agente de Extração Agendado (08:00 e 20:00). Aguardando...")
     
-    logging.info("Scheduler started. Waiting for jobs at 08:00 and 20:00...")
-    
-    # Run once at startup if desired for testing
-    # run_spider()
-    
+    # Executa uma rodada imediata para teste se desejado (opcional)
+    # run_spider() 
+
     while True:
         schedule.run_pending()
         time.sleep(60)
 
 if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        logging.info("Collector stopped by user.")
-    except Exception as e:
-        logging.critical(f"Unexpected error: {e}")
+    main()

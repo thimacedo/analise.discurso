@@ -26,8 +26,6 @@ CANDIDATES = [
     "jairmessiasbolsonaro",
     "nikolasferreiradm",
     "gleisihoffmann",
-    "choquei",
-    "metropoles"
 ]
 
 def emoji_safe_print(text):

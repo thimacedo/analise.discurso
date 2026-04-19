@@ -4,6 +4,8 @@ import httpx
 import json
 from datetime import datetime
 from groq import Groq
+from braintrust import traced, init_logger
+from braintrust import wrap_openai # Note: Groq is OpenAI-compatible
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -12,7 +14,10 @@ load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 GROQ_KEY = os.getenv("GROQ_API_KEY")
+BRAINTRUST_API_KEY = os.getenv("BRAINTRUST_API_KEY")
 
+# Inicializa Logger da Braintrust
+logger = init_logger(project="braintrust-beige-umbrella", api_key=BRAINTRUST_API_KEY)
 client_groq = Groq(api_key=GROQ_KEY)
 
 HEADERS_SB = {
@@ -21,8 +26,9 @@ HEADERS_SB = {
     "Content-Type": "application/json"
 }
 
+@traced(name="Groq Linguistic Analysis")
 async def analyze_with_groq(text):
-    """Realiza análise pericial usando Llama 3.3 70B no Groq."""
+    """Realiza análise pericial usando Llama 3.3 70B no Groq com rastreamento Braintrust."""
     try:
         completion = client_groq.chat.completions.create(
             model="llama-3.3-70b-versatile",
@@ -41,18 +47,46 @@ async def analyze_with_groq(text):
             ],
             response_format={"type": "json_object"}
         )
-        return json.loads(completion.choices[0].message.content)
+        
+        result_content = completion.choices[0].message.content
+        analysis = json.loads(result_content)
+        
+        # Log de Telemetria na Braintrust
+        logger.log(
+            input=text,
+            output=analysis,
+            metadata={
+                "model": "llama-3.3-70b",
+                "engine": "groq",
+                "is_hate": analysis.get("is_hate")
+            },
+            scores={
+                "hate_detected": 1 if analysis.get("is_hate") else 0
+            }
+        )
+        
+        return analysis
     except Exception as e:
         print(f"   ⚠️ Erro Groq: {e}")
         return None
 
+@traced(name="Supabase Evidence Sinc")
+async def update_supabase(client, id_db, update_data):
+    """Sincroniza os dados processados com o Supabase."""
+    up_res = await client.patch(
+        f"{SUPABASE_URL}/rest/v1/comentarios?id_externo=eq.{id_db}",
+        json=update_data,
+        headers=HEADERS_SB
+    )
+    return up_res
+
+@traced(name="Mass Forensic Pipeline")
 async def process_pendencies():
-    print("🧠 INICIANDO PROCESSAMENTO DE INTELIGÊNCIA (GROQ v5.7)...")
+    print("🧠 INICIANDO PROCESSAMENTO DE INTELIGÊNCIA (GROQ + BRAINTRUST v6.0)...")
     
     async with httpx.AsyncClient(timeout=30.0) as client:
         # 1. Buscar comentários não processados
         print("🔍 Buscando evidências pendentes no Supabase...")
-        # Filtra por processado_ia is null ou false usando OR
         r = await client.get(
             f"{SUPABASE_URL}/rest/v1/comentarios?or=(processado_ia.is.null,processado_ia.eq.false)&limit=20", 
             headers=HEADERS_SB
@@ -71,36 +105,29 @@ async def process_pendencies():
 
         for item in pendencies:
             text = item.get("texto_bruto", "")
-            id_db = item.get("id_externo") # Usando id_externo como chave de busca/update se necessário, ou id primário
+            id_db = item.get("id_externo")
             
             print(f"   📝 Analisando: {text[:40]}...")
             analysis = await analyze_with_groq(text)
             
             if analysis:
-                # 2. Atualizar registro no Supabase
                 update_data = {
                     "is_hate": analysis.get("is_hate", False),
-                    "categoria_ia": analysis.get("categoria", "NEUTRO"),
+                    "categoria_ia": analysis.get("categoria", "NEUTRO").upper(),
                     "processado_ia": True
                 }
                 
-                # Patch individual por id_externo
-                up_res = await client.patch(
-                    f"{SUPABASE_URL}/rest/v1/comentarios?id_externo=eq.{id_db}",
-                    json=update_data,
-                    headers=HEADERS_SB
-                )
+                up_res = await update_supabase(client, id_db, update_data)
                 
                 if up_res.status_code in [200, 204]:
                     veredito = "🚨 ÓDIO" if analysis.get("is_hate") else "🏳️ NEUTRO"
-                    print(f"   ✅ Processado: {veredito} | Categoria: {analysis.get('categoria')}")
+                    print(f"   ✅ Processado & Rastreado: {veredito} | Categoria: {analysis.get('categoria')}")
                 else:
                     print(f"   ❌ Erro update ID {id_db}: {up_res.text}")
             
-            # Rate limit preventivo para o Groq Free Tier se necessário
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.5)
 
-    print("\n🏆 ANÁLISE DE INTELIGÊNCIA CONCLUÍDA!")
+    print("\n🏆 ANÁLISE E TELEMETRIA CONCLUÍDAS!")
 
 if __name__ == "__main__":
     asyncio.run(process_pendencies())

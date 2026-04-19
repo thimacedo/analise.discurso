@@ -1,38 +1,31 @@
 # 🗺️ ROADMAP.md - Projeto Ódio Política (Mapa de Voo)
 
 ## 📌 Ponto de Partida (Status Atual)
-**Data:** 18 de Abril de 2026
-**Versão Atual:** v5.5.0 Modular
-**Status:** ESTÁVEL (Deploy Vercel corrigido e online)
+**Data:** 19 de Abril de 2026
+**Versão Atual:** v6.1.0 Elite Stealth
+**Status:** OPERACIONAL (Arquitetura de alta performance)
 
 ---
 
-## 🚀 Conquistas do Dia (18/04/2026)
-
-### 🏁 Sprint 9: Inteligência Groq de Elite (v5.7)
-- ✅ **Motor Groq Integrado**: Implementação do SDK Groq com modelo Llama 3.3 70B para perícia em < 200ms.
-- ✅ **Análise Multidimensional**: Captura automática de Ódio, Categoria, Justificativa e Sarcasmo.
-- ✅ **Pipeline Inteligente**: Coleta e análise unificadas (os dados já entram no banco com veredito da IA).
-- ✅ **Interface Industrial**: Dashboard e Topbar migrados para Skeuomorphism (Realismo Tátil).
-
----
-
-## 🎯 Próximos Passos (Destino Final)
-
-### 📈 Escalonamento de Dados
-1.  **Monitoramento Nacional:** Finalizar o ciclo Lula → Flávio Bolsonaro → Bolsonaro → Nikolas.
-2.  **Mapeamento de Redes:** Identificar "perfis-satélite" que orbitam os alvos nacionais com discurso tóxico.
-
-### 🛡️ Refinamento Pericial
-3.  **Filtragem de Falsos Positivos:** Implementar no motor local um refinamento para desconsiderar elogios irônicos (detector de sarcasmo).
-4.  **Laudos Dinâmicos:** Exportar o novo formato "Grouped by Post" diretamente para PDF pericial.
+## 🚀 Conquistas da v6.0/6.1 (Refatoração de Elite)
+- **UI Linear / Modern:** Interface totalmente refatorada com Glassmorphism, Animated Ambient Blobs e Mouse-Tracking Spotlights.
+- **Scrapy v6.1 Stealth:** Novo crawler baseado em API REST (`/api/v1/`) com integração **Browserbase** (Proxy Residencial) para evasão de bloqueios.
+- **Inteligência Instrumentada:** Integração com **Braintrust** para telemetria de IA e monitoramento de qualidade dos laudos periciais.
+- **Motor Híbrido:** Pipeline de análise com **Groq (Llama 3.3 70B)** e fallback automático para **Qwen Local 1.5B**.
+- **Orquestração Nativa:** Adição de **Supabase Agent Skills** e configuração de MCP Server para manipulação direta de dados.
 
 ---
 
-## 🛠️ Guia de Assunção de Comando
-- **Interface:** https://projeto-odio-politica.vercel.app
-- **Pipeline Local:** `python main_pipeline.py` (usa venv com local-ai).
-- **Backend:** FastAPI modular em `api/`.
-- **Banco:** Supabase (Cloud) + SQLite (Local Cache).
+## 🛠️ Procedimento Operacional Padrão (SOP)
+1. **Inspeção:** Verificação de integridade no Supabase via MCP/Script.
+2. **Extração:** Coleta via Scrapy (Monitor -> Seguidos -> 3 Posts -> 50 Comments).
+3. **Inteligência:** Processamento Groq -> Fallback Qwen Local.
+4. **Publicação:** Sincronização automática com a nuvem e dashboard.
 
-> *Iniciada Fase de Coleta Massiva v5.5.*
+## 📈 Próximos Passos
+- Implementação de detector de sarcasmo refinado.
+- Exportação de laudos periciais em PDF.
+- Expansão do mapeamento de perfis-satélite.
+
+---
+*Dashboard Online:* projeto-odio-politica.vercel.app

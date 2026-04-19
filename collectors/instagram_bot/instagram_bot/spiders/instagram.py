@@ -1,173 +1,144 @@
-import os
 import json
 import scrapy
-from datetime import datetime
-from instagram_bot.items import InstagramBotItem
+from instagram_bot.items import InstagramProfileItem, InstagramPostItem, InstagramCommentItem
 
 class InstagramSpider(scrapy.Spider):
     name = "instagram"
-    allowed_domains = ["instagram.com"]
+    allowed_domains = ["www.instagram.com"]
     
-    # Perfil Monitor Fixo
     MONITOR_USERNAME = "monitoramento.discurso"
-    MONITOR_ID = "69168962266"
+    
+    def start_requests(self):
+        session_id = self.settings.get("INSTAGRAM_SESSIONID")
+        if not session_id:
+            self.logger.error("INSTAGRAM_SESSIONID não configurado.")
+            return
 
-    def __init__(self, *args, **kwargs):
-        super(InstagramSpider, self).__init__(*args, **kwargs)
-        self.session_id = os.environ.get("INSTAGRAM_SESSIONID")
-        self.cookies = {"sessionid": self.session_id} if self.session_id else {}
-        self.headers = {
+        headers = {
+            "Cookie": f"sessionid={session_id}",
             "X-IG-App-ID": "936619743392459",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            "X-Requested-With": "XMLHttpRequest",
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-origin"
         }
 
-    def start_requests(self):
-        if not self.session_id:
-            self.logger.error("INSTAGRAM_SESSIONID não encontrada. Abortando.")
-            return
-
-        self.logger.info(f"[STEALTH] Iniciando coleta para {self.MONITOR_USERNAME}")
+        # 1. Busca o ID do perfil monitor
         url = f"https://www.instagram.com/api/v1/users/web_profile_info/?username={self.MONITOR_USERNAME}"
-        yield scrapy.Request(
-            url=url,
-            cookies=self.cookies,
-            headers=self.headers,
-            callback=self.parse_monitor,
-            errback=self.handle_monitor_error,
-            dont_filter=True
-        )
-
-    def handle_monitor_error(self, failure):
-        self.logger.warning(f"[STEALTH] web_profile_info falhou ({failure.value}). Tentando fallback direto para MONITOR_ID {self.MONITOR_ID}")
-        following_url = f"https://www.instagram.com/api/v1/friendships/{self.MONITOR_ID}/following/"
-        yield scrapy.Request(
-            url=following_url,
-            cookies=self.cookies,
-            headers=self.headers,
-            callback=self.parse_following,
-            dont_filter=True
-        )
+        yield scrapy.Request(url, headers=headers, callback=self.parse_monitor)
 
     def parse_monitor(self, response):
-        self.logger.info(f"[STEALTH] Resposta web_profile_info: {response.status}")
-        if response.status == 429:
-            self.logger.warning("[STEALTH] Rate Limit atingido no monitor. Acionando fallback direto.")
-            # O errback nem sempre é chamado para 429 se o middleware de retry estiver ativo
-            # Então forçamos o fallback aqui se necessário.
-            following_url = f"https://www.instagram.com/api/v1/friendships/{self.MONITOR_ID}/following/"
-            yield scrapy.Request(
-                url=following_url,
-                cookies=self.cookies,
-                headers=self.headers,
-                callback=self.parse_following,
-                dont_filter=True
-            )
-            return
-
         try:
             data = json.loads(response.text)
             user_id = data["data"]["user"]["id"]
-            self.logger.info(f"Monitor {self.MONITOR_USERNAME} identificado (ID: {user_id}). Buscando seguidos...")
+            self.logger.info(f"Perfil monitor encontrado. ID: {user_id}")
+            
+            session_id = self.settings.get("INSTAGRAM_SESSIONID")
+            headers = {"Cookie": f"sessionid={session_id}", "X-IG-App-ID": "936619743392459"}
 
-            # Extrair Seguidos
-            following_url = f"https://www.instagram.com/api/v1/friendships/{user_id}/following/"
-            yield scrapy.Request(
-                url=following_url,
-                cookies=self.cookies,
-                headers=self.headers,
-                callback=self.parse_following
-            )
+            # 2. Inicia paginação da lista de seguidos (API REST)
+            url = f"https://www.instagram.com/api/v1/friendships/{user_id}/following/?count=200"
+            yield scrapy.Request(url, headers=headers, callback=self.parse_followings)
         except Exception as e:
-            self.logger.error(f"Falha ao processar monitor: {e}. Tentando fallback direto.")
-            following_url = f"https://www.instagram.com/api/v1/friendships/{self.MONITOR_ID}/following/"
-            yield scrapy.Request(
-                url=following_url,
-                cookies=self.cookies,
-                headers=self.headers,
-                callback=self.parse_following,
-                dont_filter=True
-            )
+            self.logger.error(f"Erro ao analisar monitor: {e}")
 
-    def parse_following(self, response):
-        self.logger.info(f"[STEALTH] Resposta Following List: {response.status}")
+    def parse_followings(self, response):
         try:
             data = json.loads(response.text)
-            users = data.get('users', [])
-            self.logger.info(f"[STEALTH] Encontrados {len(users)} seguidos.")
-            
-            for user in users:
-                target_user_id = user.get('pk')
-                target_username = user.get('username')
-                full_name = user.get('full_name')
+            users = data.get("users", [])
+            session_id = self.settings.get("INSTAGRAM_SESSIONID")
+            headers = {"Cookie": f"sessionid={session_id}", "X-IG-App-ID": "936619743392459"}
 
-                yield InstagramBotItem(
-                    item_type="profile",
-                    user_id=str(target_user_id),
-                    username=target_username,
+            for user in users:
+                u_id = user["pk"]
+                username = user["username"]
+                full_name = user.get("full_name", "")
+
+                yield InstagramProfileItem(
+                    user_id=str(u_id),
+                    username=username,
                     full_name=full_name
                 )
 
-                # Para cada seguido, busca os 3 últimos posts
-                feed_url = f"https://www.instagram.com/api/v1/feed/user/{target_user_id}/"
-                self.logger.debug(f"[STEALTH] Solicitando feed de {target_username}")
+                # 3. Para cada seguido, busca os 3 últimos posts
+                posts_url = f"https://www.instagram.com/api/v1/feed/user/{u_id}/?count=3"
                 yield scrapy.Request(
-                    url=feed_url,
-                    cookies=self.cookies,
-                    headers=self.headers,
-                    callback=self.parse_feed,
-                    meta={'username': target_username}
+                    posts_url, 
+                    headers=headers, 
+                    callback=self.parse_posts,
+                    cb_kwargs={"owner_username": username}
                 )
-        except Exception as e:
-            self.logger.error(f"[STEALTH] Erro ao processar lista de seguidos: {e}")
 
-    def parse_feed(self, response):
-        self.logger.info(f"[STEALTH] Resposta Feed User ({response.meta['username']}): {response.status}")
+            next_max_id = data.get("next_max_id")
+            if next_max_id:
+                next_url = response.url.split("?")[0] + f"?count=200&max_id={next_max_id}"
+                yield scrapy.Request(next_url, headers=headers, callback=self.parse_followings)
+        except Exception as e:
+            self.logger.error(f"Erro em parse_followings: {e}")
+
+    def parse_posts(self, response, owner_username):
         try:
             data = json.loads(response.text)
-            items = data.get('items', [])
-            owner_username = response.meta['username']
+            items = data.get("items", [])
+            session_id = self.settings.get("INSTAGRAM_SESSIONID")
+            headers = {"Cookie": f"sessionid={session_id}", "X-IG-App-ID": "936619743392459"}
 
-            for post_item in items[:3]:
-                media_id = post_item.get('id')
-                shortcode = post_item.get('code')
-                
-                yield InstagramBotItem(
-                    item_type="post",
-                    post_id=str(media_id),
+            for item in items[:3]:
+                post_id = str(item["id"])
+                shortcode = item["code"]
+                caption = item.get("caption", {})
+                text = caption.get("text", "") if caption else ""
+                timestamp = item.get("taken_at")
+
+                yield InstagramPostItem(
+                    post_id=post_id,
                     shortcode=shortcode,
                     owner_username=owner_username,
-                    text=post_item.get('caption', {}).get('text') if post_item.get('caption') else "",
-                    timestamp=post_item.get('taken_at')
+                    text=text,
+                    timestamp=timestamp
                 )
 
-                # Busca Comentários (Limite 100)
-                comments_url = f"https://www.instagram.com/api/v1/media/{media_id}/comments/"
-                self.logger.debug(f"[STEALTH] Solicitando comentários do post {shortcode}")
+                # 4. Busca comentários do post
+                comments_url = f"https://www.instagram.com/api/v1/media/{post_id}/comments/?can_support_threading=true&permalink_enabled=false"
                 yield scrapy.Request(
-                    url=comments_url,
-                    cookies=self.cookies,
-                    headers=self.headers,
+                    comments_url,
+                    headers=headers,
                     callback=self.parse_comments,
-                    meta={'post_shortcode': shortcode}
+                    cb_kwargs={"shortcode": shortcode, "collected": 0}
                 )
         except Exception as e:
-            self.logger.error(f"[STEALTH] Erro ao processar feed de {response.meta.get('username')}: {e}")
+            self.logger.error(f"Erro em parse_posts: {e}")
 
-    def parse_comments(self, response):
-        self.logger.info(f"[STEALTH] Resposta Comentários ({response.meta['post_shortcode']}): {response.status}")
+    def parse_comments(self, response, shortcode, collected):
         try:
             data = json.loads(response.text)
-            comments = data.get('comments', [])
-            post_shortcode = response.meta['post_shortcode']
+            if data.get("status") == "fail": return
 
-            for comment in comments[:100]:
-                yield InstagramBotItem(
-                    item_type="comment",
-                    comment_id=str(comment.get('pk')),
-                    post_shortcode=post_shortcode,
-                    owner_username=comment.get('user', {}).get('username'),
-                    text=comment.get('text'),
-                    timestamp=comment.get('created_at')
+            comments = data.get("comments", [])
+            session_id = self.settings.get("INSTAGRAM_SESSIONID")
+            headers = {"Cookie": f"sessionid={session_id}", "X-IG-App-ID": "936619743392459"}
+
+            for comment in comments:
+                if collected >= 100: break
+                
+                yield InstagramCommentItem(
+                    comment_id=str(comment["pk"]),
+                    post_shortcode=shortcode,
+                    owner_username=comment["user"]["username"],
+                    text=comment["text"],
+                    timestamp=comment.get("created_at")
+                )
+                collected += 1
+
+            has_more = data.get("has_more_comments", False)
+            if has_more and collected < 100:
+                next_max_id = data.get("next_max_id")
+                next_url = response.url.split("?")[0] + f"?can_support_threading=true&permalink_enabled=false&max_id={next_max_id}"
+                yield scrapy.Request(
+                    next_url,
+                    headers=headers,
+                    callback=self.parse_comments,
+                    cb_kwargs={"shortcode": shortcode, "collected": collected}
                 )
         except Exception as e:
-            self.logger.error(f"[STEALTH] Erro ao processar comentários: {e}")
+            self.logger.error(f"Erro em parse_comments: {e}")

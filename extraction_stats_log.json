@@ -28,5 +28,15 @@
         "errors": [],
         "end_time": "2026-04-19T06:45:41.119814",
         "method": "apify_full_scraper"
+    },
+    {
+        "start_time": "2026-04-19T06:50:49.147053",
+        "profiles_attempted": 10,
+        "profiles_success": 10,
+        "posts_scanned": 0,
+        "comments_collected": 0,
+        "errors": [],
+        "end_time": "2026-04-19T06:55:50.131296",
+        "method": "apify_full_scraper"
     }
 ]
