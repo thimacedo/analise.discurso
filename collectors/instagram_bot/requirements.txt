@@ -1,6 +1,4 @@
-Scrapy>=2.11.0
-supabase>=2.3.0
-schedule>=1.2.1
-python-dotenv>=1.0.1
-requests>=2.31.0
-mutagen>=1.47.0
+Scrapy
+python-dotenv
+schedule
+httpx
