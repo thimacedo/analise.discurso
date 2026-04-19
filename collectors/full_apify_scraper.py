@@ -113,6 +113,14 @@ class ApifyFullScraper:
             "Prefer": "resolution=merge-duplicates"
         }
         
+        # 1. Handshake de Candidato (Garante que o perfil existe no banco)
+        try:
+            import httpx
+            candidato_url = f"{os.getenv('SUPABASE_URL')}/rest/v1/candidatos"
+            httpx.post(candidato_url, json={"username": username}, headers=headers)
+        except Exception as e:
+            print(f"      ⚠️ Falha ao registrar candidato: {e}")
+
         data_to_send = []
         now = datetime.now().isoformat()
         investigator_id = "66f853ed-c42b-43d4-bcc3-23f05b2c44e9"
@@ -122,23 +130,26 @@ class ApifyFullScraper:
                 "id_externo": str(c.get("id")),
                 "candidato_id": username,
                 "post_id": post_id,
-                "autor_username": c.get("ownerUsername"),
-                "texto_bruto": c.get("text"),
+                "autor_username": str(c.get("ownerUsername")),
+                "texto_bruto": str(c.get("text")),
                 "data_coleta": now,
                 "data_publicacao": c.get("timestamp"),
-                "likes": c.get("likesCount", 0),
-                "user_id": investigator_id
+                "likes": c.get("likesCount", 0)
             })
 
         if data_to_send:
             url = f"{os.getenv('SUPABASE_URL')}/rest/v1/comentarios"
+            headers["Prefer"] = "resolution=merge-duplicates"
             try:
-                import httpx
                 response = httpx.post(url, json=data_to_send, headers=headers)
                 if response.status_code not in [200, 201]:
-                    print(f"      ⚠️ Erro Supabase: {response.text}")
+                    print(f"      ❌ ERRO CRÍTICO SUPABASE: {response.status_code}")
+                    print(f"      📝 DETALHE: {response.text}")
+                else:
+                    print(f"      ✅ [SUPABASE] {len(data_to_send)} comentários sincronizados.")
             except Exception as e:
                 print(f"      ⚠️ Falha de rede: {e}")
+
 
     def log_stats(self, run_stats):
         log_file = "extraction_stats_log.json"
