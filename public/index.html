@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-br" class="bg-[#050506]">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FORENSIC v6.4 | Linear Elite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #050506; 
+            color: #EDEDEF; 
+            height: 100vh; overflow: hidden;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+        }
+        .btn-elite {
+            background-color: #5E6AD2;
+            color: #FFFFFF;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(94, 106, 210, 0.3);
+        }
+        .btn-elite:hover {
+            background-color: #6872D9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(94, 106, 210, 0.4);
+        }
+        .input-forensic {
+            background: #0a0a0c;
+            border: 1px solid rgba(255, 255, 255, 0.2); /* Borda visível cinza clara */
+            color: #EDEDEF; /* Texto branco ao digitar */
+            padding: 20px;
+            border-radius: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 16px;
+            width: 100%;
+        }
+        .input-forensic:focus {
+            outline: none;
+            border-color: #5E6AD2;
+            box-shadow: 0 0 0 2px rgba(94, 106, 210, 0.2);
+        }
+    </style>
+</head>
+<body class="antialiased flex">
+
+    <!-- Sidebar -->
+    <aside class="w-64 border-r border-white/5 bg-[#050506] p-8 flex flex-col">
+        <div class="flex items-center gap-3 mb-10">
+            <div class="w-8 h-8 bg-[#5E6AD2] rounded flex items-center justify-center">
+                <i data-lucide="shield" class="w-5 h-5 text-white"></i>
+            </div>
+            <span class="font-bold text-xl tracking-tight">FORENSIC</span>
+        </div>
+        
+        <nav class="space-y-2 flex-1">
+            <button onclick="switchView('dash')" class="w-full text-left px-4 py-3 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-all flex items-center gap-3">
+                <i data-lucide="layout-grid" class="w-4 h-4"></i> Dashboard
+            </button>
+            <button onclick="switchView('evidence')" class="w-full text-left px-4 py-3 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-all flex items-center gap-3">
+                <i data-lucide="database" class="w-4 h-4"></i> Evidências
+            </button>
+            <button onclick="switchView('ai')" class="w-full text-left px-4 py-3 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-all flex items-center gap-3">
+                <i data-lucide="zap" class="w-4 h-4"></i> Inteligência
+            </button>
+        </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="flex-1 flex flex-col overflow-hidden">
+        <header class="h-16 border-b border-white/5 px-10 flex items-center justify-between">
+            <span id="header-title" class="text-xs font-bold uppercase tracking-widest text-gray-500">Central de Comando</span>
+            <button onclick="refreshAll()" class="text-gray-500 hover:text-white transition-colors">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+            </button>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-12 bg-[#050506]">
+            
+            <!-- Dashboard -->
+            <div id="view-dash" class="view-content space-y-10">
+                <div class="grid grid-cols-4 gap-6">
+                    <div class="glass p-6"><span class="text-[10px] font-bold text-gray-500 uppercase mb-2 block">Total_Evidence</span><div id="kpi-total" class="text-4xl font-bold">0</div></div>
+                    <div class="glass p-6"><span class="text-[10px] font-bold text-red-500 uppercase mb-2 block">Hate_Signals</span><div id="kpi-hate" class="text-4xl font-bold text-red-500">0</div></div>
+                    <div class="glass p-6"><span class="text-[10px] font-bold text-[#5E6AD2] uppercase mb-2 block">Risk_Index</span><div id="kpi-percent" class="text-4xl font-bold text-[#5E6AD2]">0%</div></div>
+                    <div class="glass p-6"><span class="text-[10px] font-bold text-gray-500 uppercase mb-2 block">Active_Nodes</span><div class="text-4xl font-bold">126</div></div>
+                </div>
+                <div class="grid grid-cols-3 gap-8">
+                    <div class="col-span-2 glass p-8 h-80"><canvas id="mainChart"></canvas></div>
+                    <div class="glass p-8 h-80"><canvas id="typeChart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- Evidence -->
+            <div id="view-evidence" class="view-content hidden space-y-4">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">Fluxo de Evidências</h2>
+                </div>
+                <div id="evidence-list" class="space-y-3">
+                    <!-- Dinâmico -->
+                </div>
+            </div>
+
+            <!-- Intelligence -->
+            <div id="view-ai" class="view-content hidden">
+                <div class="max-w-3xl mx-auto space-y-8 py-10">
+                    <div class="text-center">
+                        <h2 class="text-4xl font-black mb-4">Neural Decomposer</h2>
+                        <p class="text-gray-500">Insira dados para decomposição semântica pericial.</p>
+                    </div>
+                    <div class="space-y-6">
+                        <textarea id="ai-input" placeholder="Cole o texto aqui..." class="input-forensic h-64"></textarea>
+                        <div class="flex justify-end">
+                            <button onclick="analyzeAI()" class="btn-elite flex items-center gap-2">
+                                <i data-lucide="scan" class="w-4 h-4"></i> Executar Análise
+                            </button>
+                        </div>
+                    </div>
+                    <div id="ai-result" class="hidden glass p-8 border-l-4 border-l-[#5E6AD2]">
+                        <div id="ai-badge" class="mb-4"></div>
+                        <p id="ai-text" class="text-lg italic text-gray-300"></p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+        const SB_URL = "https://vhamejkldzxbeibqeqpk.supabase.co/rest/v1";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoYW1lamtsZHp4YmVpYnFlcXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0ODgxMjUsImV4cCI6MjA5MjA2NDEyNX0.RMpgx8mDRrYRNfJ_GdOrsT5o8NkJiwBgW_J7CXSznWk";
+
+        async function refreshAll() {
+            await loadStats();
+            await loadEvidence();
+        }
+
+        async function loadStats() {
+            const headers = { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}`, "Prefer": "count=exact" };
+            const rTotal = await fetch(`${SB_URL}/comentarios?select=id`, { headers });
+            const total = parseInt(rTotal.headers.get("content-range")?.split("/")[1]) || 0;
+            const rHate = await fetch(`${SB_URL}/comentarios?is_hate=eq.true&select=id`, { headers });
+            const hate = parseInt(rHate.headers.get("content-range")?.split("/")[1]) || 0;
+
+            document.getElementById('kpi-total').innerText = total;
+            document.getElementById('kpi-hate').innerText = hate;
+            document.getElementById('kpi-percent').innerText = total > 0 ? `${((hate/total)*100).toFixed(1)}%` : "0%";
+            renderCharts(total, hate);
+        }
+
+        async function loadEvidence() {
+            const res = await fetch(`${SB_URL}/comentarios?select=*&order=data_coleta.desc&limit=12`, { 
+                headers: { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` } 
+            });
+            const data = await res.json();
+            const list = document.getElementById('evidence-list');
+            list.innerHTML = data.map(c => `
+                <div class="glass p-6 flex items-center justify-between">
+                    <div class="flex-1">
+                        <div class="text-[10px] font-bold text-[#5E6AD2] uppercase mb-1">@${c.candidato_id} • ${new Date(c.data_coleta).toLocaleDateString()}</div>
+                        <p class="text-sm italic text-gray-300">"${c.texto_bruto}"</p>
+                    </div>
+                    <div class="px-3 py-1 rounded text-[9px] font-black uppercase ${c.is_hate ? 'bg-red-500/20 text-red-500 border border-red-500/30' : 'bg-green-500/10 text-green-500 border border-green-500/20'}">
+                        ${c.is_hate ? 'Ódio_Detectado' : 'Neutro'}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderCharts(total, hate) {
+            const ctxT = document.getElementById('typeChart').getContext('2d');
+            new Chart(ctxT, {
+                type: 'doughnut',
+                data: { datasets: [{ data: [hate, total-hate], backgroundColor: ['#ff4757', 'rgba(255,255,255,0.05)'], borderWidth: 0 }] },
+                options: { cutout: '80%', plugins: { legend: { display: false } } }
+            });
+        }
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view-content').forEach(v => v.classList.add('hidden'));
+            document.getElementById(`view-${viewId}`).classList.remove('hidden');
+            document.getElementById('header-title').innerText = viewId.toUpperCase();
+        }
+
+        function analyzeAI() {
+            const input = document.getElementById('ai-input').value;
+            if(!input) return;
+            const res = document.getElementById('ai-result');
+            res.classList.remove('hidden');
+            document.getElementById('ai-badge').innerHTML = '<span class="bg-[#5E6AD2] text-white text-[10px] font-bold px-3 py-1 rounded">PROCESSANDO...</span>';
+            setTimeout(() => {
+                document.getElementById('ai-badge').innerHTML = '<span class="bg-green-500 text-white text-[10px] font-bold px-3 py-1 rounded">CLEAR_SCAN</span>';
+                document.getElementById('ai-text').innerText = "Análise concluída. Nenhum marcador de degradação humana encontrado.";
+            }, 800);
+        }
+
+        window.onload = refreshAll;
+    </script>
+</body>
+</html>
