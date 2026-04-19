@@ -9,17 +9,11 @@
 
 ## 🚀 Conquistas do Dia (18/04/2026)
 
-### 🏁 Sprint 7: Modularização e Prova Visual
-- ✅ **Reorganização de Workspace:** Pastas `core`, `collectors`, `api`, `database` e `docs` criadas para modularidade real.
-- ✅ **Inteligência Contextual:** Implementada captura de `post_image` e `post_caption` no coletor.
-- ✅ **IA Local Híbrida:** Qwen 0.5B (Primário) e 1.5B (Fallback) configurados no Ollama.
-- ✅ **Dashboard v5.5 Modular:**
-  - Extração do HTML para `api/templates.py`.
-  - Agrupamento de comentários por "Unidade de Incidente" (Post).
-  - Scroll interno nos cards de postagem.
-  - Exibição de prova visual (thumbnails do Instagram).
-  - Radar Chart para tipificação criminal OSINT.
-- ✅ **Deploy Resiliente:** Resolvidos erros 404 e 500 na Vercel através de roteamento direto via FastAPI e separação de dependências leves/pesadas.
+### 🏁 Sprint 8: Estabilidade de Coleta (v5.6)
+- ✅ **Nova Arquitetura de Coleta**: Migração total do GraphQL (hashes instáveis) para a API REST privada do Instagram (`/api/v1/...`).
+- ✅ **Motor de Upsert**: Implementada lógica de `on_conflict` no Supabase Pipeline, garantindo 0% de falhas por chaves duplicadas.
+- ✅ **Coleta em Cascata**: Automação do fluxo Seguidos -> Últimos 3 Posts -> 100 Comentários por post.
+- ✅ **Agendamento Industrial**: Configurado agendamento diário (08:00 e 20:00) via `CrawlerProcess`.
 
 ---
 
