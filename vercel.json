@@ -1,9 +1,13 @@
 {
   "version": 2,
-  "rewrites": [
-    { "source": "/api/collect", "destination": "api/collect.py" },
-    { "source": "/api/(.*)", "destination": "api/collect.py" },
-    { "source": "/(.*)", "destination": "/index.html" }
+  "name": "forensenet-analytics",
+  "builds": [
+    { "src": "api/collect.py", "use": "@vercel/python" },
+    { "src": "index.html", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/api/collect", "dest": "api/collect.py" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ],
   "crons": [
     {
