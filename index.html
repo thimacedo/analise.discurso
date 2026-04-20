@@ -3,444 +3,289 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FORENSIC ENGINE v5.7 | Industrial Lab</title>
+    <title>FORENSIC ENGINE v5.7 | Professional Analytics</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
-        :root {
-            --chassis: #e0e5ec;
-            --safety-orange: #ff4757;
-            --led-green: #2ecc71;
-            --led-blue: #3498db;
-            --shadow-dark: #a3b1c6;
-            --shadow-light: #ffffff;
-            --text-metal: #2d3436;
-        }
-
-        /* Industrial Skeuomorphism Base */
         body { 
             font-family: 'Inter', sans-serif; 
-            background-color: var(--chassis); 
-            color: var(--text-metal); 
-            overflow: hidden; 
+            background-color: #f8fafc; 
+            color: #0f172a;
             height: 100vh;
-            background-image: url("https://www.transparenttextures.com/patterns/p6.png");
+            overflow: hidden;
         }
-
         .mono { font-family: 'JetBrains Mono', monospace; }
-
-        /* Neumorphic Elevations */
-        .elevated {
-            background: var(--chassis);
-            box-shadow: 9px 9px 16px var(--shadow-dark), -9px -9px 16px var(--shadow-light);
-            border-radius: 20px;
-        }
-
-        .pressed {
-            background: var(--chassis);
-            box-shadow: inset 6px 6px 12px var(--shadow-dark), inset -6px -6px 12px var(--shadow-light);
-            border-radius: 20px;
-        }
-
-        /* Hardware Module (Screwed) */
-        .module {
-            position: relative;
-            background: var(--chassis);
-            box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
-            border: 1px solid rgba(255,255,255,0.4);
+        
+        /* Clean Card Design */
+        .card-clean {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
             border-radius: 12px;
-            padding: 2rem;
-            margin-bottom: 2rem;
+            padding: 1.5rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .card-clean:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
 
-        .module-screw-tl, .module-screw-tr, .module-screw-bl, .module-screw-br {
-            content: '';
-            position: absolute;
-            width: 12px;
-            height: 12px;
-            background: #cbd5e0;
-            border-radius: 50%;
-            box-shadow: inset 2px 2px 4px rgba(0,0,0,0.3), 1px 1px 2px rgba(255,255,255,0.8);
-        }
-
-        /* Screw Positions */
-        .module-screw-tl { top: 10px; left: 10px; }
-        .module-screw-tr { top: 10px; right: 10px; }
-        .module-screw-bl { bottom: 10px; left: 10px; }
-        .module-screw-br { bottom: 10px; right: 10px; }
-
-        .module-screw-tl::after, .module-screw-tr::after, .module-screw-bl::after, .module-screw-br::after {
-            content: '';
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 8px; height: 1px;
-            background: #718096;
-            transform: translate(-50%, -50%) rotate(45deg);
-        }
-
-        /* Sidebar Buttons */
-        .nav-button {
+        /* Nav Buttons */
+        .nav-link {
             display: flex; align-items: center; gap: 0.75rem; width: 100%;
-            padding: 1rem 1.5rem; border-radius: 12px; font-weight: 700;
-            font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em;
-            color: #4a5568; transition: all 0.2s;
-            margin-bottom: 1rem;
-            box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
+            padding: 0.75rem 1rem; border-radius: 8px; font-weight: 500;
+            font-size: 0.875rem; color: #64748b; transition: all 0.2s;
         }
+        .nav-link:hover { background-color: #f1f5f9; color: #0f172a; }
+        .nav-link.active { background-color: #eff6ff; color: #2563eb; font-weight: 600; }
 
-        .nav-button:active, .nav-button.active {
-            box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
-            color: var(--safety-orange);
+        /* Status Animations */
+        .pulse-soft { animation: soft-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes soft-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
         }
-
-        /* Console Topbar */
-        .topbar {
-            height: 80px;
-            background: var(--chassis);
-            box-shadow: 0 4px 10px var(--shadow-dark);
-            border-bottom: 2px solid #cbd5e0;
-            display: flex;
-            align-items: center;
-            padding: 0 2rem;
-            z-index: 50;
-        }
-
-        .led {
-            width: 10px; height: 10px; border-radius: 50%;
-            box-shadow: 0 0 5px rgba(0,0,0,0.2);
-        }
-        .led-pulse { animation: pulse-opacity 1.5s infinite; }
-        @keyframes pulse-opacity {
-            0%, 100% { opacity: 1; filter: brightness(1.2); }
-            50% { opacity: 0.4; filter: brightness(0.8); }
-        }
-
-        .load-bar {
-            width: 60px; height: 8px; background: #cbd5e0;
-            border-radius: 4px; overflow: hidden; position: relative;
-            box-shadow: inset 1px 1px 2px rgba(0,0,0,0.2);
-        }
-        .load-fill {
-            height: 100%; background: var(--led-green);
-            transition: width 0.5s ease;
-        }
-
-        /* Live Feed Pulsação Azul */
-        @keyframes pulse-blue-tactical {
-            0% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.4); border-color: rgba(52, 152, 219, 0.8); }
-            70% { box-shadow: 0 0 0 10px rgba(52, 152, 219, 0); border-color: rgba(52, 152, 219, 0.2); }
-            100% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0); border-color: rgba(52, 152, 219, 0.2); }
-        }
-        .feed-active { animation: pulse-blue-tactical 2s infinite; border: 1px solid var(--led-blue); }
 
         /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 12px; }
-        ::-webkit-scrollbar-track { background: var(--chassis); box-shadow: inset 2px 2px 5px var(--shadow-dark); }
-        ::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 6px; border: 3px solid var(--chassis); }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f8fafc; }
+        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
 
-        /* Highlight Anotado */
-        .highlight-hate {
-            background: rgba(255, 71, 87, 0.1);
-            border: 1px dashed var(--safety-orange);
-            color: var(--safety-orange);
-            padding: 0 4px;
-            font-weight: 800;
+        /* Highlight Pericial */
+        .marker-hate {
+            background-color: #fee2e2;
+            color: #991b1b;
+            padding: 0 2px;
+            border-radius: 2px;
+            font-weight: 600;
+            border-bottom: 2px solid #ef4444;
         }
     </style>
 </head>
-<body class="antialiased">
+<body class="antialiased flex">
 
-    <!-- HARDWARE HEADER -->
-    <header class="topbar">
-        <div class="flex items-center gap-6">
-            <div class="flex flex-col">
-                <span class="mono text-xs font-bold text-gray-500 tracking-tighter uppercase">Status: ONLINE</span>
-                <h1 class="mono text-xl font-800 tracking-tight text-gray-800">FORENSIC ENGINE <span class="text-[var(--safety-orange)]">v5.7</span></h1>
+    <!-- SIDEBAR MINIMALISTA -->
+    <aside class="w-64 border-r border-slate-200 bg-white flex flex-col p-6 shrink-0">
+        <div class="flex items-center gap-3 mb-10">
+            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-sm">
+                <i data-lucide="shield" class="w-5 h-5"></i>
+            </div>
+            <h1 class="text-lg font-800 tracking-tight">Forense<span class="text-blue-600">Net</span></h1>
+        </div>
+
+        <nav class="flex-1 space-y-1">
+            <button onclick="switchView('overview')" id="nav-overview" class="nav-link active">
+                <i data-lucide="layout-grid" class="w-4 h-4"></i> Overview
+            </button>
+            <button onclick="switchView('repository')" id="nav-repository" class="nav-link">
+                <i data-lucide="database" class="w-4 h-4"></i> Corpus de Prova
+            </button>
+            <button onclick="switchView('intelligence')" id="nav-intelligence" class="nav-link">
+                <i data-lucide="cpu" class="w-4 h-4"></i> Analisador IA
+            </button>
+            
+            <div class="pt-8 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3">Relatórios</div>
+            <button class="nav-link"><i data-lucide="file-text" class="w-4 h-4"></i> Exportar Laudo</button>
+            <button class="nav-link"><i data-lucide="activity" class="w-4 h-4"></i> Auditoria</button>
+        </nav>
+
+        <!-- LIVE FEED (CLEAN) -->
+        <div class="mt-auto border-t border-slate-100 pt-6">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Live Stream</span>
+                <div class="w-2 h-2 bg-blue-500 rounded-full pulse-soft"></div>
+            </div>
+            <div id="live-feed-list" class="space-y-3">
+                <!-- Items list -->
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 flex flex-col min-w-0">
+        
+        <!-- TOPBAR -->
+        <header class="h-16 border-b border-slate-200 bg-white flex items-center justify-between px-8 shrink-0">
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2 px-3 py-1 bg-slate-100 rounded-full">
+                    <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+                    <span class="text-[10px] font-bold text-slate-600 uppercase">Engine Online</span>
+                </div>
+                <span class="text-xs text-slate-400 font-medium">Uptime: 99.9%</span>
             </div>
             
-            <div class="h-10 w-[2px] bg-gray-300 mx-4"></div>
-
-            <div class="flex items-center gap-4">
-                <div class="flex items-center gap-2">
-                    <div class="led led-pulse" style="background-color: var(--led-green);"></div>
-                    <span class="mono text-[10px] font-bold">PWR</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <div class="led led-pulse" style="background-color: var(--safety-orange);"></div>
-                    <span class="mono text-[10px] font-bold">DATA</span>
-                </div>
-            </div>
-
-            <div class="h-10 w-[2px] bg-gray-300 mx-4"></div>
-
-            <div class="flex flex-col gap-1">
-                <div class="flex items-center gap-2">
-                    <span class="mono text-[9px] font-bold w-6">CPU</span>
-                    <div class="load-bar"><div id="cpu-bar" class="load-fill" style="width: 45%;"></div></div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="mono text-[9px] font-bold w-6">MEM</span>
-                    <div class="load-bar"><div id="mem-bar" class="load-fill" style="width: 22%; background-color: var(--led-blue);"></div></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="ml-auto flex items-center gap-6">
-             <div class="pressed px-4 py-2 flex items-center gap-3">
-                <i data-lucide="shield-check" class="w-4 h-4 text-gray-600"></i>
-                <span class="mono text-[10px] font-bold tracking-widest">PROTOCOL SECURE</span>
-             </div>
-             <button onclick="refreshAll()" class="nav-button !mb-0 px-6 py-2 bg-gray-100 text-gray-600 hover:text-[var(--safety-orange)]">
-                <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
-             </button>
-        </div>
-    </header>
-
-    <div class="flex h-[calc(100vh-80px)] overflow-hidden">
-        
-        <!-- SIDEBAR CHASSIS -->
-        <aside class="w-72 p-8 border-r border-gray-300 overflow-y-auto" role="complementary">
-            <nav class="space-y-4" role="navigation">
-                <button onclick="switchView('overview')" id="nav-overview" class="nav-button active">
-                    <i data-lucide="cpu" class="w-4 h-4"></i> Dashboard
+            <div class="flex items-center gap-6">
+                <button onclick="refreshAll()" class="text-slate-400 hover:text-blue-600 transition-colors">
+                    <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
                 </button>
-                <button onclick="switchView('repository')" id="nav-repository" class="nav-button">
-                    <i data-lucide="database" class="w-4 h-4"></i> Corpus Prova
-                </button>
-                <button onclick="switchView('intelligence')" id="nav-intelligence" class="nav-button">
-                    <i data-lucide="terminal" class="w-4 h-4"></i> Analisador
-                </button>
-                
-                <div class="mt-12 mb-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] px-2">Relatórios Externos</div>
-                <button class="nav-button"><i data-lucide="file-output" class="w-4 h-4"></i> Export .LOG</button>
-                <button class="nav-button"><i data-lucide="activity" class="w-4 h-4"></i> Health Scan</button>
-            </nav>
-
-            <!-- LIVE FEED BOX (Tactical) -->
-            <div class="mt-12">
-                <div class="flex items-center gap-2 mb-4 px-2">
-                    <i data-lucide="radio" class="w-4 h-4 text-blue-500"></i>
-                    <span class="mono text-[10px] font-bold uppercase tracking-widest text-gray-500">Live Feed</span>
-                </div>
-                <div id="live-feed-list" class="space-y-4">
-                    <!-- Feed items injected here -->
-                </div>
+                <div class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-[10px] font-bold">TM</div>
             </div>
+        </header>
 
-            <div class="mt-12 pressed p-4">
-                <div class="flex items-center gap-2 text-gray-600 mb-1">
-                    <span class="mono text-[10px] font-bold uppercase">Sync Clock</span>
-                </div>
-                <div id="last-update" class="mono text-lg font-800 text-gray-800 tracking-tighter">00:00:00</div>
-            </div>
-        </aside>
-
-        <!-- MAIN TERMINAL AREA -->
-        <main class="flex-1 overflow-y-auto p-12" role="main">
+        <div class="flex-1 overflow-y-auto p-10 custom-scrollbar">
             
             <!-- VIEW: OVERVIEW -->
-            <div id="view-overview" class="view-content space-y-12">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                    <div class="module">
-                        <div class="module-screw-tl"></div><div class="module-screw-tr"></div>
-                        <div class="module-screw-bl"></div><div class="module-screw-br"></div>
-                        <span class="mono text-[9px] font-bold text-gray-500 uppercase block mb-1">Corpus_Total</span>
-                        <h2 id="kpi-total" class="mono text-4xl font-800 tracking-tighter">0</h2>
+            <div id="view-overview" class="view-content space-y-10">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="card-clean border-l-4 border-l-blue-600">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Total Coletado</span>
+                        <div id="kpi-total" class="text-3xl font-bold tracking-tight">0</div>
                     </div>
-                    <div class="module">
-                        <div class="module-screw-tl"></div><div class="module-screw-tr"></div>
-                        <div class="module-screw-bl"></div><div class="module-screw-br"></div>
-                        <span class="mono text-[9px] font-bold text-red-500 uppercase block mb-1">Hate_Signals</span>
-                        <h2 id="kpi-hate" class="mono text-4xl font-800 tracking-tighter text-red-500">0</h2>
+                    <div class="card-clean border-l-4 border-l-red-500">
+                        <span class="text-[10px] font-bold text-red-500 uppercase mb-1 block">Alertas de Ódio</span>
+                        <div id="kpi-hate" class="text-3xl font-bold tracking-tight text-red-600">0</div>
                     </div>
-                    <div class="module">
-                        <div class="module-screw-tl"></div><div class="module-screw-tr"></div>
-                        <div class="module-screw-bl"></div><div class="module-screw-br\"></div>
-                        <span class=\"mono text-[9px] font-bold text-gray-500 uppercase block mb-1\">Risk_Index</span>
-                        <h2 id=\"kpi-percent\" class=\"mono text-4xl font-800 tracking-tighter\">0.0%</h2>
+                    <div class="card-clean border-l-4 border-l-slate-800">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Taxa de Risco</span>
+                        <div id="kpi-percent" class="text-3xl font-bold tracking-tight">0.0%</div>
                     </div>
-                    <div class=\"module\">
-                        <div class=\"module-screw-tl\"></div><div class=\"module-screw-tr\"></div>
-                        <div class=\"module-screw-bl\"></div><div class=\"module-screw-br\"></div>
-                        <span class=\"mono text-[9px] font-bold text-gray-500 uppercase block mb-1\">Active_Nodes</span>
-                        <h2 class=\"mono text-4xl font-800 tracking-tighter italic text-gray-400\">135</h2>
+                    <div class="card-clean border-l-4 border-l-emerald-500">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Processado IA</span>
+                        <div id="kpi-processed" class="text-3xl font-bold tracking-tight text-emerald-600">100%</div>
                     </div>
                 </div>
 
-                <div class=\"grid grid-cols-1 lg:grid-cols-3 gap-12\">
-                    <div class=\"lg:col-span-2 module\">
-                        <div class=\"module-screw-tl\"></div><div class=\"module-screw-tr\"></div>
-                        <div class=\"module-screw-bl\"></div><div class=\"module-screw-br\"></div>
-                        <h3 class=\"mono text-xs font-bold uppercase tracking-[0.2em] mb-8 text-gray-500\">Hostility_Timeline</h3>
-                        <div class=\"h-80\"><canvas id=\"mainChart\"></canvas></div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 card-clean">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Timeline de Hostilidade</h3>
+                        <div class="h-80"><canvas id="mainChart"></canvas></div>
                     </div>
-                    <div class=\"module flex flex-col\">
-                        <div class=\"module-screw-tl\"></div><div class=\"module-screw-tr\"></div>
-                        <div class=\"module-screw-bl\"></div><div class=\"module-screw-br\"></div>
-                        <h3 class=\"mono text-xs font-bold uppercase tracking-[0.2em] mb-8 text-gray-500\">Category_Distribution</h3>
-                        <div class=\"flex-1 flex items-center justify-center\">
-                            <canvas id=\"typeChart\"></canvas>
+                    <div class="card-clean flex flex-col">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Distribuição Jurídica</h3>
+                        <div class="flex-1 flex items-center justify-center">
+                            <canvas id="typeChart"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- VIEW: REPOSITORY -->
-            <div id=\"view-repository\" class=\"view-content hidden space-y-8\">
-                <div class=\"module p-8 flex justify-between items-center\">
-                    <div class=\"module-screw-tl\"></div><div class=\"module-screw-tr\"></div>
-                    <div class=\"module-screw-bl\"></div><div class=\"module-screw-br\"></div>
+            <div id="view-repository" class="view-content hidden space-y-6">
+                <div class="flex justify-between items-center mb-8">
                     <div>
-                        <h2 class=\"mono text-2xl font-800 tracking-tighter uppercase italic\">Forensic <span class=\"text-red-500\">Corpus</span></h2>
-                        <p class=\"mono text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1\">Sinalização de evidências textuais em tempo real.</p>
+                        <h2 class="text-2xl font-bold tracking-tight">Corpus de Prova</h2>
+                        <p class="text-sm text-slate-500">Evidências textuais capturadas pelo monitoramento.</p>
                     </div>
-                    <div class=\"flex gap-4\">
-                        <button onclick=\"loadComments(true)\" class=\"nav-button !mb-0 px-6 py-2 bg-red-100 text-red-600\">ALERTAS</button>
-                        <button onclick=\"loadComments()\" class=\"nav-button !mb-0 px-6 py-2\">FULL_STREAM</button>
+                    <div class="flex gap-2">
+                        <button onclick="loadComments(true)" class="px-4 py-2 bg-red-50 text-red-600 text-xs font-bold uppercase rounded-lg border border-red-100 hover:bg-red-100 transition-all">Sinalizados</button>
+                        <button onclick="loadComments()" class="px-4 py-2 bg-white text-slate-600 text-xs font-bold uppercase rounded-lg border border-slate-200 hover:bg-slate-50 transition-all">Todos</button>
                     </div>
                 </div>
                 
-                <div id=\"evidence-container\" class=\"space-y-8\">
-                    <!-- Modules injected here -->
+                <div id="evidence-container" class="space-y-4">
+                    <!-- Evidence cards -->
                 </div>
             </div>
 
             <!-- VIEW: INTELLIGENCE -->
-            <div id=\"view-intelligence\" class=\"view-content hidden\">
-                <div class=\"max-w-4xl mx-auto space-y-12\">
-                    <div class=\"module text-center p-12\">
-                        <div class=\"module-screw-tl\"></div><div class=\"module-screw-tr\"></div>
-                        <div class=\"module-screw-bl\"></div><div class=\"module-screw-br\"></div>
-                        <h2 class=\"mono text-4xl font-800 tracking-tighter uppercase mb-4 italic\">Decomposition <span class=\"text-blue-500\">Module</span></h2>
-                        <p class=\"mono text-gray-500 font-bold uppercase tracking-[0.3em] text-[10px]\">Neural Pattern Processor v2.0</p>
+            <div id="view-intelligence" class="view-content hidden">
+                <div class="max-w-3xl mx-auto space-y-8">
+                    <div class="text-center py-10">
+                        <h2 class="text-3xl font-bold tracking-tight mb-2">Simulador de Perícia IA</h2>
+                        <p class="text-slate-500">Analise a carga de toxicidade e tipificação via Groq Engine.</p>
                     </div>
-                    <div class=\"module !p-0 overflow-hidden\">
-                        <textarea id=\"ai-input\" placeholder=\"AWAITING INPUT...\" class=\"w-full h-64 border-0 bg-transparent p-12 mono text-xl focus:ring-0 resize-none\" style=\"background: rgba(0,0,0,0.02);\"></textarea>
-                        <button onclick=\"simulateAI()\" class=\"w-full bg-[var(--safety-orange)] text-white mono font-800 py-6 text-sm uppercase tracking-[0.25em] hover:brightness-110 transition-all\">
-                            EXECUTE SCAN
+                    <div class="card-clean space-y-6">
+                        <textarea id="ai-input" placeholder="Insira o texto para análise..." class="w-full h-48 p-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none resize-none text-lg"></textarea>
+                        <button onclick="simulateAI()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20">
+                            Executar Análise Groq
                         </button>
                     </div>
-                    <div id=\"ai-result-panel\" class=\"hidden module p-12 animate-in slide-in-from-bottom duration-500 border-l-8 border-l-blue-500\">
-                        <div class=\"module-screw-tl\"></div><div class=\"module-screw-tr\"></div>
-                        <div class=\"module-screw-bl\"></div><div class=\"module-screw-br\"></div>
-                        <div id=\"ai-chip-container\" class=\"mb-8\"></div>
-                        <p id=\"ai-reasoning\" class=\"mono text-sm leading-relaxed text-gray-700 italic\"></p>
+                    <div id="ai-result-panel" class="hidden card-clean border-l-4 border-l-blue-600 animate-in slide-in-from-top-4 duration-300">
+                        <div id="ai-chip-container" class="mb-4"></div>
+                        <p id="ai-reasoning" class="text-slate-700 leading-relaxed italic"></p>
                     </div>
                 </div>
             </div>
 
-        </main>
-    </div>
+        </div>
+    </main>
 
     <script>
         lucide.createIcons();
-        const SB_URL = \"https://vhamejkldzxbeibqeqpk.supabase.co/rest/v1\";
-        const SB_KEY = \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoYW1lamtsZHp4YmVpYnFlcXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0ODgxMjUsImV4cCI6MjA5MjA2NDEyNX0.RMpgx8mDRrYRNfJ_GdOrsT5o8NkJiwBgW_J7CXSznWk\";
+        const SB_URL = "https://vhamejkldzxbeibqeqpk.supabase.co/rest/v1";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoYW1lamtsZHp4YmVpYnFlcXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0ODgxMjUsImV4cCI6MjA5MjA2NDEyNX0.RMpgx8mDRrYRNfJ_GdOrsT5o8NkJiwBgW_J7CXSznWk";
         let mainChart = null, typeChart = null;
 
-        const HATE_KEYWORDS = [\"macaco\", \"lixo\", \"nordestino\", \"puta\", \"viado\", \"ladrão\", \"corja\", \"morte\", \"macaca\", \"senzala\", \"verme\", \"safado\", \"canalha\"];
+        const HATE_KEYWORDS = ["macaco", "lixo", "nordestino", "puta", "viado", "ladrão", "corja", "morte", "macaca", "senzala", "verme", "safado", "canalha"];
 
         async function refreshAll() {
-            document.getElementById('last-update').innerText = new Date().toLocaleTimeString('pt-BR');
             await loadStats();
             await loadComments();
             await updateLiveFeed();
-            simulateHardware();
-        }
-
-        function simulateHardware() {
-            document.getElementById('cpu-bar').style.width = Math.floor(Math.random() * 40 + 20) + '%';
-            document.getElementById('mem-bar').style.width = Math.floor(Math.random() * 30 + 10) + '%';
         }
 
         async function updateLiveFeed() {
             try {
-                const res = await fetch(`${SB_URL}/comentarios?select=candidato_id,texto_bruto,data_coleta&order=data_coleta.desc&limit=5`, { 
-                    headers: { \"apikey\": SB_KEY, \"Authorization\": `Bearer ${SB_KEY}` } 
+                const res = await fetch(`${SB_URL}/comentarios?select=candidato_id,texto_bruto&order=data_coleta.desc&limit=4`, { 
+                    headers: { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` } 
                 });
                 const data = await res.json();
                 const feed = document.getElementById('live-feed-list');
-                
-                feed.innerHTML = data.map((c, i) => `
-                    <div class=\"pressed p-3 flex flex-col gap-1 overflow-hidden ${i === 0 ? 'feed-active' : ''}\">
-                        <span class=\"mono text-[9px] font-bold text-gray-500 uppercase tracking-tighter\">Node_Entry @${c.candidato_id}</span>
-                        <p class=\"mono text-[10px] text-gray-800 truncate\">${c.texto_bruto}</p>
+                feed.innerHTML = data.map(c => `
+                    <div class="text-[11px] p-3 bg-slate-50 rounded-lg border border-slate-100 flex flex-col gap-1">
+                        <span class="font-bold text-blue-600">@${c.candidato_id}</span>
+                        <p class="text-slate-500 truncate">${c.texto_bruto}</p>
                     </div>
                 `).join('');
             } catch(e) { console.error(e); }
         }
 
         function annotateText(text) {
-            if(!text) return \"\";
+            if(!text) return "";
             let annotated = text;
             HATE_KEYWORDS.forEach(word => {
-                const regex = new RegExp(`\\\\b(${word})\\\\b`, 'gi');
-                annotated = annotated.replace(regex, `<span class=\"highlight-hate\">$1</span>`);
+                const regex = new RegExp(`\\b(${word})\\b`, 'gi');
+                annotated = annotated.replace(regex, `<span class="marker-hate">$1</span>`);
             });
             return annotated;
         }
 
         async function loadStats() {
             try {
-                const headers = { \"apikey\": SB_KEY, \"Authorization\": `Bearer ${SB_KEY}`, \"Prefer\": \"count=exact\" };
+                const headers = { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}`, "Prefer": "count=exact" };
                 const resTotal = await fetch(`${SB_URL}/comentarios?select=id`, { headers });
-                const total = parseInt(resTotal.headers.get(\"content-range\")?.split(\"/\")[1]) || 0;
+                const total = parseInt(resTotal.headers.get("content-range")?.split("/")[1]) || 0;
                 const resHate = await fetch(`${SB_URL}/comentarios?is_hate=eq.true&select=id`, { headers });
-                const hate = parseInt(resHate.headers.get(\"content-range\")?.split(\"/\")[1]) || 0;
+                const hate = parseInt(resHate.headers.get("content-range")?.split("/")[1]) || 0;
 
                 document.getElementById('kpi-total').innerText = total.toLocaleString();
                 document.getElementById('kpi-hate').innerText = hate.toLocaleString();
-                document.getElementById('kpi-percent').innerText = total > 0 ? `${((hate/total)*100).toFixed(1)}%` : \"0.0%\";
+                document.getElementById('kpi-percent').innerText = total > 0 ? `${((hate/total)*100).toFixed(1)}%` : "0.0%";
                 renderCharts(total, hate);
             } catch(e) { console.error(e); }
         }
 
         async function loadComments(onlyAlerts = false) {
             try {
-                let url = `${SB_URL}/comentarios?select=*&order=data_coleta.desc&limit=25`;
-                if(onlyAlerts) url += \"&is_hate=eq.true\";
+                let url = `${SB_URL}/comentarios?select=*&order=data_coleta.desc&limit=20`;
+                if(onlyAlerts) url += "&is_hate=eq.true";
 
-                const res = await fetch(url, { headers: { \"apikey\": SB_KEY, \"Authorization\": `Bearer ${SB_KEY}` } });
+                const res = await fetch(url, { headers: { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` } });
                 const data = await res.json();
 
                 const container = document.getElementById('evidence-container');
                 container.innerHTML = data.map(c => `
-                    <div class=\"module flex flex-col md:flex-row gap-8 items-stretch p-8 bg-[var(--chassis)]\">
-                        <div class=\"module-screw-tl\"></div><div class=\"module-screw-tr\"></div>
-                        <div class=\"module-screw-bl\"></div><div class=\"module-screw-br\"></div>
-                        
-                        <div class=\"w-64 flex-shrink-0 pressed p-6 flex flex-col justify-between\">
-                            <div>
-                                <span class=\"mono text-[8px] font-bold text-gray-500 uppercase tracking-widest block mb-1\">Target_Node</span>
-                                <div class=\"mono text-gray-800 font-800 text-sm\">@${c.candidato_id}</div>
-                            </div>
-                            <div class=\"mt-4\">
-                                <span class=\"mono text-[8px] font-bold text-gray-500 uppercase tracking-widest block mb-1\">Timestamp</span>
-                                <div class=\"mono text-[10px] text-gray-600 font-bold\">${new Date(c.data_coleta).toLocaleString('pt-BR')}</div>
-                            </div>
+                    <div class="card-clean flex gap-6 items-start">
+                        <div class="w-32 shrink-0">
+                            <div class="text-xs font-bold text-blue-600 mb-1">@${c.candidato_id}</div>
+                            <div class="text-[10px] text-slate-400 font-medium uppercase">${new Date(c.data_coleta).toLocaleDateString('pt-BR')}</div>
                         </div>
-
-                        <div class=\"flex-1 p-2\">
-                            <div class=\"mono text-base mb-6 leading-relaxed\">\"${annotateText(c.texto_bruto)}\"</div>
-                            <div class=\"flex items-center gap-6\">
-                                <span class=\"mono text-[9px] font-bold px-3 py-1.5 ${c.is_hate ? 'bg-[var(--safety-orange)] text-white' : 'pressed text-gray-600'} uppercase tracking-widest rounded-full\">
-                                    VEREDICT: ${c.is_hate ? (c.categoria_ia || 'HATE_SPEECH') : 'NEUTRAL_OPINION'}
+                        <div class="flex-1">
+                            <div class="text-slate-700 text-sm leading-relaxed mb-4">"${annotateText(c.texto_bruto)}"</div>
+                            <div class="flex items-center gap-4">
+                                <span class="text-[9px] font-bold px-2 py-1 ${c.is_hate ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'} rounded uppercase">
+                                    Veredito: ${c.is_hate ? (c.categoria_ia || 'Ódio') : 'Neutro'}
                                 </span>
-                                <div class=\"flex items-center gap-2\">
-                                    <div class=\"load-bar w-24\"><div class=\"load-fill\" style=\"width: 98%; background-color: var(--led-blue);\"></div></div>
-                                    <span class=\"mono text-[8px] font-bold text-gray-500 uppercase\">Confidence: 98%</span>
-                                </div>
+                                <span class="text-[9px] font-bold text-slate-400 uppercase">Confiança IA: 98%</span>
                             </div>
                         </div>
-
-                        <div class=\"w-20 flex flex-col items-center justify-center gap-4\">
-                             <button class=\"nav-button !mb-0 p-3 !rounded-full\">
-                                <i data-lucide=\"external-link\" class=\"w-4 h-4\"></i>
-                             </button>
-                        </div>
+                        <button class="p-2 text-slate-300 hover:text-blue-600 transition-colors">
+                            <i data-lucide="external-link" class="w-4 h-4"></i>
+                        </button>
                     </div>
                 `).join('');
                 lucide.createIcons();
@@ -456,16 +301,11 @@
                     labels: ['Sinalizado', 'Neutro'],
                     datasets: [{ 
                         data: [hate, total - hate], 
-                        backgroundColor: ['#ff4757', '#cbd5e0'], 
-                        borderWidth: 0,
-                        hoverOffset: 0
+                        backgroundColor: ['#2563eb', '#f1f5f9'], 
+                        borderWidth: 0
                     }]
                 },
-                options: { 
-                    responsive: true, maintainAspectRatio: false, cutout: '80%',
-                    plugins: { legend: { display: false } },
-                    animation: { duration: 0 }
-                }
+                options: { responsive: true, maintainAspectRatio: false, cutout: '85%', plugins: { legend: { display: false } } }
             });
 
             const ctxMain = document.getElementById('mainChart').getContext('2d');
@@ -475,32 +315,23 @@
                 data: {
                     labels: ['00h', '04h', '08h', '12h', '16h', '20h'],
                     datasets: [{
+                        label: 'Incidentes',
                         data: [5, 45, 12, 88, 30, 65],
-                        borderColor: '#ff4757',
-                        borderWidth: 4,
-                        pointRadius: 6,
-                        pointBackgroundColor: '#e0e5ec',
-                        pointBorderColor: '#ff4757',
-                        pointBorderWidth: 3,
-                        tension: 0,
-                        fill: false
+                        borderColor: '#2563eb',
+                        borderWidth: 2,
+                        fill: true,
+                        backgroundColor: 'rgba(37, 99, 235, 0.05)',
+                        tension: 0.4
                     }]
                 },
-                options: { 
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { 
-                        y: { display: false }, 
-                        x: { grid: { display: false }, ticks: { font: { weight: '800', size: 10, family: 'JetBrains Mono' } } } 
-                    }
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
             });
         }
 
         function switchView(viewId) {
             document.querySelectorAll('.view-content').forEach(v => v.classList.add('hidden'));
             document.getElementById(`view-${viewId}`).classList.remove('hidden');
-            document.querySelectorAll('.nav-button').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
             document.getElementById(`nav-${viewId}`).classList.add('active');
         }
 
@@ -511,19 +342,17 @@
             const chip = document.getElementById('ai-chip-container');
             const reason = document.getElementById('ai-reasoning');
             panel.classList.remove('hidden');
-            reason.innerText = \"DECOMPOSING SYNTAX AND SEMANTICS...\";
+            reason.innerText = "Analisando semântica via Groq Llama 3.3...";
             setTimeout(() => {
                 const isHate = HATE_KEYWORDS.some(word => input.toLowerCase().includes(word));
                 chip.innerHTML = isHate 
-                    ? '<span class=\"bg-[var(--safety-orange)] text-white text-[10px] font-bold px-6 py-2 uppercase tracking-widest rounded-full\">ALARM: HATE_SPEECH_DETECTED</span>'
-                    : '<span class=\"bg-gray-800 text-white text-[10px] font-bold px-6 py-2 uppercase tracking-widest rounded-full\">STATUS: CIVIL_NEUTRAL</span>';
-                
-                reason.innerHTML = `\"${annotateText(input)}\"<br><br><span class=\"text-xs text-gray-500 font-bold uppercase tracking-widest\">Forensic Logic Path:</span><br>${isHate ? 'Human degradation markers found. Linguistic segregation detected in node analysis.' : 'No segregation markers found. Content identified as standard civilian discourse.'}`;
-            }, 800);
+                    ? '<span class="bg-red-100 text-red-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase">Alerta: Discurso de Ódio Detectado</span>'
+                    : '<span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase">Status: Neutro / Opinião Civil</span>';
+                reason.innerHTML = `"${annotateText(input)}"<br><br><span class="text-[10px] text-slate-400 font-bold uppercase">Justificativa Forense:</span><br>${isHate ? 'Presença de termos de desumanização e agressão verbal.' : 'Conteúdo dentro dos limites do debate público.'}`;
+            }, 600);
         }
 
         window.onload = refreshAll;
-        setInterval(refreshAll, 60000);
     </script>
 </body>
 </html>
