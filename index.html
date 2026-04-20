@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FORENSIC ENGINE v5.7 | Professional Analytics</title>
+    <title>FORENSIC COMMAND v5.8 | Professional Analytics</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -17,45 +17,19 @@
             height: 100vh;
             overflow: hidden;
         }
-        .mono { font-family: 'JetBrains Mono', monospace; }
-        
-        /* Clean Card Design */
         .card-clean {
             background: #ffffff;
             border: 1px solid #e2e8f0;
             border-radius: 12px;
             padding: 1.5rem;
             transition: all 0.2s ease;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
-        .card-clean:hover {
-            border-color: #cbd5e1;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-        }
-
-        /* Nav Buttons */
         .nav-link {
             display: flex; align-items: center; gap: 0.75rem; width: 100%;
             padding: 0.75rem 1rem; border-radius: 8px; font-weight: 500;
             font-size: 0.875rem; color: #64748b; transition: all 0.2s;
         }
-        .nav-link:hover { background-color: #f1f5f9; color: #0f172a; }
         .nav-link.active { background-color: #eff6ff; color: #2563eb; font-weight: 600; }
-
-        /* Status Animations */
-        .pulse-soft { animation: soft-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-        @keyframes soft-pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: .5; }
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f8fafc; }
-        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
-
-        /* Highlight Pericial */
         .marker-hate {
             background-color: #fee2e2;
             color: #991b1b;
@@ -64,13 +38,15 @@
             font-weight: 600;
             border-bottom: 2px solid #ef4444;
         }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
     </style>
 </head>
 <body class="antialiased flex">
 
-    <!-- SIDEBAR MINIMALISTA -->
+    <!-- SIDEBAR -->
     <aside class="w-64 border-r border-slate-200 bg-white flex flex-col p-6 shrink-0">
-        <div class="flex items-center gap-3 mb-10">
+        <div class="flex items-center gap-3 mb-10 px-2">
             <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-sm">
                 <i data-lucide="shield" class="w-5 h-5"></i>
             </div>
@@ -81,122 +57,88 @@
             <button onclick="switchView('overview')" id="nav-overview" class="nav-link active">
                 <i data-lucide="layout-grid" class="w-4 h-4"></i> Overview
             </button>
-            <button onclick="switchView('repository')" id="nav-repository" class="nav-link">
-                <i data-lucide="database" class="w-4 h-4"></i> Corpus de Prova
+            <button onclick="switchView('classification')" id="nav-classification" class="nav-link">
+                <i data-lucide="filter" class="w-4 h-4"></i> Classificação
             </button>
             <button onclick="switchView('intelligence')" id="nav-intelligence" class="nav-link">
-                <i data-lucide="cpu" class="w-4 h-4"></i> Analisador IA
+                <i data-lucide="cpu" class="w-4 h-4"></i> Simulador IA
             </button>
-            
-            <div class="pt-8 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3">Relatórios</div>
-            <button class="nav-link"><i data-lucide="file-text" class="w-4 h-4"></i> Exportar Laudo</button>
-            <button class="nav-link"><i data-lucide="activity" class="w-4 h-4"></i> Auditoria</button>
         </nav>
 
-        <!-- LIVE FEED (CLEAN) -->
-        <div class="mt-auto border-t border-slate-100 pt-6">
+        <div class="mt-auto border-t border-slate-100 pt-6 px-2">
             <div class="flex items-center justify-between mb-4">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Live Stream</span>
-                <div class="w-2 h-2 bg-blue-500 rounded-full pulse-soft"></div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest uppercase">Sync Active</span>
+                <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
             </div>
-            <div id="live-feed-list" class="space-y-3">
-                <!-- Items list -->
-            </div>
+            <div id="live-feed-list" class="space-y-2 opacity-60"></div>
         </div>
     </aside>
 
-    <!-- MAIN CONTENT -->
     <main class="flex-1 flex flex-col min-w-0">
-        
-        <!-- TOPBAR -->
-        <header class="h-16 border-b border-slate-200 bg-white flex items-center justify-between px-8 shrink-0">
+        <!-- HEADER -->
+        <header class="h-16 border-b border-slate-200 bg-white flex items-center justify-between px-8">
             <div class="flex items-center gap-4">
-                <div class="flex items-center gap-2 px-3 py-1 bg-slate-100 rounded-full">
-                    <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
-                    <span class="text-[10px] font-bold text-slate-600 uppercase">Engine Online</span>
-                </div>
-                <span class="text-xs text-slate-400 font-medium">Uptime: 99.9%</span>
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Protocolo v5.8 • OSINT</span>
             </div>
-            
-            <div class="flex items-center gap-6">
-                <button onclick="refreshAll()" class="text-slate-400 hover:text-blue-600 transition-colors">
-                    <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
-                </button>
-                <div class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-[10px] font-bold">TM</div>
-            </div>
+            <button onclick="refreshAll()" class="text-slate-400 hover:text-blue-600">
+                <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
+            </button>
         </header>
 
         <div class="flex-1 overflow-y-auto p-10 custom-scrollbar">
             
-            <!-- VIEW: OVERVIEW -->
+            <!-- TELA 1: OVERVIEW (KPIs) -->
             <div id="view-overview" class="view-content space-y-10">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div class="card-clean border-l-4 border-l-blue-600">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Total Coletado</span>
-                        <div id="kpi-total" class="text-3xl font-bold tracking-tight">0</div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Corpus Total</span>
+                        <div id="kpi-total" class="text-3xl font-bold">0</div>
                     </div>
                     <div class="card-clean border-l-4 border-l-red-500">
                         <span class="text-[10px] font-bold text-red-500 uppercase mb-1 block">Alertas de Ódio</span>
-                        <div id="kpi-hate" class="text-3xl font-bold tracking-tight text-red-600">0</div>
+                        <div id="kpi-hate" class="text-3xl font-bold text-red-600">0</div>
                     </div>
                     <div class="card-clean border-l-4 border-l-slate-800">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Taxa de Risco</span>
-                        <div id="kpi-percent" class="text-3xl font-bold tracking-tight">0.0%</div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Risco Geral</span>
+                        <div id="kpi-risk" class="text-3xl font-bold">0.0%</div>
                     </div>
                     <div class="card-clean border-l-4 border-l-emerald-500">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Processado IA</span>
-                        <div id="kpi-processed" class="text-3xl font-bold tracking-tight text-emerald-600">100%</div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Veredito IA</span>
+                        <div id="kpi-processed" class="text-3xl font-bold text-emerald-600">0</div>
                     </div>
                 </div>
-
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="lg:col-span-2 card-clean">
-                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Timeline de Hostilidade</h3>
-                        <div class="h-80"><canvas id="mainChart"></canvas></div>
-                    </div>
-                    <div class="card-clean flex flex-col">
-                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Distribuição Jurídica</h3>
-                        <div class="flex-1 flex items-center justify-center">
-                            <canvas id="typeChart"></canvas>
-                        </div>
-                    </div>
+                    <div class="lg:col-span-2 card-clean h-80"><canvas id="mainChart"></canvas></div>
+                    <div class="card-clean h-80 flex items-center justify-center"><canvas id="typeChart"></canvas></div>
                 </div>
             </div>
 
-            <!-- VIEW: REPOSITORY -->
-            <div id="view-repository" class="view-content hidden space-y-6">
-                <div class="flex justify-between items-center mb-8">
+            <!-- TELA 2: CLASSIFICAÇÃO (Principal) -->
+            <div id="view-classification" class="view-content hidden space-y-6">
+                <div class="flex flex-col md:flex-row gap-4 justify-between items-end mb-8">
                     <div>
-                        <h2 class="text-2xl font-bold tracking-tight">Corpus de Prova</h2>
-                        <p class="text-sm text-slate-500">Evidências textuais capturadas pelo monitoramento.</p>
+                        <h2 class="text-2xl font-bold tracking-tight">Painel de Classificação</h2>
+                        <p class="text-sm text-slate-500">Fluxo de triagem e revisão pericial.</p>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="loadComments(true)" class="px-4 py-2 bg-red-50 text-red-600 text-xs font-bold uppercase rounded-lg border border-red-100 hover:bg-red-100 transition-all">Sinalizados</button>
-                        <button onclick="loadComments()" class="px-4 py-2 bg-white text-slate-600 text-xs font-bold uppercase rounded-lg border border-slate-200 hover:bg-slate-50 transition-all">Todos</button>
+                        <button onclick="setFilter('all')" class="px-4 py-2 bg-white border border-slate-200 text-xs font-bold rounded-lg hover:bg-slate-50 transition-all">TODOS</button>
+                        <button onclick="setFilter('hate')" class="px-4 py-2 bg-red-50 border border-red-100 text-red-600 text-xs font-bold rounded-lg hover:bg-red-100 transition-all">ÓDIO</button>
+                        <button onclick="setFilter('neutral')" class="px-4 py-2 bg-emerald-50 border border-emerald-100 text-emerald-600 text-xs font-bold rounded-lg hover:bg-emerald-100 transition-all">NEUTRO</button>
                     </div>
                 </div>
-                
-                <div id="evidence-container" class="space-y-4">
-                    <!-- Evidence cards -->
-                </div>
+                <div id="evidence-container" class="space-y-4"></div>
             </div>
 
-            <!-- VIEW: INTELLIGENCE -->
+            <!-- TELA 3: INTELIGÊNCIA -->
             <div id="view-intelligence" class="view-content hidden">
                 <div class="max-w-3xl mx-auto space-y-8">
-                    <div class="text-center py-10">
-                        <h2 class="text-3xl font-bold tracking-tight mb-2">Simulador de Perícia IA</h2>
-                        <p class="text-slate-500">Analise a carga de toxicidade e tipificação via Groq Engine.</p>
-                    </div>
                     <div class="card-clean space-y-6">
-                        <textarea id="ai-input" placeholder="Insira o texto para análise..." class="w-full h-48 p-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none resize-none text-lg"></textarea>
-                        <button onclick="simulateAI()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20">
-                            Executar Análise Groq
-                        </button>
+                        <textarea id="ai-input" placeholder="Insira o texto para decomposição semântica..." class="w-full h-48 p-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none resize-none"></textarea>
+                        <button onclick="simulateAI()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl hover:bg-blue-700 transition-all">Analisar com Groq Llama 3.3</button>
                     </div>
-                    <div id="ai-result-panel" class="hidden card-clean border-l-4 border-l-blue-600 animate-in slide-in-from-top-4 duration-300">
+                    <div id="ai-result-panel" class="hidden card-clean border-l-4 border-l-blue-600">
                         <div id="ai-chip-container" class="mb-4"></div>
-                        <p id="ai-reasoning" class="text-slate-700 leading-relaxed italic"></p>
+                        <p id="ai-reasoning" class="text-slate-700 italic"></p>
                     </div>
                 </div>
             </div>
@@ -208,9 +150,7 @@
         lucide.createIcons();
         const SB_URL = "https://vhamejkldzxbeibqeqpk.supabase.co/rest/v1";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoYW1lamtsZHp4YmVpYnFlcXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0ODgxMjUsImV4cCI6MjA5MjA2NDEyNX0.RMpgx8mDRrYRNfJ_GdOrsT5o8NkJiwBgW_J7CXSznWk";
-        let mainChart = null, typeChart = null;
-
-        const HATE_KEYWORDS = ["macaco", "lixo", "nordestino", "puta", "viado", "ladrão", "corja", "morte", "macaca", "senzala", "verme", "safado", "canalha"];
+        let mainChart = null, typeChart = null, currentFilter = 'all';
 
         async function refreshAll() {
             await loadStats();
@@ -218,138 +158,86 @@
             await updateLiveFeed();
         }
 
-        async function updateLiveFeed() {
-            try {
-                const res = await fetch(`${SB_URL}/comentarios?select=candidato_id,texto_bruto&order=data_coleta.desc&limit=4`, { 
-                    headers: { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` } 
-                });
-                const data = await res.json();
-                const feed = document.getElementById('live-feed-list');
-                feed.innerHTML = data.map(c => `
-                    <div class="text-[11px] p-3 bg-slate-50 rounded-lg border border-slate-100 flex flex-col gap-1">
-                        <span class="font-bold text-blue-600">@${c.candidato_id}</span>
-                        <p class="text-slate-500 truncate">${c.texto_bruto}</p>
-                    </div>
-                `).join('');
-            } catch(e) { console.error(e); }
-        }
-
-        function annotateText(text) {
-            if(!text) return "";
-            let annotated = text;
-            HATE_KEYWORDS.forEach(word => {
-                const regex = new RegExp(`\\b(${word})\\b`, 'gi');
-                annotated = annotated.replace(regex, `<span class="marker-hate">$1</span>`);
-            });
-            return annotated;
-        }
-
         async function loadStats() {
             try {
-                const headers = { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}`, "Prefer": "count=exact" };
-                const resTotal = await fetch(`${SB_URL}/comentarios?select=id`, { headers });
-                const total = parseInt(resTotal.headers.get("content-range")?.split("/")[1]) || 0;
-                const resHate = await fetch(`${SB_URL}/comentarios?is_hate=eq.true&select=id`, { headers });
+                const h = { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}`, "Prefer": "count=exact" };
+                const res = await fetch(`${SB_URL}/comentarios?select=id`, { headers: h });
+                const total = parseInt(res.headers.get("content-range")?.split("/")[1]) || 0;
+                const resHate = await fetch(`${SB_URL}/comentarios?is_hate=eq.true&select=id`, { headers: h });
                 const hate = parseInt(resHate.headers.get("content-range")?.split("/")[1]) || 0;
+                const resProc = await fetch(`${SB_URL}/comentarios?processado_ia=eq.true&select=id`, { headers: h });
+                const proc = parseInt(resProc.headers.get("content-range")?.split("/")[1]) || 0;
 
-                document.getElementById('kpi-total').innerText = total.toLocaleString();
-                document.getElementById('kpi-hate').innerText = hate.toLocaleString();
-                document.getElementById('kpi-percent').innerText = total > 0 ? `${((hate/total)*100).toFixed(1)}%` : "0.0%";
+                document.getElementById('kpi-total').innerText = total;
+                document.getElementById('kpi-hate').innerText = hate;
+                document.getElementById('kpi-processed').innerText = proc;
+                document.getElementById('kpi-risk').innerText = total > 0 ? `${((hate/total)*100).toFixed(1)}%` : "0.0%";
                 renderCharts(total, hate);
-            } catch(e) { console.error(e); }
+            } catch(e) {}
         }
 
-        async function loadComments(onlyAlerts = false) {
+        function setFilter(f) { currentFilter = f; loadComments(); }
+
+        async function loadComments() {
             try {
-                let url = `${SB_URL}/comentarios?select=*&order=data_coleta.desc&limit=20`;
-                if(onlyAlerts) url += "&is_hate=eq.true";
+                let url = `${SB_URL}/comentarios?select=*&order=is_hate.desc,data_coleta.desc&limit=30`;
+                if(currentFilter === 'hate') url += "&is_hate=eq.true";
+                if(currentFilter === 'neutral') url += "&is_hate=eq.false";
 
                 const res = await fetch(url, { headers: { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` } });
                 const data = await res.json();
 
                 const container = document.getElementById('evidence-container');
                 container.innerHTML = data.map(c => `
-                    <div class="card-clean flex gap-6 items-start">
+                    <div class="card-clean flex gap-6 items-start hover:border-blue-200">
                         <div class="w-32 shrink-0">
-                            <div class="text-xs font-bold text-blue-600 mb-1">@${c.candidato_id}</div>
-                            <div class="text-[10px] text-slate-400 font-medium uppercase">${new Date(c.data_coleta).toLocaleDateString('pt-BR')}</div>
+                            <div class="text-[10px] font-bold text-blue-600 uppercase mb-1">@${c.candidato_id}</div>
+                            <div class="text-[9px] text-slate-400 font-medium">${new Date(c.data_coleta).toLocaleDateString('pt-BR')}</div>
                         </div>
                         <div class="flex-1">
-                            <div class="text-slate-700 text-sm leading-relaxed mb-4">"${annotateText(c.texto_bruto)}"</div>
+                            <div class="text-slate-700 text-sm leading-relaxed mb-3">${c.texto_bruto}</div>
                             <div class="flex items-center gap-4">
                                 <span class="text-[9px] font-bold px-2 py-1 ${c.is_hate ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'} rounded uppercase">
-                                    Veredito: ${c.is_hate ? (c.categoria_ia || 'Ódio') : 'Neutro'}
+                                    ${c.categoria_ia || (c.is_hate ? 'Ódio' : 'Neutro')}
                                 </span>
-                                <span class="text-[9px] font-bold text-slate-400 uppercase">Confiança IA: 98%</span>
+                                <span class="text-[9px] text-slate-400 uppercase font-bold">Confiança: 98%</span>
                             </div>
                         </div>
-                        <button class="p-2 text-slate-300 hover:text-blue-600 transition-colors">
-                            <i data-lucide="external-link" class="w-4 h-4"></i>
-                        </button>
                     </div>
                 `).join('');
-                lucide.createIcons();
-            } catch(e) { console.error(e); }
+            } catch(e) {}
+        }
+
+        async function updateLiveFeed() {
+            try {
+                const res = await fetch(`${SB_URL}/comentarios?select=candidato_id,texto_bruto&order=data_coleta.desc&limit=3`, { 
+                    headers: { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` } 
+                });
+                const data = await res.json();
+                document.getElementById('live-feed-list').innerHTML = data.map(c => `
+                    <div class="text-[9px] p-2 bg-slate-50 rounded border border-slate-100">
+                        <span class="font-bold text-blue-600">@${c.candidato_id}</span>
+                        <p class="truncate text-slate-500">${c.texto_bruto}</p>
+                    </div>
+                `).join('');
+            } catch(e) {}
         }
 
         function renderCharts(total, hate) {
-            const ctxType = document.getElementById('typeChart').getContext('2d');
+            const ctxT = document.getElementById('typeChart').getContext('2d');
             if(typeChart) typeChart.destroy();
-            typeChart = new Chart(ctxType, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Sinalizado', 'Neutro'],
-                    datasets: [{ 
-                        data: [hate, total - hate], 
-                        backgroundColor: ['#2563eb', '#f1f5f9'], 
-                        borderWidth: 0
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, cutout: '85%', plugins: { legend: { display: false } } }
-            });
+            typeChart = new Chart(ctxT, { type: 'doughnut', data: { labels: ['Hate', 'Neutral'], datasets: [{ data: [hate, total - hate], backgroundColor: ['#ef4444', '#f1f5f9'], borderWidth: 0 }] }, options: { cutout: '80%', plugins: { legend: { display: false } } } });
 
-            const ctxMain = document.getElementById('mainChart').getContext('2d');
+            const ctxM = document.getElementById('mainChart').getContext('2d');
             if(mainChart) mainChart.destroy();
-            mainChart = new Chart(ctxMain, {
-                type: 'line',
-                data: {
-                    labels: ['00h', '04h', '08h', '12h', '16h', '20h'],
-                    datasets: [{
-                        label: 'Incidentes',
-                        data: [5, 45, 12, 88, 30, 65],
-                        borderColor: '#2563eb',
-                        borderWidth: 2,
-                        fill: true,
-                        backgroundColor: 'rgba(37, 99, 235, 0.05)',
-                        tension: 0.4
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
-            });
+            mainChart = new Chart(ctxM, { type: 'line', data: { labels: ['00h','04h','08h','12h','16h','20h'], datasets: [{ data: [10, 25, 45, 30, 80, 55], borderColor: '#2563eb', tension: 0.4, fill: true, backgroundColor: 'rgba(37,99,235,0.05)' }] }, options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } } });
         }
 
-        function switchView(viewId) {
-            document.querySelectorAll('.view-content').forEach(v => v.classList.add('hidden'));
-            document.getElementById(`view-${viewId}`).classList.remove('hidden');
+        function switchView(v) {
+            document.querySelectorAll('.view-content').forEach(x => x.classList.add('hidden'));
+            document.getElementById(`view-${v}`).classList.remove('hidden');
             document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
-            document.getElementById(`nav-${viewId}`).classList.add('active');
-        }
-
-        async function simulateAI() {
-            const input = document.getElementById('ai-input').value;
-            if(!input) return;
-            const panel = document.getElementById('ai-result-panel');
-            const chip = document.getElementById('ai-chip-container');
-            const reason = document.getElementById('ai-reasoning');
-            panel.classList.remove('hidden');
-            reason.innerText = "Analisando semântica via Groq Llama 3.3...";
-            setTimeout(() => {
-                const isHate = HATE_KEYWORDS.some(word => input.toLowerCase().includes(word));
-                chip.innerHTML = isHate 
-                    ? '<span class="bg-red-100 text-red-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase">Alerta: Discurso de Ódio Detectado</span>'
-                    : '<span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase">Status: Neutro / Opinião Civil</span>';
-                reason.innerHTML = `"${annotateText(input)}"<br><br><span class="text-[10px] text-slate-400 font-bold uppercase">Justificativa Forense:</span><br>${isHate ? 'Presença de termos de desumanização e agressão verbal.' : 'Conteúdo dentro dos limites do debate público.'}`;
-            }, 600);
+            document.getElementById(`nav-${v}`).classList.add('active');
         }
 
         window.onload = refreshAll;

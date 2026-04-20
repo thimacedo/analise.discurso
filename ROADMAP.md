@@ -1,31 +1,53 @@
 # 🗺️ ROADMAP.md - Projeto Ódio Política (Mapa de Voo)
 
-## 📌 Ponto de Partida (Status Atual)
-**Data:** 19 de Abril de 2026
-**Versão Atual:** v6.1.0 Elite Stealth
-**Status:** OPERACIONAL (Arquitetura de alta performance)
+## 📌 Status Atual
+**Data:** 18 de Abril de 2026
+**Versão Atual:** v5.8 (Dashboard Estruturado)
+**Status:** ESTÁVEL (Deploy Vercel Online)
 
 ---
 
-## 🚀 Conquistas da v6.0/6.1 (Refatoração de Elite)
-- **UI Linear / Modern:** Interface totalmente refatorada com Glassmorphism, Animated Ambient Blobs e Mouse-Tracking Spotlights.
-- **Scrapy v6.1 Stealth:** Novo crawler baseado em API REST (`/api/v1/`) com integração **Browserbase** (Proxy Residencial) para evasão de bloqueios.
-- **Inteligência Instrumentada:** Integração com **Braintrust** para telemetria de IA e monitoramento de qualidade dos laudos periciais.
-- **Motor Híbrido:** Pipeline de análise com **Groq (Llama 3.3 70B)** e fallback automático para **Qwen Local 1.5B**.
-- **Orquestração Nativa:** Adição de **Supabase Agent Skills** e configuração de MCP Server para manipulação direta de dados.
+## 🚀 Conquistas Recentes
+
+### 🏁 Sprint 10: Dashboard Estruturado Supabase (v5.8)
+- ✅ **Clean Tech UI**: Interface minimalista de alto contraste com foco em dados.
+- ✅ **Fluxo de Classificação**: Implementada listagem com prioridade `is_hate DESC` e filtros dinâmicos.
+- ✅ **Integração Groq v2**: Coleta e análise síncrona com Llama 3.3 (Ódio, Categoria e Sarcasmo).
+- ✅ **Políticas de Acesso**: Configurado para Dashboard Aberto (Anon Read-Only).
 
 ---
 
-## 🛠️ Procedimento Operacional Padrão (SOP)
-1. **Inspeção:** Verificação de integridade no Supabase via MCP/Script.
-2. **Extração:** Coleta via Scrapy (Monitor -> Seguidos -> 3 Posts -> 50 Comments).
-3. **Inteligência:** Processamento Groq -> Fallback Qwen Local.
-4. **Publicação:** Sincronização automática com a nuvem e dashboard.
+## 📋 Comandos e Estruturas Supabase (Fixos)
 
-## 📈 Próximos Passos
-- Implementação de detector de sarcasmo refinado.
-- Exportação de laudos periciais em PDF.
-- Expansão do mapeamento de perfis-satélite.
+### 1. Visualização de KPIs (Views Recomendadas)
+```sql
+CREATE OR REPLACE VIEW public.dashboard_comentarios_kpis AS
+SELECT
+  count(*)::int AS total_comentarios,
+  count(*) FILTER (WHERE is_hate IS true)::int AS total_hate,
+  count(*) FILTER (WHERE is_hate IS false OR is_hate IS NULL)::int AS total_nao_hate,
+  count(*) FILTER (WHERE processado_ia IS true)::int AS total_processados
+FROM public.comentarios;
+```
+
+### 2. Filtros de Classificação
+- **Texto**: `texto_bruto` (ILike para busca textual).
+- **Gravidade**: `is_hate` (Booleano).
+- **Categoria**: `categoria_ia` (Taxonomia Criminal).
+- **Ordenação**: `is_hate DESC, data_coleta DESC`.
 
 ---
-*Dashboard Online:* projeto-odio-politica.vercel.app
+
+## 🎯 Próximos Passos
+
+### 📈 Escalonamento e Perícia
+1.  **Monitoramento Nacional:** Ciclo Lula → Bolsonaro → Nikolas → Flávio.
+2.  **Detecção de Sarcasmo Local:** Refinar motor local para reduzir falsos positivos em elogios irônicos.
+3.  **Laudos Dinâmicos:** Exportação do Corpus de Prova formatado para PDF pericial.
+
+---
+
+## 🛠️ Guia de Operação
+- **Interface:** https://projeto-odio-politica.vercel.app
+- **Trigger Coletor:** https://projeto-odio-politica.vercel.app/api/collect
+- **Banco:** Supabase (PostgreSQL + PostgREST).
