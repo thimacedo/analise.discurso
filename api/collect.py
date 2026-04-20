@@ -48,7 +48,6 @@ async def analyze_with_groq(text: str):
     except: return None
 
 @app.get("/api/collect")
-@app.get("/")
 async def collect_handler():
     start_time = time.time()
     max_duration = 9.0 # Vercel limit is 10s
