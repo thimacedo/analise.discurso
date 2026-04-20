@@ -1,9 +1,13 @@
 {
   "version": 2,
-  "name": "projeto-odio-politica",
-  "cleanUrls": true,
-  "public": true,
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "api/collect.py" },
     { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "crons": [
+    {
+      "path": "/api/collect",
+      "schedule": "0 8,20 * * *"
+    }
   ]
 }
