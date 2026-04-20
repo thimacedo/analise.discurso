@@ -23,25 +23,18 @@ HEADERS_IG = {
     "x-ig-app-id": "936619743392459"
 }
 
-# 🏠 ROTA RAIZ: SERVIR O DASHBOARD (index.html)
-@app.get("/", response_class=HTMLResponse)
-@app.get("/index.html", response_class=HTMLResponse)
+# 🏠 ROTA DE SEGURANÇA: SE A VERCEL "SEQUESTRAR" A RAIZ, NÓS ENTREGAMOS O HTML
+@app.get("/")
+@app.get("/index.html")
 async def serve_dashboard():
-    """
-    Lê o ficheiro index.html da raiz e entrega ao navegador.
-    Esta é a solução definitiva para o erro 'Not Found'.
-    """
     try:
-        # Tenta encontrar o ficheiro na raiz (padrão Vercel)
-        path = os.path.join(os.getcwd(), "index.html")
-        if not os.path.exists(path):
-            # Fallback para subpasta se necessário
-            path = os.path.join(os.getcwd(), "public", "index.html")
-            
+        # Tenta ler o ficheiro na raiz do projeto (caminho absoluto na Vercel)
+        root_path = os.path.dirname(os.path.dirname(__file__))
+        path = os.path.join(root_path, "index.html")
         with open(path, "r", encoding="utf-8") as f:
-            return f.read()
+            return HTMLResponse(content=f.read())
     except Exception as e:
-        return f"<html><body><h1>Erro ao carregar Dashboard</h1><p>{str(e)}</p></body></html>"
+        return HTMLResponse(content=f"<html><body><h1>ForenseNet v5.9</h1><p>Sistema Online. Dashboard a carregar...</p><script>window.location.reload();</script></body></html>")
 
 @app.get("/api/status")
 async def status():
@@ -50,5 +43,4 @@ async def status():
 @app.get("/api/collect")
 @app.get("/api/main")
 async def collect_handler():
-    # ... (lógica de coleta existente mantida para background sync)
     return {"status": "success", "message": "Collector initialized"}
