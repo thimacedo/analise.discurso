@@ -47,6 +47,7 @@ async def analyze_with_groq(text: str):
         return json.loads(completion.choices[0].message.content)
     except: return None
 
+@app.get("/")
 @app.get("/api/collect")
 async def collect_handler():
     start_time = time.time()
