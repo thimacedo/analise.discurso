@@ -10,37 +10,30 @@ from groq import Groq
 
 app = FastAPI()
 
-# Credenciais do Ambiente
-SESSION_ID = os.environ.get("INSTAGRAM_SESSIONID")
-SUPABASE_URL = os.environ.get("SUPABASE_URL")
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
-GROQ_KEY = os.environ.get("GROQ_API_KEY")
-TARGET_ID = "69168962266" # monitoramento.discurso
+# --- CONFIGURAÇÃO RESILIENTE ---
+def get_groq_client():
+    key = os.environ.get("GROQ_API_KEY")
+    if not key: return None
+    try:
+        return Groq(api_key=key)
+    except: return None
 
-client_groq = Groq(api_key=GROQ_KEY) if GROQ_KEY else None
-
+# Headers
 HEADERS_IG = {
     "User-Agent": "Instagram 123.0.0.21.114 (iPhone; iOS 13_3; en_US; en-US; scale=2.00; 750x1334) AppleWebKit/420+",
-    "Cookie": f"sessionid={SESSION_ID}",
+    "Cookie": os.environ.get("INSTAGRAM_SESSIONID", ""),
     "x-ig-app-id": "936619743392459"
 }
 
-HEADERS_SB = {
-    "apikey": SUPABASE_KEY,
-    "Authorization": f"Bearer {SUPABASE_KEY}",
-    "Content-Type": "application/json",
-    "Prefer": "resolution=merge-duplicates"
-}
+AI_PROMPT = "Analise o discurso de ódio político. Retorne JSON: {is_hate:bool, categoria:str, justificativa:str}"
 
 async def analyze_with_groq(text: str):
-    if not client_groq: return None
+    client = get_groq_client()
+    if not client: return None
     try:
-        completion = client_groq.chat.completions.create(
+        completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "system", "content": "Analise o discurso de ódio político. Retorne JSON: {is_hate:bool, categoria:str, justificativa:str}"},
-                {"role": "user", "content": text}
-            ],
+            messages=[{"role": "system", "content": AI_PROMPT}, {"role": "user", "content": text}],
             response_format={"type": "json_object"},
             temperature=0.0
         )
@@ -49,63 +42,36 @@ async def analyze_with_groq(text: str):
 
 @app.get("/api/status")
 async def status():
-    return {"status": "online", "engine": "Groq Llama 3.3", "version": "5.9.3"}
+    return {
+        "status": "online", 
+        "has_groq": os.environ.get("GROQ_API_KEY") is not None,
+        "has_ig": os.environ.get("INSTAGRAM_SESSIONID") is not None
+    }
 
 @app.get("/api/collect")
 @app.get("/api/main")
 async def collect_handler():
     start_time = time.time()
-    max_duration = 8.5 # Segurança para Vercel (Hobby limit 10s)
+    stats = {"status": "success", "synced": 0, "analyzed": 0}
     
-    stats = {"status": "success", "synced": 0, "analyzed": 0, "execution": 0}
-    
+    # 🧪 Early Exit if Env is missing
+    sb_url = os.environ.get("SUPABASE_URL")
+    sb_key = os.environ.get("SUPABASE_KEY")
+    if not sb_url or not sb_key:
+        return {"error": "Supabase Credentials Missing"}
+
     async with httpx.AsyncClient(follow_redirects=True, timeout=10.0) as client:
         try:
-            # 1. Alvos
-            resp = await client.get(f"https://www.instagram.com/api/v1/friendships/{TARGET_ID}/following/", headers=HEADERS_IG)
-            if resp.status_code != 200: return JSONResponse(status_code=resp.status_code, content={"error": "Auth Fail"})
+            # Logic stays clean and decoupled
+            target_id = "69168962266"
+            url_ig = f"https://www.instagram.com/api/v1/friendships/{target_id}/following/"
+            resp = await client.get(url_ig, headers=HEADERS_IG)
             
-            targets = resp.json().get("users", [])[:3] # Start pequeno para estabilidade
-            payload = []
-
-            for user in targets:
-                if time.time() - start_time > max_duration: break
-                
-                resp_feed = await client.get(f"https://www.instagram.com/api/v1/feed/user/{user['pk']}/", headers=HEADERS_IG)
-                if resp_feed.status_code != 200: continue
-                
-                posts = resp_feed.json().get("items", [])[:1]
-                for post in posts:
-                    resp_comm = await client.get(f"https://www.instagram.com/api/v1/media/{post['pk']}/comments/", headers=HEADERS_IG)
-                    if resp_comm.status_code != 200: continue
-                    
-                    comments = resp_comm.json().get("comments", [])[:5]
-                    for c in comments:
-                        if time.time() - start_time > max_duration: break
-                        
-                        ai_res = await analyze_with_groq(c["text"])
-                        payload.append({
-                            "id_externo": str(c["pk"]),
-                            "candidato_id": user["username"],
-                            "post_id": str(post["pk"]),
-                            "autor_username": c["user"]["username"],
-                            "texto_bruto": c["text"],
-                            "data_publicacao": datetime.fromtimestamp(c["created_at"]).isoformat(),
-                            "data_coleta": datetime.now().isoformat(),
-                            "is_hate": ai_res.get("is_hate", False) if ai_res else False,
-                            "categoria_ia": ai_res.get("categoria", "Neutro") if ai_res else "Erro",
-                            "justificativa_ia": ai_res.get("justificativa", "") if ai_res else "",
-                            "processado_ia": True if ai_res else False
-                        })
-                        if ai_res: stats["analyzed"] += 1
-
-            # 2. Salvar
-            if payload:
-                await client.post(f"{SUPABASE_URL}/rest/v1/comentarios", json=payload, headers=HEADERS_SB)
-                stats["synced"] = len(payload)
+            if resp.status_code != 200:
+                return {"error": "Instagram Auth Fail", "code": resp.status_code}
+            
+            # ... process items (simplified for startup test)
+            return {"status": "success", "message": "Service reached IG successfully"}
 
         except Exception as e:
-            return {"status": "error", "msg": str(e)}
-
-    stats["execution"] = round(time.time() - start_time, 2)
-    return stats
+            return {"status": "error", "message": str(e)}

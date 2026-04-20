@@ -1,7 +1,9 @@
 {
   "version": 2,
-  "cleanUrls": true,
   "rewrites": [
+    { "source": "/favicon.ico", "destination": "https://vercel.com/favicon.ico" },
+    { "source": "/api/collect", "destination": "/api/main.py" },
+    { "source": "/api/status", "destination": "/api/main.py" },
     { "source": "/api/(.*)", "destination": "/api/main.py" }
   ]
 }
