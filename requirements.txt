@@ -1,4 +1,0 @@
-fastapi
-httpx
-groq
-python-dotenv

@@ -47,6 +47,10 @@ async def analyze_with_groq(text: str):
         return json.loads(completion.choices[0].message.content)
     except: return None
 
+@app.get("/api/status")
+async def status():
+    return {"status": "online", "engine": "Groq Llama 3.3", "version": "5.9.3"}
+
 @app.get("/api/collect")
 @app.get("/api/main")
 async def collect_handler():
