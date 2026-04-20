@@ -244,5 +244,17 @@
 
         window.onload = refreshAll;
     </script>
+    
+    <!-- ASSISTLOOP INTEGRATION -->
+    <script src="https://assistloop.ai/assistloop-widget.js"></script>
+    <script>
+        window.addEventListener('load', () => {
+            if (window.AssistLoopWidget) {
+                window.AssistLoopWidget.init({
+                    agentId: "0e7eb563-99a7-4ba2-a7f1-e8abeb3b9fa8",
+                });
+            }
+        });
+    </script>
 </body>
 </html>
