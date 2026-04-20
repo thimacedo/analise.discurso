@@ -10,11 +10,11 @@ from groq import Groq
 
 app = FastAPI()
 
-# Credenciais
-SESSION_ID = os.getenv("INSTAGRAM_SESSIONID")
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-GROQ_KEY = os.getenv("GROQ_API_KEY")
+# Credenciais (Puxadas DIRETAMENTE das ENV da Vercel)
+SESSION_ID = os.environ.get("INSTAGRAM_SESSIONID")
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+GROQ_KEY = os.environ.get("GROQ_API_KEY")
 TARGET_ID = "69168962266"
 
 client_groq = Groq(api_key=GROQ_KEY) if GROQ_KEY else None
