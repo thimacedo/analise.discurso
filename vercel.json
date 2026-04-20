@@ -2,13 +2,8 @@
   "version": 2,
   "name": "projeto-odio-politica",
   "cleanUrls": true,
-  "framework": null,
-  "builds": [
-    { "src": "index.html", "use": "@vercel/static" },
-    { "src": "api/engine_backend.py", "use": "@vercel/python" }
-  ],
+  "public": true,
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/engine_backend.py" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
