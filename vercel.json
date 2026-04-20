@@ -1,12 +1,14 @@
 {
   "version": 2,
-  "functions": {
-    "api/index.py": {
-      "runtime": "@vercel/python"
-    }
-  },
   "routes": [
+    { "src": "/api/collect", "dest": "api/index.py" },
     { "src": "/api/(.*)", "dest": "api/index.py" },
     { "src": "/(.*)", "dest": "/public/$1" }
+  ],
+  "crons": [
+    {
+      "path": "/api/collect",
+      "schedule": "0 8,20 * * *"
+    }
   ]
 }
