@@ -1,15 +1,12 @@
 {
   "version": 2,
-  "public": true,
-  "cleanUrls": true,
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/collect.py" },
-    { "source": "/(.*)", "destination": "/index.html" }
+  "name": "projeto-odio-politica",
+  "builds": [
+    { "src": "api/*.py", "use": "@vercel/python" },
+    { "src": "index.html", "use": "@vercel/static" }
   ],
-  "crons": [
-    {
-      "path": "/api/collect",
-      "schedule": "0 8,20 * * *"
-    }
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "api/collect.py" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
