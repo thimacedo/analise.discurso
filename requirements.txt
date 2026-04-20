@@ -1,4 +1,7 @@
-fastapi
-httpx
-groq
-python-dotenv
+fastapi>=0.100.0
+groq>=0.4.0
+httpx>=0.25.0
+python-dotenv>=1.0.0
+uvicorn>=0.23.0
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.0
