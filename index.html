@@ -158,6 +158,8 @@
             await loadStats();
             await loadComments();
             await updateLiveFeed();
+            // Trigger background collection
+            fetch('/api/main'); 
         }
 
         async function loadStats() {
