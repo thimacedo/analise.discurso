@@ -41,9 +41,6 @@
             color: #60a5fa;
             box-shadow: inset 2px 0 0 #3b82f6;
         }
-        .state { fill: #1e293b; stroke: #334155; stroke-width: 0.8; transition: all 0.3s; cursor: pointer; }
-        .state:hover { fill: #334155; stroke: #60a5fa; filter: drop-shadow(0 0 8px #3b82f6); }
-        .state.high-aggro { fill: rgba(245, 158, 11, 0.4); stroke: var(--accent-amber); }
         .tag-bubble {
             background: rgba(59, 130, 246, 0.1);
             border: 1px solid rgba(59, 130, 246, 0.2);
@@ -54,10 +51,11 @@
             color: #93c5fd;
             display: inline-block;
             margin: 4px;
-            transition: all 0.2s;
         }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="antialiased flex p-4 gap-4">
@@ -70,79 +68,68 @@
             </div>
             <div>
                 <h1 class="text-xl font-900 tracking-tight leading-none">SENTINELA</h1>
-                <span class="text-[10px] text-blue-400 font-bold tracking-[0.2em] uppercase">Intelligence v9</span>
+                <span class="text-[10px] text-blue-400 font-bold tracking-[0.2em] uppercase">Intelligence v9.1</span>
             </div>
         </div>
 
         <nav class="flex-1 space-y-3">
-            <button onclick="switchView('map')" id="nav-map" class="nav-item active">
+            <button onclick="navigate('map')" id="nav-map" class="nav-item">
                 <i data-lucide="map" class="w-5 h-5"></i> Panorama Geopolítico
             </button>
-            <button onclick="switchView('targets')" id="nav-targets" class="nav-item">
+            <button onclick="navigate('targets')" id="nav-targets" class="nav-item">
                 <i data-lucide="activity" class="w-5 h-5"></i> Saúde dos Monitorados
             </button>
-            <button onclick="switchView('trends')" id="nav-trends" class="nav-item">
+            <button onclick="navigate('trends')" id="nav-trends" class="nav-item">
                 <i data-lucide="layers" class="w-5 h-5"></i> Nuvem de Temas
             </button>
         </nav>
 
         <div class="mt-auto pt-8 border-t border-white/5 space-y-4">
-            <div class="p-4 bg-slate-900/40 rounded-2xl border border-white/5">
-                <span class="text-[10px] font-bold text-slate-500 uppercase block mb-2">Sincronização</span>
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-mono text-emerald-400">STATUS: OK</span>
-                    <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                </div>
-            </div>
             <button onclick="exportReport()" class="w-full py-4 bg-blue-600 hover:bg-blue-500 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2">
                 <i data-lucide="file-text" class="w-4 h-4"></i> Relatório Situacional
             </button>
         </div>
     </aside>
 
-    <!-- MAIN CONTENT -->
     <main class="flex-1 flex flex-col gap-4 min-w-0">
-        
         <header class="grid grid-cols-4 gap-4 shrink-0">
-            <div class="glass-card p-6">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Amostragem Total</span>
-                <div id="kpi-total" class="text-3xl font-black font-mono text-slate-200">---</div>
-            </div>
-            <div class="glass-card p-6">
-                <span class="text-[10px] font-bold text-amber-500 uppercase tracking-widest block mb-2">Índice Agressividade</span>
-                <div id="kpi-aggro" class="text-3xl font-black font-mono text-amber-500">---</div>
-            </div>
-            <div class="glass-card p-6">
-                <span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest block mb-2">Estabilidade Digital</span>
-                <div id="kpi-stability" class="text-3xl font-black font-mono text-blue-400">---</div>
-            </div>
+            <div class="glass-card p-6"><span class="text-[10px] font-bold text-slate-400 uppercase mb-2 block">Amostragem</span><div id="kpi-total" class="text-3xl font-black font-mono">---</div></div>
+            <div class="glass-card p-6"><span class="text-[10px] font-bold text-amber-500 uppercase mb-2 block">Agressividade</span><div id="kpi-aggro" class="text-3xl font-black font-mono text-amber-500">---</div></div>
+            <div class="glass-card p-6"><span class="text-[10px] font-bold text-blue-400 uppercase mb-2 block">Estabilidade</span><div id="kpi-stability" class="text-3xl font-black font-mono text-blue-400">---</div></div>
             <div class="glass-card p-6 flex items-center justify-between group cursor-pointer" onclick="refresh()">
-                <div><span class="text-[10px] font-bold text-slate-400 uppercase block mb-2">Próximo Ciclo</span><div class="text-sm font-bold">Atualizar</div></div>
+                <div><span class="text-[10px] font-bold text-slate-400 uppercase block mb-2">Sincronização</span><div class="text-sm font-bold">Atualizar Dados</div></div>
                 <div class="p-3 bg-white/5 rounded-xl group-hover:bg-white/10 transition-all"><i data-lucide="refresh-cw" class="w-5 h-5 text-slate-400"></i></div>
             </div>
         </header>
 
         <div class="flex-1 glass-card overflow-hidden relative">
-            <div id="view-map" class="view-content absolute inset-0 p-10 flex flex-col">
-                <div class="flex justify-between items-start mb-10">
-                    <div><h2 class="text-2xl font-bold tracking-tight">Mapa de Calor Situacional</h2><p class="text-sm text-slate-400">Análise geopolítica em tempo real.</p></div>
-                    <div class="flex bg-slate-900/80 p-1.5 rounded-2xl border border-white/10">
-                        <button onclick="setMapMode('volume')" id="btn-mode-vol" class="px-6 py-2 text-[10px] font-bold rounded-xl bg-blue-600 text-white transition-all">VOLUME</button>
-                        <button onclick="setMapMode('clima')" id="btn-mode-clima" class="px-6 py-2 text-[10px] font-bold rounded-xl text-slate-400 hover:text-white transition-all">CLIMA</button>
-                    </div>
-                </div>
-                <div class="flex-1 flex items-center justify-center">
-                    <svg viewBox="0 0 600 600" class="h-full w-auto drop-shadow-2xl">
-                        <text x="50%" y="50%" text-anchor="middle" class="fill-slate-600 font-mono text-[10px] uppercase tracking-[0.5em]">Geometria do Mapa em Processamento...</text>
-                    </svg>
+            <!-- MAPA -->
+            <div id="view-map" class="view-content absolute inset-0 p-10 hidden flex-col">
+                <h2 class="text-2xl font-bold mb-4">Mapa de Calor Situacional</h2>
+                <p class="text-sm text-slate-400 mb-10">Análise de impacto geopolítico em tempo real.</p>
+                <div class="flex-1 flex items-center justify-center border border-white/5 rounded-3xl bg-slate-900/20">
+                    <span class="text-xs font-mono text-slate-600 uppercase tracking-widest">Aguardando Geometrias...</span>
                 </div>
             </div>
 
+            <!-- MONITORADOS -->
             <div id="view-targets" class="view-content absolute inset-0 p-10 hidden overflow-y-auto">
-                 <h2 class="text-2xl font-bold mb-8">Resiliência Digital dos Monitorados</h2>
-                 <div id="target-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+                 <div class="flex justify-between items-center mb-8">
+                     <div>
+                         <h2 class="text-2xl font-bold">Saúde dos Monitorados</h2>
+                         <p class="text-sm text-slate-400">Status de resiliência digital por perfil.</p>
+                     </div>
+                     <div id="target-count" class="px-4 py-2 bg-white/5 rounded-xl text-xs font-bold text-blue-400 border border-white/10">0 Peris Detectados</div>
+                 </div>
+                 <div id="target-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                     <!-- Skeleton Loaders -->
+                     <div class="glass-card p-8 animate-pulse bg-white/5"></div>
+                     <div class="glass-card p-8 animate-pulse bg-white/5"></div>
+                     <div class="glass-card p-8 animate-pulse bg-white/5"></div>
+                 </div>
             </div>
 
+            <!-- TENDÊNCIAS -->
             <div id="view-trends" class="view-content absolute inset-0 p-10 hidden flex flex-col">
                 <h2 class="text-2xl font-bold mb-8">Nuvem de Temas e Narrativas</h2>
                 <div class="flex-1 glass-card p-10 flex flex-wrap content-start gap-4" id="tag-cloud"></div>
@@ -154,63 +141,104 @@
         lucide.createIcons();
         const SB_URL = "https://vhamejkldzxbeibqeqpk.supabase.co/rest/v1";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoYW1lamtsZHp4YmVpYnFlcXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0ODgxMjUsImV4cCI6MjA5MjA2NDEyNX0.RMpgx8mDRrYRNfJ_GdOrsT5o8NkJiwBgW_J7CXSznWk";
-        const h = { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` };
+        const headers = { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` };
 
+        // --- NAVEGAÇÃO E PERSISTÊNCIA ---
+        function navigate(view) {
+            window.location.hash = view;
+            updateUI(view);
+        }
+
+        function updateUI(view) {
+            document.querySelectorAll('.view-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            
+            const activeView = document.getElementById(`view-${view}`) || document.getElementById('view-map');
+            const activeNav = document.getElementById(`nav-${view}`) || document.getElementById('nav-map');
+            
+            activeView.classList.remove('hidden');
+            activeView.classList.add('fade-in');
+            activeNav.classList.add('active');
+        }
+
+        window.onhashchange = () => updateUI(window.location.hash.substring(1));
+
+        // --- CARREGAMENTO DE DADOS ---
         async function refresh() {
+            console.log("Iniciando sincronização global...");
+            await Promise.all([updateKPIs(), loadTargets(), loadTrends()]);
+        }
+
+        async function updateKPIs() {
             try {
-                // KPIs
-                const res = await fetch(`${SB_URL}/comentarios?select=id`, { headers: { ...h, "Prefer": "count=exact" } });
+                const res = await fetch(`${SB_URL}/comentarios?select=id`, { headers: { ...headers, "Prefer": "count=exact" } });
                 const total = parseInt(res.headers.get("content-range")?.split("/")[1]) || 0;
-                const resH = await fetch(`${SB_URL}/comentarios?is_hate=eq.true&select=id`, { headers: { ...h, "Prefer": "count=exact" } });
+                const resH = await fetch(`${SB_URL}/comentarios?is_hate=eq.true&select=id`, { headers: { ...headers, "Prefer": "count=exact" } });
                 const aggro = parseInt(resH.headers.get("content-range")?.split("/")[1]) || 0;
                 
                 document.getElementById('kpi-total').innerText = total.toLocaleString();
                 document.getElementById('kpi-aggro').innerText = aggro;
                 document.getElementById('kpi-stability').innerText = `${(100 - (aggro/total*100 || 0)).toFixed(1)}%`;
+            } catch(e) { console.error("KPI Error:", e); }
+        }
 
-                // TARGETS - Usando colunas reais detectadas (username, cargo, estado)
-                const resT = await fetch(`${SB_URL}/candidatos?select=username,cargo,estado&limit=15`, { headers: h });
-                const targets = await resT.json();
-                document.getElementById('target-grid').innerHTML = targets.map(t => `
-                    <div class="glass-card p-6 bg-white/5 border-white/5">
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center font-bold text-blue-400 text-xs">@</div>
-                            <span class="text-[9px] px-2 py-1 rounded bg-blue-500/10 text-blue-400 border border-blue-500/10 font-bold uppercase">${t.estado || 'BR'}</span>
+        async function loadTargets() {
+            const grid = document.getElementById('target-grid');
+            try {
+                // Tenta buscar com as colunas reais identificadas no debug anterior
+                const res = await fetch(`${SB_URL}/candidatos?select=username,nome_completo,cargo,estado,comentarios_totais_count,comentarios_odio_count&order=username.asc&limit=24`, { headers });
+                const data = await res.json();
+                
+                if(!data || data.length === 0) {
+                    grid.innerHTML = '<div class="col-span-full p-20 text-center opacity-50 font-mono text-xs uppercase tracking-widest">Nenhum perfil em monitoramento ativo.</div>';
+                    return;
+                }
+
+                document.getElementById('target-count').innerText = `${data.length} Perfis Detectados`;
+                grid.innerHTML = data.map(t => {
+                    const toxic = t.comentarios_totais_count > 0 ? (t.comentarios_odio_count / t.comentarios_totais_count * 100) : 0;
+                    return `
+                    <div class="glass-card p-6 bg-white/[0.02] border-white/5 hover:bg-white/[0.05] transition-all">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center font-black text-blue-500 shadow-inner">@</div>
+                            <div class="text-right">
+                                <span class="text-[9px] px-2 py-1 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 font-bold uppercase tracking-tighter">${t.estado || 'BR'}</span>
+                                <div class="text-[8px] text-slate-500 font-bold mt-1 uppercase tracking-widest">${t.cargo || 'Monitorado'}</div>
+                            </div>
                         </div>
-                        <h4 class="text-sm font-bold mb-1">@${t.username}</h4>
-                        <p class="text-[10px] text-slate-500">${t.cargo || 'Monitorado'}</p>
+                        <h4 class="text-sm font-bold text-white mb-1 truncate">@${t.username}</h4>
+                        <p class="text-[10px] text-slate-400 mb-4 truncate">${t.nome_completo || 'Identidade Preservada'}</p>
+                        
+                        <div class="space-y-2 pt-4 border-t border-white/5">
+                            <div class="flex justify-between text-[9px] font-bold uppercase tracking-widest">
+                                <span class="text-slate-500">Resiliência</span>
+                                <span class="${toxic > 10 ? 'text-amber-500' : 'text-blue-400'}">${(100 - toxic).toFixed(0)}%</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                <div class="h-full ${toxic > 10 ? 'bg-amber-500' : 'bg-blue-600'}" style="width: ${100 - toxic}%"></div>
+                            </div>
+                        </div>
                     </div>
-                `).join('');
-
-                // TRENDS
-                const themes = ["Segurança", "Economia", "Corrupção", "Educação", "Nordeste", "Greve", "Impostos"];
-                document.getElementById('tag-cloud').innerHTML = themes.map(t => `<div class="tag-bubble">${t}</div>`).join('');
-            } catch(e) {
-                console.error("Erro ao carregar dados:", e);
-                document.body.innerHTML += `<div class="fixed inset-0 bg-red-900/20 backdrop-blur-md flex items-center justify-center z-50"><div class="glass-card p-10 text-center">
-                    <h1 class="text-xl font-bold mb-2">Erro de Conexão Situacional</h1>
-                    <p class="text-sm text-slate-400 mb-6">Não foi possível sincronizar com o banco de dados principal.</p>
-                    <button onclick="location.reload()" class="px-6 py-2 bg-blue-600 rounded-lg font-bold text-xs">Tentar Reconectar</button>
-                </div></div>`;
+                `}).join('');
+            } catch(e) { 
+                console.error("Target Load Error:", e);
+                grid.innerHTML = `<div class="col-span-full p-10 glass-card text-amber-500 text-xs font-mono text-center">FALHA NA SINCRONIZAÇÃO: ${e.message}</div>`;
             }
         }
 
-        function switchView(v) {
-            document.querySelectorAll('.view-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`view-${v}`).classList.remove('hidden');
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            document.getElementById(`nav-${v}`).classList.add('active');
-        }
-
-        function setMapMode(m) {
-            const vol = document.getElementById('btn-mode-vol');
-            const clima = document.getElementById('btn-mode-clima');
-            vol.className = m === 'volume' ? "px-6 py-2 text-[10px] font-bold rounded-xl bg-blue-600 text-white transition-all shadow-lg" : "px-6 py-2 text-[10px] font-bold rounded-xl text-slate-400 hover:text-white transition-all";
-            clima.className = m === 'clima' ? "px-6 py-2 text-[10px] font-bold rounded-xl bg-amber-600 text-white transition-all shadow-lg" : "px-6 py-2 text-[10px] font-bold rounded-xl text-slate-400 hover:text-white transition-all";
+        async function loadTrends() {
+            const themes = ["Segurança", "Economia", "Corrupção", "Educação", "Saúde", "Impostos", "Nordeste", "Greve", "Saneamento", "Transparência"];
+            document.getElementById('tag-cloud').innerHTML = themes.map(t => `<div class="tag-bubble">${t}</div>`).join('');
         }
 
         async function exportReport() { window.location.href = '/api/export_pdf'; }
-        window.onload = refresh;
+
+        // Inicialização
+        window.onload = () => {
+            const initialView = window.location.hash.substring(1) || 'map';
+            updateUI(initialView);
+            refresh();
+        };
     </script>
 </body>
 </html>
