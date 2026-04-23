@@ -1,0 +1,91 @@
+:root {
+    --glass: rgba(15, 23, 42, 0.95);
+    --border: rgba(255, 255, 255, 0.05);
+    --accent-blue: #3b82f6;
+    --accent-amber: #f59e0b;
+    --accent-red: #ef4444;
+}
+
+body { 
+    font-family: 'Plus Jakarta Sans', sans-serif; 
+    background: #020617; 
+    color: #f8fafc; 
+    height: 100vh; 
+    overflow: hidden; 
+    background-image: radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.05) 0%, transparent 40%);
+}
+
+.glass-card { 
+    background: var(--glass); 
+    backdrop-filter: blur(40px); 
+    border: 1px solid var(--border); 
+    border-radius: 24px; 
+    overflow: hidden; 
+}
+
+.nav-item { 
+    display: flex; 
+    align-items: center; 
+    gap: 0.8rem; 
+    width: 100%; 
+    padding: 0.9rem 1.3rem; 
+    border-radius: 14px; 
+    font-weight: 700; 
+    font-size: 0.8rem; 
+    color: #64748b; 
+    transition: 0.3s; 
+}
+
+.nav-item.active { 
+    background: rgba(59, 130, 246, 0.1); 
+    color: #60a5fa; 
+}
+
+.profile-thumb { 
+    width: 44px; 
+    height: 44px; 
+    border-radius: 12px; 
+    object-fit: cover; 
+    background: #1e293b; 
+    border: 2px solid rgba(255,255,255,0.05); 
+}
+
+.state { 
+    fill: #1e293b; 
+    stroke: #334155; 
+    stroke-width: 0.5; 
+    transition: 0.3s; 
+    cursor: pointer; 
+}
+
+.state:hover { 
+    fill: #3b82f6; 
+    stroke: #fff; 
+}
+
+.state.active { 
+    fill: rgba(59, 130, 246, 0.4); 
+    stroke: #60a5fa; 
+    stroke-width: 1.5; 
+}
+
+.state.danger { 
+    fill: rgba(245, 158, 11, 0.5) !important; 
+    stroke: #f59e0b; 
+}
+
+.spectrum-bar { 
+    height: 6px; 
+    border-radius: 4px; 
+    display: flex; 
+    overflow: hidden; 
+    background: rgba(255,255,255,0.05); 
+}
+
+.seg-neutro { background: #3b82f6; } 
+.seg-ataque { background: #ef4444; }
+
+.chart-box { height: 280px; position: relative; }
+
+::-webkit-scrollbar { width: 4px; } 
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
