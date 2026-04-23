@@ -4,14 +4,6 @@
     {
       "source": "/api/(.*)",
       "destination": "/api/index.py"
-    },
-    {
-      "source": "/ads.txt",
-      "destination": "/ads.txt"
-    },
-    {
-      "source": "/((?!api/|ads.txt).*)",
-      "destination": "/index.html"
     }
   ],
   "builds": [
@@ -20,11 +12,7 @@
       "use": "@vercel/python"
     },
     {
-      "src": "index.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "ads.txt",
+      "src": "public/**/*",
       "use": "@vercel/static"
     }
   ]
