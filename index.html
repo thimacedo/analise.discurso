@@ -1,148 +1,173 @@
-<!-- FORENSIC_ENGINE_V5.8_CLEAN_DEPLOY_STABLE -->
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FORENSIC COMMAND v8.1 | Professional Analytics</title>
-    <!-- DEPLOY_REF: v8.1.0_ROOT_STABLE -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
+    <title>SENTINELA v9 | Inteligência Situacional</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
+        :root {
+            --glass-bg: rgba(15, 23, 42, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --accent-blue: #3b82f6;
+            --accent-amber: #f59e0b;
+        }
         body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: #f8fafc; 
-            color: #0f172a;
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: radial-gradient(circle at top right, #1e293b, #020617);
+            color: #f8fafc;
             height: 100vh;
             overflow: hidden;
         }
-        .card-clean {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 1.5rem;
-            transition: all 0.2s ease;
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .nav-link {
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        .nav-item {
             display: flex; align-items: center; gap: 0.75rem; width: 100%;
-            padding: 0.75rem 1rem; border-radius: 8px; font-weight: 500;
-            font-size: 0.875rem; color: #64748b; transition: all 0.2s;
+            padding: 0.875rem 1.25rem; border-radius: 12px; font-weight: 600;
+            font-size: 0.875rem; color: #94a3b8; transition: all 0.2s;
         }
-        .nav-link.active { background-color: #eff6ff; color: #2563eb; font-weight: 600; }
-        .marker-hate {
-            background-color: #fee2e2;
-            color: #991b1b;
-            padding: 0 2px;
-            border-radius: 2px;
-            font-weight: 600;
-            border-bottom: 2px solid #ef4444;
+        .nav-item.active { 
+            background: rgba(59, 130, 246, 0.1); 
+            color: #60a5fa;
+            box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.2);
         }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        .pulse-amber { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
+        .map-state { fill: #1e293b; stroke: #334155; stroke-width: 0.5; transition: all 0.3s; cursor: pointer; }
+        .map-state:hover { fill: #334155; stroke: #60a5fa; }
+        .map-state.active-alert { fill: rgba(245, 158, 11, 0.3); stroke: var(--accent-amber); stroke-width: 1; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
     </style>
 </head>
-<body class="antialiased flex">
+<body class="antialiased flex p-4 gap-4">
 
     <!-- SIDEBAR -->
-    <aside class="w-64 border-r border-slate-200 bg-white flex flex-col p-6 shrink-0">
+    <aside class="w-72 glass-card flex flex-col p-6 shrink-0">
         <div class="flex items-center gap-3 mb-10 px-2">
-            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-sm">
-                <i data-lucide="shield" class="w-5 h-5"></i>
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                <i data-lucide="activity" class="w-6 h-6 text-white"></i>
             </div>
-            <h1 class="text-lg font-800 tracking-tight">Forense<span class="text-blue-600">Net</span></h1>
+            <div>
+                <h1 class="text-lg font-800 tracking-tight leading-none">SENTINELA</h1>
+                <span class="text-[10px] text-blue-400 font-bold tracking-widest uppercase">Situacional v9</span>
+            </div>
         </div>
 
-        <nav class="flex-1 space-y-1">
-            <button onclick="switchView('overview')" id="nav-overview" class="nav-link active">
-                <i data-lucide="layout-grid" class="w-4 h-4"></i> Overview
+        <nav class="flex-1 space-y-2">
+            <button onclick="switchView('map')" id="nav-map" class="nav-item active">
+                <i data-lucide="map-pinned" class="w-4 h-4"></i> Mapa de Calor
             </button>
-            <button onclick="switchView('classification')" id="nav-classification" class="nav-link">
-                <i data-lucide="filter" class="w-4 h-4"></i> Classificação
+            <button onclick="switchView('targets')" id="nav-targets" class="nav-item">
+                <i data-lucide="users" class="w-4 h-4"></i> Termômetro de Alvos
             </button>
-            <button onclick="switchView('intelligence')" id="nav-intelligence" class="nav-link">
-                <i data-lucide="cpu" class="w-4 h-4"></i> Simulador IA
+            <button onclick="switchView('trends')" id="nav-trends" class="nav-item">
+                <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Tendências
             </button>
         </nav>
 
-        <div class="mt-auto border-t border-slate-100 pt-6 px-2">
+        <div class="mt-auto pt-6 border-t border-white/5">
             <div class="flex items-center justify-between mb-4">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest uppercase">Sync Active</span>
-                <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Global Sync</span>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] text-emerald-400 font-mono">ONLINE</span>
+                    <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_#10b981]"></div>
+                </div>
             </div>
-            <div id="live-feed-list" class="space-y-2 opacity-60"></div>
+            <button onclick="exportReport()" class="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
+                <i data-lucide="file-down" class="w-4 h-4"></i> Exportar Panorama
+            </button>
         </div>
     </aside>
 
-    <main class="flex-1 flex flex-col min-w-0">
-        <!-- HEADER -->
-        <header class="h-16 border-b border-slate-200 bg-white flex items-center justify-between px-8">
-            <div class="flex items-center gap-4">
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Protocolo v5.8 • OSINT</span>
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 flex flex-col gap-4 min-w-0">
+        
+        <!-- TOP KPIs -->
+        <header class="grid grid-cols-4 gap-4 shrink-0">
+            <div class="glass-card p-5">
+                <span class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Amostragem Total</span>
+                <div id="kpi-total" class="text-2xl font-bold font-mono">---</div>
             </div>
-            <button onclick="refreshAll()" class="text-slate-400 hover:text-blue-600">
-                <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
-            </button>
+            <div class="glass-card p-5 border-l-4 border-l-amber-500">
+                <span class="text-[10px] font-bold text-amber-500 uppercase block mb-1">Picos de Agressividade</span>
+                <div id="kpi-aggro" class="text-2xl font-bold font-mono text-amber-500">---</div>
+            </div>
+            <div class="glass-card p-5">
+                <span class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Estabilidade Média</span>
+                <div id="kpi-stability" class="text-2xl font-bold font-mono text-blue-400">---</div>
+            </div>
+            <div class="glass-card p-5 flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Status do Ciclo</span>
+                    <div class="text-sm font-bold">Monitoramento Ativo</div>
+                </div>
+                <button onclick="refresh()" class="p-2 hover:bg-white/5 rounded-lg text-slate-400"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
+            </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto p-10 custom-scrollbar">
+        <!-- VIEW CONTAINER -->
+        <div class="flex-1 glass-card overflow-hidden relative flex flex-col">
             
-            <!-- TELA 1: OVERVIEW (KPIs) -->
-            <div id="view-overview" class="view-content space-y-10">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div class="card-clean border-l-4 border-l-blue-600">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Corpus Total</span>
-                        <div id="kpi-total" class="text-3xl font-bold">0</div>
-                    </div>
-                    <div class="card-clean border-l-4 border-l-red-500">
-                        <span class="text-[10px] font-bold text-red-500 uppercase mb-1 block">Alertas de Ódio</span>
-                        <div id="kpi-hate" class="text-3xl font-bold text-red-600">0</div>
-                    </div>
-                    <div class="card-clean border-l-4 border-l-slate-800">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Risco Geral</span>
-                        <div id="kpi-risk" class="text-3xl font-bold">0.0%</div>
-                    </div>
-                    <div class="card-clean border-l-4 border-l-emerald-500">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Veredito IA</span>
-                        <div id="kpi-processed" class="text-3xl font-bold text-emerald-600">0</div>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="lg:col-span-2 card-clean h-80"><canvas id="mainChart"></canvas></div>
-                    <div class="card-clean h-80 flex items-center justify-center"><canvas id="typeChart"></canvas></div>
-                </div>
-            </div>
-
-            <!-- TELA 2: CLASSIFICAÇÃO (Principal) -->
-            <div id="view-classification" class="view-content hidden space-y-6">
-                <div class="flex flex-col md:flex-row gap-4 justify-between items-end mb-8">
+            <!-- MAP VIEW -->
+            <div id="view-map" class="view-content absolute inset-0 flex flex-col p-8 transition-opacity duration-300">
+                <div class="flex justify-between items-center mb-8">
                     <div>
-                        <h2 class="text-2xl font-bold tracking-tight">Painel de Classificação</h2>
-                        <p class="text-sm text-slate-500">Fluxo de triagem e revisão pericial.</p>
+                        <h2 class="text-xl font-bold">Monitoramento Geopolítico</h2>
+                        <p class="text-xs text-slate-400">Densidade de interações e clima por região.</p>
                     </div>
-                    <div class="flex gap-2">
-                        <button onclick="setFilter('all')" class="px-4 py-2 bg-white border border-slate-200 text-xs font-bold rounded-lg hover:bg-slate-50 transition-all">TODOS</button>
-                        <button onclick="setFilter('hate')" class="px-4 py-2 bg-red-50 border border-red-100 text-red-600 text-xs font-bold rounded-lg hover:bg-red-100 transition-all">ÓDIO</button>
-                        <button onclick="setFilter('neutral')" class="px-4 py-2 bg-emerald-50 border border-emerald-100 text-emerald-600 text-xs font-bold rounded-lg hover:bg-emerald-100 transition-all">NEUTRO</button>
+                    <div class="flex bg-slate-900/50 p-1 rounded-xl border border-white/5">
+                        <button onclick="setMapMode('volume')" id="btn-mode-vol" class="px-4 py-1.5 text-[10px] font-bold rounded-lg bg-blue-600 text-white transition-all">VOLUME</button>
+                        <button onclick="setMapMode('clima')" id="btn-mode-clima" class="px-4 py-1.5 text-[10px] font-bold rounded-lg text-slate-400 hover:text-white transition-all">CLIMA</button>
                     </div>
                 </div>
-                <div id="evidence-container" class="space-y-4"></div>
+                
+                <div class="flex-1 flex items-center justify-center relative">
+                    <!-- SVG MAP PLACEHOLDER (Will be injected/loaded) -->
+                    <div id="map-container" class="w-full max-w-2xl opacity-80">
+                        <svg viewBox="0 0 600 600" class="w-full h-full drop-shadow-2xl">
+                             <!-- Simplificação para o protótipo -->
+                             <circle cx="300" cy="300" r="200" fill="none" stroke="rgba(255,255,255,0.05)" stroke-dasharray="4 4" />
+                             <text x="50%" y="50%" text-anchor="middle" class="fill-slate-500 font-mono text-[10px]">MAPA INTERATIVO CARREGANDO...</text>
+                        </svg>
+                    </div>
+                    
+                    <!-- DATA OVERLAY -->
+                    <div class="absolute right-0 top-0 w-64 space-y-4">
+                        <div class="glass-card p-4 bg-slate-900/80 border-l-2 border-l-blue-500">
+                            <span class="text-[9px] font-bold text-blue-400 uppercase">Região em Foco</span>
+                            <h3 id="focus-region" class="text-sm font-bold">Brasil (Geral)</h3>
+                            <div class="mt-2 space-y-1">
+                                <div class="flex justify-between text-[10px] text-slate-400"><span>Impacto</span><span class="text-white">Normal</span></div>
+                                <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden"><div class="w-1/3 h-full bg-blue-500"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- TELA 3: INTELIGÊNCIA -->
-            <div id="view-intelligence" class="view-content hidden">
-                <div class="max-w-3xl mx-auto space-y-8">
-                    <div class="card-clean space-y-6">
-                        <textarea id="ai-input" placeholder="Insira o texto para decomposição semântica..." class="w-full h-48 p-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none resize-none"></textarea>
-                        <button onclick="simulateAI()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl hover:bg-blue-700 transition-all">Analisar com Groq Llama 3.3</button>
-                    </div>
-                    <div id="ai-result-panel" class="hidden card-clean border-l-4 border-l-blue-600">
-                        <div id="ai-chip-container" class="mb-4"></div>
-                        <p id="ai-reasoning" class="text-slate-700 italic"></p>
-                    </div>
+            <!-- TARGETS VIEW -->
+            <div id="view-targets" class="view-content absolute inset-0 hidden p-8 overflow-y-auto">
+                <h2 class="text-xl font-bold mb-6">Saúde Digital dos Monitorados</h2>
+                <div id="target-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Cards de Alvos (Dynamic) -->
                 </div>
             </div>
 
@@ -153,59 +178,41 @@
         lucide.createIcons();
         const SB_URL = "https://vhamejkldzxbeibqeqpk.supabase.co/rest/v1";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoYW1lamtsZHp4YmVpYnFlcXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0ODgxMjUsImV4cCI6MjA5MjA2NDEyNX0.RMpgx8mDRrYRNfJ_GdOrsT5o8NkJiwBgW_J7CXSznWk";
-        let mainChart = null, typeChart = null, currentFilter = 'all';
+        const headers = { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` };
 
-        async function refreshAll() {
-            await loadStats();
-            await loadComments();
-            await updateLiveFeed();
-            // Trigger background collection
-            fetch('/api/main'); 
+        async function refresh() {
+            await updateKPIs();
+            await loadTargets();
         }
 
-        async function loadStats() {
+        async function updateKPIs() {
             try {
-                const h = { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}`, "Prefer": "count=exact" };
-                const res = await fetch(`${SB_URL}/comentarios?select=id`, { headers: h });
+                const res = await fetch(`${SB_URL}/comentarios?select=id`, { headers: { ...headers, "Prefer": "count=exact" } });
                 const total = parseInt(res.headers.get("content-range")?.split("/")[1]) || 0;
-                const resHate = await fetch(`${SB_URL}/comentarios?is_hate=eq.true&select=id`, { headers: h });
+                const resHate = await fetch(`${SB_URL}/comentarios?is_hate=eq.true&select=id`, { headers: { ...headers, "Prefer": "count=exact" } });
                 const hate = parseInt(resHate.headers.get("content-range")?.split("/")[1]) || 0;
-                const resProc = await fetch(`${SB_URL}/comentarios?processado_ia=eq.true&select=id`, { headers: h });
-                const proc = parseInt(resProc.headers.get("content-range")?.split("/")[1]) || 0;
 
-                document.getElementById('kpi-total').innerText = total;
-                document.getElementById('kpi-hate').innerText = hate;
-                document.getElementById('kpi-processed').innerText = proc;
-                document.getElementById('kpi-risk').innerText = total > 0 ? `${((hate/total)*100).toFixed(1)}%` : "0.0%";
-                renderCharts(total, hate);
+                document.getElementById('kpi-total').innerText = total.toLocaleString();
+                document.getElementById('kpi-aggro').innerText = hate;
+                document.getElementById('kpi-stability').innerText = `${(100 - (hate/total*100 || 0)).toFixed(1)}%`;
             } catch(e) {}
         }
 
-        function setFilter(f) { currentFilter = f; loadComments(); }
-
-        async function loadComments() {
+        async function loadTargets() {
             try {
-                let url = `${SB_URL}/comentarios?select=*&order=is_hate.desc,data_coleta.desc&limit=30`;
-                if(currentFilter === 'hate') url += "&is_hate=eq.true";
-                if(currentFilter === 'neutral') url += "&is_hate=eq.false";
-
-                const res = await fetch(url, { headers: { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` } });
+                const res = await fetch(`${SB_URL}/candidatos?select=username,prioridade,cenario&order=prioridade.asc`, { headers });
                 const data = await res.json();
-
-                const container = document.getElementById('evidence-container');
-                container.innerHTML = data.map(c => `
-                    <div class="card-clean flex gap-6 items-start hover:border-blue-200">
-                        <div class="w-32 shrink-0">
-                            <div class="text-[10px] font-bold text-blue-600 uppercase mb-1">@${c.candidato_id}</div>
-                            <div class="text-[9px] text-slate-400 font-medium">${new Date(c.data_coleta).toLocaleDateString('pt-BR')}</div>
-                        </div>
+                const container = document.getElementById('target-grid');
+                container.innerHTML = data.slice(0, 12).map(t => `
+                    <div class="glass-card p-4 flex items-center gap-4 bg-white/5 border-white/5">
+                        <div class="w-10 h-10 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center text-xs font-bold text-blue-400">@</div>
                         <div class="flex-1">
-                            <div class="text-slate-700 text-sm leading-relaxed mb-3">${c.texto_bruto}</div>
-                            <div class="flex items-center gap-4">
-                                <span class="text-[9px] font-bold px-2 py-1 ${c.is_hate ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'} rounded uppercase">
-                                    ${c.categoria_ia || (c.is_hate ? 'Ódio' : 'Neutro')}
-                                </span>
-                                <span class="text-[9px] text-slate-400 uppercase font-bold">Confiança: 98%</span>
+                            <div class="flex justify-between items-center mb-1">
+                                <h4 class="text-sm font-bold">@${t.username}</h4>
+                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">${t.cenario}</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                <div class="h-full bg-blue-500" style="width: ${100 - (t.prioridade * 15)}%"></div>
                             </div>
                         </div>
                     </div>
@@ -213,51 +220,31 @@
             } catch(e) {}
         }
 
-        async function updateLiveFeed() {
-            try {
-                const res = await fetch(`${SB_URL}/comentarios?select=candidato_id,texto_bruto&order=data_coleta.desc&limit=3`, { 
-                    headers: { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` } 
-                });
-                const data = await res.json();
-                document.getElementById('live-feed-list').innerHTML = data.map(c => `
-                    <div class="text-[9px] p-2 bg-slate-50 rounded border border-slate-100">
-                        <span class="font-bold text-blue-600">@${c.candidato_id}</span>
-                        <p class="truncate text-slate-500">${c.texto_bruto}</p>
-                    </div>
-                `).join('');
-            } catch(e) {}
-        }
-
-        function renderCharts(total, hate) {
-            const ctxT = document.getElementById('typeChart').getContext('2d');
-            if(typeChart) typeChart.destroy();
-            typeChart = new Chart(ctxT, { type: 'doughnut', data: { labels: ['Hate', 'Neutral'], datasets: [{ data: [hate, total - hate], backgroundColor: ['#ef4444', '#f1f5f9'], borderWidth: 0 }] }, options: { cutout: '80%', plugins: { legend: { display: false } } } });
-
-            const ctxM = document.getElementById('mainChart').getContext('2d');
-            if(mainChart) mainChart.destroy();
-            mainChart = new Chart(ctxM, { type: 'line', data: { labels: ['00h','04h','08h','12h','16h','20h'], datasets: [{ data: [10, 25, 45, 30, 80, 55], borderColor: '#2563eb', tension: 0.4, fill: true, backgroundColor: 'rgba(37,99,235,0.05)' }] }, options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } } });
-        }
-
         function switchView(v) {
-            document.querySelectorAll('.view-content').forEach(x => x.classList.add('hidden'));
+            document.querySelectorAll('.view-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(`view-${v}`).classList.remove('hidden');
-            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             document.getElementById(`nav-${v}`).classList.add('active');
         }
 
-        window.onload = refreshAll;
-    </script>
-    
-    <!-- ASSISTLOOP INTEGRATION -->
-    <script src="https://assistloop.ai/assistloop-widget.js"></script>
-    <script>
-        window.addEventListener('load', () => {
-            if (window.AssistLoopWidget) {
-                window.AssistLoopWidget.init({
-                    agentId: "0e7eb563-99a7-4ba2-a7f1-e8abeb3b9fa8",
-                });
+        function setMapMode(m) {
+            const vol = document.getElementById('btn-mode-vol');
+            const clima = document.getElementById('btn-mode-clima');
+            if(m === 'volume') {
+                vol.className = "px-4 py-1.5 text-[10px] font-bold rounded-lg bg-blue-600 text-white transition-all";
+                clima.className = "px-4 py-1.5 text-[10px] font-bold rounded-lg text-slate-400 hover:text-white transition-all";
+            } else {
+                clima.className = "px-4 py-1.5 text-[10px] font-bold rounded-lg bg-amber-600 text-white transition-all";
+                vol.className = "px-4 py-1.5 text-[10px] font-bold rounded-lg text-slate-400 hover:text-white transition-all";
             }
-        });
+        }
+
+        async function exportReport() {
+            alert("Iniciando geração de Panorama Estratégico (PDF)... Verifique o servidor.");
+            fetch('/api/export_pdf'); // Trigger backend action
+        }
+
+        window.onload = refresh;
     </script>
 </body>
 </html>
