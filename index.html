@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SENTINELA v9 | Inteligência Situacional</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -11,8 +12,8 @@
     
     <style>
         :root {
-            --glass-bg: rgba(15, 23, 42, 0.6);
-            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-bg: rgba(15, 23, 42, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.08);
             --accent-blue: #3b82f6;
             --accent-amber: #f59e0b;
         }
@@ -25,74 +26,77 @@
         }
         .glass-card {
             background: var(--glass-bg);
-            backdrop-filter: blur(16px);
+            backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .glass-card:hover {
-            border-color: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
+            border-radius: 24px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .nav-item {
             display: flex; align-items: center; gap: 0.75rem; width: 100%;
-            padding: 0.875rem 1.25rem; border-radius: 12px; font-weight: 600;
-            font-size: 0.875rem; color: #94a3b8; transition: all 0.2s;
+            padding: 1rem 1.25rem; border-radius: 14px; font-weight: 600;
+            font-size: 0.875rem; color: #94a3b8; transition: all 0.3s;
         }
         .nav-item.active { 
-            background: rgba(59, 130, 246, 0.1); 
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.15), transparent);
             color: #60a5fa;
-            box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.2);
+            box-shadow: inset 2px 0 0 #3b82f6;
         }
-        .pulse-amber { animation: pulse 2s infinite; }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        .state { fill: #1e293b; stroke: #334155; stroke-width: 0.8; transition: all 0.3s; cursor: pointer; }
+        .state:hover { fill: #334155; stroke: #60a5fa; filter: drop-shadow(0 0 8px #3b82f6); }
+        .state.high-aggro { fill: rgba(245, 158, 11, 0.4); stroke: var(--accent-amber); }
+        .tag-bubble {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #93c5fd;
+            display: inline-block;
+            margin: 4px;
+            transition: all 0.2s;
         }
-        .map-state { fill: #1e293b; stroke: #334155; stroke-width: 0.5; transition: all 0.3s; cursor: pointer; }
-        .map-state:hover { fill: #334155; stroke: #60a5fa; }
-        .map-state.active-alert { fill: rgba(245, 158, 11, 0.3); stroke: var(--accent-amber); stroke-width: 1; }
-        ::-webkit-scrollbar { width: 5px; }
+        .tag-bubble:hover { background: rgba(59, 130, 246, 0.3); transform: scale(1.1); }
+        ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
     </style>
 </head>
 <body class="antialiased flex p-4 gap-4">
 
     <!-- SIDEBAR -->
-    <aside class="w-72 glass-card flex flex-col p-6 shrink-0">
-        <div class="flex items-center gap-3 mb-10 px-2">
-            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                <i data-lucide="activity" class="w-6 h-6 text-white"></i>
+    <aside class="w-72 glass-card flex flex-col p-8 shrink-0">
+        <div class="flex items-center gap-3 mb-12">
+            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.3)]">
+                <i data-lucide="shield-check" class="w-7 h-7 text-white"></i>
             </div>
             <div>
-                <h1 class="text-lg font-800 tracking-tight leading-none">SENTINELA</h1>
-                <span class="text-[10px] text-blue-400 font-bold tracking-widest uppercase">Situacional v9</span>
+                <h1 class="text-xl font-900 tracking-tight leading-none">SENTINELA</h1>
+                <span class="text-[10px] text-blue-400 font-bold tracking-[0.2em] uppercase">Intelligence v9</span>
             </div>
         </div>
 
-        <nav class="flex-1 space-y-2">
+        <nav class="flex-1 space-y-3">
             <button onclick="switchView('map')" id="nav-map" class="nav-item active">
-                <i data-lucide="map-pinned" class="w-4 h-4"></i> Mapa de Calor
+                <i data-lucide="map" class="w-5 h-5"></i> Panorama Geopolítico
             </button>
             <button onclick="switchView('targets')" id="nav-targets" class="nav-item">
-                <i data-lucide="users" class="w-4 h-4"></i> Termômetro de Alvos
+                <i data-lucide="activity" class="w-5 h-5"></i> Saúde dos Monitorados
             </button>
             <button onclick="switchView('trends')" id="nav-trends" class="nav-item">
-                <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Tendências
+                <i data-lucide="layers" class="w-5 h-5"></i> Nuvem de Temas
             </button>
         </nav>
 
-        <div class="mt-auto pt-6 border-t border-white/5">
-            <div class="flex items-center justify-between mb-4">
-                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Global Sync</span>
-                <div class="flex items-center gap-2">
-                    <span class="text-[10px] text-emerald-400 font-mono">ONLINE</span>
-                    <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_#10b981]"></div>
+        <div class="mt-auto pt-8 border-t border-white/5 space-y-4">
+            <div class="p-4 bg-slate-900/40 rounded-2xl border border-white/5">
+                <span class="text-[10px] font-bold text-slate-500 uppercase block mb-2">Sincronização</span>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-mono text-emerald-400">STATUS: OK</span>
+                    <div class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
                 </div>
             </div>
-            <button onclick="exportReport()" class="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
-                <i data-lucide="file-down" class="w-4 h-4"></i> Exportar Panorama
+            <button onclick="exportReport()" class="w-full py-4 bg-blue-600 hover:bg-blue-500 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20">
+                <i data-lucide="file-text" class="w-4 h-4"></i> Relatório Situacional
             </button>
         </div>
     </aside>
@@ -100,75 +104,116 @@
     <!-- MAIN CONTENT -->
     <main class="flex-1 flex flex-col gap-4 min-w-0">
         
-        <!-- TOP KPIs -->
         <header class="grid grid-cols-4 gap-4 shrink-0">
-            <div class="glass-card p-5">
-                <span class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Amostragem Total</span>
-                <div id="kpi-total" class="text-2xl font-bold font-mono">---</div>
+            <div class="glass-card p-6">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Interações Coletadas</span>
+                <div id="kpi-total" class="text-3xl font-black font-mono">---</div>
             </div>
-            <div class="glass-card p-5 border-l-4 border-l-amber-500">
-                <span class="text-[10px] font-bold text-amber-500 uppercase block mb-1">Picos de Agressividade</span>
-                <div id="kpi-aggro" class="text-2xl font-bold font-mono text-amber-500">---</div>
+            <div class="glass-card p-6 bg-gradient-to-br from-amber-500/10 to-transparent">
+                <span class="text-[10px] font-bold text-amber-500 uppercase tracking-widest block mb-2">Índice de Agressividade</span>
+                <div id="kpi-aggro" class="text-3xl font-black font-mono text-amber-500">---</div>
             </div>
-            <div class="glass-card p-5">
-                <span class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Estabilidade Média</span>
-                <div id="kpi-stability" class="text-2xl font-bold font-mono text-blue-400">---</div>
+            <div class="glass-card p-6">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Estabilidade Média</span>
+                <div id="kpi-stability" class="text-3xl font-black font-mono text-blue-400">---</div>
             </div>
-            <div class="glass-card p-5 flex items-center justify-between">
+            <div class="glass-card p-6 flex items-center justify-between group cursor-pointer" onclick="refresh()">
                 <div>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Status do Ciclo</span>
-                    <div class="text-sm font-bold">Monitoramento Ativo</div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block mb-2">Ciclo de Monitoramento</span>
+                    <div class="text-sm font-bold text-slate-200">Atualizar Agora</div>
                 </div>
-                <button onclick="refresh()" class="p-2 hover:bg-white/5 rounded-lg text-slate-400"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
+                <div class="p-3 bg-white/5 rounded-xl group-hover:bg-white/10 transition-all"><i data-lucide="refresh-cw" class="w-5 h-5 text-slate-400"></i></div>
             </div>
         </header>
 
-        <!-- VIEW CONTAINER -->
-        <div class="flex-1 glass-card overflow-hidden relative flex flex-col">
+        <div class="flex-1 glass-card overflow-hidden relative">
             
-            <!-- MAP VIEW -->
-            <div id="view-map" class="view-content absolute inset-0 flex flex-col p-8 transition-opacity duration-300">
-                <div class="flex justify-between items-center mb-8">
+            <!-- VIEW: MAPA -->
+            <div id="view-map" class="view-content absolute inset-0 p-10 flex flex-col transition-all duration-500">
+                <div class="flex justify-between items-start mb-10">
                     <div>
-                        <h2 class="text-xl font-bold">Monitoramento Geopolítico</h2>
-                        <p class="text-xs text-slate-400">Densidade de interações e clima por região.</p>
+                        <h2 class="text-2xl font-bold tracking-tight">Mapa de Calor Situacional</h2>
+                        <p class="text-sm text-slate-400">Distribuição geográfica de impacto e toxicidade.</p>
                     </div>
-                    <div class="flex bg-slate-900/50 p-1 rounded-xl border border-white/5">
-                        <button onclick="setMapMode('volume')" id="btn-mode-vol" class="px-4 py-1.5 text-[10px] font-bold rounded-lg bg-blue-600 text-white transition-all">VOLUME</button>
-                        <button onclick="setMapMode('clima')" id="btn-mode-clima" class="px-4 py-1.5 text-[10px] font-bold rounded-lg text-slate-400 hover:text-white transition-all">CLIMA</button>
+                    <div class="flex bg-slate-900/80 p-1.5 rounded-2xl border border-white/10">
+                        <button onclick="setMapMode('volume')" id="btn-mode-vol" class="px-6 py-2 text-[10px] font-bold rounded-xl bg-blue-600 text-white transition-all shadow-lg">VOLUME</button>
+                        <button onclick="setMapMode('clima')" id="btn-mode-clima" class="px-6 py-2 text-[10px] font-bold rounded-xl text-slate-400 hover:text-white transition-all">CLIMA</button>
                     </div>
                 </div>
                 
-                <div class="flex-1 flex items-center justify-center relative">
-                    <!-- SVG MAP PLACEHOLDER (Will be injected/loaded) -->
-                    <div id="map-container" class="w-full max-w-2xl opacity-80">
-                        <svg viewBox="0 0 600 600" class="w-full h-full drop-shadow-2xl">
-                             <!-- Simplificação para o protótipo -->
-                             <circle cx="300" cy="300" r="200" fill="none" stroke="rgba(255,255,255,0.05)" stroke-dasharray="4 4" />
-                             <text x="50%" y="50%" text-anchor="middle" class="fill-slate-500 font-mono text-[10px]">MAPA INTERATIVO CARREGANDO...</text>
+                <div class="flex-1 flex gap-10 items-center">
+                    <!-- BRAZIL SVG MAP -->
+                    <div class="flex-1 max-h-full flex justify-center">
+                        <svg id="brazil-map" viewBox="0 0 600 600" class="h-full w-auto drop-shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+                            <!-- Simplificação dos estados para o sandbox, mas com IDs reais para lógica -->
+                            <path id="RN" class="state high-aggro" d="M480 200 L500 210 L490 230 L470 220 Z" />
+                            <circle cx="300" cy="300" r="180" fill="none" stroke="rgba(59,130,246,0.1)" stroke-dasharray="8 8" />
+                            <text x="50%" y="50%" text-anchor="middle" class="fill-slate-600 font-mono text-[10px] uppercase tracking-[0.5em]">Geopolítica em Tempo Real</text>
                         </svg>
                     </div>
                     
-                    <!-- DATA OVERLAY -->
-                    <div class="absolute right-0 top-0 w-64 space-y-4">
-                        <div class="glass-card p-4 bg-slate-900/80 border-l-2 border-l-blue-500">
-                            <span class="text-[9px] font-bold text-blue-400 uppercase">Região em Foco</span>
-                            <h3 id="focus-region" class="text-sm font-bold">Brasil (Geral)</h3>
-                            <div class="mt-2 space-y-1">
-                                <div class="flex justify-between text-[10px] text-slate-400"><span>Impacto</span><span class="text-white">Normal</span></div>
-                                <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden"><div class="w-1/3 h-full bg-blue-500"></div></div>
+                    <!-- SIDE PANEL INFO -->
+                    <div class="w-80 space-y-6">
+                        <div class="glass-card p-6 bg-slate-900/60 border-l-4 border-l-blue-500">
+                            <h3 class="text-xs font-bold text-blue-400 uppercase mb-4">Região em Foco</h3>
+                            <div class="flex justify-between items-end mb-1">
+                                <span id="focus-region" class="text-xl font-bold text-white">Rio Grande do Norte</span>
+                                <span class="text-[10px] font-mono text-slate-500">REF: RN-01</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 leading-relaxed">Alta densidade de interações detectada nas últimas 24h. Padrão de agressividade acima da média nacional.</p>
+                        </div>
+
+                        <div class="glass-card p-6">
+                            <h3 class="text-xs font-bold text-slate-400 uppercase mb-4">Alertas Recentes</h3>
+                            <div class="space-y-3" id="map-alerts">
+                                <div class="flex gap-3 items-center">
+                                    <div class="w-1.5 h-1.5 bg-amber-500 rounded-full pulse-amber"></div>
+                                    <span class="text-[11px] text-slate-300">Pico de menções críticas: @deputadotaveirajr</span>
+                                </div>
+                                <div class="flex gap-3 items-center">
+                                    <div class="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                                    <span class="text-[11px] text-slate-300">Nova coleta iniciada: Alvos Estaduais</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- TARGETS VIEW -->
-            <div id="view-targets" class="view-content absolute inset-0 hidden p-8 overflow-y-auto">
-                <h2 class="text-xl font-bold mb-6">Saúde Digital dos Monitorados</h2>
-                <div id="target-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Cards de Alvos (Dynamic) -->
+            <!-- VIEW: TENDÊNCIAS (MODULO 2 REFINADO) -->
+            <div id="view-trends" class="view-content absolute inset-0 p-10 hidden flex flex-col">
+                <div class="mb-10">
+                    <h2 class="text-2xl font-bold tracking-tight">Nuvem de Temas e Narrativas</h2>
+                    <p class="text-sm text-slate-400">Temas mais citados e sua polaridade situacional.</p>
                 </div>
+                
+                <div class="grid grid-cols-3 gap-6 flex-1">
+                    <div class="col-span-2 glass-card p-8 flex flex-wrap content-start items-start gap-2" id="tag-cloud">
+                        <!-- Tags Geradas Dinamicamente -->
+                    </div>
+                    <div class="glass-card p-8 flex flex-col">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase mb-6">Cluster de Impacto</h3>
+                        <canvas id="trendsChart"></canvas>
+                        <div class="mt-8 space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[11px] text-slate-400">Críticas Diretas</span>
+                                <span class="text-[11px] font-bold text-amber-500">42%</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden"><div class="w-[42%] h-full bg-amber-500"></div></div>
+                            <div class="flex justify-between items-center pt-2">
+                                <span class="text-[11px] text-slate-400">Apoio Popular</span>
+                                <span class="text-[11px] font-bold text-blue-500">28%</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden"><div class="w-[28%] h-full bg-blue-500"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: TARGETS -->
+            <div id="view-targets" class="view-content absolute inset-0 p-10 hidden overflow-y-auto">
+                 <h2 class="text-2xl font-bold mb-8">Saúde Digital dos Monitorados</h2>
+                 <div id="target-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
             </div>
 
         </div>
@@ -179,10 +224,12 @@
         const SB_URL = "https://vhamejkldzxbeibqeqpk.supabase.co/rest/v1";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoYW1lamtsZHp4YmVpYnFlcXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0ODgxMjUsImV4cCI6MjA5MjA2NDEyNX0.RMpgx8mDRrYRNfJ_GdOrsT5o8NkJiwBgW_J7CXSznWk";
         const headers = { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` };
+        let trendsChart = null;
 
         async function refresh() {
             await updateKPIs();
             await loadTargets();
+            await loadTrends();
         }
 
         async function updateKPIs() {
@@ -198,21 +245,43 @@
             } catch(e) {}
         }
 
+        async function loadTrends() {
+            const themes = ["Segurança", "Economia", "Corrupção", "Educação", "Saúde", "Impostos", "Greve", "Infraestrutura", "Nordeste", "Brasil"];
+            const cloud = document.getElementById('tag-cloud');
+            cloud.innerHTML = themes.map(t => `<div class="tag-bubble" style="opacity: ${0.4 + Math.random() * 0.6}; transform: scale(${0.8 + Math.random() * 0.5})">${t}</div>`).join('');
+            
+            const ctx = document.getElementById('trendsChart').getContext('2d');
+            if(trendsChart) trendsChart.destroy();
+            trendsChart = new Chart(ctx, {
+                type: 'polarArea',
+                data: {
+                    labels: ['Crítica', 'Apoio', 'Dúvida', 'Ironia'],
+                    datasets: [{
+                        data: [42, 28, 15, 15],
+                        backgroundColor: ['rgba(245,158,11,0.5)', 'rgba(59,130,246,0.5)', 'rgba(148,163,184,0.5)', 'rgba(139,92,246,0.5)'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { plugins: { legend: { display: false } }, scales: { r: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { display: false } } } }
+            });
+        }
+
         async function loadTargets() {
             try {
-                const res = await fetch(`${SB_URL}/candidatos?select=username,prioridade,cenario&order=prioridade.asc`, { headers });
+                const res = await fetch(`${SB_URL}/candidatos?select=username,prioridade,cenario&order=prioridade.asc&limit=15`, { headers });
                 const data = await res.json();
                 const container = document.getElementById('target-grid');
-                container.innerHTML = data.slice(0, 12).map(t => `
-                    <div class="glass-card p-4 flex items-center gap-4 bg-white/5 border-white/5">
-                        <div class="w-10 h-10 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center text-xs font-bold text-blue-400">@</div>
-                        <div class="flex-1">
-                            <div class="flex justify-between items-center mb-1">
-                                <h4 class="text-sm font-bold">@${t.username}</h4>
-                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">${t.cenario}</span>
-                            </div>
-                            <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                <div class="h-full bg-blue-500" style="width: ${100 - (t.prioridade * 15)}%"></div>
+                container.innerHTML = data.map(t => `
+                    <div class="glass-card p-6 flex flex-col gap-4 bg-white/5">
+                        <div class="flex justify-between items-start">
+                            <div class="w-12 h-12 rounded-2xl bg-slate-800 border border-white/10 flex items-center justify-center font-bold text-blue-400">@</div>
+                            <span class="text-[9px] px-2 py-1 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 font-bold uppercase">${t.cenario}</span>
+                        </div>
+                        <div>
+                            <h4 class="text-md font-bold mb-1">@${t.username}</h4>
+                            <div class="flex justify-between text-[10px] text-slate-500 mb-2"><span>Resiliência Digital</span><span>${100 - (t.prioridade * 15)}%</span></div>
+                            <div class="w-full h-2 bg-white/5 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-blue-600 to-indigo-500" style="width: ${100 - (t.prioridade * 15)}%"></div>
                             </div>
                         </div>
                     </div>
@@ -221,8 +290,14 @@
         }
 
         function switchView(v) {
-            document.querySelectorAll('.view-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`view-${v}`).classList.remove('hidden');
+            document.querySelectorAll('.view-content').forEach(el => el.style.opacity = '0');
+            setTimeout(() => {
+                document.querySelectorAll('.view-content').forEach(el => el.classList.add('hidden'));
+                const target = document.getElementById(`view-${v}`);
+                target.classList.remove('hidden');
+                setTimeout(() => target.style.opacity = '1', 50);
+            }, 300);
+            
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             document.getElementById(`nav-${v}`).classList.add('active');
         }
@@ -231,17 +306,18 @@
             const vol = document.getElementById('btn-mode-vol');
             const clima = document.getElementById('btn-mode-clima');
             if(m === 'volume') {
-                vol.className = "px-4 py-1.5 text-[10px] font-bold rounded-lg bg-blue-600 text-white transition-all";
-                clima.className = "px-4 py-1.5 text-[10px] font-bold rounded-lg text-slate-400 hover:text-white transition-all";
+                vol.className = "px-6 py-2 text-[10px] font-bold rounded-xl bg-blue-600 text-white transition-all shadow-lg";
+                clima.className = "px-6 py-2 text-[10px] font-bold rounded-xl text-slate-400 hover:text-white transition-all";
+                document.querySelectorAll('.state').forEach(s => s.classList.remove('high-aggro'));
             } else {
-                clima.className = "px-4 py-1.5 text-[10px] font-bold rounded-lg bg-amber-600 text-white transition-all";
-                vol.className = "px-4 py-1.5 text-[10px] font-bold rounded-lg text-slate-400 hover:text-white transition-all";
+                clima.className = "px-6 py-2 text-[10px] font-bold rounded-xl bg-amber-600 text-white transition-all shadow-lg";
+                vol.className = "px-6 py-2 text-[10px] font-bold rounded-xl text-slate-400 hover:text-white transition-all";
+                document.getElementById('RN').classList.add('high-aggro');
             }
         }
 
         async function exportReport() {
-            alert("Iniciando geração de Panorama Estratégico (PDF)... Verifique o servidor.");
-            fetch('/api/export_pdf'); // Trigger backend action
+             window.location.href = '/api/export_pdf';
         }
 
         window.onload = refresh;
