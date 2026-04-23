@@ -6,7 +6,11 @@
       "destination": "/api/index.py"
     },
     {
-      "source": "/(.*)",
+      "source": "/ads.txt",
+      "destination": "/ads.txt"
+    },
+    {
+      "source": "/((?!api/|ads.txt).*)",
       "destination": "/index.html"
     }
   ],
@@ -17,6 +21,10 @@
     },
     {
       "src": "index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "ads.txt",
       "use": "@vercel/static"
     }
   ]
