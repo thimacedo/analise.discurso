@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SENTINELA | Inteligência Situacional v11</title>
+    <title>SENTINELA | Inteligência Situacional v11.1</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="src/styles/main.css">
+    <link rel="stylesheet" href="/src/styles/main.css">
 </head>
 <body class="antialiased flex p-4 gap-4">
 
@@ -20,10 +20,11 @@
             <h1 class="text-lg font-900 tracking-tighter uppercase">Sentinela v11</h1>
         </div>
         <nav class="flex-1 space-y-2">
-            <button onclick="navigate('monitor')" id="nav-monitor" class="nav-item"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Dashboard</button>
-            <button onclick="navigate('dossie')" id="nav-dossie" class="nav-item"><i data-lucide="user-search" class="w-4 h-4"></i> Dossiê Alvos</button>
-            <button onclick="navigate('map')" id="nav-map" class="nav-item"><i data-lucide="map" class="w-4 h-4"></i> Geopolítica</button>
+            <button onclick="window.navigate('monitor')" id="nav-monitor" class="nav-item"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Dashboard</button>
+            <button onclick="window.navigate('dossie')" id="nav-dossie" class="nav-item"><i data-lucide="user-search" class="w-4 h-4"></i> Dossiê Alvos</button>
+            <button onclick="window.navigate('map')" id="nav-map" class="nav-item"><i data-lucide="map" class="w-4 h-4"></i> Geopolítica</button>
         </nav>
+        <button onclick="window.refresh()" class="mt-auto w-full py-4 bg-white/5 hover:bg-blue-600 transition-all rounded-2xl text-[10px] font-black tracking-widest uppercase">Sincronizar</button>
     </aside>
 
     <main class="flex-1 flex flex-col gap-4 min-w-0">
@@ -43,7 +44,7 @@
                         <h3 class="text-[10px] font-bold text-slate-500 uppercase mb-8">Evolução Situacional</h3>
                         <div class="chart-box"><canvas id="chartMain"></canvas></div>
                     </div>
-                    <div class="flex flex-col gap-4">
+                    <div class="flex flex-col gap-4 overflow-y-auto">
                         <div class="glass-card p-6 flex-1"><h3 class="text-[9px] font-bold text-blue-400 uppercase mb-4 text-center">Cenário Nacional</h3><div id="rank-nac" class="space-y-4"></div></div>
                         <div class="glass-card p-6 flex-1"><h3 class="text-[9px] font-bold text-amber-400 uppercase mb-4 text-center">Cenário Regional</h3><div id="rank-reg" class="space-y-4"></div></div>
                     </div>
@@ -69,9 +70,8 @@
         </div>
     </main>
 
-    <script type="module" src="src/core/app.js"></script>
+    <script type="module" src="/src/core/app.js"></script>
     <script>
-        // Fallback para Lucide Icons após carregamento modular
         window.addEventListener('load', () => { if(window.lucide) lucide.createIcons(); });
     </script>
 </body>
