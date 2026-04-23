@@ -5,10 +5,14 @@ import time
 import json
 from datetime import datetime
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 from groq import Groq
 
 app = FastAPI()
+
+@app.get("/ads.txt")
+async def ads_txt_provider():
+    return PlainTextResponse("google.com, pub-1827611269042960, DIRECT, f08c47fec0942fa0")
 
 # --- CONFIGURAÇÃO ---
 def get_groq_client():
