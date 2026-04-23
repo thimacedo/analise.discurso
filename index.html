@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SENTINELA v9.2 | Inteligência Situacional</title>
+    <title>SENTINELA v9.3 | Comando Situacional</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
@@ -12,7 +12,7 @@
     
     <style>
         :root {
-            --glass-bg: rgba(15, 23, 42, 0.7);
+            --glass-bg: rgba(15, 23, 42, 0.75);
             --glass-border: rgba(255, 255, 255, 0.08);
             --accent-blue: #3b82f6;
             --accent-amber: #f59e0b;
@@ -26,15 +26,15 @@
         }
         .glass-card {
             background: var(--glass-bg);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(24px);
             border: 1px solid var(--glass-border);
-            border-radius: 24px;
+            border-radius: 28px;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .nav-item {
             display: flex; align-items: center; gap: 0.75rem; width: 100%;
-            padding: 1rem 1.25rem; border-radius: 14px; font-weight: 600;
-            font-size: 0.875rem; color: #94a3b8; transition: all 0.3s;
+            padding: 1.1rem 1.5rem; border-radius: 16px; font-weight: 600;
+            font-size: 0.875rem; color: #64748b; transition: all 0.3s;
         }
         .nav-item.active { 
             background: linear-gradient(90deg, rgba(59, 130, 246, 0.15), transparent);
@@ -42,160 +42,180 @@
             box-shadow: inset 2px 0 0 #3b82f6;
         }
         
-        /* ESTILIZAÇÃO DO MAPA */
         .state {
-            fill: rgba(30, 41, 59, 0.8);
-            stroke: rgba(255, 255, 255, 0.1);
-            stroke-width: 1;
-            transition: all 0.3s ease;
+            fill: rgba(30, 41, 59, 0.4);
+            stroke: rgba(255, 255, 255, 0.05);
+            stroke-width: 0.8;
+            transition: all 0.4s;
             cursor: pointer;
         }
         .state:hover {
             fill: rgba(59, 130, 246, 0.2);
             stroke: #60a5fa;
-            filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.4));
+            filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.5));
         }
-        .state.active-view {
+        .state.active-focus {
+            fill: rgba(59, 130, 246, 0.3);
+            stroke: #3b82f6;
             stroke-width: 2;
-            filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.3));
         }
-        .pulse-marker {
-            animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        .state.warning {
+            fill: rgba(245, 158, 11, 0.25);
+            stroke: #f59e0b;
         }
-        @keyframes pulse-ring { 0% { transform: scale(0.95); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(0.95); opacity: 0.8; } }
         
-        .tag-bubble {
-            background: rgba(59, 130, 246, 0.1);
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            padding: 4px 12px;
-            border-radius: 99px;
-            font-size: 11px;
-            font-weight: 700;
-            color: #93c5fd;
-            display: inline-block;
-            margin: 4px;
+        .tooltip {
+            position: fixed;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-size: 10px;
+            pointer-events: none;
+            z-index: 1000;
+            backdrop-filter: blur(8px);
+            display: none;
         }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="antialiased flex p-4 gap-4">
 
+    <!-- TOOLTIP -->
+    <div id="map-tooltip" class="tooltip glass-card"></div>
+
     <!-- SIDEBAR -->
-    <aside class="w-72 glass-card flex flex-col p-8 shrink-0">
-        <div class="flex items-center gap-3 mb-12">
-            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.3)]">
-                <i data-lucide="map-pin" class="w-7 h-7 text-white"></i>
+    <aside class="w-80 glass-card flex flex-col p-8 shrink-0">
+        <div class="flex items-center gap-4 mb-16">
+            <div class="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl flex items-center justify-center shadow-[0_8px_30px_rgba(59,130,246,0.4)]">
+                <i data-lucide="shield-half" class="w-8 h-8 text-white"></i>
             </div>
             <div>
-                <h1 class="text-xl font-900 tracking-tight leading-none">SENTINELA</h1>
-                <span class="text-[10px] text-blue-400 font-bold tracking-[0.2em] uppercase">Situacional v9.2</span>
+                <h1 class="text-xl font-900 tracking-tight leading-tight">SENTINELA</h1>
+                <span class="text-[10px] text-blue-400 font-bold tracking-[0.3em] uppercase">Intelligence v9.3</span>
             </div>
         </div>
 
-        <nav class="flex-1 space-y-3">
+        <nav class="flex-1 space-y-4">
             <button onclick="navigate('map')" id="nav-map" class="nav-item">
-                <i data-lucide="globe" class="w-5 h-5"></i> Panorama Regional
+                <i data-lucide="map" class="w-5 h-5"></i> Panorama Situacional
             </button>
             <button onclick="navigate('targets')" id="nav-targets" class="nav-item">
-                <i data-lucide="users-round" class="w-5 h-5"></i> Monitorados
+                <i data-lucide="users-round" class="w-5 h-5"></i> Gestão de Alvos
             </button>
             <button onclick="navigate('trends')" id="nav-trends" class="nav-item">
-                <i data-lucide="zap" class="w-5 h-5"></i> Tendências
+                <i data-lucide="line-chart" class="w-5 h-5"></i> Tendências Ativas
             </button>
         </nav>
 
         <div class="mt-auto pt-8 border-t border-white/5">
-            <button onclick="exportReport()" class="w-full py-4 bg-white/5 hover:bg-white/10 rounded-2xl text-xs font-bold transition-all border border-white/5 flex items-center justify-center gap-2">
-                <i data-lucide="download" class="w-4 h-4"></i> Exportar Dashboard
+            <div class="flex items-center justify-between mb-6 p-4 bg-slate-900/40 rounded-2xl border border-white/5">
+                <div class="flex flex-col">
+                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Coleta Massiva</span>
+                    <span class="text-[10px] text-emerald-400 font-mono">EM EXECUÇÃO...</span>
+                </div>
+                <div class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_12px_#10b981]"></div>
+            </div>
+            <button onclick="exportReport()" class="w-full py-4 bg-blue-600 hover:bg-blue-500 rounded-2xl text-xs font-bold transition-all shadow-xl shadow-blue-500/20">
+                <i data-lucide="file-output" class="w-4 h-4"></i> Gerar Panorama PDF
             </button>
         </div>
     </aside>
 
     <main class="flex-1 flex flex-col gap-4 min-w-0">
-        <!-- KPIs -->
+        
+        <!-- DASHBOARD TOP KPIs -->
         <header class="grid grid-cols-4 gap-4 shrink-0">
-            <div class="glass-card p-6">
-                <span class="text-[10px] font-bold text-slate-500 uppercase block mb-2">Total Analisado</span>
-                <div id="kpi-total" class="text-3xl font-black font-mono">---</div>
+            <div class="glass-card p-7">
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2">Monitoramento Total</span>
+                <div id="kpi-total" class="text-3xl font-black font-mono text-slate-100">---</div>
             </div>
-            <div id="kpi-aggro-card" class="glass-card p-6 border-l-4 border-l-amber-500/50 transition-all">
-                <span class="text-[10px] font-bold text-amber-500 uppercase block mb-2">Agressividade Crítica</span>
+            <div class="glass-card p-7 border-l-4 border-l-amber-500">
+                <span class="text-[10px] font-bold text-amber-500 uppercase tracking-widest block mb-2">Agressividade Crítica</span>
                 <div id="kpi-aggro" class="text-3xl font-black font-mono text-amber-500">---</div>
             </div>
-            <div class="glass-card p-6">
-                <span class="text-[10px] font-bold text-blue-400 uppercase block mb-2">Estabilidade Digital</span>
+            <div class="glass-card p-7">
+                <span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest block mb-2">Picos de Alcance</span>
                 <div id="kpi-stability" class="text-3xl font-black font-mono text-blue-400">---</div>
             </div>
-            <div class="glass-card p-6 flex items-center justify-between">
-                <div>
-                    <span class="text-[10px] font-bold text-slate-500 uppercase block mb-2">Sync Ativo</span>
-                    <div class="flex items-center gap-2">
-                        <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
-                        <span class="text-xs font-bold text-emerald-500">REAL-TIME</span>
-                    </div>
-                </div>
-                <button onclick="refresh()" class="p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-all"><i data-lucide="rotate-cw" class="w-5 h-5 text-slate-400"></i></button>
+            <div class="glass-card p-7 flex items-center justify-between group cursor-pointer" onclick="refresh()">
+                <div><span class="text-[10px] font-bold text-slate-500 uppercase block mb-2">Próximo Ciclo</span><div class="text-sm font-black text-slate-300">SINCRONIZAR</div></div>
+                <div class="p-4 bg-white/5 rounded-2xl group-hover:bg-white/10 transition-all"><i data-lucide="refresh-ccw" class="w-6 h-6 text-slate-500 group-hover:text-blue-400"></i></div>
             </div>
         </header>
 
+        <!-- VIEW PORT -->
         <div class="flex-1 glass-card overflow-hidden relative">
             
-            <!-- VIEW: MAPA (DETALHADO) -->
+            <!-- MAP VIEW -->
             <div id="view-map" class="view-content absolute inset-0 p-10 flex flex-col transition-all duration-500">
-                <div class="flex justify-between items-start mb-8">
+                <div class="flex justify-between items-start mb-10">
                     <div>
-                        <h2 class="text-2xl font-bold tracking-tight">Monitoramento Geopolítico</h2>
-                        <p class="text-sm text-slate-400">Clique em um estado para detalhamento regional.</p>
+                        <h2 class="text-2xl font-bold tracking-tight">Geopolítica Situacional</h2>
+                        <p class="text-sm text-slate-400">Mapa de calor baseado na densidade de interações regionais.</p>
                     </div>
-                    <div class="flex bg-slate-900/60 p-1.5 rounded-2xl border border-white/5">
-                        <button onclick="setMapMode('volume')" id="btn-vol" class="px-6 py-2 text-[10px] font-bold rounded-xl bg-blue-600 transition-all">VOLUME</button>
-                        <button onclick="setMapMode('clima')" id="btn-clima" class="px-6 py-2 text-[10px] font-bold rounded-xl text-slate-500 hover:text-white transition-all">TOXICIDADE</button>
+                    <div class="flex bg-slate-900/60 p-2 rounded-2xl border border-white/5">
+                        <button onclick="setMapMode('volume')" id="btn-vol" class="px-8 py-2 text-[10px] font-bold rounded-xl bg-blue-600 transition-all">VOLUME</button>
+                        <button onclick="setMapMode('clima')" id="btn-clima" class="px-8 py-2 text-[10px] font-bold rounded-xl text-slate-500 hover:text-white transition-all ml-1">CLIMA</button>
                     </div>
                 </div>
                 
                 <div class="flex-1 flex gap-12 items-center">
-                    <div class="flex-1 h-full flex justify-center py-4" id="brazil-map-container">
-                        <!-- O MAPA SERÁ INJETADO VIA JS PARA PRECISÃO -->
-                        <svg id="svg-map" viewBox="0 0 500 500" class="h-full w-auto filter drop-shadow-[0_0_20px_rgba(0,0,0,0.4)]">
+                    <div class="flex-1 h-full flex justify-center py-6">
+                        <svg id="svg-map" viewBox="0 0 500 500" class="h-full w-auto drop-shadow-[0_0_30px_rgba(0,0,0,0.6)]">
                             <g id="states-group"></g>
                         </svg>
                     </div>
                     
-                    <div class="w-80 space-y-6">
-                        <div id="region-card" class="glass-card p-6 bg-slate-900/40 border-l-4 border-l-blue-500 transition-all">
-                            <span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest block mb-4">Análise Regional</span>
-                            <h3 id="st-name" class="text-xl font-bold mb-1">Brasil (Geral)</h3>
-                            <div class="space-y-4 mt-6">
-                                <div class="flex justify-between text-[11px] font-bold uppercase">
-                                    <span class="text-slate-500">Impacto Situacional</span>
-                                    <span id="st-impact" class="text-white">Estável</span>
+                    <!-- DATA PANEL -->
+                    <div class="w-96 space-y-6">
+                        <div id="region-card" class="glass-card p-8 bg-slate-900/60 border-l-4 border-l-blue-600 relative overflow-hidden">
+                            <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-600/5 rounded-full blur-3xl"></div>
+                            <span class="text-[10px] font-bold text-blue-400 uppercase tracking-[0.2em] block mb-4">Relatório de Região</span>
+                            <h3 id="st-name" class="text-2xl font-black mb-1">Brasil</h3>
+                            <p id="st-status-txt" class="text-[11px] text-slate-500 mb-8 italic">Selecione um estado para diagnósticos precisos.</p>
+                            
+                            <div class="space-y-6">
+                                <div class="space-y-2">
+                                    <div class="flex justify-between text-[10px] font-bold uppercase">
+                                        <span class="text-slate-400">Impacto Narrativo</span>
+                                        <span id="st-impact" class="text-white">---</span>
+                                    </div>
+                                    <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden"><div id="st-bar" class="w-0 h-full bg-blue-500 transition-all duration-700"></div></div>
                                 </div>
-                                <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden"><div id="st-bar" class="w-1/3 h-full bg-blue-500"></div></div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="p-4 bg-white/5 rounded-2xl border border-white/5">
+                                        <span class="text-[9px] text-slate-500 uppercase block mb-1">Alvos</span>
+                                        <div id="st-targets-count" class="text-lg font-black font-mono">0</div>
+                                    </div>
+                                    <div class="p-4 bg-white/5 rounded-2xl border border-white/5">
+                                        <span class="text-[9px] text-slate-500 uppercase block mb-1">Alertas</span>
+                                        <div id="st-alerts-count" class="text-lg font-black font-mono text-amber-500">0</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        
-                        <div class="glass-card p-6">
-                            <h4 class="text-xs font-bold text-slate-500 uppercase mb-4">Líderes de Menções</h4>
-                            <div id="region-leaders" class="space-y-4">
-                                <!-- Preenchido dinamicamente -->
-                                <div class="flex items-center gap-3 animate-pulse opacity-20"><div class="w-6 h-6 rounded-full bg-slate-700"></div><div class="h-2 w-24 bg-slate-700"></div></div>
-                            </div>
+
+                        <div class="glass-card p-8">
+                            <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-6">Últimas Atualizações</h4>
+                            <div id="region-leaders" class="space-y-4"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- VIEW: TARGETS -->
+            <!-- TARGETS -->
             <div id="view-targets" class="view-content absolute inset-0 p-10 hidden overflow-y-auto">
-                 <h2 class="text-2xl font-bold mb-8">Saúde Digital dos Monitorados</h2>
+                 <div class="flex justify-between items-center mb-10">
+                     <div>
+                         <h2 class="text-2xl font-bold">Monitorados Ativos</h2>
+                         <p class="text-sm text-slate-400">Ranking de resiliência e exposição digital.</p>
+                     </div>
+                     <div id="target-count" class="px-6 py-2 bg-blue-600/10 text-blue-400 border border-blue-500/20 rounded-2xl text-xs font-bold font-mono">0 ALVOS</div>
+                 </div>
                  <div id="target-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
-            </div>
-
-            <!-- VIEW: TRENDS -->
-            <div id="view-trends" class="view-content absolute inset-0 p-10 hidden flex flex-col">
-                <h2 class="text-2xl font-bold mb-8">Nuvem de Temas e Narrativas</h2>
-                <div class="flex-1 glass-card p-10 flex flex-wrap content-start gap-4" id="tag-cloud"></div>
             </div>
 
         </div>
@@ -207,7 +227,7 @@
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoYW1lamtsZHp4YmVpYnFlcXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0ODgxMjUsImV4cCI6MjA5MjA2NDEyNX0.RMpgx8mDRrYRNfJ_GdOrsT5o8NkJiwBgW_J7CXSznWk";
         const h = { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` };
 
-        // --- MAP DATA (GEOMETRIAS SIMPLIFICADAS) ---
+        // --- MAP CONFIG ---
         const statesPaths = {
             "AC": "M44.4 345.5l-3.3-4.5 13.9-10.4 12.8 5.7 7.7-10.8 13.4 3.7 3.5 15.5-2.2 4.2-12.7 10.9-13.6-0.3-19.5 6z",
             "AL": "M483.4 330.4l-4.2-4.1-1.2-13.5 15.8-2 6.7 10 1.2 12.2z",
@@ -238,6 +258,8 @@
             "TO": "M300 240l54.8 19.1 12.5 73.5-44.1 24.9-23.2-117.5z"
         };
 
+        const stateData = {}; // Cache de dados reais por estado
+
         // --- NAVEGAÇÃO ---
         function navigate(view) { window.location.hash = view; updateUI(view); }
         function updateUI(view) {
@@ -246,74 +268,128 @@
             const activeView = document.getElementById(`view-${view}`) || document.getElementById('view-map');
             const activeNav = document.getElementById(`nav-${view}`) || document.getElementById('nav-map');
             activeView.classList.remove('hidden');
+            activeView.classList.add('fade-in');
             activeNav.classList.add('active');
         }
 
-        // --- MAPA E DADOS ---
+        // --- DADOS ---
         async function refresh() {
-            await Promise.all([updateKPIs(), loadTargets(), renderMap()]);
+            await Promise.all([updateKPIs(), loadStateStats(), loadTargets()]);
+            renderMap();
         }
 
         async function updateKPIs() {
             const res = await fetch(`${SB_URL}/comentarios?select=id`, { headers: { ...h, "Prefer": "count=exact" } });
             const total = parseInt(res.headers.get("content-range")?.split("/")[1]) || 0;
+            const resH = await fetch(`${SB_URL}/comentarios?is_hate=eq.true&select=id`, { headers: { ...h, "Prefer": "count=exact" } });
+            const hate = parseInt(resH.headers.get("content-range")?.split("/")[1]) || 0;
+            
             document.getElementById('kpi-total').innerText = total.toLocaleString();
-            document.getElementById('kpi-aggro').innerText = Math.floor(total * 0.08); // Mock para v9.2
-            document.getElementById('kpi-stability').innerText = "92.4%";
+            document.getElementById('kpi-aggro').innerText = hate;
+            document.getElementById('kpi-stability').innerText = total > 0 ? `${(100 - (hate/total*100)).toFixed(1)}%` : "100%";
+        }
+
+        async function loadStateStats() {
+            const res = await fetch(`${SB_URL}/candidatos?select=estado,comentarios_totais_count,comentarios_odio_count`, { headers: h });
+            const data = await res.json();
+            
+            // Reset cache
+            Object.keys(statesPaths).forEach(uf => stateData[uf] = { alvos: 0, total: 0, ódio: 0 });
+            
+            data.forEach(c => {
+                if(c.estado && stateData[c.estado]) {
+                    stateData[c.estado].alvos++;
+                    stateData[c.estado].total += (c.comentarios_totais_count || 0);
+                    stateData[c.estado].ódio += (c.comentarios_odio_count || 0);
+                }
+            });
         }
 
         function renderMap() {
             const group = document.getElementById('states-group');
-            group.innerHTML = Object.entries(statesPaths).map(([uf, d]) => `
-                <path id="state-${uf}" d="${d}" class="state" onclick="focusState('${uf}')">
-                    <title>${uf}</title>
-                </path>
-            `).join('');
-            // Destaque inicial no RN (Foco de exemplo)
-            document.getElementById('state-RN').classList.add('pulse-marker');
+            group.innerHTML = Object.entries(statesPaths).map(([uf, d]) => {
+                const info = stateData[uf];
+                let cssClass = "state";
+                if(info.ódio > 5) cssClass += " warning";
+                
+                return `
+                <path id="state-${uf}" d="${d}" class="${cssClass}" 
+                      onclick="focusState('${uf}')"
+                      onmousemove="showTooltip(event, '${uf}')"
+                      onmouseout="hideTooltip()">
+                </path>`;
+            }).join('');
         }
 
+        function showTooltip(e, uf) {
+            const t = document.getElementById('map-tooltip');
+            const info = stateData[uf];
+            t.style.display = 'block';
+            t.style.left = (e.clientX + 15) + 'px';
+            t.style.top = (e.clientY + 15) + 'px';
+            t.innerHTML = `
+                <div class="font-bold text-blue-400 mb-1">${uf}</div>
+                <div class="flex flex-col gap-1 opacity-80">
+                    <span>${info.alvos} Alvos Monitorados</span>
+                    <span>${info.total} Interações</span>
+                    <span class="text-amber-500">${info.ódio} Alertas Críticos</span>
+                </div>
+            `;
+        }
+
+        function hideTooltip() { document.getElementById('map-tooltip').style.display = 'none'; }
+
         function focusState(uf) {
-            document.querySelectorAll('.state').forEach(s => s.classList.remove('active-view'));
-            document.getElementById(`state-${uf}`).classList.add('active-view');
-            document.getElementById('st-name').innerText = uf;
+            document.querySelectorAll('.state').forEach(s => s.classList.remove('active-focus'));
+            document.getElementById(`state-${uf}`).classList.add('active-focus');
             
-            const card = document.getElementById('region-card');
-            if(uf === 'RN') {
-                card.className = "glass-card p-6 border-l-4 border-l-amber-500 bg-amber-500/5";
-                document.getElementById('st-impact').innerText = "ATENÇÃO";
-                document.getElementById('st-bar').className = "h-full bg-amber-500";
-                document.getElementById('st-bar').style.width = "75%";
-            } else {
-                card.className = "glass-card p-6 border-l-4 border-l-blue-500 bg-slate-900/40";
-                document.getElementById('st-impact').innerText = "ESTÁVEL";
-                document.getElementById('st-bar').className = "h-full bg-blue-500";
-                document.getElementById('st-bar').style.width = "20%";
-            }
+            const info = stateData[uf];
+            document.getElementById('st-name').innerText = uf;
+            document.getElementById('st-status-txt').innerText = info.total > 0 ? `Atividade intensa detectada em ${uf}.` : "Sem dados significativos nesta região.";
+            document.getElementById('st-targets-count').innerText = info.alvos;
+            document.getElementById('st-alerts-count').innerText = info.ódio;
+            
+            const impact = info.total > 0 ? (info.ódio / info.total * 100) : 0;
+            document.getElementById('st-impact').innerText = impact > 10 ? 'ATENÇÃO CRÍTICA' : (info.total > 0 ? 'ESTÁVEL' : '---');
+            document.getElementById('st-bar').style.width = impact + '%';
+            document.getElementById('st-bar').className = impact > 10 ? 'h-full bg-amber-500' : 'h-full bg-blue-500';
+            
+            loadStateLeaders(uf);
+        }
+
+        async function loadStateLeaders(uf) {
+            const res = await fetch(`${SB_URL}/candidatos?estado=eq.${uf}&select=username,comentarios_totais_count&order=comentarios_totais_count.desc&limit=3`, { headers: h });
+            const data = await res.json();
+            const container = document.getElementById('region-leaders');
+            container.innerHTML = data.map(l => `
+                <div class="flex items-center justify-between p-3 bg-white/5 rounded-xl">
+                    <span class="text-[11px] font-bold">@${l.username}</span>
+                    <span class="text-[10px] font-mono text-slate-500">${l.comentarios_totais_count} ints</span>
+                </div>
+            `).join('') || '<p class="text-[10px] text-slate-600">Nenhum dado por perfil nesta região.</p>';
         }
 
         async function loadTargets() {
-            const resT = await fetch(`${SB_URL}/candidatos?select=username,cargo,estado&limit=12`, { headers: h });
-            const targets = await resT.json();
-            document.getElementById('target-grid').innerHTML = targets.map(t => `
+            const res = await fetch(`${SB_URL}/candidatos?select=username,nome_completo,cargo,estado,comentarios_totais_count,comentarios_odio_count&order=comentarios_totais_count.desc&limit=24`, { headers: h });
+            const data = await res.json();
+            document.getElementById('target-count').innerText = `${data.length} ALVOS`;
+            document.getElementById('target-grid').innerHTML = data.map(t => {
+                const toxic = t.comentarios_totais_count > 0 ? (t.comentarios_odio_count / t.comentarios_totais_count * 100) : 0;
+                return `
                 <div class="glass-card p-6 bg-white/[0.02] border-white/5">
-                    <h4 class="text-sm font-bold mb-1">@${t.username}</h4>
-                    <span class="text-[9px] text-blue-400 font-bold uppercase">${t.estado || 'BR'}</span>
-                    <p class="text-[10px] text-slate-500 mt-2">${t.cargo || 'Monitorado'}</p>
-                </div>
-            `).join('');
-        }
-
-        function setMapMode(m) {
-            const vol = document.getElementById('btn-vol');
-            const clima = document.getElementById('btn-clima');
-            vol.className = m === 'volume' ? "px-6 py-2 text-[10px] font-bold rounded-xl bg-blue-600 transition-all" : "px-6 py-2 text-[10px] font-bold rounded-xl text-slate-500";
-            clima.className = m === 'clima' ? "px-6 py-2 text-[10px] font-bold rounded-xl bg-amber-600 transition-all" : "px-6 py-2 text-[10px] font-bold rounded-xl text-slate-500";
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center font-black text-blue-500">@</div>
+                        <span class="text-[9px] px-2 py-1 rounded bg-blue-500/10 text-blue-400 font-bold uppercase">${t.estado || 'BR'}</span>
+                    </div>
+                    <h4 class="text-sm font-bold text-white mb-1 truncate">@${t.username}</h4>
+                    <p class="text-[10px] text-slate-500 truncate mb-4">${t.cargo || 'Monitorado'}</p>
+                    <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-blue-500" style="width: ${100-toxic}%"></div></div>
+                </div>`;
+            }).join('');
         }
 
         window.onload = () => {
-            const initialView = window.location.hash.substring(1) || 'map';
-            updateUI(initialView);
+            navigate(window.location.hash.substring(1) || 'map');
             refresh();
         };
     </script>
