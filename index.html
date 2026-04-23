@@ -3,144 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SENTINELA v10.2 | Intel Superior</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
+    <title>SENTINELA | Debug Terminal v10.3</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛠️</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
-        :root {
-            --glass-bg: rgba(15, 23, 42, 0.9);
-            --glass-border: rgba(255, 255, 255, 0.05);
-            --accent-blue: #3b82f6;
-            --accent-amber: #f59e0b;
-        }
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background: #020617;
-            color: #f8fafc;
-            height: 100vh;
-            overflow: hidden;
-        }
-        .glass-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(40px);
-            border: 1px solid var(--glass-border);
-            border-radius: 32px;
-            overflow: hidden;
-        }
-        .nav-item {
-            display: flex; align-items: center; gap: 1rem; width: 100%;
-            padding: 1.1rem 1.5rem; border-radius: 18px; font-weight: 800;
-            font-size: 0.85rem; color: #64748b; transition: all 0.3s;
-        }
-        .nav-item.active { background: rgba(59, 130, 246, 0.1); color: #60a5fa; box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.2); }
-        
-        /* CORREÇÃO DO GRÁFICO CORTADO */
-        .main-chart-box { height: calc(100% - 100px); min-height: 250px; position: relative; }
-
-        /* MAPA INTERATIVO */
-        .state { fill: #1e293b; stroke: #334155; stroke-width: 0.5; transition: all 0.4s; cursor: pointer; }
-        .state:hover { fill: #3b82f6; stroke: #fff; filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.4)); }
-        .state.active-focus { fill: rgba(59, 130, 246, 0.4); stroke: #60a5fa; stroke-width: 1.5; }
-        .state.has-data { fill: #2a3b5a; }
-        .state.danger-node { fill: rgba(245, 158, 11, 0.4) !important; stroke: #f59e0b; filter: drop-shadow(0 0 15px rgba(245, 158, 11, 0.2)); }
-
-        .profile-thumb { width: 48px; height: 48px; border-radius: 16px; object-fit: cover; border: 2px solid rgba(255,255,255,0.1); background: #1e293b; }
-
-        .spectrum-bar { height: 8px; border-radius: 99px; display: flex; overflow: hidden; background: rgba(255,255,255,0.05); }
-        .spectrum-segment { height: 100%; transition: width 1s ease-in-out; }
-
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        :root { --glass: rgba(15, 23, 42, 0.95); --border: rgba(255, 255, 255, 0.05); }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #020617; color: #f8fafc; height: 100vh; overflow: hidden; }
+        .glass-card { background: var(--glass); backdrop-filter: blur(40px); border: 1px solid var(--border); border-radius: 24px; }
+        .nav-item { display: flex; align-items: center; gap: 0.8rem; width: 100%; padding: 0.8rem 1.2rem; border-radius: 12px; font-weight: 700; font-size: 0.8rem; color: #64748b; transition: 0.3s; }
+        .nav-item.active { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
+        .debug-panel { position: fixed; bottom: 20px; right: 20px; width: 300px; max-height: 200px; background: rgba(0,0,0,0.8); border: 1px solid #3b82f6; border-radius: 12px; font-family: 'JetBrains Mono', monospace; font-size: 9px; padding: 10px; overflow-y: auto; z-index: 9999; color: #10b981; pointer-events: none; }
+        .spectrum-bar { height: 6px; border-radius: 4px; display: flex; overflow: hidden; background: rgba(255,255,255,0.05); }
+        .seg-neutro { background: #3b82f6; } .seg-ataque { background: #ef4444; }
+        .state { fill: #1e293b; stroke: #334155; stroke-width: 0.5; transition: 0.3s; cursor: pointer; }
+        .state.active { fill: rgba(59, 130, 246, 0.4); stroke: #60a5fa; }
+        .state.danger { fill: rgba(245, 158, 11, 0.4) !important; stroke: #f59e0b; }
     </style>
 </head>
-<body class="antialiased flex p-6 gap-6">
+<body class="antialiased flex p-4 gap-4">
 
-    <!-- SIDEBAR -->
-    <aside class="w-80 glass-card flex flex-col p-10 shrink-0">
-        <div class="flex items-center gap-4 mb-20">
-            <div class="w-14 h-14 bg-blue-600 rounded-3xl flex items-center justify-center shadow-2xl"><i data-lucide="shield" class="w-8 h-8 text-white"></i></div>
-            <h1 class="text-xl font-900 tracking-tighter">SENTINELA <span class="block text-[9px] text-blue-500 font-black tracking-widest uppercase">Intel v10.2</span></h1>
+    <!-- DEBUG CONSOLE -->
+    <div id="debug-log" class="debug-panel">Initializing Sentinela Intel...<br></div>
+
+    <aside class="w-64 glass-card flex flex-col p-6 shrink-0">
+        <div class="flex items-center gap-3 mb-10">
+            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg"><i data-lucide="shield" class="w-6 h-6 text-white"></i></div>
+            <h1 class="text-sm font-900 tracking-tighter uppercase">Sentinela v10.3</h1>
         </div>
-
-        <nav class="flex-1 space-y-3">
-            <button onclick="navigate('monitor')" id="nav-monitor" class="nav-item"><i data-lucide="layout-grid" class="w-5 h-5"></i> Panorama Global</button>
-            <button onclick="navigate('dossie')" id="nav-dossie" class="nav-item"><i data-lucide="users" class="w-5 h-5"></i> Dossiê de Alvos</button>
-            <button onclick="navigate('risk')" id="nav-risk" class="nav-item"><i data-lucide="map" class="w-5 h-5"></i> Geopolítica</button>
+        <nav class="flex-1 space-y-1">
+            <button onclick="navigate('monitor')" id="nav-monitor" class="nav-item"><i data-lucide="layout" class="w-4 h-4"></i> Dashboard</button>
+            <button onclick="navigate('dossie')" id="nav-dossie" class="nav-item"><i data-lucide="users" class="w-4 h-4"></i> Dossiê</button>
+            <button onclick="navigate('map')" id="nav-map" class="nav-item"><i data-lucide="map" class="w-4 h-4"></i> Mapa</button>
         </nav>
-
-        <div class="mt-auto space-y-4">
-            <div class="p-5 bg-emerald-500/5 rounded-2xl border border-emerald-500/10 text-center"><span class="text-[9px] font-bold text-emerald-500 uppercase tracking-widest block mb-1">Deep Scan</span><div class="text-xs font-bold text-emerald-400">ATIVO</div></div>
-            <button onclick="refresh()" class="w-full py-4 bg-blue-600 hover:bg-blue-500 rounded-2xl text-xs font-black transition-all">ATUALIZAR TUDO</button>
+        <div class="mt-auto pt-4 border-t border-white/5 text-[9px] text-slate-500 font-bold uppercase tracking-widest text-center">
+            Gold Standard Intelligence
         </div>
     </aside>
 
-    <!-- MAIN -->
-    <main class="flex-1 flex flex-col gap-6 min-w-0">
-        
-        <header class="grid grid-cols-4 gap-6 shrink-0">
-            <div class="glass-card p-8 text-center"><span class="text-[10px] text-slate-500 font-bold uppercase block mb-1">Monitorados</span><div id="kpi-alvos" class="text-3xl font-black font-mono">---</div></div>
-            <div class="glass-card p-8 text-center"><span class="text-[10px] text-amber-500 font-bold uppercase block mb-1">Impactos Críticos</span><div id="kpi-hate" class="text-3xl font-black font-mono text-amber-500">---</div></div>
-            <div class="glass-card p-8 text-center"><span class="text-[10px] text-blue-400 font-bold uppercase block mb-1">Volume Global</span><div id="kpi-total" class="text-3xl font-black font-mono text-blue-400">---</div></div>
-            <div class="glass-card p-8 text-center"><span class="text-[10px] text-slate-500 font-bold uppercase block mb-1">Resiliência Média</span><div id="kpi-res" class="text-3xl font-black font-mono">---</div></div>
+    <main class="flex-1 flex flex-col gap-4 min-w-0">
+        <header class="grid grid-cols-4 gap-4 shrink-0">
+            <div class="glass-card p-6 text-center"><span class="text-[9px] text-slate-500 font-bold block mb-1 uppercase">ALVOS</span><div id="kpi-alvos" class="text-2xl font-black font-mono">---</div></div>
+            <div class="glass-card p-6 text-center"><span class="text-[9px] text-amber-500 font-bold block mb-1 uppercase">ALERTAS</span><div id="kpi-hate" class="text-2xl font-black font-mono text-amber-500">---</div></div>
+            <div class="glass-card p-6 text-center"><span class="text-[9px] text-blue-400 font-bold block mb-1 uppercase">VOLUME</span><div id="kpi-total" class="text-2xl font-black font-mono text-blue-400">---</div></div>
+            <div class="glass-card p-6 text-center flex items-center justify-center cursor-pointer hover:bg-white/5" onclick="refresh()"><i data-lucide="refresh-cw" class="w-5 h-5 text-slate-500"></i></div>
         </header>
 
-        <div class="flex-1 glass-card overflow-hidden relative flex flex-col">
-            
-            <!-- VIEW: MONITOR (PANORAMA) -->
-            <div id="view-monitor" class="view-content absolute inset-0 p-12 flex flex-col">
-                <div class="grid grid-cols-3 gap-8 flex-1">
-                    <div class="col-span-2 glass-card p-10 flex flex-col bg-slate-900/20">
-                        <div class="flex justify-between items-center mb-10">
-                            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest">Evolução Situacional (7 Dias)</h3>
-                            <div class="flex gap-4"><div class="flex items-center gap-2"><div class="w-2 h-2 bg-blue-500 rounded-full"></div><span class="text-[9px] font-bold">VOL</span></div><div class="flex items-center gap-2"><div class="w-2 h-2 bg-red-500 rounded-full"></div><span class="text-[9px] font-bold">ALERTA</span></div></div>
-                        </div>
-                        <div class="main-chart-box"><canvas id="chartTimeline"></canvas></div>
+        <div class="flex-1 glass-card relative overflow-hidden">
+            <!-- MONITOR -->
+            <div id="view-monitor" class="view-content absolute inset-0 p-8 flex flex-col hidden">
+                <div class="grid grid-cols-3 gap-6 flex-1 h-full">
+                    <div class="col-span-2 glass-card p-6 bg-slate-900/20 flex flex-col">
+                        <h3 class="text-[10px] font-bold text-slate-500 uppercase mb-4">Tendência Situacional</h3>
+                        <div class="flex-1"><canvas id="chartMain"></canvas></div>
                     </div>
-                    
-                    <div class="flex flex-col gap-6">
-                        <div class="glass-card p-8 flex-1">
-                            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-8">Ranking Nacional</h3>
-                            <div id="rank-nacional" class="space-y-6"></div>
-                        </div>
-                        <div class="glass-card p-8 flex-1">
-                            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-8">Ranking Regional</h3>
-                            <div id="rank-regional" class="space-y-6"></div>
-                        </div>
+                    <div class="glass-card p-6 flex flex-col">
+                        <h3 class="text-[10px] font-bold text-slate-500 uppercase mb-6">Ranking de Impacto</h3>
+                        <div id="ranking-container" class="space-y-4"></div>
                     </div>
                 </div>
             </div>
-
-            <!-- VIEW: DOSSIÊ (FOTOS E ESPECTRO) -->
-            <div id="view-dossie" class="view-content absolute inset-0 p-12 hidden overflow-y-auto">
-                 <h2 class="text-3xl font-900 tracking-tighter mb-12">Dossiê Situacional</h2>
-                 <div id="dossie-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+            <!-- DOSSIE -->
+            <div id="view-dossie" class="view-content absolute inset-0 p-8 overflow-y-auto hidden">
+                <h2 class="text-xl font-900 mb-8 uppercase tracking-tighter">Dossiê de Monitorados</h2>
+                <div id="dossie-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </div>
-
-            <!-- VIEW: MAPA -->
-            <div id="view-risk" class="view-content absolute inset-0 p-12 hidden flex flex-col">
-                <div class="flex justify-between items-start mb-10">
-                    <div><h2 class="text-2xl font-black tracking-tight uppercase">Radar Geopolítico</h2><p class="text-sm text-slate-400">Distribuição de alertas críticos em tempo real.</p></div>
-                </div>
-                <div class="flex-1 flex gap-12 items-center">
+            <!-- MAPA -->
+            <div id="view-map" class="view-content absolute inset-0 p-8 flex flex-col hidden">
+                <div class="flex-1 flex gap-8 items-center">
                     <div class="flex-1 h-full flex justify-center py-4"><svg id="svg-map-br" viewBox="0 0 500 500" class="h-full w-auto drop-shadow-2xl"></svg></div>
-                    <div class="w-96 space-y-6">
-                        <div id="st-card" class="glass-card p-10 bg-slate-900/60 border-l-4 border-l-blue-600 transition-all">
-                            <span class="text-[10px] font-bold text-blue-500 uppercase tracking-widest block mb-6">Região Selecionada</span>
-                            <h3 id="st-name" class="text-3xl font-black mb-2">Brasil</h3>
-                            <p id="st-info" class="text-xs text-slate-500 mb-8 italic">Clique no mapa para analisar o cenário local.</p>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center"><span class="text-[9px] text-slate-500 uppercase block mb-1">Picos</span><div id="st-picos" class="text-2xl font-black">---</div></div>
-                                <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center"><span class="text-[9px] text-slate-500 uppercase block mb-1">Impacto</span><div id="st-impact" class="text-2xl font-black">---</div></div>
-                            </div>
+                    <div class="w-80 glass-card p-8 bg-slate-900/60 border-l-4 border-l-blue-600">
+                        <h3 id="st-name" class="text-2xl font-black mb-2">Brasil</h3>
+                        <p id="st-info" class="text-[10px] text-slate-500 mb-6 italic">Clique no estado para detalhes.</p>
+                        <div class="grid grid-cols-2 gap-2 text-center">
+                            <div class="p-4 bg-white/5 rounded-2xl"><span class="text-[8px] text-slate-500 uppercase block">Monitorados</span><div id="st-targets" class="text-xl font-black">0</div></div>
+                            <div class="p-4 bg-white/5 rounded-2xl"><span class="text-[8px] text-slate-500 uppercase block">Alertas</span><div id="st-hate" class="text-xl font-black text-amber-500">0</div></div>
                         </div>
                     </div>
                 </div>
             </div>
-
         </div>
     </main>
 
@@ -150,93 +94,86 @@
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoYW1lamtsZHp4YmVpYnFlcXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0ODgxMjUsImV4cCI6MjA5MjA2NDEyNX0.RMpgx8mDRrYRNfJ_GdOrsT5o8NkJiwBgW_J7CXSznWk";
         const h = { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` };
         
-        let timeline = null;
+        function log(msg, color='#10b981') { 
+            const d = document.getElementById('debug-log');
+            d.innerHTML += `<span style="color:${color}">[${new Date().toLocaleTimeString()}] ${msg}</span><br>`;
+            d.scrollTop = d.scrollHeight;
+        }
+
         const statesPaths = { "AC": "M44.4 345.5l-3.3-4.5 13.9-10.4 12.8 5.7 7.7-10.8 13.4 3.7 3.5 15.5-2.2 4.2-12.7 10.9-13.6-0.3-19.5 6z", "AL": "M483.4 330.4l-4.2-4.1-1.2-13.5 15.8-2 6.7 10 1.2 12.2z", "AM": "M43.7 215.1l73.4-39.6 44.8 28.1 48-18.7 18.2 24.5-12.4 46.1 19.1 57.6-67.4 33.9-13.4-3.7-7.7 10.8-12.8-5.7-13.9 10.4-35.9-46.7-5.9-47.5z", "AP": "M266.3 128.4l11.4 3.5 6.7 20.3-25.1 19.3-13.9-10.8z", "BA": "M386.4 290l17.4-44.1 27.6 24.1 17 64-16.1 50-68.5 0.5-54.8-19.1-17.5-68.4z", "CE": "M431.2 216.5l33.9 13.2 0.7 34.6-26.6-11.7-8z", "DF": "M316 357h10v10h-10z", "ES": "M426 430l10.5-18.6 6 2.5 1.5 35.8-10.5 4z", "GO": "M278.4 353l37.1-13 32.5 13.5 17.5 68.4-40.4 5.9-40.7-36.9z", "MA": "M315.6 182l49.5 28.5 21.3 80.5-44.1 24.9-32.5-33.1z", "MG": "M331 430l40.4-5.9 54.6 5.8 14.5 45.4-33.5 54.4-76 6.3z", "MS": "M205 440l73.4 13.5 40.7 36.9-20.1 76-78.5-10.4z", "MT": "M160 300l67.4-33.9 51 18.9 32.5 33.1-37.1 13-73.4-13.5z", "PA": "M161.9 203.6l104.4-75.2 26 15 23.3 38.6-49.5 28.5-51-18.9z", "PB": "M465 240l18.4 10.5 0.1 14.5-18.5 0.5z", "PE": "M420 250l45 10 0.5 30-45.5-2z", "PI": "M365 210l30.4 6 35.8 74-27.6-24.1z", "PR": "M210 520l78.5 10.4 1.5 35.8-60 15.8z", "RJ": "M380 535l40.5-15 4.5 15.5-35 15z", "RN": "M450 210l33.4 6.5-18.4 23.5-15-15z", "RO": "M130 320l73.4 13.5-3.5 15.5-60 15.8z", "RR": "M117 175.5l44.9-25.5 10.5 18.6 13.9 10.8-44.8 28.1z", "RS": "M210 560l60-15.8 4.5 35.8-64.5 15z", "SC": "M220 545l60-15.8 10.5 15-70.5 15z", "SE": "M470 310l13.4 20.4-15.8 2z", "SP": "M300 520l33.5-54.4 76-6.3-4.5 35.8-70 25z", "TO": "M300 240l54.8 19.1 12.5 73.5-44.1 24.9-23.2-117.5z" };
-        const stateStats = {};
+        const stats = {};
 
         function navigate(v) {
             window.location.hash = v;
             document.querySelectorAll('.view-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            const active = document.getElementById(`view-${v}`) || document.getElementById('view-monitor');
-            active.classList.remove('hidden'); active.classList.add('fade-in');
-            (document.getElementById(`nav-${v}`) || document.getElementById('nav-monitor')).classList.add('active');
+            document.getElementById(`view-${v}`).classList.remove('hidden');
+            document.getElementById(`nav-${v}`).classList.add('active');
             if(v === 'monitor') renderTimeline();
         }
 
         async function refresh() {
-            await Promise.all([loadStats(), loadDossie()]);
-            renderMap();
+            log("Sincronizando banco...");
+            try {
+                const res = await fetch(`${SB_URL}/candidatos?select=*&order=comentarios_totais_count.desc`, { headers: h });
+                if(!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                log(`Recuperados ${data.length} candidatos.`);
+                
+                let globTotal = 0, globHate = 0;
+                Object.keys(statesPaths).forEach(uf => stats[uf] = { count: 0, hate: 0, total: 0 });
+
+                data.forEach(c => {
+                    const ti = c.comentarios_totais_count || 0;
+                    const th = c.comentarios_odio_count || 0;
+                    globTotal += ti; globHate += th;
+                    if(c.estado && stats[c.estado]) {
+                        stats[c.estado].count++;
+                        stats[c.estado].total += ti;
+                        stats[c.estado].hate += th;
+                    }
+                });
+
+                document.getElementById('kpi-alvos').innerText = data.length;
+                document.getElementById('kpi-total').innerText = globTotal.toLocaleString();
+                document.getElementById('kpi-hate').innerText = globHate;
+                document.getElementById('kpi-res').innerText = `${(100 - (globHate/globTotal*100 || 0)).toFixed(1)}%`;
+
+                renderRanking(data);
+                renderDossie(data);
+                renderMap();
+                log("Sincronização concluída com sucesso.");
+            } catch(e) {
+                log(`ERRO: ${e.message}`, '#ef4444');
+            }
         }
 
-        async function loadStats() {
-            const res = await fetch(`${SB_URL}/candidatos?select=*`, { headers: h });
-            const data = await res.json();
-            
-            let totalInts = 0, totalHate = 0;
-            Object.keys(statesPaths).forEach(uf => stateStats[uf] = { alvos: 0, ints: 0, hate: 0 });
-
-            data.forEach(c => {
-                const ti = c.comentarios_totais_count || 0;
-                const th = c.comentarios_odio_count || 0;
-                totalInts += ti; totalHate += th;
-                if(c.estado && stateStats[c.estado]) {
-                    stateStats[c.estado].alvos++;
-                    stateStats[c.estado].ints += ti;
-                    stateStats[c.estado].hate += th;
-                }
-            });
-
-            document.getElementById('kpi-alvos').innerText = data.length;
-            document.getElementById('kpi-total').innerText = totalInts.toLocaleString();
-            document.getElementById('kpi-hate').innerText = totalHate;
-            document.getElementById('kpi-res').innerText = `${(100 - (totalHate/totalInts*100 || 0)).toFixed(1)}%`;
-
-            // RANKINGS SEGMENTADOS
-            const nac = data.filter(i => !i.estado || i.estado === 'DF').sort((a,b) => b.comentarios_totais_count - a.comentarios_totais_count).slice(0, 4);
-            const reg = data.filter(i => i.estado && i.estado !== 'DF').sort((a,b) => b.comentarios_totais_count - a.comentarios_totais_count).slice(0, 4);
-
-            const renderRank = (list) => list.map((t, idx) => `
+        function renderRanking(data) {
+            const list = data.slice(0, 5);
+            document.getElementById('ranking-container').innerHTML = list.map(t => `
                 <div class="flex items-center gap-4">
                     <img src="https://unavatar.io/instagram/${t.username}" class="w-8 h-8 rounded-lg" onerror="this.src='https://ui-avatars.com/api/?name=${t.username}'">
                     <div class="flex-1">
-                        <div class="flex justify-between text-[10px] font-bold"><span>@${t.username}</span><span class="font-mono text-slate-500">${t.comentarios_totais_count}</span></div>
-                        <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden mt-1"><div class="h-full bg-blue-600" style="width: ${t.comentarios_totais_count/(list[0].comentarios_totais_count||1)*100}%"></div></div>
+                        <div class="flex justify-between text-[10px] font-bold"><span>@${t.username}</span><span class="font-mono">${t.comentarios_totais_count}</span></div>
+                        <div class="w-full h-1 bg-white/5 rounded-full mt-1"><div class="h-full bg-blue-600" style="width: ${t.comentarios_totais_count/list[0].comentarios_totais_count*100}%"></div></div>
                     </div>
                 </div>
             `).join('');
-
-            document.getElementById('rank-nacional').innerHTML = renderRank(nac);
-            document.getElementById('rank-regional').innerHTML = renderRank(reg);
         }
 
-        async function loadDossie() {
-            const res = await fetch(`${SB_URL}/candidatos?select=*&order=comentarios_totais_count.desc&limit=24`, { headers: h });
-            const data = await res.json();
+        function renderDossie(data) {
             document.getElementById('dossie-grid').innerHTML = data.map(t => {
-                const total = t.comentarios_totais_count || 0;
-                const hate = t.comentarios_odio_count || 0;
-                const pAtaque = total > 0 ? (hate/total*100) : 0;
-                const pSaudavel = 100 - pAtaque;
-
+                const perc = t.comentarios_totais_count > 0 ? (100 - (t.comentarios_odio_count/t.comentarios_totais_count*100)) : 100;
                 return `
-                <div class="glass-card p-8 bg-white/[0.02] border-white/5 hover:border-blue-500/30 transition-all">
-                    <div class="flex justify-between items-start mb-8">
-                        <img src="https://unavatar.io/instagram/${t.username}" class="profile-thumb shadow-2xl" onerror="this.src='https://ui-avatars.com/api/?name=${t.username}'">
-                        <span class="text-[9px] px-3 py-1 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 font-black uppercase">${t.estado || 'BR'}</span>
+                <div class="glass-card p-6 bg-white/[0.02] border-white/5">
+                    <div class="flex justify-between items-start mb-6">
+                        <img src="https://unavatar.io/instagram/${t.username}" class="w-12 h-12 rounded-2xl border-2 border-white/10" onerror="this.src='https://ui-avatars.com/api/?name=${t.username}'">
+                        <span class="text-[9px] px-2 py-1 rounded bg-blue-500/10 text-blue-400 font-bold">${t.estado || 'BR'}</span>
                     </div>
-                    <h4 class="text-md font-black text-white mb-1">@${t.username}</h4>
-                    <p class="text-[10px] text-slate-500 mb-6 uppercase tracking-widest font-bold">${t.cargo || 'Monitorado'}</p>
-                    <div class="space-y-4">
-                        <div class="flex justify-between text-[9px] font-black uppercase tracking-tighter">
-                            <span class="text-slate-500">Resiliência</span>
-                            <span class="${pSaudavel < 90 ? 'text-amber-500' : 'text-emerald-400'}">${pSaudavel.toFixed(1)}%</span>
-                        </div>
-                        <div class="spectrum-bar">
-                            <div class="spectrum-segment seg-neutro" style="width: ${pSaudavel}%"></div>
-                            <div class="spectrum-segment seg-ataque" style="width: ${pAtaque}%"></div>
-                        </div>
-                    </div>
+                    <h4 class="text-sm font-black mb-1 truncate">@${t.username}</h4>
+                    <p class="text-[9px] text-slate-500 uppercase tracking-widest mb-4 font-bold">${t.cargo || 'Monitorado'}</p>
+                    <div class="spectrum-bar mb-2"><div class="spectrum-segment seg-neutro" style="width: ${perc}%"></div><div class="spectrum-segment seg-ataque" style="width: ${100-perc}%"></div></div>
+                    <div class="flex justify-between text-[8px] font-bold uppercase"><span class="text-slate-500">Saúde Digital</span><span class="text-blue-400">${perc.toFixed(1)}%</span></div>
                 </div>`;
             }).join('');
         }
@@ -244,42 +181,32 @@
         function renderMap() {
             const svg = document.getElementById('svg-map-br');
             svg.innerHTML = Object.entries(statesPaths).map(([uf, d]) => {
-                const info = stateStats[uf];
+                const info = stats[uf];
                 let css = "state";
-                if(info.ints > 0) css += " has-data";
-                // Aumento da sensibilidade para colorir o mapa mesmo com poucos dados
-                if(info.hate > 0) css += " danger-node";
+                if(info.total > 0) css += " has-data";
+                if(info.hate > 0) css += " danger";
                 return `<path id="state-${uf}" d="${d}" class="${css}" onclick="focusState('${uf}')"><title>${uf}</title></path>`;
             }).join('');
         }
 
         function focusState(uf) {
-            document.querySelectorAll('.state').forEach(s => s.classList.remove('active-focus'));
-            document.getElementById(`state-${uf}`).classList.add('active-focus');
-            const info = stateStats[uf];
+            document.querySelectorAll('.state').forEach(s => s.classList.remove('active'));
+            document.getElementById(`state-${uf}`).classList.add('active');
+            const info = stats[uf];
             document.getElementById('st-name').innerText = uf;
-            document.getElementById('st-targets').innerText = info.alvos;
+            document.getElementById('st-targets').innerText = info.count;
             document.getElementById('st-hate').innerText = info.hate;
-            document.getElementById('st-info').innerText = info.ints > 0 ? `Atividade detectada: ${info.ints} interações.` : "Monitoramento estabilizado.";
-            const card = document.getElementById('st-card');
-            card.style.borderColor = info.hate > 0 ? '#f59e0b' : '#3b82f6';
         }
 
         function renderTimeline() {
-            const ctx = document.getElementById('chartTimeline').getContext('2d');
-            if(timeline) timeline.destroy();
-            timeline = new Chart(ctx, {
+            const ctx = document.getElementById('chartMain').getContext('2d');
+            new Chart(ctx, {
                 type: 'line',
-                data: { labels: ['17/04','18/04','19/04','20/04','21/04','22/04','23/04'], 
-                datasets: [
-                    { label: 'Vol', data: [120, 160, 200, 140, 280, 320, 350], borderColor: '#3b82f6', tension: 0.4, fill: true, backgroundColor: 'rgba(59,130,246,0.03)' },
-                    { label: 'Ataque', data: [5, 10, 35, 12, 45, 15, 20], borderColor: '#ef4444', tension: 0.4, borderDash: [5, 5] }
-                ]},
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.02)' }, ticks: { display: false } }, x: { grid: { display: false }, ticks: { color: '#475569', font: { size: 9 } } } } }
+                data: { labels: ['18/04','19/04','20/04','21/04','22/04','23/04'], datasets: [{ label: 'V', data: [150, 180, 120, 250, 300, 280], borderColor: '#3b82f6', tension: 0.4, borderWidth: 2, pointRadius: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { display: false }, ticks: { display: false } }, x: { grid: { display: false }, ticks: { color: '#475569', font: { size: 8 } } } } }
             });
         }
 
-        async function exportReport() { window.location.href = '/api/export_pdf'; }
         window.onload = () => { navigate(window.location.hash.substring(1) || 'monitor'); refresh(); };
     </script>
 </body>
