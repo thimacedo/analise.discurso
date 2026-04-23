@@ -4,14 +4,15 @@
 Sistema de detecção e classificação de discursos de ódio no contexto político brasileiro, utilizando Supabase e Groq v2 (Llama 3.3). O projeto atua na proteção do diálogo institucional e na identificação de padrões de agressividade que comprometam a estabilidade democrática.
 
 ## 📌 Status Atual
-**Data:** 19 de Abril de 2026
-**Fase:** Manutenção e Evolução (Renomeação de Projeto Concluída)
-**Resumo:** Versão 5.8 online (Dashboard Estruturado). O pipeline está operante realizando classificação com prioridade `is_hate DESC`.
+**Data:** 23 de Abril de 2026
+**Fase:** Operação em Sandbox (v9.5 Final)
+**Resumo:** Versão 9.5 estabilizada. Motor de IA refinado para detecção de sarcasmo/ironia. Dashboard v9.4 operacional. Coleta nacional massiva em execução.
 
 ## 🎯 Próximos Passos
-1. [ ] Escalonamento: Implementar Monitoramento Nacional em novo ciclo.
-2. [ ] Detecção de Sarcasmo Local: Refinar motor local para reduzir falsos positivos em elogios irônicos.
-3. [ ] Laudos Dinâmicos: Exportação do Corpus de Prova formatado para PDF pericial.
+1. [ ] Escalonamento: Implementar Monitoramento Nacional em novo ciclo (Alimentar Mapa).
+2. [x] Detecção de Sarcasmo Local: Refinar motor local para reduzir picos de falsa agressividade.
+3. [x] Relatórios Situacionais: Exportação de Panoramas Estratégicos para PDF.
+4. [x] Command Center v9: Interface moderna com roteamento blindado.
 
 ## 🛠️ Instruções de Execução (Como Deve Ser Feito)
 - **Gestor:** Gemini (Arquiteto de Software e PM)

@@ -60,7 +60,11 @@ async def analyze_hybrid(text):
             messages=[
                 {
                     "role": "system", 
-                    "content": "Você é um perito criminal. Analise discurso de ódio. Retorne JSON: {\"is_hate\": boolean, \"categoria\": \"string\"}."
+                    "content": "Você é um perito em análise de discurso político. Analise o sentimento e a agressividade. "
+                               "Diferencie ATAQUES DIRETOS de SARCASMO/IRONIA. "
+                               "Se o texto for sarcástico (ex: elogio falso para criticar), defina is_hate=false mas use categoria='Sarcasmo Crítico'. "
+                               "Retorne JSON: {\"is_hate\": boolean, \"categoria\": \"string\"}. "
+                               "Categorias: Ataque Pessoal, Racismo, Misoginia, Sarcasmo Crítico, Debate Ideológico, Neutro."
                 },
                 {"role": "user", "content": text}
             ],
