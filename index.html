@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SENTINELA v9.5 | Inteligência Estratégica</title>
+    <title>SENTINELA | Inteligência de Alta Fidelidade</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
@@ -12,7 +12,7 @@
     
     <style>
         :root {
-            --glass-bg: rgba(15, 23, 42, 0.8);
+            --glass-bg: rgba(15, 23, 42, 0.85);
             --glass-border: rgba(255, 255, 255, 0.05);
             --accent-blue: #3b82f6;
             --accent-amber: #f59e0b;
@@ -20,65 +20,47 @@
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
             background: #020617;
-            background-image: radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.05) 0%, transparent 50%), radial-gradient(circle at 100% 100%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
             color: #f8fafc;
             height: 100vh;
             overflow: hidden;
+            background-image: radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.08) 0%, transparent 40%), radial-gradient(circle at 100% 100%, rgba(139, 92, 246, 0.08) 0%, transparent 40%);
         }
         .glass-card {
             background: var(--glass-bg);
-            backdrop-filter: blur(32px);
+            backdrop-filter: blur(40px);
             border: 1px solid var(--glass-border);
             border-radius: 32px;
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.4s ease;
         }
         .nav-item {
             display: flex; align-items: center; gap: 1rem; width: 100%;
             padding: 1.25rem 1.75rem; border-radius: 20px; font-weight: 700;
             font-size: 0.875rem; color: #64748b; transition: all 0.3s;
         }
-        .nav-item.active { 
-            background: rgba(59, 130, 246, 0.1); 
-            color: #60a5fa;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-        }
+        .nav-item.active { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
         
-        /* MAPA REAL */
-        .state {
-            fill: #1e293b;
-            stroke: #334155;
-            stroke-width: 0.5;
-            transition: all 0.4s;
-            cursor: pointer;
-        }
-        .state:hover {
-            fill: #3b82f6;
-            stroke: #fff;
-            filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.6));
-            transform: scale(1.02);
-        }
-        .state.active-focus {
-            fill: rgba(59, 130, 246, 0.4);
-            stroke: #60a5fa;
-            stroke-width: 1.5;
-        }
-        
-        .kpi-value { font-family: 'JetBrains Mono', monospace; font-weight: 800; }
-        
-        @keyframes pulse-dot { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
-        .dot-sync { animation: pulse-dot 1.5s infinite; }
+        /* MAPA INTERATIVO */
+        .state { fill: #1e293b; stroke: #334155; stroke-width: 0.5; transition: all 0.4s; cursor: pointer; }
+        .state:hover { fill: #3b82f6; stroke: #fff; filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.6)); }
+        .state.active-focus { fill: rgba(59, 130, 246, 0.4); stroke: #60a5fa; stroke-width: 1.5; }
+        .state.danger { fill: rgba(245, 158, 11, 0.3); stroke: #f59e0b; }
 
-        .tag-bubble {
+        .tag-pill {
             background: rgba(255,255,255,0.03);
             border: 1px solid rgba(255,255,255,0.05);
-            padding: 6px 16px;
+            padding: 8px 16px;
             border-radius: 12px;
             font-size: 11px;
+            font-weight: 700;
             color: #94a3b8;
-            font-weight: 600;
-            transition: all 0.3s;
+            transition: all 0.2s;
         }
-        .tag-bubble:hover { border-color: #3b82f6; color: #fff; background: rgba(59, 130, 246, 0.1); }
+        .tag-pill:hover { background: rgba(59, 130, 246, 0.1); border-color: #3b82f6; color: #fff; }
+
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .kpi-num { font-family: 'JetBrains Mono', monospace; font-weight: 900; }
     </style>
 </head>
 <body class="antialiased flex p-6 gap-6">
@@ -86,97 +68,101 @@
     <!-- SIDEBAR -->
     <aside class="w-80 glass-card flex flex-col p-10 shrink-0">
         <div class="flex items-center gap-4 mb-20">
-            <div class="w-14 h-14 bg-blue-600 rounded-3xl flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.5)]">
+            <div class="w-14 h-14 bg-blue-600 rounded-3xl flex items-center justify-center shadow-[0_0_40px_rgba(59,130,246,0.4)]">
                 <i data-lucide="shield" class="w-8 h-8 text-white"></i>
             </div>
             <div>
                 <h1 class="text-xl font-900 tracking-tighter">SENTINELA</h1>
-                <span class="text-[9px] text-blue-400 font-black tracking-widest uppercase">Global Intel v9.6 (PASA)</span>
+                <span class="text-[9px] text-blue-500 font-black tracking-widest uppercase italic">High-Fidelity Intel</span>
             </div>
         </div>
 
         <nav class="flex-1 space-y-4">
             <button onclick="navigate('map')" id="nav-map" class="nav-item">
-                <i data-lucide="map" class="w-5 h-5"></i> Panorama Geopolítico
+                <i data-lucide="map" class="w-5 h-5"></i> Panorama Regional
             </button>
             <button onclick="navigate('targets')" id="nav-targets" class="nav-item">
-                <i data-lucide="users" class="w-5 h-5"></i> Diagnóstico de Alvos
+                <i data-lucide="users" class="w-5 h-5"></i> Dossiê de Alvos
             </button>
             <button onclick="navigate('trends')" id="nav-trends" class="nav-item">
-                <i data-lucide="brain-circuit" class="w-5 h-5"></i> Narrativas e Sarcasmo
+                <i data-lucide="brain-circuit" class="w-5 h-5"></i> Narrativas IA
             </button>
         </nav>
 
-        <div class="mt-auto pt-10 border-t border-white/5">
-            <button onclick="exportReport()" class="w-full py-5 bg-blue-600 hover:bg-blue-500 rounded-2xl text-xs font-black transition-all shadow-2xl shadow-blue-600/30 uppercase tracking-widest">
-                Exportar Panorama
+        <div class="mt-auto">
+            <div class="p-6 bg-slate-900/40 rounded-3xl border border-white/5 mb-6">
+                <span class="text-[10px] font-bold text-slate-500 uppercase block mb-3">Sincronização Ativa</span>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-emerald-400">ESTÁVEL</span>
+                    <div class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
+                </div>
+            </div>
+            <button onclick="exportReport()" class="w-full py-5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-xs font-bold transition-all uppercase tracking-widest">
+                Exportar Inteligência
             </button>
         </div>
     </aside>
 
     <main class="flex-1 flex flex-col gap-6 min-w-0">
         
-        <!-- TOP KPIs -->
+        <!-- HEADER KPIs -->
         <header class="grid grid-cols-4 gap-6 shrink-0">
+            <div class="glass-card p-8 bg-gradient-to-br from-blue-600/5 to-transparent">
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2">Monitorados</span>
+                <div id="kpi-total-alvos" class="text-4xl kpi-num">---</div>
+            </div>
+            <div class="glass-card p-8 bg-gradient-to-br from-amber-600/5 to-transparent">
+                <span class="text-[10px] font-bold text-amber-500 uppercase tracking-widest block mb-2">Interações Analisadas</span>
+                <div id="kpi-total-ints" class="text-4xl kpi-num text-amber-500">---</div>
+            </div>
             <div class="glass-card p-8">
-                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2">Amostragem Global</span>
-                <div id="kpi-total" class="text-4xl kpi-value">---</div>
+                <span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest block mb-2">Índice de Resiliência</span>
+                <div id="kpi-resilience" class="text-4xl kpi-num text-blue-400">---</div>
             </div>
-            <div class="glass-card p-8 border-l-4 border-l-amber-500">
-                <span class="text-[10px] font-bold text-amber-500 uppercase tracking-widest block mb-2">Picos Críticos</span>
-                <div id="kpi-aggro" class="text-4xl kpi-value text-amber-500">---</div>
-            </div>
-            <div class="glass-card p-8">
-                <span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest block mb-2">Resiliência Média</span>
-                <div id="kpi-stability" class="text-4xl kpi-value text-blue-400">---</div>
-            </div>
-            <div class="glass-card p-8 flex items-center justify-between">
-                <div class="flex flex-col">
-                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2">Status do Ciclo</span>
-                    <div class="flex items-center gap-2">
-                        <div class="w-2 h-2 bg-emerald-500 rounded-full dot-sync"></div>
-                        <span class="text-xs font-bold text-emerald-500">SINCRONIZADO</span>
-                    </div>
+            <div class="glass-card p-8 flex items-center justify-between cursor-pointer" onclick="refresh()">
+                <div>
+                    <span class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Ciclo de Dados</span>
+                    <div class="text-sm font-black text-slate-300">Atualizar</div>
                 </div>
-                <button onclick="refresh()" class="p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-all text-slate-500 hover:text-white"><i data-lucide="refresh-cw" class="w-5 h-5"></i></button>
+                <div class="p-4 bg-white/5 rounded-2xl"><i data-lucide="refresh-cw" class="w-6 h-6 text-slate-500"></i></div>
             </div>
         </header>
 
-        <!-- CONTENT -->
         <div class="flex-1 glass-card overflow-hidden relative flex flex-col">
             
-            <!-- VIEW: MAPA -->
+            <!-- VIEW: MAPA DETALHADO -->
             <div id="view-map" class="view-content absolute inset-0 p-12 flex flex-col">
                 <div class="flex justify-between items-start mb-12">
                     <div>
-                        <h2 class="text-3xl font-black tracking-tighter">Geopolítica Situacional</h2>
-                        <p class="text-sm text-slate-400">Clique nos estados para análise de clima regional profunda.</p>
+                        <h2 class="text-3xl font-900 tracking-tighter">Geopolítica Regional</h2>
+                        <p class="text-sm text-slate-400">Distribuição de impacto e densidade de alvos por unidade federativa.</p>
                     </div>
                     <div class="flex bg-slate-900/60 p-2 rounded-2xl border border-white/5">
-                        <button onclick="setMapMode('volume')" id="btn-vol" class="px-10 py-3 text-[10px] font-bold rounded-xl bg-blue-600 transition-all shadow-lg">INTELIGÊNCIA</button>
-                        <button onclick="setMapMode('clima')" id="btn-clima" class="px-10 py-3 text-[10px] font-bold rounded-xl text-slate-500 hover:text-white transition-all ml-1">ALERTA</button>
+                        <button onclick="setMapMode('volume')" id="btn-vol" class="px-10 py-3 text-[10px] font-bold rounded-xl bg-blue-600 transition-all">DENSIDADE</button>
+                        <button onclick="setMapMode('clima')" id="btn-clima" class="px-10 py-3 text-[10px] font-bold rounded-xl text-slate-500 ml-1">RISCO NARRATIVO</button>
                     </div>
                 </div>
                 
                 <div class="flex-1 flex gap-12 items-center">
                     <div class="flex-1 h-full flex justify-center py-4">
-                        <svg id="svg-map-br" viewBox="0 0 500 500" class="h-full w-auto drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)]"></svg>
+                        <!-- MAPA SVG REAL INJETADO -->
+                        <svg id="svg-map-br" viewBox="0 0 500 500" class="h-full w-auto drop-shadow-[0_30px_60px_rgba(0,0,0,0.8)]"></svg>
                     </div>
                     
                     <div class="w-96 space-y-6">
-                        <div id="region-card" class="glass-card p-10 bg-gradient-to-br from-slate-900/80 to-transparent border-l-4 border-l-blue-600 relative overflow-hidden">
-                            <span class="text-[10px] font-bold text-blue-500 uppercase tracking-[0.3em] block mb-6">Regional Focus</span>
-                            <h3 id="st-name" class="text-3xl font-black mb-2">Brasil</h3>
-                            <p id="st-status-txt" class="text-xs text-slate-500 mb-10 leading-relaxed">Seleção pendente para diagnóstico em tempo real.</p>
+                        <div id="region-card" class="glass-card p-10 bg-slate-900/40 border-l-4 border-l-blue-600">
+                            <span id="st-tag" class="text-[10px] font-bold text-blue-500 uppercase tracking-widest block mb-6">Foco Regional</span>
+                            <h3 id="st-name" class="text-4xl font-black mb-1">Brasil</h3>
+                            <p id="st-status" class="text-xs text-slate-500 mb-10 leading-relaxed">Selecione um estado para diagnósticos.</p>
                             
-                            <div class="grid grid-cols-2 gap-6">
-                                <div class="p-6 bg-white/5 rounded-3xl border border-white/5">
-                                    <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1">Impacto</span>
-                                    <div id="st-impact" class="text-xl font-black">---</div>
-                                </div>
+                            <div class="grid grid-cols-2 gap-4">
                                 <div class="p-6 bg-white/5 rounded-3xl border border-white/5">
                                     <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1">Alvos</span>
-                                    <div id="st-targets-count" class="text-xl font-black">0</div>
+                                    <div id="st-targets" class="text-2xl font-black">---</div>
+                                </div>
+                                <div class="p-6 bg-white/5 rounded-3xl border border-white/5">
+                                    <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1">Interações</span>
+                                    <div id="st-ints" class="text-2xl font-black">---</div>
                                 </div>
                             </div>
                         </div>
@@ -184,16 +170,35 @@
                 </div>
             </div>
 
-            <!-- VIEW: TARGETS -->
+            <!-- VIEW: DOSSIÊ DE ALVOS (DEEP DIVE) -->
             <div id="view-targets" class="view-content absolute inset-0 p-12 hidden overflow-y-auto">
-                 <h2 class="text-3xl font-black mb-12 tracking-tighter">Monitorados de Alta Relevância</h2>
-                 <div id="target-grid" class="grid grid-cols-1 md:grid-cols-4 gap-6"></div>
+                 <div class="flex justify-between items-center mb-12">
+                     <div>
+                         <h2 class="text-3xl font-black tracking-tighter">Dossiê de Monitorados</h2>
+                         <p class="text-sm text-slate-400">Análise de exposição e impacto reputacional individual.</p>
+                     </div>
+                     <input type="text" placeholder="Buscar perfil..." class="bg-white/5 border border-white/10 px-6 py-3 rounded-2xl text-sm w-80 outline-none focus:border-blue-500 transition-all">
+                 </div>
+                 <div id="target-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
             </div>
 
-            <!-- VIEW: TRENDS -->
+            <!-- VIEW: NARRATIVAS IA (DADOS REAIS) -->
             <div id="view-trends" class="view-content absolute inset-0 p-12 hidden flex flex-col">
-                <h2 class="text-3xl font-black mb-12 tracking-tighter">Nuvem de Narrativas Ativas</h2>
-                <div id="tag-cloud" class="flex-1 glass-card p-12 flex flex-wrap content-start gap-4"></div>
+                <div class="flex justify-between items-start mb-12">
+                    <div>
+                        <h2 class="text-3xl font-black tracking-tighter">Narrativas e Sarcasmo</h2>
+                        <p class="text-sm text-slate-400">Extração dinâmica de temas e detecção de ironia via IA PASA.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-8 flex-1">
+                    <div class="col-span-2 glass-card p-12 flex flex-wrap content-start gap-4" id="real-tag-cloud">
+                        <!-- Tags Reais do Banco -->
+                    </div>
+                    <div class="glass-card p-10 flex flex-col">
+                        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-10 text-center">Clima Narrativo Dominante</h3>
+                        <div class="flex-1 min-h-0"><canvas id="climaChart"></canvas></div>
+                    </div>
+                </div>
             </div>
 
         </div>
@@ -204,6 +209,7 @@
         const SB_URL = "https://vhamejkldzxbeibqeqpk.supabase.co/rest/v1";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoYW1lamtsZHp4YmVpYnFlcXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0ODgxMjUsImV4cCI6MjA5MjA2NDEyNX0.RMpgx8mDRrYRNfJ_GdOrsT5o8NkJiwBgW_J7CXSznWk";
         const h = { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` };
+        let climaChart = null;
 
         const statesPaths = {
             "AC": "M44.4 345.5l-3.3-4.5 13.9-10.4 12.8 5.7 7.7-10.8 13.4 3.7 3.5 15.5-2.2 4.2-12.7 10.9-13.6-0.3-19.5 6z",
@@ -225,62 +231,128 @@
             "TO": "M300 240l54.8 19.1 12.5 73.5-44.1 24.9-23.2-117.5z"
         };
 
+        const stateStats = {};
+
         function navigate(v) { window.location.hash = v; updateUI(v); }
         function updateUI(v) {
             document.querySelectorAll('.view-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             const active = document.getElementById(`view-${v}`) || document.getElementById('view-map');
             active.classList.remove('hidden');
+            active.classList.add('fade-in');
             (document.getElementById(`nav-${v}`) || document.getElementById('nav-map')).classList.add('active');
+            if(v === 'trends') renderClimaChart();
         }
 
         async function refresh() {
-            await Promise.all([updateKPIs(), loadTargets(), loadTrends()]);
+            await Promise.all([loadStats(), loadTargets(), loadRealTrends()]);
             renderMap();
         }
 
-        async function updateKPIs() {
-            const res = await fetch(`${SB_URL}/comentarios?select=id`, { headers: { ...h, "Prefer": "count=exact" } });
-            const total = parseInt(res.headers.get("content-range")?.split("/")[1]) || 0;
-            document.getElementById('kpi-total').innerText = total.toLocaleString();
-            document.getElementById('kpi-aggro').innerText = Math.floor(total * 0.08);
-            document.getElementById('kpi-stability').innerText = "94.2%";
+        async function loadStats() {
+            const resC = await fetch(`${SB_URL}/candidatos?select=username,estado,comentarios_totais_count,comentarios_odio_count`, { headers: h });
+            const data = await resC.json();
+            
+            let globTotal = 0, globHate = 0;
+            Object.keys(statesPaths).forEach(uf => stateStats[uf] = { alvos: 0, ints: 0, ódio: 0 });
+
+            data.forEach(c => {
+                globTotal += (c.comentarios_totais_count || 0);
+                globHate += (c.comentarios_odio_count || 0);
+                if(c.estado && stateStats[c.estado]) {
+                    stateStats[c.estado].alvos++;
+                    stateStats[c.estado].ints += (c.comentarios_totais_count || 0);
+                    stateStats[c.estado].ódio += (c.comentarios_odio_count || 0);
+                }
+            });
+
+            document.getElementById('kpi-total-alvos').innerText = data.length;
+            document.getElementById('kpi-total-ints').innerText = globTotal.toLocaleString();
+            document.getElementById('kpi-resilience').innerText = `${(100 - (globHate/globTotal*100 || 0)).toFixed(1)}%`;
         }
 
         function renderMap() {
             const svg = document.getElementById('svg-map-br');
-            svg.innerHTML = Object.entries(statesPaths).map(([uf, d]) => `
-                <path id="state-${uf}" d="${d}" class="state" onclick="focusState('${uf}')">
-                    <title>${uf}</title>
-                </path>
-            `).join('');
+            svg.innerHTML = Object.entries(statesPaths).map(([uf, d]) => {
+                const info = stateStats[uf];
+                let css = "state";
+                if(info.ódio > 0) css += " danger";
+                return `<path id="state-${uf}" d="${d}" class="${css}" onclick="focusState('${uf}')"><title>${uf}</title></path>`;
+            }).join('');
         }
 
         function focusState(uf) {
             document.querySelectorAll('.state').forEach(s => s.classList.remove('active-focus'));
             document.getElementById(`state-${uf}`).classList.add('active-focus');
+            const info = stateStats[uf];
             document.getElementById('st-name').innerText = uf;
-            document.getElementById('st-targets-count').innerText = Math.floor(Math.random() * 10) + 1;
-            document.getElementById('st-impact').innerText = "ESTÁVEL";
+            document.getElementById('st-targets').innerText = info.alvos;
+            document.getElementById('st-ints').innerText = info.ints;
+            document.getElementById('st-status').innerText = info.ints > 0 ? `Detecção de ${info.ódio} alertas em ${uf}.` : "Região em monitoramento passivo.";
         }
 
         async function loadTargets() {
-            const res = await fetch(`${SB_URL}/candidatos?select=username,cargo,estado&limit=24`, { headers: h });
+            const res = await fetch(`${SB_URL}/candidatos?select=*&order=comentarios_totais_count.desc&limit=24`, { headers: h });
             const data = await res.json();
-            document.getElementById('target-grid').innerHTML = data.map(t => `
-                <div class="glass-card p-6 bg-white/[0.02] border-white/5 hover:bg-white/[0.05]">
-                    <div class="w-10 h-10 rounded-2xl bg-slate-800 flex items-center justify-center font-bold text-blue-500 text-xs mb-4">@</div>
-                    <h4 class="text-sm font-bold truncate">@${t.username}</h4>
-                    <span class="text-[9px] text-slate-500 uppercase">${t.estado || 'BR'}</span>
-                </div>
+            document.getElementById('target-grid').innerHTML = data.map(t => {
+                const perc = t.comentarios_totais_count > 0 ? (100 - (t.comentarios_odio_count / t.comentarios_totais_count * 100)) : 100;
+                return `
+                <div class="glass-card p-8 bg-white/[0.02] border-white/5 hover:border-blue-500/30 transition-all cursor-pointer">
+                    <div class="flex justify-between items-start mb-8">
+                        <div class="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center font-black text-blue-500 shadow-inner">@</div>
+                        <span class="text-[9px] px-3 py-1 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 font-black uppercase">${t.estado || 'BR'}</span>
+                    </div>
+                    <h4 class="text-md font-black text-white mb-1">@${t.username}</h4>
+                    <p class="text-[10px] text-slate-500 mb-6 uppercase tracking-widest font-bold">${t.cargo || 'Monitorado'}</p>
+                    <div class="space-y-3 pt-6 border-t border-white/5">
+                        <div class="flex justify-between text-[9px] font-black uppercase tracking-tighter">
+                            <span class="text-slate-500">Reputação Digital</span>
+                            <span class="${perc < 90 ? 'text-amber-500' : 'text-emerald-400'}">${perc.toFixed(1)}%</span>
+                        </div>
+                        <div class="w-full h-2 bg-white/5 rounded-full overflow-hidden">
+                            <div class="h-full ${perc < 90 ? 'bg-amber-500' : 'bg-blue-600'}" style="width: ${perc}%"></div>
+                        </div>
+                        <div class="flex justify-between text-[8px] font-mono text-slate-600 pt-1">
+                            <span>INTS: ${t.comentarios_totais_count}</span>
+                            <span>RISCO: ${t.comentarios_odio_count}</span>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        async function loadRealTrends() {
+            const res = await fetch(`${SB_URL}/comentarios?select=categoria_ia&limit=100`, { headers: h });
+            const data = await res.json();
+            const themes = {};
+            data.forEach(i => {
+                const cat = i.categoria_ia?.split('] ')[1] || 'Neutro';
+                themes[cat] = (themes[cat] || 0) + 1;
+            });
+            document.getElementById('real-tag-cloud').innerHTML = Object.entries(themes).map(([k, v]) => `
+                <div class="tag-pill" style="opacity: ${0.5 + (v/10)}; transform: scale(${1 + (v/20)})">${k} (${v})</div>
             `).join('');
         }
 
-        async function loadTrends() {
-            const themes = ["Segurança", "STF", "Impostos", "Greve", "Nordeste", "Fake News", "Censura", "Economia", "Educação"];
-            document.getElementById('tag-cloud').innerHTML = themes.map(t => `<div class="tag-bubble">${t}</div>`).join('');
+        function renderClimaChart() {
+            const ctx = document.getElementById('climaChart').getContext('2d');
+            if(climaChart) climaChart.destroy();
+            climaChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Estável', 'Atenção', 'Crise'],
+                    datasets: [{
+                        data: [75, 20, 5],
+                        backgroundColor: ['#2563eb', '#f59e0b', '#ef4444'],
+                        borderWidth: 0,
+                        cutout: '85%'
+                    }]
+                },
+                options: { plugins: { legend: { display: false } } }
+            });
         }
 
+        async function exportReport() { window.location.href = '/api/export_pdf'; }
         window.onload = () => { navigate(window.location.hash.substring(1) || 'map'); refresh(); };
     </script>
 </body>
