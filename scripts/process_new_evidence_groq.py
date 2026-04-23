@@ -50,28 +50,34 @@ async def analyze_with_qwen_local(text):
         print(f"      ⚠️ Falha Fallback Qwen: {e}")
         return None
 
-@traced(name="Hybrid Linguistic Analysis")
+@traced(name="Advanced Situacional Analysis v9.6")
 async def analyze_hybrid(text):
-    """Tenta Groq, se falhar ou atingir limite, vai para Qwen Local."""
-    # 1. Tentar Groq
+    """Motor de IA instruído com protocolos de detecção de sarcasmo e linguística forense."""
+    system_instruction = (
+        "Você é um Perito em Linguística Forense e Análise de Discurso Político. "
+        "Sua tarefa é identificar a intenção real por trás de comentários em redes sociais, aplicando o PROTOCOLO PASA (Análise Situacional Avançada).\n\n"
+        "DIRETRIZES DE DETECÇÃO:\n"
+        "1. INCONGRUÊNCIA DE SENTIMENTO: Identifique se há elogios seguidos de emojis de deboche (ex: 🤡, 🙄, 👏) ou valência oposta.\n"
+        "2. INTENSIFICADORES PRAGMÁTICOS: Atribua SARCASMO a termos como 'genial', 'parabéns', 'um orgulho' quando o contexto geral do comentário indica desaprovação.\n"
+        "3. PONTUAÇÃO E REPETIÇÃO: Múltiplas exclamações ou repetições de caracteres (ex: 'lindo0000') são marcadores de ironia.\n"
+        "4. ALVOS DE RIDÍCULO: Diferencie 'Debate Crítico' (legítimo) de 'Ataque Reputacional' (Agressivo).\n\n"
+        "REGRA DE CLASSIFICAÇÃO:\n"
+        "- Se for SARCASMO CRÍTICO (sem xingamentos diretos): is_hate = false, categoria = 'Sarcasmo Situacional'.\n"
+        "- Se o sarcasmo for usado para humilhação/desumanização: is_hate = true, categoria = 'Ataque Agravado'.\n\n"
+        "RETORNO: JSON {\"is_hate\": boolean, \"categoria\": \"string\", \"analise_linguistica\": \"string\"}"
+    )
+    
     try:
         completion = client_groq.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
-                {
-                    "role": "system", 
-                    "content": "Você é um perito em análise de discurso político. Analise o sentimento e a agressividade. "
-                               "Diferencie ATAQUES DIRETOS de SARCASMO/IRONIA. "
-                               "Se o texto for sarcástico (ex: elogio falso para criticar), defina is_hate=false mas use categoria='Sarcasmo Crítico'. "
-                               "Retorne JSON: {\"is_hate\": boolean, \"categoria\": \"string\"}. "
-                               "Categorias: Ataque Pessoal, Racismo, Misoginia, Sarcasmo Crítico, Debate Ideológico, Neutro."
-                },
+                {"role": "system", "content": system_instruction},
                 {"role": "user", "content": text}
             ],
             response_format={"type": "json_object"}
         )
         analysis = json.loads(completion.choices[0].message.content)
-        analysis["engine"] = "groq-llama-70b"
+        analysis["engine"] = "groq-llama-70b-pasa"
         return analysis
     except Exception as e:
         if "rate_limit" in str(e).lower() or "limit" in str(e).lower():
