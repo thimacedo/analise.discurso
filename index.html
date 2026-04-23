@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SENTINELA v10 | Comando de Elite</title>
+    <title>SENTINELA v10.1 | Comando Situacional</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
@@ -12,12 +12,8 @@
     
     <style>
         :root {
-            --glass-bg: rgba(15, 23, 42, 0.95);
+            --glass-bg: rgba(15, 23, 42, 0.9);
             --glass-border: rgba(255, 255, 255, 0.05);
-            --accent-blue: #3b82f6;
-            --accent-amber: #f59e0b;
-            --accent-red: #ef4444;
-            --accent-purple: #a855f7;
         }
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
@@ -25,157 +21,132 @@
             color: #f8fafc;
             height: 100vh;
             overflow: hidden;
-            background-image: radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.1) 0%, transparent 40%), radial-gradient(circle at 100% 100%, rgba(168, 85, 247, 0.05) 0%, transparent 40%);
+            background-image: radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.1) 0%, transparent 40%), radial-gradient(circle at 100% 100%, rgba(139, 92, 246, 0.05) 0%, transparent 40%);
         }
         .glass-card {
             background: var(--glass-bg);
             backdrop-filter: blur(50px);
             border: 1px solid var(--glass-border);
             border-radius: 32px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
         .nav-item {
             display: flex; align-items: center; gap: 1rem; width: 100%;
             padding: 1.25rem 1.5rem; border-radius: 20px; font-weight: 800;
-            font-size: 0.85rem; color: #64748b; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.85rem; color: #64748b; transition: all 0.4s;
         }
         .nav-item.active { background: rgba(59, 130, 246, 0.1); color: #60a5fa; box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.2); }
-        .nav-item:hover:not(.active) { color: #fff; background: rgba(255,255,255,0.02); }
-
-        .target-card {
-            background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 28px;
-            padding: 2rem;
-            transition: all 0.4s;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-        .target-card:hover { transform: translateY(-5px); border-color: rgba(59, 130, 246, 0.3); background: rgba(59, 130, 246, 0.05); }
         
-        .spectrum-bar {
-            height: 8px;
-            border-radius: 99px;
-            display: flex;
-            overflow: hidden;
-            background: rgba(255,255,255,0.05);
-        }
+        /* MAPA INTERATIVO */
+        .state { fill: #1e293b; stroke: #334155; stroke-width: 0.5; transition: all 0.4s; cursor: pointer; }
+        .state:hover { fill: #3b82f6; stroke: #fff; filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.6)); }
+        .state.active-focus { fill: rgba(59, 130, 246, 0.4); stroke: #60a5fa; stroke-width: 1.5; }
+        .state.has-data { fill: #2d3e5a; }
+        .state.danger-high { fill: rgba(239, 68, 68, 0.4) !important; stroke: #ef4444; }
+        .state.danger-mid { fill: rgba(245, 158, 11, 0.3) !important; stroke: #f59e0b; }
+
+        .spectrum-bar { height: 8px; border-radius: 99px; display: flex; overflow: hidden; background: rgba(255,255,255,0.05); }
         .spectrum-segment { height: 100%; transition: width 1s ease-in-out; }
         .seg-neutro { background: #3b82f6; }
         .seg-sarcasmo { background: #f59e0b; }
         .seg-ataque { background: #ef4444; }
-        .seg-especial { background: #a855f7; }
+
+        .tag-pill {
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
+            padding: 8px 16px; border-radius: 12px; font-size: 11px; font-weight: 700;
+            color: #94a3b8; transition: all 0.2s;
+        }
+        .tag-pill:hover { background: rgba(59, 130, 246, 0.1); color: #fff; }
 
         .fade-in { animation: fadeIn 0.5s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        .kpi-label { font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; }
-        .kpi-value { font-family: 'JetBrains Mono', monospace; font-weight: 900; line-height: 1; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
     </style>
 </head>
 <body class="antialiased flex p-6 gap-6">
 
-    <!-- SIDEBAR ELITE -->
+    <!-- SIDEBAR -->
     <aside class="w-80 glass-card flex flex-col p-10 shrink-0">
         <div class="flex items-center gap-4 mb-16">
-            <div class="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl flex items-center justify-center shadow-[0_10px_40px_rgba(59,130,246,0.4)]">
-                <i data-lucide="shield-alert" class="w-9 h-9 text-white"></i>
+            <div class="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl flex items-center justify-center shadow-2xl">
+                <i data-lucide="shield-check" class="w-9 h-9 text-white"></i>
             </div>
             <div>
                 <h1 class="text-2xl font-900 tracking-tighter">SENTINELA</h1>
-                <span class="text-[10px] text-blue-400 font-black tracking-[0.3em] uppercase italic">Command Center v10</span>
+                <span class="text-[10px] text-blue-400 font-black tracking-widest uppercase italic">v10.1 Intelligence</span>
             </div>
         </div>
 
         <nav class="flex-1 space-y-3">
-            <button onclick="navigate('monitor')" id="nav-monitor" class="nav-item">
-                <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Panorama Global
-            </button>
-            <button onclick="navigate('dossie')" id="nav-dossie" class="nav-item">
-                <i data-lucide="user-search" class="w-5 h-5"></i> Dossiê de Alvos
-            </button>
-            <button onclick="navigate('risk')" id="nav-risk" class="nav-item">
-                <i data-lucide="flame" class="w-5 h-5"></i> Mapa de Calor
-            </button>
+            <button onclick="navigate('map')" id="nav-map" class="nav-item"><i data-lucide="map" class="w-5 h-5"></i> Panorama Regional</button>
+            <button onclick="navigate('dossie')" id="nav-dossie" class="nav-item"><i data-lucide="users" class="w-5 h-5"></i> Dossiê de Alvos</button>
+            <button onclick="navigate('ia')" id="nav-ia" class="nav-item"><i data-lucide="brain" class="w-5 h-5"></i> Narrativas e Sarcasmo</button>
         </nav>
 
         <div class="mt-auto space-y-6">
-            <div class="p-6 bg-slate-900/50 rounded-3xl border border-white/5">
-                <span class="kpi-label block mb-3">Infraestrutura Apify</span>
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold text-emerald-400">DEEP SCAN ATIVO</span>
-                    <div class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_15px_#10b981]"></div>
-                </div>
-            </div>
-            <button onclick="exportReport()" class="w-full py-5 bg-blue-600 hover:bg-blue-500 rounded-2xl text-xs font-black transition-all shadow-2xl shadow-blue-600/30 uppercase tracking-[0.2em]">
-                Gerar Relatório v10
+            <button onclick="refresh()" class="w-full py-4 bg-white/5 hover:bg-white/10 rounded-2xl text-xs font-black transition-all border border-white/5 flex items-center justify-center gap-3 uppercase tracking-widest">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i> Atualizar Dados
             </button>
         </div>
     </aside>
 
-    <!-- MAIN INTERFACE -->
+    <!-- MAIN -->
     <main class="flex-1 flex flex-col gap-6 min-w-0">
         
         <header class="grid grid-cols-4 gap-6 shrink-0">
-            <div class="glass-card p-8 bg-gradient-to-br from-blue-600/5 to-transparent">
-                <span class="kpi-label block mb-2">Amostragem</span>
-                <div id="kpi-total-ints" class="text-4xl kpi-value">---</div>
-            </div>
-            <div class="glass-card p-8 border-l-4 border-l-amber-500">
-                <span class="kpi-label text-amber-500 block mb-2">Resiliência Situacional</span>
-                <div id="kpi-resilience" class="text-4xl kpi-value text-amber-500">---</div>
-            </div>
-            <div class="glass-card p-8">
-                <span class="kpi-label block mb-2">Alvos Monitorados</span>
-                <div id="kpi-total-alvos" class="text-4xl kpi-value">---</div>
-            </div>
-            <div class="glass-card p-8 flex items-center justify-between group cursor-pointer" onclick="refresh()">
-                <div>
-                    <span class="kpi-label block mb-1">Último Ciclo</span>
-                    <div id="last-sync" class="text-sm font-black text-slate-300">AGORA</div>
-                </div>
-                <div class="p-5 bg-white/5 rounded-2xl group-hover:bg-blue-600/20 transition-all"><i data-lucide="refresh-cw" class="w-6 h-6 text-slate-500 group-hover:text-blue-400 group-hover:rotate-180 duration-700"></i></div>
-            </div>
+            <div class="glass-card p-8"><span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2">Interações</span><div id="kpi-total" class="text-4xl font-black font-mono">---</div></div>
+            <div class="glass-card p-8 border-l-4 border-l-amber-500"><span class="text-[10px] font-bold text-amber-500 uppercase tracking-widest block mb-2">Alertas Ativos</span><div id="kpi-hate" class="text-4xl font-black font-mono text-amber-500">---</div></div>
+            <div class="glass-card p-8"><span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest block mb-2">Resiliência</span><div id="kpi-res" class="text-4xl font-black font-mono text-blue-400">---</div></div>
+            <div class="glass-card p-8 bg-blue-600/5 border-blue-600/20"><span class="text-[10px] font-bold text-blue-300 uppercase tracking-widest block mb-2">Status do Mapa</span><div id="sync-status" class="text-xs font-bold text-emerald-400">SINCRONIZADO</div></div>
         </header>
 
         <div class="flex-1 glass-card overflow-hidden relative flex flex-col">
             
-            <!-- VIEW: DOSSIÊ DE ALVOS (THE BEST WORK) -->
-            <div id="view-dossie" class="view-content absolute inset-0 p-12 hidden overflow-y-auto">
-                 <div class="flex justify-between items-end mb-16">
-                     <div>
-                         <h2 class="text-4xl font-900 tracking-tighter mb-2">Dossiê Multidimensional</h2>
-                         <p class="text-sm text-slate-400">Espectro de impacto narrativo e distribuição de agressividade por alvo.</p>
-                     </div>
-                     <div class="flex gap-4 items-center">
-                         <div class="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase"><div class="w-2 h-2 bg-blue-500 rounded-full"></div> Saudável</div>
-                         <div class="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase"><div class="w-2 h-2 bg-amber-500 rounded-full"></div> Sarcasmo</div>
-                         <div class="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase"><div class="w-2 h-2 bg-red-500 rounded-full"></div> Agressão</div>
-                     </div>
-                 </div>
-                 
-                 <div id="target-grid-v10" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                     <!-- Cards de Elite Injetados -->
-                 </div>
+            <!-- VIEW: MAPA -->
+            <div id="view-map" class="view-content absolute inset-0 p-12 flex flex-col">
+                <div class="flex justify-between items-start mb-12">
+                    <div><h2 class="text-3xl font-black tracking-tighter">Panorama Geopolítico</h2><p class="text-sm text-slate-400">Densidade de monitoramento e risco situacional por estado.</p></div>
+                    <div class="flex bg-slate-900/60 p-2 rounded-2xl border border-white/5">
+                        <div class="flex items-center px-4 gap-2 border-r border-white/10 mr-2"><div class="w-2 h-2 bg-blue-500 rounded-full"></div><span class="text-[10px] font-bold">VOLUME</span></div>
+                        <div class="flex items-center px-4 gap-2"><div class="w-2 h-2 bg-red-500 rounded-full"></div><span class="text-[10px] font-bold">ALERTA</span></div>
+                    </div>
+                </div>
+                <div class="flex-1 flex gap-12 items-center">
+                    <div class="flex-1 h-full flex justify-center py-4"><svg id="svg-map-br" viewBox="0 0 500 500" class="h-full w-auto drop-shadow-2xl"></svg></div>
+                    <div class="w-96 space-y-6">
+                        <div id="region-card" class="glass-card p-10 bg-slate-900/40 border-l-4 border-l-blue-600">
+                            <h3 id="st-name" class="text-3xl font-black mb-1">Brasil</h3>
+                            <p id="st-status" class="text-xs text-slate-500 mb-8 italic">Clique em um estado para detalhar.</p>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center">
+                                    <span class="text-[9px] text-slate-500 font-bold uppercase block mb-1">Impacto</span>
+                                    <div id="st-targets" class="text-2xl font-black">---</div>
+                                </div>
+                                <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center">
+                                    <span class="text-[9px] text-slate-500 font-bold uppercase block mb-1">Alertas</span>
+                                    <div id="st-hate" class="text-2xl font-black text-amber-500">---</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- VIEW: PANORAMA GLOBAL -->
-            <div id="view-monitor" class="view-content absolute inset-0 p-12 flex flex-col">
+            <!-- VIEW: DOSSIÊ -->
+            <div id="view-dossie" class="view-content absolute inset-0 p-12 hidden overflow-y-auto">
+                 <h2 class="text-3xl font-black mb-12 tracking-tighter">Dossiê Multidimensional de Alvos</h2>
+                 <div id="target-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+            </div>
+
+            <!-- VIEW: NARRATIVAS -->
+            <div id="view-ia" class="view-content absolute inset-0 p-12 hidden flex flex-col">
+                <h2 class="text-3xl font-black mb-12 tracking-tighter">Análise de Narrativas IA</h2>
                 <div class="grid grid-cols-3 gap-8 flex-1">
-                    <div class="col-span-2 glass-card p-10 flex flex-col">
-                        <h3 class="kpi-label mb-8">Evolução do Clima Narrativo</h3>
-                        <div class="flex-1 min-h-0"><canvas id="mainTimeline"></canvas></div>
-                    </div>
-                    <div class="flex flex-col gap-6">
-                        <div class="glass-card p-8 flex-1">
-                            <h3 class="kpi-label mb-6">Ranking de Impacto</h3>
-                            <div id="ranking-list" class="space-y-6"></div>
-                        </div>
-                        <div class="glass-card p-8 bg-amber-600/5 border-amber-600/20">
-                            <h3 class="kpi-label text-amber-500 mb-4">Alerta de Crise</h3>
-                            <div id="crisis-alert" class="text-xs text-slate-400 italic">Analisando dados em tempo real...</div>
-                        </div>
+                    <div class="col-span-2 glass-card p-12 flex flex-wrap content-start gap-4" id="tag-cloud"></div>
+                    <div class="glass-card p-10 flex flex-col items-center justify-center">
+                        <h3 class="text-[10px] font-bold text-slate-500 uppercase mb-8">Clima de Agressividade</h3>
+                        <canvas id="iaChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -188,123 +159,118 @@
         const SB_URL = "https://vhamejkldzxbeibqeqpk.supabase.co/rest/v1";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoYW1lamtsZHp4YmVpYnFlcXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0ODgxMjUsImV4cCI6MjA5MjA2NDEyNX0.RMpgx8mDRrYRNfJ_GdOrsT5o8NkJiwBgW_J7CXSznWk";
         const h = { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}` };
-        
-        let timelineChart = null;
+        let charts = {};
+
+        const statesPaths = { "AC": "M44.4 345.5l-3.3-4.5 13.9-10.4 12.8 5.7 7.7-10.8 13.4 3.7 3.5 15.5-2.2 4.2-12.7 10.9-13.6-0.3-19.5 6z", "AL": "M483.4 330.4l-4.2-4.1-1.2-13.5 15.8-2 6.7 10 1.2 12.2z", "AM": "M43.7 215.1l73.4-39.6 44.8 28.1 48-18.7 18.2 24.5-12.4 46.1 19.1 57.6-67.4 33.9-13.4-3.7-7.7 10.8-12.8-5.7-13.9 10.4-35.9-46.7-5.9-47.5z", "AP": "M266.3 128.4l11.4 3.5 6.7 20.3-25.1 19.3-13.9-10.8z", "BA": "M386.4 290l17.4-44.1 27.6 24.1 17 64-16.1 50-68.5 0.5-54.8-19.1-17.5-68.4z", "CE": "M431.2 216.5l33.9 13.2 0.7 34.6-26.6-11.7-8z", "DF": "M316 357h10v10h-10z", "ES": "M426 430l10.5-18.6 6 2.5 1.5 35.8-10.5 4z", "GO": "M278.4 353l37.1-13 32.5 13.5 17.5 68.4-40.4 5.9-40.7-36.9z", "MA": "M315.6 182l49.5 28.5 21.3 80.5-44.1 24.9-32.5-33.1z", "MG": "M331 430l40.4-5.9 54.6 5.8 14.5 45.4-33.5 54.4-76 6.3z", "MS": "M205 440l73.4 13.5 40.7 36.9-20.1 76-78.5-10.4z", "MT": "M160 300l67.4-33.9 51 18.9 32.5 33.1-37.1 13-73.4-13.5z", "PA": "M161.9 203.6l104.4-75.2 26 15 23.3 38.6-49.5 28.5-51-18.9z", "PB": "M465 240l18.4 10.5 0.1 14.5-18.5 0.5z", "PE": "M420 250l45 10 0.5 30-45.5-2z", "PI": "M365 210l30.4 6 35.8 74-27.6-24.1z", "PR": "M210 520l78.5 10.4 1.5 35.8-60 15.8z", "RJ": "M380 535l40.5-15 4.5 15.5-35 15z", "RN": "M450 210l33.4 6.5-18.4 23.5-15-15z", "RO": "M130 320l73.4 13.5-3.5 15.5-60 15.8z", "RR": "M117 175.5l44.9-25.5 10.5 18.6 13.9 10.8-44.8 28.1z", "RS": "M210 560l60-15.8 4.5 35.8-64.5 15z", "SC": "M220 545l60-15.8 10.5 15-70.5 15z", "SE": "M470 310l13.4 20.4-15.8 2z", "SP": "M300 520l33.5-54.4 76-6.3-4.5 35.8-70 25z", "TO": "M300 240l54.8 19.1 12.5 73.5-44.1 24.9-23.2-117.5z" };
+
+        const stats = {};
 
         function navigate(v) {
             window.location.hash = v;
             document.querySelectorAll('.view-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            const active = document.getElementById(`view-${v}`) || document.getElementById('view-monitor');
-            active.classList.remove('hidden');
-            active.classList.add('fade-in');
-            (document.getElementById(`nav-${v}`) || document.getElementById('nav-monitor')).classList.add('active');
-            if(v === 'monitor') renderTimeline();
+            const active = document.getElementById(`view-${v}`) || document.getElementById('view-map');
+            active.classList.remove('hidden'); active.classList.add('fade-in');
+            (document.getElementById(`nav-${v}`) || document.getElementById('nav-map')).classList.add('active');
         }
 
         async function refresh() {
-            console.log("🚀 Sincronização v10 Gold Standard...");
-            await Promise.all([loadStats(), loadDossie(), loadRanking()]);
-            document.getElementById('last-sync').innerText = new Date().toLocaleTimeString();
+            console.log("Deep Refresh v10.1...");
+            await Promise.all([loadData(), loadTrends()]);
+            renderMap();
         }
 
-        async function loadStats() {
+        async function loadData() {
             const res = await fetch(`${SB_URL}/candidatos?select=*`, { headers: h });
             const data = await res.json();
-            const totalInts = data.reduce((acc, i) => acc + (i.comentarios_totais_count || 0), 0);
-            const totalHate = data.reduce((acc, i) => acc + (i.comentarios_odio_count || 0), 0);
             
-            document.getElementById('kpi-total-alvos').innerText = data.length;
-            document.getElementById('kpi-total-ints').innerText = totalInts.toLocaleString();
-            document.getElementById('kpi-resilience').innerText = `${(100 - (totalHate/totalInts*100 || 0)).toFixed(1)}%`;
-        }
+            let globTotal = 0, globHate = 0;
+            Object.keys(statesPaths).forEach(uf => stats[uf] = { count: 0, hate: 0, total: 0 });
 
-        async function loadDossie() {
-            const res = await fetch(`${SB_URL}/candidatos?select=*&order=comentarios_totais_count.desc&limit=24`, { headers: h });
-            const data = await res.json();
-            const grid = document.getElementById('target-grid-v10');
-            
-            grid.innerHTML = data.map(t => {
-                // Lógica de Espectro (Mock para visualização enquanto a coleta roda)
+            data.forEach(c => {
+                const total = c.comentarios_totais_count || 0;
+                const hate = c.comentarios_odio_count || 0;
+                globTotal += total; globHate += hate;
+                if(c.estado && stats[c.estado]) {
+                    stats[c.estado].count++;
+                    stats[c.estado].total += total;
+                    stats[c.estado].hate += hate;
+                }
+            });
+
+            document.getElementById('kpi-total').innerText = globTotal.toLocaleString();
+            document.getElementById('kpi-hate').innerText = globHate;
+            document.getElementById('kpi-res').innerText = `${(100 - (globHate/globTotal*100 || 0)).toFixed(1)}%`;
+            document.getElementById('kpi-total-alvos').innerText = data.length;
+
+            // Render Dossiê com Espectro Real
+            document.getElementById('target-grid').innerHTML = data.map(t => {
                 const total = t.comentarios_totais_count || 0;
                 const hate = t.comentarios_odio_count || 0;
-                const sarcasmo = Math.floor(total * 0.15); // Estimativa IA
-                const neutro = total > 0 ? (total - hate - sarcasmo) : 100;
-                
-                const pNeutro = total > 0 ? (neutro/total*100) : 100;
-                const pSarcasmo = total > 0 ? (sarcasmo/total*100) : 0;
-                const pHate = total > 0 ? (hate/total*100) : 0;
+                const pAtaque = total > 0 ? (hate/total*100) : 0;
+                const pSaudavel = 100 - pAtaque;
 
                 return `
-                <div class="target-card">
-                    <div class="flex justify-between items-start mb-8">
-                        <div class="w-14 h-14 rounded-3xl bg-slate-800 flex items-center justify-center font-black text-blue-500 text-xl shadow-inner border border-white/5">@</div>
-                        <div class="text-right">
-                            <span class="px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[9px] font-black uppercase tracking-widest">${t.estado || 'BR'}</span>
-                            <div class="text-[8px] text-slate-500 font-bold mt-2 uppercase tracking-[0.2em]">${t.cargo || 'Monitorado'}</div>
-                        </div>
+                <div class="glass-card p-8 bg-white/[0.02] border-white/5 hover:border-blue-500/30 transition-all cursor-pointer">
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center font-black text-blue-500">@</div>
+                        <span class="text-[9px] px-2 py-1 rounded bg-blue-500/10 text-blue-400 font-bold uppercase border border-blue-500/10">${t.estado || 'BR'}</span>
                     </div>
-                    
-                    <h3 class="text-lg font-black text-white mb-1">@${t.username}</h3>
-                    <p class="text-[10px] text-slate-500 font-bold mb-8 truncate">${t.nome_completo || 'Identidade Preservada'}</p>
-                    
-                    <div class="space-y-4">
-                        <div class="flex justify-between items-end">
-                            <span class="text-[10px] font-black text-slate-400 uppercase">Espectro Narrativo</span>
-                            <span class="text-[11px] font-black font-mono ${pHate > 10 ? 'text-amber-500' : 'text-blue-400'}">${(100 - pHate).toFixed(1)}% Resiliência</span>
-                        </div>
+                    <h4 class="text-sm font-black mb-1 truncate">@${t.username}</h4>
+                    <p class="text-[10px] text-slate-500 mb-6 uppercase tracking-widest">${t.cargo || 'Monitorado'}</p>
+                    <div class="space-y-3 pt-4 border-t border-white/5">
+                        <div class="flex justify-between text-[9px] font-black uppercase"><span class="text-slate-500">Resiliência</span><span class="${pSaudavel < 90 ? 'text-amber-500' : 'text-emerald-400'}">${pSaudavel.toFixed(1)}%</span></div>
                         <div class="spectrum-bar">
-                            <div class="spectrum-segment seg-neutro" style="width: ${pNeutro}%"></div>
-                            <div class="spectrum-segment seg-sarcasmo" style="width: ${pSarcasmo}%"></div>
-                            <div class="spectrum-segment seg-ataque" style="width: ${pHate}%"></div>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2">
-                            <div class="text-center p-2 bg-white/5 rounded-xl"><div class="text-[8px] text-slate-500 font-bold uppercase mb-1">Saudável</div><div class="text-xs font-black text-blue-500">${neutro}</div></div>
-                            <div class="text-center p-2 bg-white/5 rounded-xl"><div class="text-[8px] text-slate-500 font-bold uppercase mb-1">Sarcasmo</div><div class="text-xs font-black text-amber-500">${sarcasmo}</div></div>
-                            <div class="text-center p-2 bg-white/5 rounded-xl"><div class="text-[8px] text-slate-500 font-bold uppercase mb-1">Ataque</div><div class="text-xs font-black text-red-500">${hate}</div></div>
+                            <div class="spectrum-segment seg-neutro" style="width: ${pSaudavel}%"></div>
+                            <div class="spectrum-segment seg-ataque" style="width: ${pAtaque}%"></div>
                         </div>
                     </div>
                 </div>`;
             }).join('');
         }
 
-        async function loadRanking() {
-            const res = await fetch(`${SB_URL}/candidatos?select=username,comentarios_totais_count&order=comentarios_totais_count.desc&limit=5`, { headers: h });
-            const data = await res.json();
-            document.getElementById('ranking-list').innerHTML = data.map((t, idx) => `
-                <div class="flex items-center gap-4">
-                    <span class="text-xl font-black text-slate-800">${idx+1}</span>
-                    <div class="flex-1">
-                        <div class="flex justify-between text-[11px] font-bold mb-1"><span>@${t.username}</span><span class="font-mono">${t.comentarios_totais_count}</span></div>
-                        <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-blue-600" style="width: ${t.comentarios_totais_count/data[0].comentarios_totais_count*100}%"></div></div>
-                    </div>
-                </div>
-            `).join('');
+        function renderMap() {
+            const svg = document.getElementById('svg-map-br');
+            svg.innerHTML = Object.entries(statesPaths).map(([uf, d]) => {
+                const info = stats[uf];
+                let css = "state";
+                if(info.total > 0) css += " has-data";
+                if(info.hate > 10) css += " danger-high";
+                else if(info.hate > 0) css += " danger-mid";
+                return `<path id="state-${uf}" d="${d}" class="${css}" onclick="focusState('${uf}')"><title>${uf}</title></path>`;
+            }).join('');
         }
 
-        function renderTimeline() {
-            const ctx = document.getElementById('mainTimeline').getContext('2d');
-            if(timelineChart) timelineChart.destroy();
-            timelineChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['18/04', '19/04', '20/04', '21/04', '22/04', '23/04'],
-                    datasets: [
-                        { label: 'Saudável', data: [80, 95, 110, 85, 140, 160], borderColor: '#3b82f6', tension: 0.4, fill: true, backgroundColor: 'rgba(59, 130, 246, 0.05)' },
-                        { label: 'Agressividade', data: [10, 15, 35, 12, 50, 18], borderColor: '#ef4444', tension: 0.4, borderDash: [5, 5] }
-                    ]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#475569' } }, x: { grid: { display: false }, ticks: { color: '#475569' } } } }
+        function focusState(uf) {
+            document.querySelectorAll('.state').forEach(s => s.classList.remove('active-focus'));
+            document.getElementById(`state-${uf}`).classList.add('active-focus');
+            const info = stats[uf];
+            document.getElementById('st-name').innerText = uf;
+            document.getElementById('st-targets').innerText = info.count;
+            document.getElementById('st-hate').innerText = info.hate;
+            document.getElementById('st-status').innerText = info.total > 0 ? `Detecção de ${info.hate} alertas de risco em ${uf}.` : "Monitoramento regional estabilizado.";
+        }
+
+        async function loadTrends() {
+            const res = await fetch(`${SB_URL}/comentarios?select=categoria_ia&limit=100`, { headers: h });
+            const data = await res.json();
+            const themes = {};
+            data.forEach(i => { const cat = i.categoria_ia?.split('] ')[1] || 'Neutro'; themes[cat] = (themes[cat] || 0) + 1; });
+            document.getElementById('tag-cloud').innerHTML = Object.entries(themes).map(([k, v]) => `
+                <div class="tag-pill" style="opacity: ${0.5 + (v/10)}; transform: scale(${1 + (v/20)})">${k} (${v})</div>
+            `).join('');
+
+            const ctx = document.getElementById('iaChart').getContext('2d');
+            if(charts.ia) charts.ia.destroy();
+            charts.ia = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels: Object.keys(themes), datasets: [{ data: Object.values(themes), backgroundColor: ['#3b82f6', '#f59e0b', '#ef4444', '#a855f7'], borderWidth: 0 }] },
+                options: { cutout: '80%', plugins: { legend: { display: false } } }
             });
         }
 
-        async function exportReport() { alert("Gerando Dossiê Situacional v10 (PDF)..."); window.location.href = '/api/export_pdf'; }
-
-        window.onload = () => {
-            const initial = window.location.hash.substring(1) || 'monitor';
-            navigate(initial);
-            refresh();
-        };
+        async function exportReport() { window.location.href = '/api/export_pdf'; }
+        window.onload = () => { navigate(window.location.hash.substring(1) || 'map'); refresh(); };
     </script>
 </body>
 </html>
