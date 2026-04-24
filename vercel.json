@@ -1,20 +1,17 @@
 {
   "version": 2,
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/index.py"
+      "source": "/ads.txt",
+      "destination": "/ads.txt"
     },
     {
-      "src": "/ads.txt",
-      "dest": "/ads.txt",
-      "headers": {
-        "Content-Type": "text/plain"
-      }
+      "source": "/api/(.*)",
+      "destination": "/api/index.py"
     },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/((?!ads.txt|api/).*)",
+      "destination": "/index.html"
     }
   ]
 }

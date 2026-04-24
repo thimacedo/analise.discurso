@@ -111,8 +111,6 @@
                             </div>
                         `;
                     });
-                } else {
-                    alertsContainer.innerHTML = '<div class="col-span-full p-4 glass-panel text-center text-slate-500">Nenhum alerta crítico no momento.</div>';
                 }
 
                 const termometro = await fetchSupabase('vw_termometro_hostilidade');
@@ -125,10 +123,9 @@
                             datasets: [{
                                 label: 'Volume Global por Categoria',
                                 data: termometro.reduce((acc, curr) => {
-                                    const label = curr.rotulo_ia;
-                                    const idx = acc.labels.indexOf(label);
+                                    const idx = acc.labels.indexOf(curr.rotulo_ia);
                                     if(idx === -1) {
-                                        acc.labels.push(label);
+                                        acc.labels.push(curr.rotulo_ia);
                                         acc.data.push(curr.volume_mensagens);
                                     } else {
                                         acc.data[idx] += curr.volume_mensagens;
