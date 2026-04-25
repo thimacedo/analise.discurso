@@ -57,29 +57,11 @@ window.refresh = async function() {
         appState.data = data;
         appState.alertas = alertas;
         
-        // --- CLASSIFICAÇÃO INTELIGENTE ---
+        // --- CLASSIFICAÇÃO ESTREITA POR CENÁRIO ---
         appState.classified = data.map(c => {
-            const u = (c.username || "").toLowerCase();
-            const n = (c.nome_completo || "").toLowerCase();
-            const cargo = (c.cargo || "").toLowerCase();
             const estado = (c.estado || "").toUpperCase();
-
-            let scenario = "Nacional"; 
-
-            const isRegional = 
-                cargo.includes("vereador") || 
-                cargo.includes("prefeito") || 
-                cargo.includes("estadual") ||
-                u.includes("veread") ||
-                n.includes("vereador") ||
-                u.includes("parnamirim") ||
-                u.includes("natal") ||
-                (estado === "RN" && !cargo.includes("senador") && !cargo.includes("federal") && !cargo.includes("ministro"));
-
-            if (isRegional) {
-                scenario = "Regional";
-            }
-
+            // Regra: Apenas o estado 'BR' (Elite Presidencial/Nacional) entra no cenário Nacional.
+            const scenario = estado === "BR" ? "Nacional" : "Regional";
             return { ...c, scenario };
         });
 
