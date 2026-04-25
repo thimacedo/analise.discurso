@@ -12,6 +12,7 @@
     }
   ],
   "rewrites": [
-    { "source": "/src/(.*)", "destination": "/src/$1" }
+    { "source": "/src/(.*)", "destination": "/src/$1" },
+    { "source": "/docs/(.*)", "destination": "/docs/$1" }
   ]
 }
