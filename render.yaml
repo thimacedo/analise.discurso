@@ -1,23 +1,18 @@
 services:
-  - type: cron
-    name: forensic-hate-monitor
+  - type: worker
+    name: sentinela-daily-worker
     region: ohio
-    schedule: "0 */6 * * *"   # Execução a cada 6 horas
     runtime: python
-    buildCommand: |
-      pip install -r requirements-full.txt
-      python -m spacy download pt_core_news_lg
-    runCommand: python main_pipeline.py
+    buildCommand: pip install -r requirements.txt
+    runCommand: python worker_sentinela.py
     envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
       - key: IG_USERNAME
         value: monitoramento.discurso
       - key: IG_PASSWORD
-        sync: false  # Preencher manualmente no painel do Render
-      - key: ANTHROPIC_API_KEY
-        sync: false  # Preencher manualmente no painel do Render
-      - key: OPENAI_API_KEY
-        sync: false  # Preencher manualmente no painel do Render
-      - key: AWS_ACCESS_KEY_ID
         sync: false
-      - key: AWS_SECRET_ACCESS_KEY
+      - key: GROQ_API_KEY
         sync: false
