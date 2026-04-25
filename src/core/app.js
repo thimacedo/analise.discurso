@@ -156,36 +156,35 @@ function renderImpactCharts() {
     const nacItems = appState.classified.filter(i => i.scenario === 'Nacional');
     const regItems = appState.classified.filter(i => i.scenario === 'Regional');
 
-    // Métricas para o Radar
+    // Métricas para o Radar - FOCADO EM NEGATIVADAS (ÓDIO)
     const metrics = {
-        volume: [
-            nacItems.reduce((s, c) => s + (c.comentarios_totais_count || 0), 0),
-            regItems.reduce((s, c) => s + (c.comentarios_totais_count || 0), 0)
-        ],
         hate: [
             nacItems.reduce((s, c) => s + (c.comentarios_odio_count || 0), 0),
             regItems.reduce((s, c) => s + (c.comentarios_odio_count || 0), 0)
         ],
         targets: [nacItems.length, regItems.length],
-        resilience: [
-            (100 - (nacItems.reduce((s, c) => s + (c.comentarios_odio_count || 0), 0) / (nacItems.reduce((s, c) => s + (c.comentarios_totais_count || 0), 0) || 1) * 100)),
-            (100 - (regItems.reduce((s, c) => s + (c.comentarios_odio_count || 0), 0) / (regItems.reduce((s, c) => s + (c.comentarios_totais_count || 0), 0) || 1) * 100))
+        avgHate: [
+            nacItems.reduce((s, c) => s + (c.comentarios_odio_count || 0), 0) / (nacItems.length || 1),
+            regItems.reduce((s, c) => s + (c.comentarios_odio_count || 0), 0) / (regItems.length || 1)
+        ],
+        density: [
+            (nacItems.reduce((s, c) => s + (c.comentarios_odio_count || 0), 0) / (nacItems.reduce((s, c) => s + (c.comentarios_totais_count || 0), 0) || 1) * 100),
+            (regItems.reduce((s, c) => s + (c.comentarios_odio_count || 0), 0) / (regItems.reduce((s, c) => s + (c.comentarios_totais_count || 0), 0) || 1) * 100)
         ]
     };
 
-    // Normalização básica para o Radar (0-100)
-    const maxVol = Math.max(...metrics.volume, 1);
+    // Normalização para o Radar
     const dataNac = [
-        (metrics.volume[0] / maxVol * 100),
-        (metrics.hate[0] / (metrics.volume[0] || 1) * 500), // Amplificado para visibilidade
-        (metrics.targets[0] / appState.data.length * 100),
-        metrics.resilience[0]
+        metrics.hate[0] / 10, // Escalonado
+        metrics.targets[0] * 2,
+        metrics.avgHate[0] * 5,
+        metrics.density[0] * 10
     ];
     const dataReg = [
-        (metrics.volume[1] / maxVol * 100),
-        (metrics.hate[1] / (metrics.volume[1] || 1) * 500),
-        (metrics.targets[1] / appState.data.length * 100),
-        metrics.resilience[1]
+        metrics.hate[1] / 10,
+        metrics.targets[1] * 2,
+        metrics.avgHate[1] * 5,
+        metrics.density[1] * 10
     ];
 
     if(mainChart) mainChart.destroy();
@@ -194,14 +193,14 @@ function renderImpactCharts() {
     mainChart = new Chart(ctx, {
         type: 'radar',
         data: { 
-            labels: ['Volume Int.', 'Densidade Ódio', 'Cobertura Alvos', 'Resiliência %'], 
+            labels: ['Vol. Negativo', 'Atores Afetados', 'Média/Ator', 'Densidade %'], 
             datasets: [
                 { 
                     label: 'Nacional', 
                     data: dataNac, 
-                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                    borderColor: '#3b82f6',
-                    pointBackgroundColor: '#3b82f6',
+                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                    borderColor: '#ef4444',
+                    pointBackgroundColor: '#ef4444',
                     borderWidth: 2
                 },
                 { 
@@ -224,7 +223,7 @@ function renderImpactCharts() {
                     angleLines: { color: 'rgba(255,255,255,0.05)' },
                     grid: { color: 'rgba(255,255,255,0.05)' },
                     pointLabels: { color: '#64748b', font: { size: 8, weight: 'bold' } },
-                    ticks: { display: false, maxTicksLimit: 5 }
+                    ticks: { display: false }
                 }
             } 
         }
