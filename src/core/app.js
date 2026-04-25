@@ -44,11 +44,11 @@ window.focusState = function(uf) {
 };
 
 window.refresh = async function() {
-    console.log("Iniciando Sincronização v15.3.3...");
+    console.log("Iniciando Sincronização v15.4.0...");
     try {
         const results = await Promise.allSettled([
             fetchCandidatos(),
-            fetchAlertas(6)
+            fetchAlertas(10) // Aumentado limite para o feed
         ]);
 
         const data = results[0].status === 'fulfilled' ? results[0].value : [];
@@ -57,23 +57,29 @@ window.refresh = async function() {
         appState.data = data;
         appState.alertas = alertas;
         
-        // Classificação Inteligente baseada em Cargo e Estado
+        // --- CLASSIFICAÇÃO INTELIGENTE (Fase 3 Preditiva) ---
         appState.classified = data.map(c => {
-            let scenario = "Nacional";
-            const cargo = (c.cargo || "").toLowerCase();
             const u = (c.username || "").toLowerCase();
             const n = (c.nome_completo || "").toLowerCase();
+            const cargo = (c.cargo || "").toLowerCase();
+            const estado = (c.estado || "").toUpperCase();
 
-            if (cargo.includes("vereador") || cargo.includes("prefeito") || cargo.includes("câmara") || 
-                n.includes("vereador") || u.includes("vereador") || u.includes("parnamirim") || u.includes("natal")) {
-                scenario = "Municipal";
-            } else if (cargo.includes("governador") || cargo.includes("deputado estadual") || 
-                       u.includes("rn") || u.includes("bezerra") || n.includes("governador") || n.includes("governadora")) {
-                scenario = "Estadual";
-            } else if (cargo.includes("federal") || cargo.includes("senador") || cargo.includes("ministro") || 
-                       cargo.includes("stf") || cargo.includes("tse") || cargo.includes("institucional")) {
-                scenario = "Nacional";
+            let scenario = "Nacional"; 
+
+            const isRegional = 
+                cargo.includes("vereador") || 
+                cargo.includes("prefeito") || 
+                cargo.includes("estadual") ||
+                u.includes("veread") ||
+                n.includes("vereador") ||
+                u.includes("parnamirim") ||
+                u.includes("natal") ||
+                (estado === "RN" && !cargo.includes("senador") && !cargo.includes("federal") && !cargo.includes("ministro"));
+
+            if (isRegional) {
+                scenario = "Regional";
             }
+
             return { ...c, scenario };
         });
 
@@ -117,20 +123,19 @@ window.refresh = async function() {
 };
 
 function renderRankings(data) {
-    // Filtragem rigorosa para evitar nomes locais no Nacional
     const nac = data.filter(i => i.scenario === 'Nacional').sort((a,b) => b.comentarios_totais_count - a.comentarios_totais_count).slice(0, 5);
-    const reg = data.filter(i => i.scenario === 'Municipal' || i.scenario === 'Estadual').sort((a,b) => b.comentarios_totais_count - a.comentarios_totais_count).slice(0, 5);
+    const reg = data.filter(i => i.scenario === 'Regional').sort((a,b) => b.comentarios_totais_count - a.comentarios_totais_count).slice(0, 5);
     
     const draw = (list, id) => {
         const container = document.getElementById(id);
         if(!container) return;
         const maxVal = list[0]?.comentarios_totais_count || 1;
         container.innerHTML = list.map(t => `
-            <div onclick="window.openDetail('${t.username}')" class="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-all cursor-pointer">
+            <div onclick="window.openDetail('${t.username}')" class="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-all cursor-pointer group">
                 <img src="https://unavatar.io/instagram/${t.username}" class="w-8 h-8 rounded-lg border border-white/10" onerror="this.src='https://ui-avatars.com/api/?name=${t.username}'">
                 <div class="flex-1">
                     <div class="flex justify-between text-[9px] font-bold text-slate-300">
-                        <span class="truncate w-24">@${t.username}</span>
+                        <span class="truncate w-24 group-hover:text-blue-400 transition-colors">@${t.username}</span>
                         <span class="font-mono text-blue-400">${(t.comentarios_totais_count || 0).toLocaleString()}</span>
                     </div>
                     <div class="w-full h-1 bg-white/5 rounded-full mt-1.5 overflow-hidden">
@@ -148,14 +153,16 @@ function renderImpactCharts() {
     const ctxEl = document.getElementById('chartMain');
     if(!ctxEl) return;
 
-    // Dados de Inteligência Agregada (Volume por Cenário)
-    const stats = appState.classified.reduce((acc, curr) => {
-        acc[curr.scenario] = (acc[curr.scenario] || 0) + (curr.comentarios_totais_count || 0);
-        return acc;
-    }, {});
-
-    const labels = Object.keys(stats);
-    const data = Object.values(stats);
+    // Inteligência Agregada: Volume vs Agressividade
+    const labels = ['Nacional', 'Regional'];
+    const volumeData = [
+        appState.classified.filter(i => i.scenario === 'Nacional').reduce((s, c) => s + (c.comentarios_totais_count || 0), 0),
+        appState.classified.filter(i => i.scenario === 'Regional').reduce((s, c) => s + (c.comentarios_totais_count || 0), 0)
+    ];
+    const hateData = [
+        appState.classified.filter(i => i.scenario === 'Nacional').reduce((s, c) => s + (c.comentarios_odio_count || 0), 0),
+        appState.classified.filter(i => i.scenario === 'Regional').reduce((s, c) => s + (c.comentarios_odio_count || 0), 0)
+    ];
 
     if(mainChart) mainChart.destroy();
     const ctx = ctxEl.getContext('2d');
@@ -164,31 +171,31 @@ function renderImpactCharts() {
         type: 'bar',
         data: { 
             labels, 
-            datasets: [{ 
-                label: 'Volume de Narrativas', 
-                data, 
-                backgroundColor: ['rgba(59, 130, 246, 0.4)', 'rgba(245, 158, 11, 0.4)', 'rgba(139, 92, 246, 0.4)'],
-                borderColor: ['#3b82f6', '#f59e0b', '#8b5cf6'],
-                borderWidth: 2,
-                borderRadius: 12,
-                hoverBackgroundColor: ['#3b82f6', '#f59e0b', '#8b5cf6']
-            }] 
+            datasets: [
+                { 
+                    label: 'Volume Total', 
+                    data: volumeData, 
+                    backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                    borderColor: '#3b82f6',
+                    borderWidth: 2,
+                    borderRadius: 8
+                },
+                { 
+                    label: 'Ataques Detec.', 
+                    data: hateData, 
+                    backgroundColor: 'rgba(239, 68, 68, 0.5)',
+                    borderColor: '#ef4444',
+                    borderWidth: 2,
+                    borderRadius: 8
+                }
+            ] 
         },
         options: { 
             responsive: true, maintainAspectRatio: false, 
-            plugins: { 
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                    titleFont: { size: 10, weight: 'bold' },
-                    bodyFont: { size: 10 },
-                    padding: 12,
-                    cornerRadius: 12
-                }
-            }, 
+            plugins: { legend: { display: true, labels: { color: '#64748b', font: { size: 9 } } } }, 
             scales: { 
                 y: { grid: { color: 'rgba(255,255,255,0.02)' }, ticks: { color: '#64748b', font: { size: 8 } } }, 
-                x: { grid: { display: false }, ticks: { color: '#f8fafc', font: { size: 9, weight: 'bold' } } } 
+                x: { grid: { display: false }, ticks: { color: '#f8fafc', font: { size: 10, weight: 'bold' } } } 
             } 
         }
     });
@@ -220,10 +227,22 @@ function renderAlerts(alertas) {
 function renderTrends(trends) {
     const container = document.getElementById('predictive-trends');
     if(!container) return;
-    container.innerHTML = (trends || []).map(t => `
+    
+    // Simulação Preditiva v15.4 (Momentum Real)
+    const topTrends = appState.classified
+        .filter(c => c.comentarios_totais_count > 0)
+        .map(c => ({
+            username: c.username,
+            ratio: (c.comentarios_odio_count / c.comentarios_totais_count),
+            status: (c.comentarios_odio_count / c.comentarios_totais_count) > 0.1 ? 'RISCO ALTO' : 'ESTÁVEL'
+        }))
+        .sort((a,b) => b.ratio - a.ratio)
+        .slice(0, 3);
+
+    container.innerHTML = topTrends.map(t => `
         <div class="p-4 bg-blue-600/5 rounded-2xl border border-blue-500/10 flex items-center justify-between">
-            <div class="flex items-center gap-3"><div class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></div><span class="text-[10px] font-black text-white uppercase">@${t.username}</span></div>
-            <span class="text-[8px] font-bold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded uppercase tracking-tighter">${t.status}</span>
+            <div class="flex items-center gap-3"><div class="w-2 h-2 ${t.status === 'RISCO ALTO' ? 'bg-red-500 animate-pulse' : 'bg-blue-500 animate-ping'} rounded-full"></div><span class="text-[10px] font-black text-white uppercase">@${t.username}</span></div>
+            <span class="text-[8px] font-bold ${t.status === 'RISCO ALTO' ? 'text-red-400 bg-red-500/10' : 'text-blue-400 bg-blue-500/10'} px-2 py-0.5 rounded uppercase tracking-tighter">${t.status}</span>
         </div>`).join('') || '<p class="text-[9px] text-slate-500 italic text-center py-4">Sem anomalias preditivas detectadas.</p>';
 }
 
@@ -253,7 +272,7 @@ window.openDetail = function(username) {
         </div>
         <div class="grid grid-cols-3 gap-6 mb-10">
             <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center">
-                <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1">Total Comentários</span>
+                <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1 text-blue-400">Total Comentários</span>
                 <div class="text-2xl font-black text-white">${(monitorado.comentarios_totais_count || 0).toLocaleString()}</div>
             </div>
             <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center text-red-500">
@@ -272,11 +291,11 @@ window.openDetail = function(username) {
                     <span class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Análise de Narrativa Coordenada</span>
                     <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-full text-[8px] font-black uppercase">Monitoramento Ativo</span>
                 </div>
-                <p class="text-sm text-slate-300 leading-relaxed italic mb-8">"O perfil @${username} apresenta um volume de interações ${monitorado.comentarios_totais_count > 50 ? 'elevado' : 'estável'}. A inteligência PASA detectou que ${(resiliencia < 80) ? 'há uma incidência crítica de ataques coordenados' : 'o clima digital permanece sob controle, com baixa agressividade direta'}."</p>
+                <p class="text-sm text-slate-300 leading-relaxed italic mb-8">"O perfil @${username} apresenta um volume de interações ${(monitorado.comentarios_totais_count || 0) > 50 ? 'elevado' : 'estável'}. A inteligência PASA detectou que ${(resiliencia < 80) ? 'há uma incidência crítica de ataques coordenados' : 'o clima digital permanece sob controle, com baixa agressividade direta'}."</p>
                 <div class="grid grid-cols-2 gap-8">
                     <div class="space-y-2">
                         <span class="text-[8px] text-slate-500 font-bold uppercase">Probabilidade de Crise</span>
-                        <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-blue-600" style="width: ${100 - resiliencia}%"></div></div>
+                        <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-red-600" style="width: ${100 - resiliencia}%"></div></div>
                     </div>
                     <div class="space-y-2">
                         <span class="text-[8px] text-slate-500 font-bold uppercase">Engajamento de Risco</span>
@@ -326,7 +345,7 @@ window.openRegionalDetail = function(uf) {
 
         <div class="grid grid-cols-2 gap-4 mb-10">
             <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center">
-                <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1">Interações</span>
+                <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1 text-blue-400">Interações</span>
                 <div class="text-2xl font-black text-white">${info.total.toLocaleString()}</div>
             </div>
             <div class="p-6 bg-red-500/5 rounded-3xl border border-red-500/10 text-center text-red-500">
