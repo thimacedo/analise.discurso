@@ -132,7 +132,7 @@ function renderRankings(data) {
         const maxVal = list[0]?.comentarios_totais_count || 1;
         container.innerHTML = list.map(t => `
             <div onclick="window.openDetail('${t.username}')" class="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-all cursor-pointer group">
-                <img src="https://www.instagram.com/${t.username}/profilefast/" class="w-8 h-8 rounded-lg border border-white/10" onerror="this.src='https://ui-avatars.com/api/?name=${t.username}'">
+                <img src="https://unavatar.io/instagram/${t.username}" class="w-8 h-8 rounded-lg border border-white/10" onerror="this.src='https://ui-avatars.com/api/?name=${t.username}'">
                 <div class="flex-1">
                     <div class="flex justify-between text-[9px] font-bold text-slate-300">
                         <span class="truncate w-24 group-hover:text-blue-400 transition-colors">@${t.username}</span>
@@ -207,19 +207,28 @@ function renderAlerts(alertas) {
         container.innerHTML = `<div class="col-span-full py-10 text-center text-slate-500 text-[10px] font-bold uppercase tracking-widest italic">Nenhum registro encontrado.</div>`;
         return;
     }
-    container.innerHTML = alertas.map(a => `
-        <div class="glass-card p-6 bg-red-500/[0.03] border-red-500/10 hover:bg-red-500/[0.06] transition-all group relative overflow-hidden">
-            <div class="absolute top-0 right-0 p-2 opacity-20 group-hover:opacity-100 transition-opacity"><i data-lucide="alert-triangle" class="w-4 h-4 text-red-500"></i></div>
+    container.innerHTML = alertas.map(a => {
+        // Se is_fallback for verdadeiro, não é um ataque de ódio, mas sim a última interação capturada
+        const isHate = !a.is_fallback;
+        const color = isHate ? 'red' : 'blue';
+        const icon = isHate ? 'alert-triangle' : 'message-square';
+        const title = isHate ? 'Ataque Detectado' : 'Interação Recente';
+        const confianca = isHate ? '98%' : 'N/A';
+
+        return `
+        <div class="glass-card p-6 bg-${color}-500/[0.03] border-${color}-500/10 hover:bg-${color}-500/[0.06] transition-all group relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-2 opacity-20 group-hover:opacity-100 transition-opacity"><i data-lucide="${icon}" class="w-4 h-4 text-${color}-500"></i></div>
             <div class="flex items-center gap-3 mb-4">
-                <img src="https://www.instagram.com/${a.candidato_id}/profilefast/" class="w-6 h-6 rounded-full border border-red-500/20" onerror="this.src='https://ui-avatars.com/api/?name=${a.candidato_id}'">
+                <img src="https://unavatar.io/instagram/${a.candidato_id}" class="w-6 h-6 rounded-full border border-${color}-500/20" onerror="this.src='https://ui-avatars.com/api/?name=${a.candidato_id}'">
                 <div><span class="text-[9px] font-black text-white block">@${a.candidato_id}</span><span class="text-[7px] text-slate-500 uppercase font-bold tracking-tighter">${new Date(a.data_coleta).toLocaleString('pt-BR')}</span></div>
             </div>
-            <p class="text-[11px] text-slate-300 leading-relaxed italic border-l-2 border-red-500/30 pl-3 mb-4">"${a.texto_bruto || a.texto}"</p>
+            <p class="text-[11px] text-slate-300 leading-relaxed italic border-l-2 border-${color}-500/30 pl-3 mb-4">"${a.texto_bruto || a.texto}"</p>
             <div class="flex justify-between items-center">
-                <span class="px-2 py-0.5 bg-red-500/10 text-red-400 rounded text-[7px] font-black uppercase border border-red-500/20">Ataque Detectado</span>
-                <span class="text-[8px] font-bold text-slate-500">Confiança: 98%</span>
+                <span class="px-2 py-0.5 bg-${color}-500/10 text-${color}-400 rounded text-[7px] font-black uppercase border border-${color}-500/20">${title}</span>
+                <span class="text-[8px] font-bold text-slate-500">Confiança: ${confianca}</span>
             </div>
-        </div>`).join('');
+        </div>`;
+    }).join('');
     if(window.lucide) lucide.createIcons();
 }
 
@@ -256,14 +265,14 @@ window.openDetail = function(username) {
         ? `<button onclick="window.openRegionalDetail('${appState.currentModalUF}')" class="mb-6 flex items-center gap-2 text-[10px] font-black text-blue-400 uppercase tracking-widest hover:text-white transition-colors"><i data-lucide="arrow-left" class="w-3 h-3"></i> Voltar ao Diagnóstico Regional (${appState.currentModalUF})</button>`
         : '';
 
-    // Lógica de diagnóstico dinâmico baseado em dados reais
+    // Lógica de diagnóstico dinâmico baseada em linguística
     let diagText = "";
     if (res < 70) {
-        diagText = "Identificada alta densidade de termos hostis e ataques diretos. O volume de agressividade supera a média do grupo monitorado, indicando possível ação coordenada de rejeição.";
+        diagText = `Identificada alta densidade de vocabulário hostil. Foram capturadas ${m.comentarios_odio_count || 0} interações com agressividade direta, superando a média do grupo monitorado e indicando forte rejeição orgânica.`;
     } else if (res < 90) {
-        diagText = "Clima digital em estado de atenção. Observa-se o surgimento de narrativas críticas pontuais que podem escalar caso não haja monitoramento ativo.";
+        diagText = `A análise linguística aponta para um estado de atenção. O perfil registra ${m.comentarios_odio_count || 0} comentários com polarização negativa ou ironia. Recomenda-se leitura do contexto das interações.`;
     } else {
-        diagText = "O ecossistema de comentários apresenta alta resiliência linguística. A maioria das interações é composta por apoio ou neutralidade informativa.";
+        diagText = `A maioria das interações (${m.comentarios_totais_count || 0} avaliadas) é composta por vocabulário neutro ou de apoio. O ecossistema de comentários apresenta alta resiliência linguística neste momento.`;
     }
 
     // Risco baseado em volumetria
@@ -273,7 +282,7 @@ window.openDetail = function(username) {
     content.innerHTML = `
         ${backBtn}
         <div class="flex items-center gap-8 mb-10">
-            <img src="https://www.instagram.com/${username}/profilefast/" class="w-32 h-32 rounded-3xl border-4 border-blue-600/20 shadow-2xl" onerror="this.src='https://ui-avatars.com/api/?name=${username}'">
+            <img src="https://unavatar.io/instagram/${username}" class="w-32 h-32 rounded-3xl border-4 border-blue-600/20 shadow-2xl" onerror="this.src='https://ui-avatars.com/api/?name=${username}'">
             <div>
                 <h2 class="text-4xl font-black text-white mb-2">@${username}</h2>
                 <p class="text-lg text-blue-400 font-bold uppercase tracking-widest">${m.nome_completo || 'Identidade Preservada'}</p>
@@ -298,10 +307,10 @@ window.openDetail = function(username) {
             </div>
         </div>
         <div class="space-y-6">
-            <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-white/5 pb-2">Diagnóstico de Linguagem PASA</h3>
+            <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-white/5 pb-2">Análise Linguística PASA</h3>
             <div class="p-8 bg-blue-600/5 rounded-3xl border border-blue-500/10">
                 <div class="flex justify-between items-center mb-6">
-                    <span class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Análise Situacional</span>
+                    <span class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Diagnóstico Situacional</span>
                     <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-full text-[8px] font-black uppercase">Monitoramento Ativo</span>
                 </div>
                 <p class="text-sm text-slate-300 leading-relaxed italic mb-8">"${diagText}"</p>
@@ -309,16 +318,22 @@ window.openDetail = function(username) {
                     <div class="space-y-2">
                         <div class="flex justify-between text-[8px] font-bold uppercase">
                             <span class="text-slate-500">Probabilidade de Crise</span>
-                            <span class="text-blue-400">${riscoPercent}%</span>
                         </div>
-                        <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-blue-600 transition-all duration-1000" style="width: ${riscoPercent}%"></div></div>
+                        <div class="w-full h-4 bg-white/5 rounded-full overflow-hidden relative">
+                            <div class="h-full bg-blue-600 transition-all duration-1000 flex items-center justify-end pr-2" style="width: ${riscoPercent}%">
+                                <span class="text-[8px] font-bold text-white shadow-sm">${riscoPercent}%</span>
+                            </div>
+                        </div>
                     </div>
                     <div class="space-y-2">
                         <div class="flex justify-between text-[8px] font-bold uppercase">
                             <span class="text-slate-500">Engajamento de Risco</span>
-                            <span class="text-amber-500">${engajRisco}%</span>
                         </div>
-                        <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-amber-500 transition-all duration-1000" style="width: ${engajRisco}%"></div></div>
+                        <div class="w-full h-4 bg-white/5 rounded-full overflow-hidden relative">
+                            <div class="h-full bg-amber-500 transition-all duration-1000 flex items-center justify-end pr-2" style="width: ${engajRisco}%">
+                                <span class="text-[8px] font-bold text-white shadow-sm">${engajRisco}%</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -379,7 +394,7 @@ window.openRegionalDetail = function(uf) {
             ${monitoradosNoEstado.map(m => `
                 <div onclick="window.openDetail('${m.username}')" class="flex items-center justify-between p-4 bg-white/[0.03] border border-white/5 rounded-2xl hover:bg-white/[0.08] transition-all cursor-pointer group">
                     <div class="flex items-center gap-4">
-                        <img src="https://www.instagram.com/${m.username}/profilefast/" class="w-10 h-10 rounded-xl border border-white/10" onerror="this.src='https://ui-avatars.com/api/?name=${m.username}'">
+                        <img src="https://unavatar.io/instagram/${m.username}" class="w-10 h-10 rounded-xl border border-white/10" onerror="this.src='https://ui-avatars.com/api/?name=${m.username}'">
                         <div>
                             <span class="text-xs font-black text-white block group-hover:text-blue-400 transition-colors">@${m.username}</span>
                             <span class="text-[9px] text-slate-500 uppercase font-bold">${m.cargo || 'Monitorado'}</span>

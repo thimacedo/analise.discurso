@@ -1,0 +1,52 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "🛡️ Sentinela: Abrir Chat Gemini",
+            "type": "shell",
+            "command": "gemini",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "🛡️ Sentinela: Executar Comando Gemini",
+            "type": "shell",
+            "command": "gemini \"${input:geminiCommand}\"",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always"
+            }
+        },
+        {
+            "label": "🐝 Sentinela: Iniciar Raspagem Lote 3",
+            "type": "shell",
+            "command": "py scripts/deep_scraper_lote3.py",
+            "presentation": {
+                "reveal": "always"
+            }
+        },
+        {
+            "label": "🧠 Sentinela: Sincronizar Dados",
+            "type": "shell",
+            "command": "py scripts/sync_aggregates.py",
+            "presentation": {
+                "reveal": "always"
+            }
+        }
+    ],
+    "inputs": [
+        {
+            "id": "geminiCommand",
+            "description": "Digite o comando para o Gemini CLI",
+            "default": "status do projeto",
+            "type": "promptString"
+        }
+    ]
+}

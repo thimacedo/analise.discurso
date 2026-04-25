@@ -14,9 +14,27 @@ export async function fetchCandidatos() {
     return await res.json();
 }
 
-export async function fetchAlertas(limit = 6) {
-    const url = `${SB_URL}/comentarios?select=*&is_hate=eq.true&categoria_ia=eq.Odio&order=data_coleta.desc&limit=${limit}`;
-    const res = await fetch(url, { headers });
-    if (!res.ok) throw new Error(`Fetch Alertas Error: ${res.status}`);
+export async function fetchComentarios(limit = 100) {
+    const res = await fetch(`${SB_URL}/comentarios?select=*&limit=${limit}`, { headers });
+    if (!res.ok) throw new Error(`Fetch Comentarios Error: ${res.status}`);
     return await res.json();
+}
+
+export async function fetchAlertas(limit = 6) {
+    let url = `${SB_URL}/comentarios?select=*&is_hate=eq.true&categoria_ia=eq.Odio&order=data_coleta.desc&limit=${limit}`;
+    let res = await fetch(url, { headers });
+    if (!res.ok) throw new Error(`Fetch Alertas Error: ${res.status}`);
+    let json = await res.json();
+
+    // Fallback: se não houver alertas críticos (ódio), traz as últimas interações gerais
+    if (!json || json.length === 0) {
+        url = `${SB_URL}/comentarios?select=*&order=data_coleta.desc&limit=${limit}`;
+        res = await fetch(url, { headers });
+        if (!res.ok) throw new Error(`Fetch Fallback Error: ${res.status}`);
+        json = await res.json();
+        // Marca que são apenas interações recentes (não alertas de ódio)
+        json.forEach(j => j.is_fallback = true);
+    }
+
+    return json;
 }
