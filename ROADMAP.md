@@ -5,18 +5,20 @@ Plataforma de **Inteligência Situacional e Tendências de Opinião Pública**. 
 
 ## 📌 Status Atual
 **Data:** 25 de Abril de 2026
-**Fase:** Produção de Alta Fidelidade (v15.4.3 - Refino de Monetização)
-**Resumo:** Versão 15.4.3 consolidada. 
-- **Checkout UX**: Implementada rolagem interna no modal e navegação de retorno ("Voltar").
-- **Legibilidade PIX**: Código copia e cola com fonte ampliada e contraste otimizado (Emerald 400).
-- **Tratamento de Erros**: Handlers para falhas em gateways externos (Stripe/PayPal) evitando travamento de UI.
-- **Refino de UI**: Gráfico de narrativas focado em mensagens negativadas e grid de 5 colunas operacional.
+**Fase:** Produção de Alta Fidelidade (v15.4.4 - Engine Responsiva)
+**Resumo:** Versão 15.4.4 consolidada. 
+- **Engine Responsiva**: Dashboard adaptado para Mobile-First (Sidebar dinâmica, Grid fluida, KPIs 2x2).
+- **Modais de Alta Fidelidade**: Modais com larguras relativas e rolagem garantida para telas pequenas.
+- **Checkout UX**: Fluxo de retorno ("Voltar") e legibilidade PIX Emerald 400 validados.
+- **Versionamento**: Sincronização de logs e scripts para v15.4.4 concluída.
+- **Infraestrutura**: Vercel MCP configurado e operacional.
 
 ## 🎯 Próximos Passos
-1. [ ] **Fase 4: Automação de Coleta** - Deploy do Apify Actor customizado (TS/Worker).
-2. [ ] **Integração Realtime**: Ativação do Step 6 (Chat/Feedback em tempo real) via Supabase.
-3. [ ] **Pipeline de CI/CD**: Automação total dos testes Playwright no GitHub Actions.
-4. [ ] **Expansão de Canais**: Inclusão de monitoramento via RapidAPI para redes sociais emergentes.
+1. [x] **Infraestrutura**: Concluir a configuração do Vercel MCP no Gemini CLI.
+2. [ ] **Fase 4: Automação de Coleta** - Deploy do Apify Actor customizado (TS/Worker).
+3. [ ] **Integração Realtime**: Ativação do Step 6 (Chat/Feedback em tempo real) via Supabase.
+4. [ ] **Pipeline de CI/CD**: Automação total dos testes Playwright no GitHub Actions.
+5. [ ] **Expansão de Canais**: Inclusão de monitoramento via RapidAPI para redes sociais emergentes.
 
 ## 🛠️ Instruções de Execução (Como Deve Ser Feito)
 - **Gestor:** Gemini (Arquiteto de Software e PM)
