@@ -4,7 +4,7 @@ ALTER TABLE candidatos ADD COLUMN IF NOT EXISTS categoria TEXT DEFAULT 'SATELITE
 ALTER TABLE candidatos ADD COLUMN IF NOT EXISTS cenario TEXT DEFAULT 'BRASIL';
 ALTER TABLE candidatos ADD COLUMN IF NOT EXISTS cargo_pretendido TEXT;
 
--- Inserir/Atualizar Alvos Prioritários
+-- Inserir/Atualizar Monitorados Prioritários
 INSERT INTO candidatos (username, prioridade, categoria, cenario, cargo_pretendido)
 VALUES 
 ('lulaoficial', 1, 'CANDIDATO_ATIVO', 'BRASIL', 'Presidente'),
