@@ -1,25 +1,26 @@
 # 🗺️ ROADMAP.md - Sentinela Democrática
 
 ## 📖 Visão Geral
-Plataforma de **Inteligência Situacional e Tendências de Opinião Pública**. O projeto utiliza coleta massiva via RapidAPI, análise híbrida de geolocalização e narrativas (PASA + GEO) via Gemma2, e apresenta os insights em um Dashboard de alta fidelidade estatística.
+Plataforma de **Inteligência Situacional e Tendências de Opinião Pública**. O projeto utiliza coleta massiva via RapidAPI, análise híbrida (PASA + GEO) via Gemma2, e um motor de conformidade fundamentado em Linguística Forense e normas do TSE 2026.
 
 ## 📌 Status Atual
 **Data:** 25 de Abril de 2026
-**Fase:** v15.4.4 - Cérebro Linguístico Consolidado
+**Fase:** v15.4.5 - Inteligência Forense & Balizamento TSE
 **Resumo:** 
-- **Cérebro Linguístico**: Criado `LINGUISTIC_BRAIN.md` com parâmetros de Linguística Forense e Estilometria (Base UFRN/Vichi).
-- **Lógica Forense**: Estruturada em `FORENSIC_LOGIC.md` para processamento de N-Gramas e POS Tagging.
-- **Worker Híbrido**: Processamento 24/7 de estados e narrativas ativo.
+- **Conformidade TSE 2026**: Integrado painel de regras eleitorais e documento de balizamento ético (`ETHICS_TSE.md`).
+- **Cérebro Linguístico**: Consolidada base de parâmetros forenses (N-Gramas, Idioleto, POS Tagging).
+- **Worker Híbrido**: Automatizado o processamento de geolocalização e narrativas 24/7.
+- **UI de Alto Impacto**: Matriz de Risco estatística ativa para visualização imediata de crises.
 
 ## 🎯 Próximos Passos
 1. [x] **Inteligência Híbrida**: Classificação automática de novos alvos e comentários.
-2. [x] **Cérebro Linguístico**: Mapeamento da biblioteca forense e criação da base de parâmetros.
-3. [ ] **Treinamento PASA (Fase 1)**: Integrar algoritmos de N-Gramas e Lemmatização no `pasa-worker.js`.
-4. [ ] **Detecção de Ataques Coordenados**: Implementar detecção de scripts via densidade lexical.
-4. [ ] **Integração Realtime**: Ativação do Step 6 (Chat/Feedback) via Supabase Realtime.
-5. [ ] **Monetização**: Implementação de relatórios dinâmicos pós-checkout.
+2. [x] **Cérebro Linguístico**: Mapeamento da biblioteca forense.
+3. [x] **Governança Ética**: Integração das regras do TSE 2026 para uso de IA.
+4. [ ] **Auditoria de Rotulagem**: Desenvolver skill para detectar propaganda política via IA sem rótulo nas redes sociais.
+5. [ ] **Integração Realtime**: Ativação do Step 6 (Chat/Feedback) via Supabase Realtime.
+6. [ ] **Relatórios Forenses**: Geração automática de dossiês em PDF com validade pericial.
 
 ## 🛠️ Instruções de Execução
+- **Balizador TSE:** O motor PASA está proibido de gerar deepfakes ou conteúdos não rotulados.
 - **Worker PASA+GEO:** `pasa-worker.js` roda no Render com polling de 60s.
-- **Coleta:** `worker_sentinela.py` executa a raspagem diária prioritária.
-- **Regras:** Manter a exclusividade de geolocalização (um alvo, um estado).
+- **Regras:** Manter a exclusividade de geolocalização e rotulagem obrigatória de IA.
