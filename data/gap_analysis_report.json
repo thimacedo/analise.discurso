@@ -218,10 +218,10 @@
     {
         "username": "gleisihoffmann",
         "full_name": "Gleisi Hoffmann",
-        "in_db": false,
+        "in_db": true,
         "posts": 0,
         "comments": 0,
-        "cargo": null
+        "cargo": "Deputada Federal"
     },
     {
         "username": "dilmarousseff",
@@ -290,10 +290,10 @@
     {
         "username": "lucaspavanato",
         "full_name": "Lucas Pavanato",
-        "in_db": false,
+        "in_db": true,
         "posts": 0,
         "comments": 0,
-        "cargo": null
+        "cargo": "Vereador/Influencer"
     },
     {
         "username": "pastorhenriquevieira",

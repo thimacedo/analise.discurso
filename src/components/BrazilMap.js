@@ -52,18 +52,17 @@ export function renderBrazilMap(containerId, stats) {
             if (info.hate > 0) css += " danger-node";
             
             const intensity = Math.min(info.count * 10, 100);
-            const fill = info.count > 0 ? \`rgba(59, 130, 246, \${0.2 + (intensity/150)})\` : '#1e293b';
+            const fill = info.count > 0 ? "rgba(59, 130, 246, " + (0.2 + (intensity/150)) + ")" : '#1e293b';
             const stroke = info.hate > 0 ? '#ef4444' : '#334155';
             
-            return \`
-            <path id="state-\${uf}" d="\${d}" class="\${css}" 
-                  fill="\${fill}"
-                  stroke="\${stroke}"
-                  style="\${info.hate > 0 ? 'filter: url(#glow-intel); stroke-width: 1.5px;' : 'stroke-width: 0.8px;'}"
-                  onclick="window.focusState('\${uf}')">
-                <title>\${uf}: \${info.count} monitorados / \${info.hate} alertas</title>
-            </path>\`;
+            return '<path id="state-' + uf + '" d="' + d + '" class="' + css + '" ' +
+                  'fill="' + fill + '" ' +
+                  'stroke="' + stroke + '" ' +
+                  'style="' + (info.hate > 0 ? 'filter: url(#glow-intel); stroke-width: 1.5px;' : 'stroke-width: 0.8px;') + '" ' +
+                  'onclick="window.focusState(\'' + uf + '\')">' +
+                '<title>' + uf + ': ' + info.count + ' monitorados / ' + info.hate + ' alertas</title>' +
+            '</path>';
         }).join('')}
         </g>
-    \`;
+    `;
 }
