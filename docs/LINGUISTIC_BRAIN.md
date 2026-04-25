@@ -15,10 +15,16 @@ Baseado nos estudos da UFRN (Leonardo Vichi) e autores clássicos da área:
 *   **Dissonância Semântica:** Identificar quando o sentimento positivo aparente (ex: "Grande governo!") conflita com o histórico do perfil ou emojis contraditórios (sarcasmo).
 *   **Gatilhos de Ódio:** Mapeamento de termos desumanizantes e ofensas veladas via adjetivação pejorativa.
 
+### C. Engenharia do Caos e Coordenação (Empoli, 2019)
+*   **Mimetismo de Nicho:** Identificar se o mesmo núcleo narrativo está sendo "traduzido" para diferentes públicos com o mesmo padrão sintático.
+*   **Gatilhos de Indignação:** Mapear o uso de termos que visam a interrupção do debate racional (Polarização Radical).
+*   **Dog Whistles (Sinais Codificados):** Identificação de emojis ou siglas que servem de "senha" para ativação de ataques coordenados.
+
 ## ⚖️ 2. Lógica Forense Aplicada
 
 | Parâmetro | Aplicação no Sentinela | Fonte de Referência |
 | :--- | :--- | :--- |
+| **Mimetismo de Massa** | Detectar se múltiplas contas "traduzem" o mesmo script | Giuliano da Empoli |
 | **Frequência de Verbos** | Identificar "Call to Action" (incitação) | Leonardo Vichi (UFRN) |
 | **N-Gramas Cruzados** | Detecção de ataques coordenados | Bhakuni (2022) |
 | **Polarização de Adjetivos** | Medir a agressividade da narrativa | Marquesi / Capistrano Jr |

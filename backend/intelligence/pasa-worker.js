@@ -72,15 +72,16 @@ async function classifyNarratives() {
             const hasRepetitivePattern = trigrams.length > 0 && new Set(trigrams).size < trigrams.length;
 
             const forensicPrompt = `Atue como Perito em Linguística Forense (Protocolo PASA).
-            Analise o comentário político abaixo buscando:
+            Analise o comentário político abaixo baseado nas teorias de Engenharia do Caos (Giuliano da Empoli):
             1. Intenção: Ofensa, Sarcasmo, Incitação, Crítica Política ou Apoio.
-            2. Marcadores: Identifique verbos de comando ou adjetivação pejorativa.
-            3. Script: O comentário parece automatizado/coordenado? ${hasRepetitivePattern ? "Sim (N-gramas repetitivos detectados)" : "Não"}.
+            2. Mimetismo de Massa: O comentário usa "Gatilhos de Indignação" ou "Dog Whistles" para anular o debate racional?
+            3. Coordenação: A análise estatística prévia diz que N-gramas repetitivos são: ${hasRepetitivePattern ? "DETECTADOS (Indício de Script)" : "NÃO DETECTADOS"}.
+            4. Índice de Coordenação: Alto (Script evidente), Médio (Uso de jargões polarizados) ou Baixo (Orgânico).
 
             Texto: "${c.texto_bruto}"
 
             Responda APENAS em formato JSON:
-            {"categoria": "PALAVRA", "is_bot": boolean, "analise": "BREVE_JUSTIFICATIVA"}`;
+            {"categoria": "PALAVRA", "is_bot": boolean, "indice_coordenacao": "Alto|Médio|Baixo", "analise": "BREVE_JUSTIFICATIVA_INFORMATIVA_SEM_TERMOS_JURIDICOS"}`;
 
             const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
@@ -100,6 +101,9 @@ async function classifyNarratives() {
             // Mapeamento para o banco
             const finalCat = result.categoria.replace(/[^a-zA-Z]/g, "");
             const isHate = ["Ofensa", "Sarcasmo", "Incitacao", "Odio", "Ironia"].includes(finalCat);
+            
+            // Integrar o Índice de Coordenação na justificativa para uso no Dossiê Informativo
+            const analiseIntegrada = `[Coordenação: ${result.indice_coordenacao}] ${result.analise}`;
 
             await fetch(`${SB_URL}/comentarios?id=eq.${c.id}`, {
                 method: "PATCH",
@@ -108,11 +112,11 @@ async function classifyNarratives() {
                     categoria_ia: finalCat, 
                     is_hate: isHate, 
                     is_bot: result.is_bot,
-                    analise_forense: result.analise,
+                    analise_forense: analiseIntegrada,
                     processado_em: new Date().toISOString() 
                 })
             });
-            logPasa(`@${c.candidato_id} [${finalCat}] | Bot: ${result.is_bot}`);
+            logPasa(`@${c.candidato_id} [${finalCat}] | Coord: ${result.indice_coordenacao} | Bot: ${result.is_bot}`);
         } catch (e) {
             logPasa(`Erro narrativa ID ${c.id}: ${e.message}`);
         }
