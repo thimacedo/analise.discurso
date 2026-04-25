@@ -27,8 +27,12 @@ class ApifyFullScraper:
         with open(self.profiles_file, "r", encoding="utf-8") as f:
             return json.load(f)
 
-    def run_full_scrape(self, limit_profiles=None, posts_per_profile=3, comments_per_post=100):
-        profiles = self.get_profiles()
+    def run_full_scrape(self, limit_profiles=None, posts_per_profile=3, comments_per_post=100, targets=None):
+        if targets:
+            profiles = targets
+        else:
+            profiles = self.get_profiles()
+            
         if not profiles: return
         
         if limit_profiles:

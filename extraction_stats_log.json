@@ -1,0 +1,14 @@
+[
+    {
+        "start_time": "2026-04-25T09:43:22.541680",
+        "profiles_attempted": 1,
+        "profiles_success": 0,
+        "posts_scanned": 0,
+        "comments_collected": 0,
+        "errors": [
+            "Erro em @allysonbezerra.rn: Monthly usage hard limit exceeded"
+        ],
+        "end_time": "2026-04-25T09:43:23.183147",
+        "method": "apify_full_scraper"
+    }
+]
