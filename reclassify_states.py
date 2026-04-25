@@ -2,7 +2,6 @@ import os
 import httpx
 import json
 
-# Carregar config do .env manualmente para evitar dependências extras se possível
 env_path = r"E:\projetos\sentinela-democratica\.env"
 config = {}
 with open(env_path, "r") as f:
@@ -13,12 +12,7 @@ with open(env_path, "r") as f:
 
 url = config.get("SUPABASE_URL")
 key = config.get("SUPABASE_KEY")
-
-headers = {
-    "apikey": key,
-    "Authorization": f"Bearer {key}",
-    "Content-Type": "application/json"
-}
+headers = {"apikey": key, "Authorization": f"Bearer {key}", "Content-Type": "application/json"}
 
 def get_candidates():
     r = httpx.get(f"{url}/rest/v1/candidatos?select=*", headers=headers)
@@ -28,65 +22,55 @@ def update_candidate(id, data):
     r = httpx.patch(f"{url}/rest/v1/candidatos?id=eq.{id}", headers=headers, json=data)
     return r.status_code
 
-def reclassify():
+# LISTAS DE EXCLUSIVIDADE
+PRESIDENCIAVEIS = ["lulaoficial", "jairmessiasbolsonaro", "michellebolsonaro", "geraldoalckmin_", "simonetebet", "marinasilvaoficial", "flaviodino", "janjalula", "dilmarousseff", "zedirceuoficial"]
+RN_BASE = ["fatimabezerra13", "senadorstyvensonvalentim", "rogeriomarinho", "nataliabonavides", "allysonbezerra.rn", "alvarodiasrn", "isoldadantaspt", "mineiroptrn", "walteralvesrn", "drazenaide", "capitaostyvensonsenador"]
+
+def reclassify_strict():
     candidates = get_candidates()
-    print(f"Processando {len(candidates)} candidatos...")
-    
-    counts = {"BR": 0, "RN": 0, "SP": 0, "RJ": 0, "Outros": 0}
+    print(f"Iniciando Reclassificação Rigorosa ({len(candidates)} alvos)...")
     
     for c in candidates:
         u = (c.get("username") or "").lower()
         n = (c.get("nome_completo") or "").lower()
         cargo = (c.get("cargo") or "").lower()
+        estado_atual = c.get("estado")
         
-        novo_estado = c.get("estado") # Default atual
-        
-        # --- LÓGICA DE RECLASSIFICAÇÃO CRITERIOSA ---
-        
-        # PRIORIDADE 1: BR (Nacional)
-        if any(x in u for x in ["lulaoficial", "jairmessiasbolsonaro", "michellebolsonaro", "geraldoalckmin", "simonetebet", "marinasilva", "flaviodino", "janjalula", "dilmarousseff", "zedirceu"]):
-            novo_estado = "BR"
-        elif "presidente" in cargo or "ministro" in cargo:
-            novo_estado = "BR"
-            
-        # PRIORIDADE 2: RN (Base do Thiago / Foco Regional)
-        elif any(x in u for x in ["rn", "natal", "parnamirim", "mossoro", "caico"]) or \
-             any(x in n for x in ["rn", "natal", "parnamirim", "mossoro", "caico"]):
-            novo_estado = "RN"
-        elif any(x in u for x in ["fatimabezerra", "styvenson", "rogeriomarinho", "nataliabonavides", "allysonbezerra", "alvarodias", "isoldadantas", "mineiroptrn", "walteralves", "drazenaide"]):
-            novo_estado = "RN"
-        elif "vereador" in cargo and ("parnamirim" in n or "natal" in n or "rn" in n):
-            novo_estado = "RN"
-            
-        # PRIORIDADE 3: SP
-        elif any(x in u for x in ["tarcisiogdf", "boulos", "tabata", "pavanato", "holiday", "mbl", "mamaefalei", "kimkataguiri", "suplicy", "joaocampos"]): # joaocampos é PE, vamos corrigir abaixo
-            novo_estado = "SP"
-        elif "tarcisio" in n: novo_estado = "SP"
+        # DEFINIÇÃO DO NOVO ESTADO (Default: Manter o que tem, a menos que mude pelas regras)
+        novo_estado = estado_atual
 
-        # Correções de exceção
-        if "joaocampos" in u: novo_estado = "PE"
-        if "freixo" in u or "anielle" in u or "ramagem" in u or "glauber" in u or "lindbergh" in u: novo_estado = "RJ"
-        if "moro" in u or "deltan" in u: novo_estado = "PR"
-        if "caiado" in u: novo_estado = "GO"
-        if "contarato" in u: novo_estado = "ES"
-        if "janones" in u: novo_estado = "MG"
-        if "nikolasferreira" in u: novo_estado = "MG"
+        # REGRA 1: BR (Apenas Elite Presidencial)
+        if u in PRESIDENCIAVEIS or "presidente" in cargo:
+            novo_estado = "BR"
         
-        # Limpeza do "DF" genérico (se ainda for DF mas o nome/username sugerir outra coisa ou for deputado/senador)
-        if novo_estado == "DF" and "senador" in cargo:
-            # Tentar inferir estado pela lista de nomes se necessário, mas para 99 erros, mover para BR se for nacional
-            if any(x in cargo for x in ["federal", "senador"]):
-                # Se não sabemos o estado, BR é mais honesto que DF para quem atua em Brasília mas não é do DF
+        # REGRA 2: RN (Foco Regional Específico)
+        elif u in RN_BASE or any(x in u for x in ["rn", "natal", "parnamirim", "mossoro"]):
+            novo_estado = "RN"
+            
+        # REGRA 3: RJ
+        elif any(x in u for x in ["freixo", "anielle", "ramagem", "glauber", "lindbergh"]):
+            novo_estado = "RJ"
+
+        # REGRA 4: SP
+        elif any(x in u for x in ["tarcisiogdf", "boulos", "tabata", "pavanato", "holiday", "suplicy"]):
+            novo_estado = "SP"
+
+        # REGRA 5: MG
+        elif any(x in u for x in ["janones", "nikolasferreira"]):
+            novo_estado = "MG"
+
+        # REGRA 6: LIMPEZA DO DF (Federal sem base local no DF vai para BR ou Estado Original)
+        if novo_estado == "DF":
+            if any(x in cargo for x in ["federal", "senador", "ministro"]):
+                # Se é do congresso e não é elite presidencial, tentamos manter o estado de origem se soubermos,
+                # mas como a ordem do usuário é tirar do DF, se não cair nas regras acima, vai para BR (Atuação Nacional).
                 novo_estado = "BR"
 
-        if novo_estado != c.get("estado"):
-            print(f"Atualizando @{u}: {c.get('estado')} -> {novo_estado}")
+        if novo_estado != estado_atual:
+            print(f"FIX: @{u} [{estado_atual} -> {novo_estado}]")
             update_candidate(c['id'], {"estado": novo_estado})
-            if novo_estado in counts: counts[novo_estado] += 1
-            else: counts["Outros"] += 1
 
-    print("\nReclassificação concluída!")
-    print(json.dumps(counts, indent=2))
+    print("\nLimpeza de duplicidade e reposicionamento concluída!")
 
 if __name__ == "__main__":
-    reclassify()
+    reclassify_strict()
