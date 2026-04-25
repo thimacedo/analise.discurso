@@ -48,15 +48,35 @@ main {
 .nav-item { 
     display: flex; 
     align-items: center; 
-    gap: 1rem; 
+    gap: 1.25rem; 
     width: 100%; 
-    padding: 1.2rem 1.8rem; 
-    border-radius: 20px; 
+    padding: 1rem 1.5rem; 
+    border-radius: 18px; 
     font-weight: 700; 
     font-size: 0.85rem; 
     color: #64748b; 
-    transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
     border: 1px solid transparent;
+    text-align: left;
+    background: transparent;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.nav-item i, .nav-item svg {
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+}
+
+.nav-item span {
+    display: block;
+    flex: 1;
+    white-space: nowrap;
 }
 
 .nav-item:hover { color: #fff; background: rgba(255,255,255,0.03); }

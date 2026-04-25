@@ -44,11 +44,11 @@ window.focusState = function(uf) {
 };
 
 window.refresh = async function() {
-    console.log("Iniciando Sincronização v15.4.0...");
+    console.log("Iniciando Sincronização v15.4.1...");
     try {
         const results = await Promise.allSettled([
             fetchCandidatos(),
-            fetchAlertas(10) // Aumentado limite para o feed
+            fetchAlertas(12) // Aumentado para garantir histórico
         ]);
 
         const data = results[0].status === 'fulfilled' ? results[0].value : [];
@@ -57,7 +57,7 @@ window.refresh = async function() {
         appState.data = data;
         appState.alertas = alertas;
         
-        // --- CLASSIFICAÇÃO INTELIGENTE (Fase 3 Preditiva) ---
+        // --- CLASSIFICAÇÃO INTELIGENTE ---
         appState.classified = data.map(c => {
             const u = (c.username || "").toLowerCase();
             const n = (c.nome_completo || "").toLowerCase();
@@ -132,7 +132,7 @@ function renderRankings(data) {
         const maxVal = list[0]?.comentarios_totais_count || 1;
         container.innerHTML = list.map(t => `
             <div onclick="window.openDetail('${t.username}')" class="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-all cursor-pointer group">
-                <img src="https://unavatar.io/instagram/${t.username}" class="w-8 h-8 rounded-lg border border-white/10" onerror="this.src='https://ui-avatars.com/api/?name=${t.username}'">
+                <img src="https://www.instagram.com/${t.username}/profilefast/" class="w-8 h-8 rounded-lg border border-white/10" onerror="this.src='https://ui-avatars.com/api/?name=${t.username}'">
                 <div class="flex-1">
                     <div class="flex justify-between text-[9px] font-bold text-slate-300">
                         <span class="truncate w-24 group-hover:text-blue-400 transition-colors">@${t.username}</span>
@@ -153,7 +153,6 @@ function renderImpactCharts() {
     const ctxEl = document.getElementById('chartMain');
     if(!ctxEl) return;
 
-    // Inteligência Agregada: Volume vs Agressividade
     const labels = ['Nacional', 'Regional'];
     const volumeData = [
         appState.classified.filter(i => i.scenario === 'Nacional').reduce((s, c) => s + (c.comentarios_totais_count || 0), 0),
@@ -205,14 +204,14 @@ function renderAlerts(alertas) {
     const container = document.getElementById('feed-alertas');
     if(!container) return;
     if(!alertas || alertas.length === 0) {
-        container.innerHTML = `<div class="col-span-full py-10 text-center text-slate-500 text-[10px] font-bold uppercase tracking-widest italic">Nenhum alerta crítico detectado nas últimas horas.</div>`;
+        container.innerHTML = `<div class="col-span-full py-10 text-center text-slate-500 text-[10px] font-bold uppercase tracking-widest italic">Nenhum registro encontrado.</div>`;
         return;
     }
     container.innerHTML = alertas.map(a => `
         <div class="glass-card p-6 bg-red-500/[0.03] border-red-500/10 hover:bg-red-500/[0.06] transition-all group relative overflow-hidden">
             <div class="absolute top-0 right-0 p-2 opacity-20 group-hover:opacity-100 transition-opacity"><i data-lucide="alert-triangle" class="w-4 h-4 text-red-500"></i></div>
             <div class="flex items-center gap-3 mb-4">
-                <img src="https://unavatar.io/instagram/${a.candidato_id}" class="w-6 h-6 rounded-full border border-red-500/20" onerror="this.src='https://ui-avatars.com/api/?name=${a.candidato_id}'">
+                <img src="https://www.instagram.com/${a.candidato_id}/profilefast/" class="w-6 h-6 rounded-full border border-red-500/20" onerror="this.src='https://ui-avatars.com/api/?name=${a.candidato_id}'">
                 <div><span class="text-[9px] font-black text-white block">@${a.candidato_id}</span><span class="text-[7px] text-slate-500 uppercase font-bold tracking-tighter">${new Date(a.data_coleta).toLocaleString('pt-BR')}</span></div>
             </div>
             <p class="text-[11px] text-slate-300 leading-relaxed italic border-l-2 border-red-500/30 pl-3 mb-4">"${a.texto_bruto || a.texto}"</p>
@@ -224,17 +223,17 @@ function renderAlerts(alertas) {
     if(window.lucide) lucide.createIcons();
 }
 
-function renderTrends(trends) {
+function renderTrends() {
     const container = document.getElementById('predictive-trends');
     if(!container) return;
     
-    // Simulação Preditiva v15.4 (Momentum Real)
+    // Momentum Real
     const topTrends = appState.classified
-        .filter(c => c.comentarios_totais_count > 0)
+        .filter(c => (c.comentarios_totais_count || 0) > 0)
         .map(c => ({
             username: c.username,
-            ratio: (c.comentarios_odio_count / c.comentarios_totais_count),
-            status: (c.comentarios_odio_count / c.comentarios_totais_count) > 0.1 ? 'RISCO ALTO' : 'ESTÁVEL'
+            ratio: ((c.comentarios_odio_count || 0) / (c.comentarios_totais_count || 1)),
+            status: ((c.comentarios_odio_count || 0) / (c.comentarios_totais_count || 1)) > 0.1 ? 'RISCO ALTO' : 'ESTÁVEL'
         }))
         .sort((a,b) => b.ratio - a.ratio)
         .slice(0, 3);
@@ -243,63 +242,83 @@ function renderTrends(trends) {
         <div class="p-4 bg-blue-600/5 rounded-2xl border border-blue-500/10 flex items-center justify-between">
             <div class="flex items-center gap-3"><div class="w-2 h-2 ${t.status === 'RISCO ALTO' ? 'bg-red-500 animate-pulse' : 'bg-blue-500 animate-ping'} rounded-full"></div><span class="text-[10px] font-black text-white uppercase">@${t.username}</span></div>
             <span class="text-[8px] font-bold ${t.status === 'RISCO ALTO' ? 'text-red-400 bg-red-500/10' : 'text-blue-400 bg-blue-500/10'} px-2 py-0.5 rounded uppercase tracking-tighter">${t.status}</span>
-        </div>`).join('') || '<p class="text-[9px] text-slate-500 italic text-center py-4">Sem anomalias preditivas detectadas.</p>';
+        </div>`).join('') || '<p class="text-[9px] text-slate-500 italic text-center py-4">Aguardando dados de volumetria.</p>';
 }
 
 window.openDetail = function(username) {
-    const monitorado = appState.data.find(d => d.username === username);
-    if(!monitorado) return;
+    const m = appState.data.find(d => d.username === username);
+    if(!m) return;
     const modal = document.getElementById('detail-modal');
     const content = document.getElementById('detail-content');
-    const resiliencia = monitorado.comentarios_totais_count > 0 ? (100 - (monitorado.comentarios_odio_count / monitorado.comentarios_totais_count * 100)) : 100;
+    const res = (m.comentarios_totais_count || 0) > 0 ? (100 - ((m.comentarios_odio_count || 0) / m.comentarios_totais_count * 100)) : 100;
     
     const backBtn = appState.currentModalUF 
         ? `<button onclick="window.openRegionalDetail('${appState.currentModalUF}')" class="mb-6 flex items-center gap-2 text-[10px] font-black text-blue-400 uppercase tracking-widest hover:text-white transition-colors"><i data-lucide="arrow-left" class="w-3 h-3"></i> Voltar ao Diagnóstico Regional (${appState.currentModalUF})</button>`
         : '';
 
+    // Lógica de diagnóstico dinâmico baseado em dados reais
+    let diagText = "";
+    if (res < 70) {
+        diagText = "Identificada alta densidade de termos hostis e ataques diretos. O volume de agressividade supera a média do grupo monitorado, indicando possível ação coordenada de rejeição.";
+    } else if (res < 90) {
+        diagText = "Clima digital em estado de atenção. Observa-se o surgimento de narrativas críticas pontuais que podem escalar caso não haja monitoramento ativo.";
+    } else {
+        diagText = "O ecossistema de comentários apresenta alta resiliência linguística. A maioria das interações é composta por apoio ou neutralidade informativa.";
+    }
+
+    // Risco baseado em volumetria
+    const riscoPercent = Math.min((100 - res) * 1.5, 100).toFixed(1);
+    const engajRisco = (((m.comentarios_odio_count || 0) + 5) / ((m.comentarios_totais_count || 0) + 10) * 100).toFixed(1);
+
     content.innerHTML = `
         ${backBtn}
         <div class="flex items-center gap-8 mb-10">
-            <img src="https://unavatar.io/instagram/${username}" class="w-32 h-32 rounded-3xl border-4 border-blue-600/20 shadow-2xl" onerror="this.src='https://ui-avatars.com/api/?name=${username}'">
+            <img src="https://www.instagram.com/${username}/profilefast/" class="w-32 h-32 rounded-3xl border-4 border-blue-600/20 shadow-2xl" onerror="this.src='https://ui-avatars.com/api/?name=${username}'">
             <div>
                 <h2 class="text-4xl font-black text-white mb-2">@${username}</h2>
-                <p class="text-lg text-blue-400 font-bold uppercase tracking-widest">${monitorado.nome_completo || 'Identidade Preservada'}</p>
+                <p class="text-lg text-blue-400 font-bold uppercase tracking-widest">${m.nome_completo || 'Identidade Preservada'}</p>
                 <div class="flex gap-3 mt-4">
-                    <span class="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold text-slate-400 border border-white/10 uppercase">${monitorado.cargo || 'Monitorado'}</span>
-                    <span class="px-3 py-1 bg-blue-600/10 rounded-full text-[10px] font-bold text-blue-400 border border-blue-500/20 uppercase">${monitorado.estado || 'BR'}</span>
+                    <span class="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold text-slate-400 border border-white/10 uppercase">${m.cargo || 'Monitorado'}</span>
+                    <span class="px-3 py-1 bg-blue-600/10 rounded-full text-[10px] font-bold text-blue-400 border border-blue-500/20 uppercase">${m.estado || 'BR'}</span>
                 </div>
             </div>
         </div>
         <div class="grid grid-cols-3 gap-6 mb-10">
             <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center">
                 <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1 text-blue-400">Total Comentários</span>
-                <div class="text-2xl font-black text-white">${(monitorado.comentarios_totais_count || 0).toLocaleString()}</div>
+                <div class="text-2xl font-black text-white">${(m.comentarios_totais_count || 0).toLocaleString()}</div>
             </div>
             <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center text-red-500">
                 <span class="text-[10px] font-bold uppercase block mb-1">Alertas de Ódio</span>
-                <div class="text-2xl font-black">${monitorado.comentarios_odio_count || 0}</div>
+                <div class="text-2xl font-black">${m.comentarios_odio_count || 0}</div>
             </div>
             <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center text-emerald-400">
                 <span class="text-[10px] font-bold uppercase block mb-1">Resiliência</span>
-                <div class="text-2xl font-black">${resiliencia.toFixed(1)}%</div>
+                <div class="text-2xl font-black">${res.toFixed(1)}%</div>
             </div>
         </div>
         <div class="space-y-6">
-            <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-white/5 pb-2">Diagnóstico PASA (Pericial)</h3>
+            <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-white/5 pb-2">Diagnóstico de Linguagem PASA</h3>
             <div class="p-8 bg-blue-600/5 rounded-3xl border border-blue-500/10">
                 <div class="flex justify-between items-center mb-6">
-                    <span class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Análise de Narrativa Coordenada</span>
+                    <span class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Análise Situacional</span>
                     <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-full text-[8px] font-black uppercase">Monitoramento Ativo</span>
                 </div>
-                <p class="text-sm text-slate-300 leading-relaxed italic mb-8">"O perfil @${username} apresenta um volume de interações ${(monitorado.comentarios_totais_count || 0) > 50 ? 'elevado' : 'estável'}. A inteligência PASA detectou que ${(resiliencia < 80) ? 'há uma incidência crítica de ataques coordenados' : 'o clima digital permanece sob controle, com baixa agressividade direta'}."</p>
+                <p class="text-sm text-slate-300 leading-relaxed italic mb-8">"${diagText}"</p>
                 <div class="grid grid-cols-2 gap-8">
                     <div class="space-y-2">
-                        <span class="text-[8px] text-slate-500 font-bold uppercase">Probabilidade de Crise</span>
-                        <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-red-600" style="width: ${100 - resiliencia}%"></div></div>
+                        <div class="flex justify-between text-[8px] font-bold uppercase">
+                            <span class="text-slate-500">Probabilidade de Crise</span>
+                            <span class="text-blue-400">${riscoPercent}%</span>
+                        </div>
+                        <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-blue-600 transition-all duration-1000" style="width: ${riscoPercent}%"></div></div>
                     </div>
                     <div class="space-y-2">
-                        <span class="text-[8px] text-slate-500 font-bold uppercase">Engajamento de Risco</span>
-                        <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-amber-500" style="width: ${Math.random()*40 + 20}%"></div></div>
+                        <div class="flex justify-between text-[8px] font-bold uppercase">
+                            <span class="text-slate-500">Engajamento de Risco</span>
+                            <span class="text-amber-500">${engajRisco}%</span>
+                        </div>
+                        <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-amber-500 transition-all duration-1000" style="width: ${engajRisco}%"></div></div>
                     </div>
                 </div>
             </div>
@@ -360,7 +379,7 @@ window.openRegionalDetail = function(uf) {
             ${monitoradosNoEstado.map(m => `
                 <div onclick="window.openDetail('${m.username}')" class="flex items-center justify-between p-4 bg-white/[0.03] border border-white/5 rounded-2xl hover:bg-white/[0.08] transition-all cursor-pointer group">
                     <div class="flex items-center gap-4">
-                        <img src="https://unavatar.io/instagram/${m.username}" class="w-10 h-10 rounded-xl border border-white/10" onerror="this.src='https://ui-avatars.com/api/?name=${m.username}'">
+                        <img src="https://www.instagram.com/${m.username}/profilefast/" class="w-10 h-10 rounded-xl border border-white/10" onerror="this.src='https://ui-avatars.com/api/?name=${m.username}'">
                         <div>
                             <span class="text-xs font-black text-white block group-hover:text-blue-400 transition-colors">@${m.username}</span>
                             <span class="text-[9px] text-slate-500 uppercase font-bold">${m.cargo || 'Monitorado'}</span>

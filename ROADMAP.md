@@ -4,16 +4,13 @@
 Plataforma de **Inteligência Situacional e Tendências de Opinião Pública**. O projeto monitora o clima político digital, utilizando coleta massiva de dados (Apify), análise de linguagem (Supabase + Groq/Qwen) com detecção avançada de sarcasmo (PASA), e apresenta os insights através de um Hub Informativo responsivo e monetizado.
 
 ## 📌 Status Atual
-**Data:** 24 de Abril de 2026
-**Fase:** Produção de Alta Fidelidade (v15.2 - Inteligência em Tempo Real)
-**Resumo:** Versão 15.2 concluída. 
-- **Feed de Alertas Críticos**: Implementado feed dinâmico de comentários negativos na Home.
-- **Dados Reais**: Injeção de alertas extraídos via Apify (Ex: Nikolas Ferreira) para validação da UI.
-- **Gestor Apify**: Skill `apify-manager` operacional e centralizada.
-- **Expansão do Corpus**: Inclusão de 87 novos perfis (STF, TSE, Governadores, Deputados Top Engajamento).
-- **Monetização v15.1**: Stripe, PayPal e PIX (com QR Code dinâmico) integrados a R$ 49,99.
-- **Localização**: Padronização total para Horário de Brasília e normas brasileiras.
-- **Arquitetura UX**: Substituição global de "monitorados" por **Monitorados**, rolagem fluida e mapas reais.
+**Data:** 25 de Abril de 2026
+**Fase:** Produção de Alta Fidelidade (v15.4.1 - Refino de Inteligência)
+**Resumo:** Versão 15.4.1 concluída. 
+- **Diagnóstico de Linguagem PASA**: Lógica dinâmica baseada em resiliência real (sem termos jurídicos).
+- **Feed de Alertas**: Exibição dos últimos registros detectados (histórico garantido).
+- **UX/UI**: Inclusão de percentuais nas barras de risco e avatares reais via Instagram.
+- **Governança**: Terminologia de monitoramento 100% saneada.
 
 ## 🎯 Próximos Passos
 1. [x] **Fase 3: Inteligência Preditiva** - Motor de detecção de anomalias operacional (Momentum de Agressividade).
