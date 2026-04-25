@@ -44,11 +44,11 @@ window.focusState = function(uf) {
 };
 
 window.refresh = async function() {
-    console.log("Iniciando Sincronização v15.4.1...");
+    console.log("Iniciando Sincronização v15.4.4 (Engine Responsiva)...");
     try {
         const results = await Promise.allSettled([
             fetchCandidatos(),
-            fetchAlertas(12) // Aumentado para garantir histórico
+            fetchAlertas(12)
         ]);
 
         const data = results[0].status === 'fulfilled' ? results[0].value : [];
@@ -116,7 +116,7 @@ window.refresh = async function() {
         renderBrazilMap('svg-map-br', stateStats);
         renderImpactCharts();
         
-        console.log("Sincronização Finalizada.");
+        console.log("Sincronização v15.4.4 Finalizada.");
     } catch(e) { 
         console.error("Critical Refresh Error:", e);
     }

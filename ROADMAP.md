@@ -5,12 +5,12 @@ Plataforma de **Inteligência Situacional e Tendências de Opinião Pública**. 
 
 ## 📌 Status Atual
 **Data:** 25 de Abril de 2026
-**Fase:** Produção de Alta Fidelidade (v15.4.2 - Refino de UI/UX)
-**Resumo:** Versão 15.4.2 consolidada. 
-- **Refino de UI**: Gráfico de narrativas reduzido e focado exclusivamente em mensagens negativadas.
-- **Grid Dossiê**: Visualização otimizada com 5 colunas fixas para monitoramento denso.
-- **Navegação**: Metodologia integrada à mesma página com layout saneado.
-- **Validação Online**: Sincronização Supabase confirmada com amostragem real (216 monitorados).
+**Fase:** Produção de Alta Fidelidade (v15.4.3 - Refino de Monetização)
+**Resumo:** Versão 15.4.3 consolidada. 
+- **Checkout UX**: Implementada rolagem interna no modal e navegação de retorno ("Voltar").
+- **Legibilidade PIX**: Código copia e cola com fonte ampliada e contraste otimizado (Emerald 400).
+- **Tratamento de Erros**: Handlers para falhas em gateways externos (Stripe/PayPal) evitando travamento de UI.
+- **Refino de UI**: Gráfico de narrativas focado em mensagens negativadas e grid de 5 colunas operacional.
 
 ## 🎯 Próximos Passos
 1. [ ] **Fase 4: Automação de Coleta** - Deploy do Apify Actor customizado (TS/Worker).

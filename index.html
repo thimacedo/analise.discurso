@@ -11,105 +11,112 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="/src/styles/main.css">
 </head>
-<body class="antialiased bg-[#020617] text-slate-200">
-    <div class="app-container">
+<body class="antialiased bg-[#020617] text-slate-200 min-h-screen overflow-x-hidden">
+    <div class="app-container flex flex-col md:flex-row min-h-screen">
         <!-- SIDEBAR -->
-        <aside class="w-72 glass-card flex flex-col p-8 shrink-0 border-r border-white/5">
-            <div class="flex items-center gap-3 mb-10">
-                <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20"><i data-lucide="shield" class="w-7 h-7 text-white"></i></div>
-                <div><h1 class="text-lg font-900 tracking-tighter uppercase text-white">Sentinela</h1><span class="text-[8px] text-blue-400 font-bold uppercase tracking-widest">Deep Intel v15.4.1</span></div>
+        <aside class="w-full md:w-72 glass-card flex flex-col p-6 md:p-8 shrink-0 border-b md:border-r border-white/5 z-50">
+            <div class="flex items-center justify-between md:justify-start gap-3 mb-6 md:mb-10">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 md:w-12 md:h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20"><i data-lucide="shield" class="w-6 h-6 md:w-7 md:h-7 text-white"></i></div>
+                    <div><h1 class="text-base md:text-lg font-900 tracking-tighter uppercase text-white">Sentinela</h1><span class="text-[8px] text-blue-400 font-bold uppercase tracking-widest">Deep Intel v15.4.4</span></div>
+                </div>
+                <!-- Mobile Menu Toggle (Opcional: Implementado via CSS/JS se necessário) -->
             </div>
-            <nav class="flex-1 space-y-1">
-                <button onclick="window.navigate('monitor')" id="nav-monitor" class="nav-item group active">
+            <nav class="flex flex-row md:flex-col flex-1 gap-1 overflow-x-auto md:overflow-x-visible no-scrollbar pb-4 md:pb-0">
+                <button onclick="window.navigate('monitor')" id="nav-monitor" class="nav-item group active whitespace-nowrap">
                     <i data-lucide="layout"></i> 
-                    <span>Panorama Global</span>
+                    <span class="hidden md:inline">Panorama Global</span>
+                    <span class="md:hidden text-[10px]">Panorama</span>
                 </button>
-                <button onclick="window.navigate('dossie')" id="nav-dossie" class="nav-item group">
+                <button onclick="window.navigate('dossie')" id="nav-dossie" class="nav-item group whitespace-nowrap">
                     <i data-lucide="user-search"></i> 
-                    <span>Dossiê Monitorados</span>
+                    <span class="hidden md:inline">Dossiê Monitorados</span>
+                    <span class="md:hidden text-[10px]">Dossiê</span>
                 </button>
-                <button onclick="window.navigate('map')" id="nav-map" class="nav-item group">
+                <button onclick="window.navigate('map')" id="nav-map" class="nav-item group whitespace-nowrap">
                     <i data-lucide="map"></i> 
-                    <span>Geopolítica</span>
+                    <span class="hidden md:inline">Geopolítica</span>
+                    <span class="md:hidden text-[10px]">Mapa</span>
                 </button>
-                <a href="metodologia.html" class="nav-item group opacity-70 hover:opacity-100">
+                <a href="metodologia.html" class="nav-item group opacity-70 hover:opacity-100 whitespace-nowrap">
                     <i data-lucide="info"></i> 
-                    <span>Metodologia</span>
+                    <span class="hidden md:inline">Metodologia</span>
+                    <span class="md:hidden text-[10px]">Método</span>
                 </a>
             </nav>
-            <div class="mt-auto pt-6 border-t border-white/5">
-                <button onclick="window.openCheckout()" class="w-full py-4 bg-blue-600/10 hover:bg-blue-600 text-blue-400 hover:text-white transition-all rounded-2xl text-[10px] font-black tracking-widest uppercase border border-blue-500/20">Exportar Inteligência</button>
+            <div class="mt-4 md:mt-auto pt-4 md:pt-6 border-t border-white/5">
+                <button onclick="window.openCheckout()" class="w-full py-3 md:py-4 bg-blue-600/10 hover:bg-blue-600 text-blue-400 hover:text-white transition-all rounded-xl md:rounded-2xl text-[8px] md:text-[10px] font-black tracking-widest uppercase border border-blue-500/20">Exportar Inteligência</button>
             </div>
         </aside>
 
-        <main class="flex-1 flex flex-col gap-6 min-w-0 h-full overflow-hidden">
+        <main class="flex-1 flex flex-col gap-4 md:gap-6 min-w-0 p-4 md:p-0 h-full overflow-hidden">
             <!-- TOP KPI HEADER -->
-            <header class="grid grid-cols-4 gap-4 shrink-0">
-                <div class="glass-card p-6 text-center group hover:border-blue-500/30 transition-all">
-                    <span class="text-[9px] text-slate-500 font-bold block mb-1 uppercase tracking-widest">Monitorados</span>
-                    <div id="kpi-monitorados" class="text-2xl font-black font-mono text-white">---</div>
+            <header class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 shrink-0">
+                <div class="glass-card p-4 md:p-6 text-center group hover:border-blue-500/30 transition-all">
+                    <span class="text-[8px] md:text-[9px] text-slate-500 font-bold block mb-1 uppercase tracking-widest">Monitorados</span>
+                    <div id="kpi-monitorados" class="text-xl md:text-2xl font-black font-mono text-white">---</div>
                 </div>
-                <div class="glass-card p-6 text-center border-l-4 border-l-amber-500">
-                    <span class="text-[9px] text-amber-500 font-bold block mb-1 uppercase tracking-widest">Alertas</span>
-                    <div id="kpi-hate" class="text-2xl font-black font-mono text-amber-500">---</div>
+                <div class="glass-card p-4 md:p-6 text-center border-l-4 border-l-amber-500">
+                    <span class="text-[8px] md:text-[9px] text-amber-500 font-bold block mb-1 uppercase tracking-widest">Alertas</span>
+                    <div id="kpi-hate" class="text-xl md:text-2xl font-black font-mono text-amber-500">---</div>
                 </div>
-                <div class="glass-card p-6 text-center">
-                    <span class="text-[9px] text-blue-400 font-bold block mb-1 uppercase tracking-widest">Amostragem</span>
-                    <div id="kpi-total" class="text-2xl font-black font-mono text-blue-400">---</div>
+                <div class="glass-card p-4 md:p-6 text-center">
+                    <span class="text-[8px] md:text-[9px] text-blue-400 font-bold block mb-1 uppercase tracking-widest">Amostragem</span>
+                    <div id="kpi-total" class="text-xl md:text-2xl font-black font-mono text-blue-400">---</div>
                 </div>
-                <div class="glass-card p-6 text-center">
-                    <span class="text-[9px] text-slate-400 font-bold block mb-1 uppercase tracking-widest">Resiliência</span>
-                    <div id="kpi-res" class="text-2xl font-black font-mono text-white">---</div>
+                <div class="glass-card p-4 md:p-6 text-center">
+                    <span class="text-[8px] md:text-[9px] text-slate-400 font-bold block mb-1 uppercase tracking-widest">Resiliência</span>
+                    <div id="kpi-res" class="text-xl md:text-2xl font-black font-mono text-white">---</div>
                 </div>
             </header>
 
             <!-- MAIN CONTENT AREA -->
-            <div class="flex-1 relative">
+            <div class="flex-1 relative min-h-0">
                 <!-- VIEW: MONITOR -->
                 <div id="view-monitor" class="view-content absolute inset-0 overflow-y-auto pr-2 custom-scrollbar">
                     <div class="flex flex-col gap-6 pb-10">
-                        <div class="grid grid-cols-3 gap-6">
-                            <div class="col-span-2 glass-card p-8 bg-slate-900/20 flex flex-col min-h-[300px]">
-                                <div class="flex justify-between items-center mb-10">
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div class="lg:col-span-2 glass-card p-6 md:p-8 bg-slate-900/20 flex flex-col min-h-[250px] md:min-h-[300px]">
+                                <div class="flex justify-between items-center mb-6 md:mb-10">
                                     <div>
-                                        <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest">Inteligência de Narrativas</h3>
-                                        <p class="text-[10px] text-slate-500">Distribuição de volume por cenário de monitoramento</p>
+                                        <h3 class="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest">Inteligência de Narrativas</h3>
+                                        <p class="text-[8px] md:text-[10px] text-slate-500">Distribuição de risco por cenário</p>
                                     </div>
                                     <div class="flex gap-4">
-                                        <span class="text-[9px] font-bold text-blue-400 uppercase">Apenas Negativadas</span>
+                                        <span class="text-[8px] md:text-[9px] font-bold text-red-400 uppercase">Apenas Negativadas</span>
                                     </div>
                                 </div>
                                 <div class="flex-1 min-h-0"><canvas id="chartMain"></canvas></div>
                             </div>
-                            <div class="flex flex-col gap-6">
-                                <div class="glass-card p-8 flex-1 flex flex-col border-t-2 border-t-blue-600/50">
-                                    <h3 class="text-[10px] font-black text-blue-400 uppercase mb-6 tracking-widest text-center">Impacto Nacional</h3>
-                                    <div id="rank-nac" class="space-y-4 overflow-y-auto"></div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6">
+                                <div class="glass-card p-6 md:p-8 flex flex-col border-t-2 border-t-blue-600/50 h-fit lg:h-full">
+                                    <h3 class="text-[9px] md:text-[10px] font-black text-blue-400 uppercase mb-4 md:mb-6 tracking-widest text-center">Impacto Nacional</h3>
+                                    <div id="rank-nac" class="space-y-4"></div>
                                 </div>
-                                <div class="glass-card p-8 flex-1 flex flex-col border-t-2 border-t-amber-600/50">
-                                    <h3 class="text-[10px] font-black text-amber-400 uppercase mb-6 tracking-widest text-center">Impacto Regional</h3>
-                                    <div id="rank-reg" class="space-y-4 overflow-y-auto"></div>
+                                <div class="glass-card p-6 md:p-8 flex flex-col border-t-2 border-t-amber-600/50 h-fit lg:h-full">
+                                    <h3 class="text-[9px] md:text-[10px] font-black text-amber-400 uppercase mb-4 md:mb-6 tracking-widest text-center">Impacto Regional</h3>
+                                    <div id="rank-reg" class="space-y-4"></div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- FEED DE ALERTAS CRÍTICOS -->
-                        <div class="grid grid-cols-3 gap-6">
-                            <div class="col-span-2 flex flex-col gap-6">
-                                <h3 class="text-xs font-black text-red-500 uppercase tracking-widest flex items-center gap-2 px-4">
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div class="lg:col-span-2 flex flex-col gap-6">
+                                <h3 class="text-[10px] md:text-xs font-black text-red-500 uppercase tracking-widest flex items-center gap-2 px-4">
                                     <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span> Alertas Críticos em Tempo Real
                                 </h3>
-                                <div id="feed-alertas" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                                <div id="feed-alertas" class="grid grid-cols-1 md:grid-cols-2 gap-4 px-2 md:px-0"></div>
                             </div>
                             <div class="flex flex-col gap-6">
-                                <h3 class="text-xs font-black text-blue-400 uppercase tracking-widest flex items-center gap-2 px-4">
+                                <h3 class="text-[10px] md:text-xs font-black text-blue-400 uppercase tracking-widest flex items-center gap-2 px-4">
                                     <i data-lucide="zap" class="w-3 h-3"></i> Inteligência Preditiva
                                 </h3>
-                                <div id="predictive-trends" class="space-y-4"></div>
-                                <div class="glass-card p-6 bg-blue-600/5 border border-blue-500/10 mt-4">
+                                <div id="predictive-trends" class="space-y-4 px-2 md:px-0"></div>
+                                <div class="glass-card p-6 bg-blue-600/5 border border-blue-500/10 mt-4 mx-2 md:mx-0">
                                     <h4 class="text-[9px] font-black text-blue-400 uppercase mb-2">Protocolo PASA</h4>
-                                    <p class="text-[10px] text-slate-400 leading-relaxed italic">
-                                        O Protocolo de Análise Situacional Avançada (PASA) utiliza modelos de linguagem para detectar dissonância semântica e ironia em comentários, identificando a real intenção por trás das interações.
+                                    <p class="text-[9px] md:text-[10px] text-slate-400 leading-relaxed italic">
+                                        O Protocolo de Análise Situacional Avançada utiliza IA para detectar dissonância semântica e ironia em interações.
                                     </p>
                                 </div>
                             </div>
@@ -119,25 +126,25 @@
 
                 <!-- VIEW: DOSSIE -->
                 <div id="view-dossie" class="view-content absolute inset-0 p-2 overflow-y-auto custom-scrollbar hidden">
-                    <h2 class="text-2xl font-900 tracking-tighter uppercase text-white mb-10 px-4">Dossiê de Monitorados</h2>
-                    <div id="dossie-grid" class="grid grid-cols-5 gap-4 pb-20"></div>
+                    <h2 class="text-xl md:text-2xl font-900 tracking-tighter uppercase text-white mb-6 md:mb-10 px-4">Dossiê de Monitorados</h2>
+                    <div id="dossie-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4 pb-20"></div>
                 </div>
 
                 <!-- VIEW: MAPA -->
-                <div id="view-map" class="view-content absolute inset-0 flex flex-col hidden">
-                    <div class="flex-1 flex gap-12 items-center p-8">
-                        <div class="flex-1 h-full flex justify-center py-4"><svg id="svg-map-br" class="h-full w-auto drop-shadow-2xl"></svg></div>
-                        <div onclick="window.openRegionalDetail(document.getElementById('st-name').innerText)" class="w-96 glass-card p-10 bg-slate-900/60 border-l-4 border-l-blue-600 cursor-pointer hover:bg-slate-900/80 transition-all group">
-                            <h3 id="st-name" class="text-4xl font-black text-white mb-2">Brasil</h3>
-                            <p class="text-xs text-slate-400 italic mb-10 border-b border-white/5 pb-6 flex justify-between items-center">Diagnóstico por UF <span class="text-blue-400 font-bold opacity-0 group-hover:opacity-100 transition-opacity text-[10px] uppercase tracking-widest">Clique para expandir</span></p>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center">
-                                    <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1">Monitorados</span>
-                                    <div id="st-targets" class="text-3xl font-black text-white">---</div>
+                <div id="view-map" class="view-content absolute inset-0 flex flex-col hidden overflow-y-auto">
+                    <div class="flex-1 flex flex-col lg:flex-row gap-6 lg:gap-12 items-center p-4 md:p-8">
+                        <div class="flex-1 w-full h-[300px] md:h-full flex justify-center py-4"><svg id="svg-map-br" class="h-full w-auto drop-shadow-2xl"></svg></div>
+                        <div onclick="window.openRegionalDetail(document.getElementById('st-name').innerText)" class="w-full lg:w-96 glass-card p-6 md:p-10 bg-slate-900/60 border-l-4 border-l-blue-600 cursor-pointer hover:bg-slate-900/80 transition-all group">
+                            <h3 id="st-name" class="text-2xl md:text-4xl font-black text-white mb-2 text-center lg:text-left">Brasil</h3>
+                            <p class="text-[10px] md:text-xs text-slate-400 italic mb-6 md:mb-10 border-b border-white/5 pb-4 md:pb-6 flex justify-between items-center">Diagnóstico por UF <span class="text-blue-400 font-bold opacity-0 group-hover:opacity-100 transition-opacity text-[8px] md:text-[10px] uppercase tracking-widest">Ver Detalhes</span></p>
+                            <div class="grid grid-cols-2 gap-3 md:gap-4">
+                                <div class="p-4 md:p-6 bg-white/5 rounded-2xl md:rounded-3xl border border-white/5 text-center">
+                                    <span class="text-[8px] md:text-[10px] text-slate-500 font-bold uppercase block mb-1">Monitorados</span>
+                                    <div id="st-targets" class="text-xl md:text-3xl font-black text-white">---</div>
                                 </div>
-                                <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center">
-                                    <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1">Alertas</span>
-                                    <div id="st-hate" class="text-3xl font-black text-amber-500">---</div>
+                                <div class="p-4 md:p-6 bg-white/5 rounded-2xl md:rounded-3xl border border-white/5 text-center">
+                                    <span class="text-[8px] md:text-[10px] text-slate-500 font-bold uppercase block mb-1">Alertas</span>
+                                    <div id="st-hate" class="text-xl md:text-3xl font-black text-amber-500">---</div>
                                 </div>
                             </div>
                         </div>
@@ -148,49 +155,51 @@
     </div>
 
     <!-- MODAL DETALHES -->
-    <div id="detail-modal" class="modal-overlay hidden" style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.9); backdrop-filter:blur(20px); z-index:1000; align-items:center; justify-content:center;">
-        <div class="glass-card w-[800px] max-h-[90vh] overflow-hidden flex flex-col p-10 border-blue-500/20">
-            <div id="detail-content" class="flex-1 overflow-y-auto pr-4 custom-scrollbar"></div>
-            <div class="mt-10 pt-6 border-t border-white/5 flex justify-between items-center">
-                <button onclick="window.closeDetail()" class="px-8 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-bold transition-all uppercase">Fechar</button>
-                <button onclick="window.openCheckout()" class="px-8 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs font-black transition-all uppercase">Gerar Relatório Completo</button>
+    <div id="detail-modal" class="modal-overlay hidden" style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.9); backdrop-filter:blur(20px); z-index:1000; align-items:center; justify-content:center; padding: 20px;">
+        <div class="glass-card w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-6 md:p-10 border-blue-500/20">
+            <div id="detail-content" class="flex-1 overflow-y-auto pr-2 md:pr-4 custom-scrollbar"></div>
+            <div class="mt-6 md:mt-10 pt-4 md:pt-6 border-t border-white/5 flex flex-col md:flex-row gap-4 justify-between items-center">
+                <button onclick="window.closeDetail()" class="w-full md:w-auto px-8 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-[10px] font-bold transition-all uppercase">Fechar</button>
+                <button onclick="window.openCheckout()" class="w-full md:w-auto px-8 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl text-[10px] font-black transition-all uppercase">Gerar Relatório</button>
             </div>
         </div>
     </div>
 
     <!-- MODAL CHECKOUT -->
-    <div id="checkout-modal" class="modal-overlay hidden" style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.95); backdrop-filter:blur(30px); z-index:2000; align-items:center; justify-content:center;">
-        <div class="glass-card w-[450px] max-h-[85vh] p-10 flex flex-col relative overflow-y-auto custom-scrollbar">
-            <button onclick="window.closeCheckout()" class="absolute top-6 right-6 text-slate-500 hover:text-white transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
+    <div id="checkout-modal" class="modal-overlay hidden" style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.95); backdrop-filter:blur(30px); z-index:2000; align-items:center; justify-content:center; padding: 20px;">
+        <div class="glass-card w-full max-w-[450px] max-h-[85vh] p-6 md:p-10 flex flex-col relative overflow-y-auto custom-scrollbar">
+            <button onclick="window.closeCheckout()" class="absolute top-4 right-4 md:top-6 md:right-6 text-slate-500 hover:text-white transition-colors"><i data-lucide="x" class="w-5 h-5 md:w-6 md:h-6"></i></button>
             
             <div id="payment-methods-area">
-                <div class="text-center mb-8">
-                    <h3 class="text-2xl font-black uppercase text-white">Acesso Premium</h3>
-                    <p class="text-xs text-slate-400 mt-2">Inteligência v15.4 - R$ 49,99/mês</p>
+                <div class="text-center mb-6 md:mb-8">
+                    <h3 class="text-xl md:text-2xl font-black uppercase text-white">Acesso Premium</h3>
+                    <p class="text-[10px] text-slate-400 mt-2">Inteligência v15.4 - R$ 49,99/mês</p>
                 </div>
-                <div class="space-y-4">
-                    <button onclick="window.payWithPix()" class="w-full py-4 bg-emerald-600/10 hover:bg-emerald-600 text-emerald-500 hover:text-white border border-emerald-500/20 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-3 transition-all"><i data-lucide="qr-code"></i> Pagar com PIX</button>
-                    <button onclick="window.payWithStripe()" class="w-full py-4 bg-blue-600/10 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/20 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-3 transition-all"><i data-lucide="credit-card"></i> Cartão de Crédito</button>
-                    <button onclick="window.payWithPayPal()" class="w-full py-4 bg-[#ffc439]/10 hover:bg-[#ffc439] text-[#ffc439] hover:text-blue-900 border border-[#ffc439]/20 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-3 transition-all"><i data-lucide="send"></i> Pagar com PayPal</button>
+                <div class="space-y-3 md:y-4">
+                    <button onclick="window.payWithPix()" class="w-full py-4 bg-emerald-600/10 hover:bg-emerald-600 text-emerald-500 hover:text-white border border-emerald-500/20 rounded-2xl text-[9px] md:text-[10px] font-black uppercase flex items-center justify-center gap-3 transition-all"><i data-lucide="qr-code"></i> Pagar com PIX</button>
+                    <button onclick="window.payWithStripe()" class="w-full py-4 bg-blue-600/10 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/20 rounded-2xl text-[9px] md:text-[10px] font-black uppercase flex items-center justify-center gap-3 transition-all"><i data-lucide="credit-card"></i> Cartão de Crédito</button>
+                    <button onclick="window.payWithPayPal()" class="w-full py-4 bg-[#ffc439]/10 hover:bg-[#ffc439] text-[#ffc439] hover:text-blue-900 border border-[#ffc439]/20 rounded-2xl text-[9px] md:text-[10px] font-black uppercase flex items-center justify-center gap-3 transition-all"><i data-lucide="send"></i> Pagar com PayPal</button>
                 </div>
             </div>
 
             <div id="pix-area" class="mt-4 hidden flex flex-col items-center">
-                <button onclick="window.backToPayments()" class="self-start mb-6 flex items-center gap-2 text-[10px] font-black text-blue-400 uppercase tracking-widest hover:text-white transition-colors">
+                <button onclick="window.backToPayments()" class="self-start mb-6 flex items-center gap-2 text-[9px] md:text-[10px] font-black text-blue-400 uppercase tracking-widest hover:text-white transition-colors">
                     <i data-lucide="arrow-left" class="w-3 h-3"></i> Voltar
                 </button>
-                <div class="bg-white p-6 rounded-3xl mb-6 shadow-2xl shadow-emerald-500/10">
-                    <img id="pix-qr-img" src="" class="w-48 h-48 rounded-xl" alt="QR PIX">
+                <div class="bg-white p-4 md:p-6 rounded-3xl mb-6 shadow-2xl shadow-emerald-500/10">
+                    <img id="pix-qr-img" src="" class="w-40 h-40 md:w-48 md:h-48 rounded-xl" alt="QR PIX">
                 </div>
-                <p class="text-[10px] font-bold text-slate-400 uppercase mb-3 tracking-widest">Código Copia e Cola</p>
-                <div id="pix-payload-text" class="w-full bg-slate-900/50 p-5 rounded-2xl font-mono text-[10px] break-all text-emerald-400 border border-emerald-500/20 mb-6 select-all cursor-pointer hover:bg-slate-900 transition-all text-center leading-relaxed">---</div>
-                <span class="text-[9px] font-black text-emerald-600 uppercase animate-pulse flex items-center gap-2">
+                <p class="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase mb-3 tracking-widest text-center">Código Copia e Cola</p>
+                <div id="pix-payload-text" class="w-full bg-slate-900/50 p-4 md:p-5 rounded-2xl font-mono text-[9px] md:text-[10px] break-all text-emerald-400 border border-emerald-500/20 mb-6 select-all cursor-pointer hover:bg-slate-900 transition-all text-center leading-relaxed">---</div>
+                <span class="text-[8px] md:text-[9px] font-black text-emerald-600 uppercase animate-pulse flex items-center gap-2">
                     <span class="w-2 h-2 bg-emerald-500 rounded-full"></span> Aguardando Confirmação...
                 </span>
             </div>
         </div>
     </div>
 
-    <script type="module" src="/src/core/app.js?v=15.4.1"></script>
+    <script type="module" src="/src/core/app.js?v=15.4.4"></script>
 </body>
+</html>
+
 </html>
