@@ -358,7 +358,7 @@ window.closeDetail = function() {
     appState.currentModalUF = null;
 };
 
-window.openRegionalDetail = function(uf) {
+window.openRegionalDetail = function(uf, sortBy = 'total') {
     const filterUF = uf === "Brasil" ? "BR" : uf;
     appState.currentModalUF = filterUF;
 
@@ -366,9 +366,18 @@ window.openRegionalDetail = function(uf) {
     const content = document.getElementById('detail-content');
     if(!modal || !content) return;
 
-    const monitoradosNoEstado = filterUF === "BR" 
-        ? appState.data 
-        : appState.data.filter(d => d.estado === filterUF);
+    let monitorados = appState.data.filter(d => d.estado === filterUF);
+    
+    // Ordenamento Dinâmico
+    if (sortBy === 'total') monitorados.sort((a,b) => (b.comentarios_totais_count || 0) - (a.comentarios_totais_count || 0));
+    else if (sortBy === 'hate') monitorados.sort((a,b) => (b.comentarios_odio_count || 0) - (a.comentarios_odio_count || 0));
+    else if (sortBy === 'res') {
+        monitorados.sort((a,b) => {
+            const resA = (a.comentarios_totais_count || 0) > 0 ? (100 - (a.comentarios_odio_count/a.comentarios_totais_count*100)) : 100;
+            const resB = (b.comentarios_totais_count || 0) > 0 ? (100 - (b.comentarios_odio_count/b.comentarios_totais_count*100)) : 100;
+            return resA - resB; // Menor resiliência primeiro
+        });
+    }
 
     const info = appState.stats[filterUF] || { count: 0, hate: 0, total: 0 };
     const resilienciaMedia = info.total > 0 ? (100 - (info.hate / info.total * 100)).toFixed(1) : "100.0";
@@ -376,30 +385,42 @@ window.openRegionalDetail = function(uf) {
     content.innerHTML = `
         <div class="flex justify-between items-start mb-8">
             <div>
-                <h2 class="text-4xl font-black text-white mb-2">Diagnóstico: ${filterUF === "BR" ? "Brasil" : filterUF}</h2>
+                <h2 class="text-4xl font-black text-white mb-2">Diagnóstico: ${filterUF === "BR" ? "Brasil (Nacional)" : filterUF}</h2>
                 <p class="text-sm text-blue-400 font-bold uppercase tracking-widest">Inteligência Estratégica Regional</p>
             </div>
             <div class="text-right">
-                <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1">Resiliência</span>
+                <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1">Resiliência Média</span>
                 <div class="text-3xl font-black text-emerald-400">${resilienciaMedia}%</div>
             </div>
         </div>
 
         <div class="grid grid-cols-2 gap-4 mb-10">
             <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center">
-                <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1 text-blue-400">Interações</span>
+                <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1 text-blue-400">Total Interações</span>
                 <div class="text-2xl font-black text-white">${info.total.toLocaleString()}</div>
             </div>
             <div class="p-6 bg-red-500/5 rounded-3xl border border-red-500/10 text-center text-red-500">
-                <span class="text-[10px] font-bold uppercase block mb-1">Alertas</span>
+                <span class="text-[10px] font-bold uppercase block mb-1">Alertas Totais</span>
                 <div class="text-2xl font-black">${info.hate}</div>
             </div>
         </div>
 
-        <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 border-b border-white/5 pb-2">Monitorados Ativos</h3>
+        <div class="flex justify-between items-center mb-6 border-b border-white/5 pb-2">
+            <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest">Monitorados Ativos</h3>
+            <div class="flex items-center gap-3">
+                <span class="text-[8px] font-black text-slate-500 uppercase">Ordenar por:</span>
+                <select onchange="window.openRegionalDetail('${uf}', this.value)" class="bg-slate-900 border border-white/10 rounded-lg text-[9px] font-bold text-blue-400 px-3 py-1.5 focus:outline-none focus:border-blue-500">
+                    <option value="total" ${sortBy === 'total' ? 'selected' : ''}>MAIOR ENGAJAMENTO</option>
+                    <option value="hate" ${sortBy === 'hate' ? 'selected' : ''}>MAIOR VOLUME ÓDIO</option>
+                    <option value="res" ${sortBy === 'res' ? 'selected' : ''}>MENOR RESILIÊNCIA</option>
+                </select>
+            </div>
+        </div>
         
         <div class="space-y-3">
-            ${monitoradosNoEstado.map(m => `
+            ${monitorados.map(m => {
+                const resM = (m.comentarios_totais_count || 0) > 0 ? (100 - (m.comentarios_odio_count/m.comentarios_totais_count*100)).toFixed(1) : "100.0";
+                return `
                 <div onclick="window.openDetail('${m.username}')" class="flex items-center justify-between p-4 bg-white/[0.03] border border-white/5 rounded-2xl hover:bg-white/[0.08] transition-all cursor-pointer group">
                     <div class="flex items-center gap-4">
                         <img src="https://unavatar.io/instagram/${m.username}" class="w-10 h-10 rounded-xl border border-white/10" onerror="this.src='https://ui-avatars.com/api/?name=${m.username}'">
@@ -408,9 +429,17 @@ window.openRegionalDetail = function(uf) {
                             <span class="text-[9px] text-slate-500 uppercase font-bold">${m.cargo || 'Monitorado'}</span>
                         </div>
                     </div>
-                    <div class="text-right text-[10px] font-mono text-blue-400">${(m.comentarios_totais_count || 0).toLocaleString()} ints</div>
-                </div>
-            `).join('')}
+                    <div class="flex gap-6 items-center">
+                        <div class="text-right">
+                            <span class="text-[7px] text-slate-500 font-bold uppercase block">Resiliência</span>
+                            <span class="text-[10px] font-black ${resM < 70 ? 'text-red-500' : 'text-emerald-400'}">${resM}%</span>
+                        </div>
+                        <div class="text-right text-[10px] font-mono text-blue-400 bg-blue-600/5 px-3 py-1 rounded-lg border border-blue-500/10">
+                            ${(m.comentarios_totais_count || 0).toLocaleString()} <span class="text-[8px] text-slate-500">ints</span>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('') || '<div class="py-10 text-center text-slate-600 text-[10px] font-bold uppercase italic">Nenhum alvo específico deste cenário.</div>'}
         </div>`;
 
     modal.style.display = 'flex';
