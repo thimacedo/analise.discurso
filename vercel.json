@@ -1,1 +1,17 @@
-{"version": 2, "builds": [{"src": "api/index.py", "use": "@vercel/python"}, {"src": "*.html", "use": "@vercel/static"}, {"src": "src/styles/*.css", "use": "@vercel/static"}, {"src": "src/core/*.js", "use": "@vercel/static"}, {"src": "data/*.json", "use": "@vercel/static"}], "rewrites": [{"source": "/api/(.*)", "destination": "api/index.py"}, {"source": "/momentum", "destination": "/dashboard_sis.html"}]}
+{
+  "version": 2,
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Cache-Control", "value": "no-store, max-age=0" }
+      ]
+    }
+  ],
+  "rewrites": [
+    { "source": "/src/(.*)", "destination": "/src/$1" }
+  ]
+}
