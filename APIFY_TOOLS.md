@@ -1,6 +1,6 @@
 # 🐝 Apify Ecosystem: Guia Completo de Ferramentas (MCP)
 
-Este documento é a referência central para todas as capacidades de raspagem e inteligência de dados via Apify disponíveis no ecossistema InovaSys/Sentinela.
+Este documento é a referência central para todas as capacidades de raspagem e inteligência de dados via Apify disponíveis no projeto Sentinela.
 
 ---
 

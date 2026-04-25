@@ -1,0 +1,16 @@
+{
+  "title": "Sentinela Instagram Scraper",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "username": {
+      "type": "string",
+      "description": "Instagram username to scrape."
+    },
+    "webhookUrl": {
+      "type": "string",
+      "description": "URL to send results."
+    }
+  },
+  "required": ["username", "webhookUrl"]
+}

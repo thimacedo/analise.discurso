@@ -153,48 +153,79 @@ function renderImpactCharts() {
     const ctxEl = document.getElementById('chartMain');
     if(!ctxEl) return;
 
-    const labels = ['Nacional', 'Regional'];
-    const volumeData = [
-        appState.classified.filter(i => i.scenario === 'Nacional').reduce((s, c) => s + (c.comentarios_totais_count || 0), 0),
-        appState.classified.filter(i => i.scenario === 'Regional').reduce((s, c) => s + (c.comentarios_totais_count || 0), 0)
+    const nacItems = appState.classified.filter(i => i.scenario === 'Nacional');
+    const regItems = appState.classified.filter(i => i.scenario === 'Regional');
+
+    // Métricas para o Radar
+    const metrics = {
+        volume: [
+            nacItems.reduce((s, c) => s + (c.comentarios_totais_count || 0), 0),
+            regItems.reduce((s, c) => s + (c.comentarios_totais_count || 0), 0)
+        ],
+        hate: [
+            nacItems.reduce((s, c) => s + (c.comentarios_odio_count || 0), 0),
+            regItems.reduce((s, c) => s + (c.comentarios_odio_count || 0), 0)
+        ],
+        targets: [nacItems.length, regItems.length],
+        resilience: [
+            (100 - (nacItems.reduce((s, c) => s + (c.comentarios_odio_count || 0), 0) / (nacItems.reduce((s, c) => s + (c.comentarios_totais_count || 0), 0) || 1) * 100)),
+            (100 - (regItems.reduce((s, c) => s + (c.comentarios_odio_count || 0), 0) / (regItems.reduce((s, c) => s + (c.comentarios_totais_count || 0), 0) || 1) * 100))
+        ]
+    };
+
+    // Normalização básica para o Radar (0-100)
+    const maxVol = Math.max(...metrics.volume, 1);
+    const dataNac = [
+        (metrics.volume[0] / maxVol * 100),
+        (metrics.hate[0] / (metrics.volume[0] || 1) * 500), // Amplificado para visibilidade
+        (metrics.targets[0] / appState.data.length * 100),
+        metrics.resilience[0]
     ];
-    const hateData = [
-        appState.classified.filter(i => i.scenario === 'Nacional').reduce((s, c) => s + (c.comentarios_odio_count || 0), 0),
-        appState.classified.filter(i => i.scenario === 'Regional').reduce((s, c) => s + (c.comentarios_odio_count || 0), 0)
+    const dataReg = [
+        (metrics.volume[1] / maxVol * 100),
+        (metrics.hate[1] / (metrics.volume[1] || 1) * 500),
+        (metrics.targets[1] / appState.data.length * 100),
+        metrics.resilience[1]
     ];
 
     if(mainChart) mainChart.destroy();
     const ctx = ctxEl.getContext('2d');
     
     mainChart = new Chart(ctx, {
-        type: 'bar',
+        type: 'radar',
         data: { 
-            labels, 
+            labels: ['Volume Int.', 'Densidade Ódio', 'Cobertura Alvos', 'Resiliência %'], 
             datasets: [
                 { 
-                    label: 'Volume Total', 
-                    data: volumeData, 
-                    backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                    label: 'Nacional', 
+                    data: dataNac, 
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
                     borderColor: '#3b82f6',
-                    borderWidth: 2,
-                    borderRadius: 8
+                    pointBackgroundColor: '#3b82f6',
+                    borderWidth: 2
                 },
                 { 
-                    label: 'Ataques Detec.', 
-                    data: hateData, 
-                    backgroundColor: 'rgba(239, 68, 68, 0.5)',
-                    borderColor: '#ef4444',
-                    borderWidth: 2,
-                    borderRadius: 8
+                    label: 'Regional', 
+                    data: dataReg, 
+                    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                    borderColor: '#f59e0b',
+                    pointBackgroundColor: '#f59e0b',
+                    borderWidth: 2
                 }
             ] 
         },
         options: { 
             responsive: true, maintainAspectRatio: false, 
-            plugins: { legend: { display: true, labels: { color: '#64748b', font: { size: 9 } } } }, 
+            plugins: { 
+                legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 9, family: 'JetBrains Mono' } } } 
+            },
             scales: { 
-                y: { grid: { color: 'rgba(255,255,255,0.02)' }, ticks: { color: '#64748b', font: { size: 8 } } }, 
-                x: { grid: { display: false }, ticks: { color: '#f8fafc', font: { size: 10, weight: 'bold' } } } 
+                r: {
+                    angleLines: { color: 'rgba(255,255,255,0.05)' },
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    pointLabels: { color: '#64748b', font: { size: 8, weight: 'bold' } },
+                    ticks: { display: false, maxTicksLimit: 5 }
+                }
             } 
         }
     });

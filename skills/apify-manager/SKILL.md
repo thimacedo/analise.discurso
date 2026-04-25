@@ -1,11 +1,11 @@
 ---
 name: apify-manager
-description: Gerencia e orquestra a coleta de dados via Apify MCP. Use para automatizar raspagem de redes sociais, notícias e portais da transparência nos projetos Sentinela e InovaSys.
+description: Gerencia e orquestra a coleta de dados via Apify MCP para monitoramento político e social.
 ---
 
-# Gestor Apify
+# Gestor Apify (Sentinela)
 
-Este skill automatiza a interação com o Apify MCP, garantindo que o agente utilize a melhor ferramenta para cada necessidade de dados.
+Este skill automatiza a interação com o Apify MCP, garantindo que o agente utilize a melhor ferramenta para cada necessidade de dados do projeto Sentinela Democrática.
 
 ## 📋 Comandos e Fluxo de Trabalho
 
@@ -30,5 +30,4 @@ Este skill automatiza a interação com o Apify MCP, garantindo que o agente uti
 - Utilize variáveis de ambiente (.env) para credenciais.
 
 ## 🗺️ Projetos Integrados
-- **Sentinela Democrática:** Monitoramento político e social.
-- **InovaSys ERP:** Extração de dados de Diários Oficiais e Transparência.
+- **Sentinela Democrática:** Monitoramento político e social via redes sociais e fontes abertas.

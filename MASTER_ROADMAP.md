@@ -15,5 +15,5 @@ Consolidação da maior rede de monitoramento de discurso político digital do B
 3. **Monetização**: Liberação do módulo Premium para exportação de Dossiês Periciais.
 
 ## 🛠️ Governança
-- **Padrão**: InovaSys High-Performance.
+- **Padrão**: Sentinela High-Performance.
 - **Última Auditoria**: 25 de Abril de 2026 por Gemini CLI.

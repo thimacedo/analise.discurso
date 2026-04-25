@@ -30,7 +30,7 @@ async def status():
 @app.post("/api/create-checkout-session")
 async def create_checkout_session(request: Request):
     try:
-        origin = request.headers.get("origin") or "https://sentinela.inovasys.com.br"
+        origin = request.headers.get("origin") or "https://sentinela.politica.digital"
         
         # Correção: Adicionado payment_method_configuration se necessário, mas simplificando para garantir sucesso
         session = stripe.checkout.Session.create(

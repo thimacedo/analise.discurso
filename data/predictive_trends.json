@@ -1,8 +1,974 @@
-[
+﻿[
     {
-        "username": "lulaoficial",
-        "momentum": 9.52,
-        "status": "ESTÁVEL",
-        "timestamp": "2026-04-25T05:24:07.627399"
+        "username":  "lulaoficial",
+        "momentum":  9.52,
+        "status":  "ESTÃVEL",
+        "timestamp":  "2026-04-25T05:24:07.627399"
+    },
+    {
+        "username":  "allysonbezerra.rn",
+        "momentum":  85.5,
+        "status":  "ALTO",
+        "narrative":  "O RN tem jeito - Itinerância Estadual",
+        "timestamp":  "2026-04-25T12:00:00.000000"
+    },
+    {
+        "username":  "fatimabezerra13",
+        "momentum":  52,
+        "status":  "ESTÁVEL",
+        "narrative":  "Compromisso com o mandato - Entrega de Obras",
+        "timestamp":  "2026-04-25T12:00:00.000000"
+    },
+    {
+        "username":  "lulaoficial",
+        "momentum":  68.4,
+        "status":  "ESTÁVEL",
+        "narrative":  "Regulamentação Digital e Combate à Desinformação",
+        "timestamp":  "2026-04-25T13:00:00.000000"
+    },
+    {
+        "username":  "flaviobolsonaro",
+        "momentum":  92.1,
+        "status":  "ALTO",
+        "narrative":  "Crítica Econômica e Estética \u0027Furar a Bolha\u0027",
+        "timestamp":  "2026-04-25T13:00:00.000000"
+    },
+    {
+        "username":  "alvarodiasrn",
+        "momentum":  78.2,
+        "status":  "ALTO",
+        "narrative":  "Oposição Unificada - Candidatura ao Governo",
+        "timestamp":  "2026-04-25T14:00:00.000000"
+    },
+    {
+        "username":  "rogeriomarinho",
+        "momentum":  95,
+        "status":  "ALTO",
+        "narrative":  "Articulação Nacional - Coordenador da Direita",
+        "timestamp":  "2026-04-25T14:00:00.000000"
+    },
+    {
+        "username":  "nataliabonavides",
+        "momentum":  82.5,
+        "status":  "ALTO",
+        "narrative":  "Liderança de Esquerda e Mobilização de Base",
+        "timestamp":  "2026-04-25T14:00:00.000000"
+    },
+    {
+        "username":  "styvensonvalentim",
+        "momentum":  65.4,
+        "status":  "ESTÁVEL",
+        "narrative":  "Reeleição ao Senado e Postura Independente",
+        "timestamp":  "2026-04-25T14:00:00.000000"
+    },
+    {
+        "username":  "professora.nilda",
+        "momentum":  88.4,
+        "status":  "ALTO",
+        "narrative":  "Gestão de Modernização e Programas Sociais em Parnamirim",
+        "timestamp":  "2026-04-25T15:00:00.000000"
+    },
+    {
+        "username":  "michaelborgesrn",
+        "momentum":  75.1,
+        "status":  "ALTO",
+        "narrative":  "Foco em Saúde e Fiscalização - Vereador Mais Votado",
+        "timestamp":  "2026-04-25T15:00:00.000000"
+    },
+    {
+        "username":  "wolneyfrancarn",
+        "momentum":  62.3,
+        "status":  "ESTÁVEL",
+        "narrative":  "Sustentabilidade e Gestão Pública - Liderança PSDB",
+        "timestamp":  "2026-04-25T15:00:00.000000"
+    },
+    {
+        "username":  "thiagofernandesrn",
+        "momentum":  58.7,
+        "status":  "ESTÁVEL",
+        "narrative":  "Defesa dos Direitos das Pessoas com Deficiência e Acessibilidade",
+        "timestamp":  "2026-04-25T15:00:00.000000"
+    },
+    {
+        "username":  "vereadoriraniguedes",
+        "momentum":  45.2,
+        "status":  "ESTÁVEL",
+        "narrative":  "Conselheiro Político e Assistência Social Comunitária",
+        "timestamp":  "2026-04-25T15:00:00.000000"
+    },
+    {
+        "username":  "drcesarmaia",
+        "momentum":  70.5,
+        "status":  "ALTO",
+        "narrative":  "Presidência da Câmara e Articulação Institucional",
+        "timestamp":  "2026-04-25T15:00:00.000000"
+    },
+    {
+        "username":  "rafaeladenilda",
+        "momentum":  68.9,
+        "status":  "ALTO",
+        "narrative":  "Mobilização Jovem e Alinhamento com a Gestão Nilda",
+        "timestamp":  "2026-04-25T15:00:00.000000"
+    },
+    {
+        "username":  "vereadorederqueiroz",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "rodrigocruz_rn",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "cctv.parnamirim",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "drjonasgodeiro",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "vereadoreuricodajapao",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "binhodeambrosio",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "vereadorafraniobezerra",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "eudianemacedorn",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "rafaelmottarn",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "vereadorarhalessarn",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "ver.chicao",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "michaeldinizrn",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "annelagartixa",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "vereadorleolima",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "professordiegoamerico",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "sargentofahur",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "nikolasferreirainfo",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "geraldoalckmin_",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "professor_italo",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "antenorroberto65",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "vereadora_nina",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "zedirceuoficial",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "gleisihoffmann",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "dilmarousseff",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "marleidecunharn",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "alexandreramagem22",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "lindberghfarias",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "sorayavieiraf",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "janjalula",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "mineiroptrn",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "alexandremottacamara",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "lucaspavanato",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "pastorhenriquevieira",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "divaneidebasilio",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "bolsonaro_jr",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "simonetebet",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "sf_moro",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "glauberbraga_oficial",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "pedroponciosp",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "pluviapt",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "rafaeldemetrius",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "jones.manoel",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "gusgayer",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "fabianocontarato",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "sostenescavalcante",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "hilton_erika",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "fernandapsol",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "dep.eduardobolsonaro",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "kleberrodrigues",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "padilhando",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "pimenta13br",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "carlosjordy",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "marinasilvaoficial",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "zetrovaodeputado",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "ricardosallesmma",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "coronelbrilhantern",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "marcelvanhattem",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "fernandohaddadoficial",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "luizaerundina",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "deltandallagnol",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "vereadormarquinhosdaclimep",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "senadorstyvensonvalentim",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "marcosdoval",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "franciscodopt",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "samiabomfim",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "jairmessiasbolsonaro",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "erikakokay",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "fernandoholiday",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "damaresalvesoficial",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "carlosbolsonaro",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "silasmalafaia",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "carolpiresrn",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "coronelheliorn",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "michellebolsonaro",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "mauriciodovolei",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "flaviodino",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "jandira_feghali",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "depheliolopes",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "guilhermeboulos.oficial",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "tabataamaralsp",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "nikolasferreiradm",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "tarcisiogdf",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "generalpazuello.oficial",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "marcelofreixo",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "aniellefranco",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "gabrielcesarrn",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "faustinorn",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "senadorhumberto",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "bolsonarosp",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "brisabracchi13",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "leosouzae",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "rarikabastos",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "samandaalves",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "novaparnamirimnoticias",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "manueladavila",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "danielvalencapt",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "rafaelsatie",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "astropontes",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "isoldadantaspt",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "biakicis",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "walteralvesrn",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "drazenaide",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "eduardosuplicy",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "ronaldocaiado",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "randolferodrigues",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "capitaostyvensonsenador",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "generalgirao",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "blogsaulovale",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "subtenenteeliabe22",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "o_thiagomacedo",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "carladicksonoficial",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "neiltondiogenes",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "tulio.gadelha",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "benesleocadiorn",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "instadabene",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "salatiel_de_souza",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "andrejanones",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "onyxlorenzoni",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "joaocampos",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "fativanalvesoficial",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "wendellagartixaoficial",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "marceloqueiroga",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
+    },
+    {
+        "username":  "blogwllanadantas",
+        "momentum":  50,
+        "status":  "ESTÁVEL",
+        "narrative":  "Monitoramento de atividade parlamentar e pautas institucionais",
+        "timestamp":  "2026-04-25T16:00:00.000000"
     }
 ]

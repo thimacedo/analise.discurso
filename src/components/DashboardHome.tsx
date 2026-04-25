@@ -57,8 +57,7 @@ export default function DashboardHome() {
            <p className="mb-2 uppercase tracking-tighter text-xs">📡 Network Latency: <span className="text-white font-black">{latency}ms</span></p>
            <p className="mb-2 uppercase tracking-tighter text-xs">🗄️ Database Auth: <span className={error ? 'text-rose-500' : 'text-white'}>{error ? 'FAIL' : 'AUTHORIZED'}</span></p>
            <p className="mb-2 uppercase tracking-tighter text-xs">🤖 AI Logic Core: <span className="text-white">STANDBY_OK</span></p>
-           <p className="mt-12 text-[10px] text-emerald-900 border-t border-emerald-900/20 pt-4 uppercase">© INOVASYS OPERATING SYSTEM - 2026</p>
-        </div>
+           <p className="mt-12 text-[10px] text-emerald-900 border-t border-emerald-900/20 pt-4 uppercase">© SENTINELA OPERATING SYSTEM - 2026</p>        </div>
       ));
     } catch (e) {
       setDiagStatus('error');

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENTINELA | Momentum Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --safety-orange: #ff4757; --ink: #2d3436; --chassis: #e0e5ec; }
+        body { font-family: 'JetBrains Mono', monospace; background-color: var(--chassis); color: var(--ink); background-image: url("https://www.transparenttextures.com/patterns/p6.png"); }
+        .module-panel { background: var(--chassis); border-radius: 20px; box-shadow: 6px 6px 12px #babecc, -6px -6px 12px #ffffff; padding: 1.25rem; position: relative; }
+        .technical-label { font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #4a5568; }
+        .momentum-bar { height: 6px; background: rgba(0,0,0,0.05); border-radius: 100px; overflow: hidden; box-shadow: inset 2px 2px 4px #babecc, inset -2px -2px 4px #ffffff; }
+        .momentum-fill { height: 100%; background: var(--safety-orange); box-shadow: 0 0 10px rgba(255, 71, 87, 0.4); }
+        .led-indicator { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+        .led-online { background: #2ed573; box-shadow: 0 0 8px #2ed573; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+    </style>
+</head>
+<body class="p-6 md:p-12">
+    <div class="max-w-[1600px] mx-auto space-y-10">
+        <header class="flex justify-between items-end">
+            <div>
+                <span class="technical-label"><span class="led-indicator led-online"></span>Sistema Operacional de Inteligência</span>
+                <h1 class="text-3xl font-black tracking-tighter mt-2">SENTINELA <span class="text-slate-400">ENGINE v15.4</span></h1>
+            </div>
+            <div class="text-right">
+                <span class="technical-label">Ciclo de Análise</span>
+                <p class="font-bold text-sm">ABRIL / 2026</p>
+            </div>
+        </header>
+
+        <div id="momentum-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            <!-- Os cards serão injetados via JS -->
+        </div>
+
+        <footer class="pt-10 border-t border-slate-300 flex justify-between items-center opacity-50">
+            <span class="technical-label">© 2026 Forensic Linguistics Lab</span>
+            <a href="index.html" class="technical-label hover:text-red-500">Voltar para Central</a>
+        </footer>
+    </div>
+
+    <script>
+        async function loadMomentum() {
+            try {
+                const response = await fetch('data/predictive_trends.json');
+                const data = await response.json();
+                const grid = document.getElementById('momentum-grid');
+                
+                data.sort((a, b) => b.momentum - a.momentum).slice(0, 15).forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'module-panel';
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <span class="technical-label">@${item.username}</span>
+                                <h3 class="text-lg font-bold mt-0.5">${item.status}</h3>
+                            </div>
+                            <div class="text-right">
+                                <span class="technical-label">Momentum</span>
+                                <p class="text-xl font-black">${item.momentum}%</p>
+                            </div>
+                        </div>
+                        <div class="momentum-bar mb-4">
+                            <div class="momentum-fill" style="width: ${item.momentum}%"></div>
+                        </div>
+                        <p class="text-[10px] text-slate-600 leading-tight italic line-clamp-2">"${item.narrative || 'Análise em processamento...'}"</p>
+                    `;
+                    grid.appendChild(card);
+                });
+            } catch (e) {
+                console.error("Erro ao carregar dados:", e);
+            }
+        }
+        loadMomentum();
+    </script>
+</body>
+</html>

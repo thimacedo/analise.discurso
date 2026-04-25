@@ -1,18 +1,10 @@
-import React from 'react';
-import { Menu, ChevronLeft, Power, Cpu, Shield, Search } from 'lucide-react';
+import { Menu, ChevronLeft, Power, Cpu, Shield, Search, Eye } from 'lucide-react';
 import { motion } from 'motion/react';
-import logoImg from '../../assets/logo-inovasys.png';
 
 interface TopbarProps {
   isSidebarOpen: boolean;
   setIsSidebarOpen: (open: boolean) => void;
-  camaraConfig: any;
-  theme: 'light' | 'dark';
-  onToggleTheme: () => void;
-  session: any;
-  userProfile: any;
   onSignOut: () => void;
-  onSelectProcess: (id: string) => void;
 }
 
 export const Topbar: React.FC<TopbarProps> = ({
@@ -37,13 +29,13 @@ export const Topbar: React.FC<TopbarProps> = ({
         
         <div className="flex items-center gap-4">
           <div className="p-2 bg-ink rounded-lg shadow-industrial-recessed">
-            <img src={logoImg} className="h-6 w-auto brightness-0 invert opacity-90" alt="InovaSys" />
+            <Eye size={22} className="text-safety-orange" />
           </div>
           <div className="flex flex-col">
-            <h1 className="text-sm font-black tracking-widest text-ink mb-0.5">FORENSIC ENGINE</h1>
+            <h1 className="text-sm font-black tracking-widest text-ink mb-0.5">SENTINELA ENGINE</h1>
             <div className="flex items-center gap-2">
               <div className="led-indicator led-online"></div>
-              <span className="technical-label !text-[8px] text-emerald-600">Core System v5.6 Operational</span>
+              <span className="technical-label !text-[8px] text-emerald-600">Core System v15.4 Operational</span>
             </div>
           </div>
         </div>

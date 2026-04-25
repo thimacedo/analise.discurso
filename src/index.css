@@ -1,10 +1,9 @@
 @import "tailwindcss";
 
-/* 
-  INOVASYS - INDUSTRIAL SKEUOMORPHISM (REALISMO TÁTIL)
+/*
+  SENTINELA - INDUSTRIAL SKEUOMORPHISM (REALISMO TÁTIL)
   Inspirado em Teenage Engineering, Dieter Rams e Instrumentação Pericial.
 */
-
 @theme {
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'Roboto Mono', monospace;
