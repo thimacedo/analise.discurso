@@ -9,7 +9,7 @@ let appState = {
     classified: [],
     alertas: [],
     trends: [],
-    currentModalUF: null // Rastreia o estado (UF) aberto no modal
+    currentModalUF: null
 };
 
 // EXPOSIÇÃO GLOBAL PARA O HTML
@@ -31,7 +31,7 @@ window.navigate = function(v) {
 window.focusState = function(uf) {
     // 1. Destaque visual no mapa
     document.querySelectorAll('.state-rect').forEach(s => s.classList.remove('active'));
-    const stateEl = document.querySelector(`#state-${uf}`);
+    const stateEl = document.getElementById(`state-${uf}`);
     if(stateEl) stateEl.classList.add('active');
     
     // 2. Atualizar Sidebar do Mapa (Informações Resumidas)
@@ -40,21 +40,26 @@ window.focusState = function(uf) {
     const stTargetsEl = document.getElementById('st-targets');
     const stHateEl = document.getElementById('st-hate');
     
-    if(stNameEl) stNameEl.innerText = uf;
+    if(stNameEl) stNameEl.innerText = uf === "BR" ? "Brasil" : uf;
     if(stTargetsEl) stTargetsEl.innerText = info.count;
     if(stHateEl) stHateEl.innerText = info.hate;
 };
 
 window.openRegionalDetail = function(uf) {
-    if(uf === "Brasil") return;
-    appState.currentModalUF = uf; // Salva o contexto regional
+    // uf pode vir como "Brasil" do elemento de texto ou "BR" do ID
+    const filterUF = uf === "Brasil" ? "BR" : uf;
+    appState.currentModalUF = filterUF;
 
     const modal = document.getElementById('detail-modal');
     const content = document.getElementById('detail-content');
     if(!modal || !content) return;
 
-    const monitoradosNoEstado = appState.data.filter(d => d.estado === uf);
-    const info = appState.stats[uf] || { count: 0, hate: 0, total: 0 };
+    // Se for BR, mostra tudo, senão filtra por estado
+    const monitoradosNoEstado = filterUF === "BR" 
+        ? appState.data 
+        : appState.data.filter(d => d.estado === filterUF);
+
+    const info = appState.stats[filterUF] || { count: 0, hate: 0, total: 0 };
     
     const resilienciaMedia = info.total > 0 
         ? (100 - (info.hate / info.total * 100)).toFixed(1) 
@@ -63,8 +68,8 @@ window.openRegionalDetail = function(uf) {
     content.innerHTML = `
         <div class="flex justify-between items-start mb-8">
             <div>
-                <h2 class="text-4xl font-black text-white mb-2">Diagnóstico: ${uf}</h2>
-                <p class="text-sm text-blue-400 font-bold uppercase tracking-widest">Inteligência Regional Concentrada</p>
+                <h2 class="text-4xl font-black text-white mb-2">Diagnóstico: ${filterUF === "BR" ? "Brasil (Geral)" : filterUF}</h2>
+                <p class="text-sm text-blue-400 font-bold uppercase tracking-widest">Inteligência ${filterUF === "BR" ? "Nacional" : "Regional"} Concentrada</p>
             </div>
             <div class="text-right">
                 <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1">Resiliência Média</span>
@@ -74,7 +79,7 @@ window.openRegionalDetail = function(uf) {
 
         <div class="grid grid-cols-2 gap-4 mb-10">
             <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center">
-                <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1">Volume de Dados (Estado)</span>
+                <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1">Volume de Dados</span>
                 <div class="text-2xl font-black text-white">${info.total.toLocaleString()} interações</div>
             </div>
             <div class="p-6 bg-red-500/5 rounded-3xl border border-red-500/10 text-center text-red-500">
@@ -83,7 +88,7 @@ window.openRegionalDetail = function(uf) {
             </div>
         </div>
 
-        <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 border-b border-white/5 pb-2">Perfis Monitorados no Estado</h3>
+        <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 border-b border-white/5 pb-2">Monitorados (${filterUF === "BR" ? "Todos" : filterUF})</h3>
         
         <div class="space-y-3">
             ${monitoradosNoEstado.length > 0 ? monitoradosNoEstado.map(m => `
@@ -92,7 +97,7 @@ window.openRegionalDetail = function(uf) {
                         <img src="https://unavatar.io/instagram/${m.username}" class="w-10 h-10 rounded-xl border border-white/10" onerror="this.src='https://ui-avatars.com/api/?name=${m.username}'">
                         <div>
                             <span class="text-xs font-black text-white block group-hover:text-blue-400 transition-colors">@${m.username}</span>
-                            <span class="text-[9px] text-slate-500 uppercase font-bold">${m.cargo || 'Monitorado'}</span>
+                            <span class="text-[9px] text-slate-500 uppercase font-bold">${m.cargo || 'Monitorado'} | ${m.estado || 'BR'}</span>
                         </div>
                     </div>
                     <div class="text-right">
@@ -100,7 +105,7 @@ window.openRegionalDetail = function(uf) {
                         <div class="text-[9px] font-bold ${m.comentarios_odio_count > 0 ? 'text-red-500' : 'text-slate-500'}">${m.comentarios_odio_count || 0} alertas</div>
                     </div>
                 </div>
-            `).join('') : '<p class="text-center text-slate-500 py-10 italic">Nenhum perfil cadastrado para esta região.</p>'}
+            `).join('') : '<p class="text-center text-slate-500 py-10 italic">Nenhum perfil cadastrado.</p>'}
         </div>
     `;
 
@@ -160,6 +165,9 @@ window.refresh = async function() {
             stateStats[uf].total += ti;
             stateStats[uf].hate += th;
         });
+
+        // Adiciona a estatística global BR
+        stateStats['BR'] = { count: data.length, hate: globHate, total: globTotal };
 
         appState.stats = stateStats;
         
@@ -327,7 +335,7 @@ window.closeDetail = function() {
     const modal = document.getElementById('detail-modal');
     modal.style.display = 'none';
     modal.classList.add('hidden');
-    appState.currentModalUF = null; // Limpa o contexto ao fechar o modal
+    appState.currentModalUF = null;
 };
 
 window.openCheckout = function() {
