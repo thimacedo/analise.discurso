@@ -1,4 +1,5 @@
 services:
+  # COLETOR (PYTHON)
   - type: worker
     name: sentinela-daily-worker
     region: ohio
@@ -7,12 +8,27 @@ services:
     runCommand: python worker_sentinela.py
     envVars:
       - key: SUPABASE_URL
-        sync: false
+        value: https://vhamejkldzxbeibqeqpk.supabase.co
       - key: SUPABASE_KEY
         sync: false
       - key: IG_USERNAME
         value: monitoramento.discurso
       - key: IG_PASSWORD
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+
+  # AVALIADOR PASA (NODE.JS)
+  - type: worker
+    name: sentinela-pasa-processor
+    region: ohio
+    runtime: node
+    buildCommand: npm install
+    runCommand: node pasa-worker.js
+    envVars:
+      - key: SUPABASE_URL
+        value: https://vhamejkldzxbeibqeqpk.supabase.co
+      - key: SUPABASE_KEY
         sync: false
       - key: GROQ_API_KEY
         sync: false
