@@ -1,29 +1,25 @@
 # 🗺️ ROADMAP.md - Sentinela Democrática
 
 ## 📖 Visão Geral
-Plataforma de **Inteligência Situacional e Tendências de Opinião Pública**. O projeto monitora o clima político digital, utilizando coleta massiva de dados, análise de linguagem (Supabase + Groq/Qwen) com detecção avançada de sarcasmo (PASA), e apresenta os insights através de um Hub Informativo responsivo e monetizado.
+Plataforma de **Inteligência Situacional e Tendências de Opinião Pública**. O projeto utiliza coleta massiva via RapidAPI, análise híbrida de geolocalização e narrativas (PASA + GEO) via Gemma2, e apresenta os insights em um Dashboard de alta fidelidade estatística.
 
 ## 📌 Status Atual
 **Data:** 25 de Abril de 2026
-**Fase:** Produção de Alta Fidelidade (v15.4.4 - Engine Responsiva)
-**Resumo:** Versão 15.4.4 consolidada. 
-- **Engine de Coleta**: Substituição do Apify por Worker Python local (`raspar.py`).
-- **Worker PASA (Node.js)**: Orquestrador em tempo real para classificação de narrativas via Gemma/Groq.
-- **Análise PASA**: Avaliação de narrativas e detecção de sarcasmo ativa.
-- **Engine Responsiva**: Dashboard adaptado para Mobile-First com Matriz de Risco estatística.
-- **Infraestrutura**: Vercel + Render operacionais.
+**Fase:** v15.4.4 - Cérebro Linguístico Consolidado
+**Resumo:** 
+- **Cérebro Linguístico**: Criado `LINGUISTIC_BRAIN.md` com parâmetros de Linguística Forense e Estilometria (Base UFRN/Vichi).
+- **Lógica Forense**: Estruturada em `FORENSIC_LOGIC.md` para processamento de N-Gramas e POS Tagging.
+- **Worker Híbrido**: Processamento 24/7 de estados e narrativas ativo.
 
 ## 🎯 Próximos Passos
-1. [x] **Infraestrutura**: Migração da coleta para Worker Python.
-2. [x] **Inteligência**: Implementação do PASA Worker em Node.js (Sem Python).
-3. [ ] **Fase 4: Automação 24h**: Ativar serviços no Render com polling de 60s.
-4. [ ] **Integração Realtime**: Ativação do Step 6 (Chat/Feedback em tempo real) via Supabase.
-5. [ ] **Expansão de Canais**: Inclusão de monitoramento via RapidAPI para redes sociais emergentes.
+1. [x] **Inteligência Híbrida**: Classificação automática de novos alvos e comentários.
+2. [x] **Cérebro Linguístico**: Mapeamento da biblioteca forense e criação da base de parâmetros.
+3. [ ] **Treinamento PASA (Fase 1)**: Integrar algoritmos de N-Gramas e Lemmatização no `pasa-worker.js`.
+4. [ ] **Detecção de Ataques Coordenados**: Implementar detecção de scripts via densidade lexical.
+4. [ ] **Integração Realtime**: Ativação do Step 6 (Chat/Feedback) via Supabase Realtime.
+5. [ ] **Monetização**: Implementação de relatórios dinâmicos pós-checkout.
 
-## 🛠️ Instruções de Execução (Como Deve Ser Feito)
-- **Gestor:** Gemini (Arquiteto de Software e PM)
-- **Rotina PASA:** O `pasa-worker.js` deve rodar 24/7 no Render, processando lotes de 20 comentários a cada 60s.
-- **Coleta:** O `worker_sentinela.py` executa a raspagem diária dos prioritários + sequenciais.
-- **Regras:**
-  - Código deve ser gerado completo, sem placeholders.
-  - O `ROADMAP.md` e o `MASTER_ROADMAP.md` DEVEM ser atualizados após cada entrega.
+## 🛠️ Instruções de Execução
+- **Worker PASA+GEO:** `pasa-worker.js` roda no Render com polling de 60s.
+- **Coleta:** `worker_sentinela.py` executa a raspagem diária prioritária.
+- **Regras:** Manter a exclusividade de geolocalização (um alvo, um estado).

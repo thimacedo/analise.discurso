@@ -9,24 +9,30 @@ const headers = {
 };
 
 async function logPasa(msg) {
-    console.log(`[PASA+GEO WORKER ${new Date().toISOString()}] ${msg}`);
+    console.log(`[PASA FORENSIC ${new Date().toISOString()}] ${msg}`);
 }
 
-// --- FASE 1: CLASSIFICAÇÃO DE NOVOS ALVOS (GEO/CARGO) ---
+// --- UTILITÁRIO LINGUÍSTICO (N-GRAMAS LOCAIS) ---
+function getNGrams(text, n) {
+    const words = text.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/).filter(w => w.length > 2);
+    let ngrams = [];
+    for (let i = 0; i <= words.length - n; i++) {
+        ngrams.push(words.slice(i, i + n).join(" "));
+    }
+    return ngrams;
+}
+
+// --- FASE 1: CLASSIFICAÇÃO DE NOVOS ALVOS (GEO) ---
 async function classifyNewTargets() {
     const res = await fetch(`${SB_URL}/candidatos?select=id,username,nome_completo,cargo,estado&or=(estado.is.null,estado.eq.DF)`, { headers });
     const targets = await res.json();
-
     if (targets.length === 0) return;
 
-    logPasa(`Revisando geolocalização de ${targets.length} alvos...`);
-    
     for (const t of targets) {
         try {
             const prompt = `Analise o perfil político: "@${t.username}" (${t.nome_completo}). 
-            Se for figura nacional/presidenciável/ministro/STF, responda: BR. 
-            Se for regional, responda a UF (ex: RN, SP, RJ). 
-            Responda APENAS a sigla.`;
+            Determine a esfera de atuação conforme o Cérebro Linguístico do projeto.
+            Responda APENAS a sigla: BR (Nacional/Federal), ou a UF correspondente (ex: RN, SP, RJ).`;
 
             const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
@@ -45,60 +51,80 @@ async function classifyNewTargets() {
                 headers,
                 body: JSON.stringify({ estado: novoEstado, atualizado_em: new Date().toISOString() })
             });
-            logPasa(`Target @${t.username} reclassificado para: ${novoEstado}`);
-        } catch (e) {
-            logPasa(`Erro ao classificar target @${t.username}: ${e.message}`);
-        }
+            logPasa(`Target @${t.username} -> ${novoEstado}`);
+        } catch (e) {}
     }
 }
 
-// --- FASE 2: CLASSIFICAÇÃO DE NARRATIVAS (PASA) ---
+// --- FASE 2: ANÁLISE FORENSE DE NARRATIVAS (PASA) ---
 async function classifyNarratives() {
     const res = await fetch(`${SB_URL}/comentarios?select=id,texto_bruto,candidato_id&categoria_ia=is.null&limit=20`, { headers });
     const comments = await res.json();
-
     if (comments.length === 0) return;
 
-    logPasa(`Processando ${comments.length} narrativas pendentes...`);
+    logPasa(`Iniciando análise forense em ${comments.length} interações...`);
     
     for (const c of comments) {
         try {
+            // Cálculo de N-gramas para detectar padrões de Bot/Script
+            const trigrams = getNGrams(c.texto_bruto, 3);
+            const hasRepetitivePattern = trigrams.length > 0 && new Set(trigrams).size < trigrams.length;
+
+            const forensicPrompt = `Atue como Perito em Linguística Forense (Protocolo PASA).
+            Analise o comentário político abaixo buscando:
+            1. Intenção: Ofensa, Sarcasmo, Incitação, Crítica Política ou Apoio.
+            2. Marcadores: Identifique verbos de comando ou adjetivação pejorativa.
+            3. Script: O comentário parece automatizado/coordenado? ${hasRepetitivePattern ? "Sim (N-gramas repetitivos detectados)" : "Não"}.
+
+            Texto: "${c.texto_bruto}"
+
+            Responda APENAS em formato JSON:
+            {"categoria": "PALAVRA", "is_bot": boolean, "analise": "BREVE_JUSTIFICATIVA"}`;
+
             const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
                 headers: { "Authorization": `Bearer ${LL_API_KEY}`, "Content-Type": "application/json" },
                 body: JSON.stringify({
                     model: "gemma2-9b-it",
-                    messages: [
-                        { role: "system", content: "Classifique em uma palavra: Odio, Ironia, Critica, Neutro ou Apoio. APENAS A PALAVRA." },
-                        { role: "user", content: c.texto_bruto }
-                    ],
-                    temperature: 0.1
+                    messages: [{ role: "user", content: forensicPrompt }],
+                    temperature: 0.1,
+                    response_format: { type: "json_object" }
                 })
             });
+            
             const data = await response.json();
-            const category = data.choices[0].message.content.trim().replace(/[^a-zA-Z]/g, "");
-            const isHate = category === "Odio" || category === "Ironia";
+            const result = JSON.parse(data.choices[0].message.content);
+            
+            // Mapeamento para o banco
+            const finalCat = result.categoria.replace(/[^a-zA-Z]/g, "");
+            const isHate = ["Ofensa", "Sarcasmo", "Incitacao", "Odio", "Ironia"].includes(finalCat);
 
             await fetch(`${SB_URL}/comentarios?id=eq.${c.id}`, {
                 method: "PATCH",
                 headers,
-                body: JSON.stringify({ categoria_ia: category, is_hate: isHate, processado_em: new Date().toISOString() })
+                body: JSON.stringify({ 
+                    categoria_ia: finalCat, 
+                    is_hate: isHate, 
+                    is_bot: result.is_bot,
+                    analise_forense: result.analise,
+                    processado_em: new Date().toISOString() 
+                })
             });
+            logPasa(`@${c.candidato_id} [${finalCat}] | Bot: ${result.is_bot}`);
         } catch (e) {
             logPasa(`Erro narrativa ID ${c.id}: ${e.message}`);
         }
     }
 }
 
-// --- LOOP PRINCIPAL ---
 (async () => {
     while (true) {
         try {
-            await classifyNewTargets(); // Primeiro limpa a geolocalização/estados
-            await classifyNarratives();  // Depois processa o sentimento
+            await classifyNewTargets();
+            await classifyNarratives();
         } catch (e) {
-            logPasa(`Erro geral no worker: ${e.message}`);
+            logPasa(`Erro geral: ${e.message}`);
         }
-        await new Promise(r => setTimeout(r, 60000)); // Polling a cada 60s
+        await new Promise(r => setTimeout(r, 60000));
     }
 })();
