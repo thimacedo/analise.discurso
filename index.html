@@ -106,9 +106,9 @@
                 <div id="view-map" class="view-content absolute inset-0 flex flex-col hidden">
                     <div class="flex-1 flex gap-12 items-center p-8">
                         <div class="flex-1 h-full flex justify-center py-4"><svg id="svg-map-br" class="h-full w-auto drop-shadow-2xl"></svg></div>
-                        <div class="w-96 glass-card p-10 bg-slate-900/60 border-l-4 border-l-blue-600">
+                        <div onclick="window.openRegionalDetail(document.getElementById('st-name').innerText)" class="w-96 glass-card p-10 bg-slate-900/60 border-l-4 border-l-blue-600 cursor-pointer hover:bg-slate-900/80 transition-all group">
                             <h3 id="st-name" class="text-4xl font-black text-white mb-2">Brasil</h3>
-                            <p class="text-xs text-slate-400 italic mb-10">Diagnóstico situacional por UF.</p>
+                            <p class="text-xs text-slate-400 italic mb-10 border-b border-white/5 pb-6 flex justify-between items-center">Diagnóstico por UF <span class="text-blue-400 font-bold opacity-0 group-hover:opacity-100 transition-opacity text-[10px] uppercase tracking-widest">Clique para expandir</span></p>
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center">
                                     <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1">Monitorados</span>

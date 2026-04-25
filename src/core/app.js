@@ -33,7 +33,7 @@ window.focusState = function(uf) {
     const stateEl = document.querySelector(`#state-${uf}`);
     if(stateEl) stateEl.classList.add('active');
     
-    // 2. Atualizar Sidebar do Mapa
+    // 2. Atualizar Sidebar do Mapa (Informações Resumidas)
     const info = appState.stats[uf] || { count: 0, hate: 0, total: 0 };
     const stNameEl = document.getElementById('st-name');
     const stTargetsEl = document.getElementById('st-targets');
@@ -43,11 +43,13 @@ window.focusState = function(uf) {
     if(stTargetsEl) stTargetsEl.innerText = info.count;
     if(stHateEl) stHateEl.innerText = info.hate;
 
-    // 3. EXPANSÃO: Abrir Modal de Diagnóstico Regional
-    window.openRegionalDetail(uf);
+    // NOTA: Modal não abre mais automaticamente. Abre apenas ao clicar no card lateral.
 };
 
 window.openRegionalDetail = function(uf) {
+    // Se uf for "Brasil", não abre o modal regional (opcional)
+    if(uf === "Brasil") return;
+
     const modal = document.getElementById('detail-modal');
     const content = document.getElementById('detail-content');
     if(!modal || !content) return;
