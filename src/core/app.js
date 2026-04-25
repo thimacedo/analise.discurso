@@ -295,14 +295,21 @@ window.openDetail = function(username) {
         ? `<button onclick="window.openRegionalDetail('${appState.currentModalUF}')" class="mb-6 flex items-center gap-2 text-[10px] font-black text-blue-400 uppercase tracking-widest hover:text-white transition-colors"><i data-lucide="arrow-left" class="w-3 h-3"></i> Voltar ao Diagnóstico Regional (${appState.currentModalUF})</button>`
         : '';
 
-    // Lógica de diagnóstico dinâmico baseada em linguística
+    // Lógica de diagnóstico dinâmico baseada em linguística (PASA)
     let diagText = "";
-    if (res < 70) {
-        diagText = `Identificada alta densidade de vocabulário hostil. Foram capturadas ${m.comentarios_odio_count || 0} interações com agressividade direta, superando a média do grupo monitorado e indicando forte rejeição orgânica.`;
-    } else if (res < 90) {
-        diagText = `A análise linguística aponta para um estado de atenção. O perfil registra ${m.comentarios_odio_count || 0} comentários com polarização negativa ou ironia. Recomenda-se leitura do contexto das interações.`;
+    const totalInts = m.comentarios_totais_count || 0;
+    const hateInts = m.comentarios_odio_count || 0;
+
+    if (totalInts === 0) {
+        diagText = "Aguardando processamento de dados. O perfil está na fila de monitoramento e ainda não possui interações recentes avaliadas pelo motor PASA nas últimas 24h.";
+    } else if (res < 65) {
+        diagText = `ALERTA CRÍTICO: Detectada saturação de discurso hostil. Das ${totalInts} interações capturadas, ${hateInts} apresentam agressividade direta ou ataques coordenados, indicando um ambiente de alta toxicidade e rejeição orgânica severa.`;
+    } else if (res < 85) {
+        diagText = `ESTADO DE ATENÇÃO: Identificada polarização moderada. A análise capturou ${hateInts} interações com forte ironia ou críticas ácidas. O clima semântico sugere tensão política e vulnerabilidade a crises de imagem.`;
+    } else if (res < 95) {
+        diagText = `ESTABILIDADE MONITORADA: O perfil apresenta resiliência linguística satisfatória. Com ${totalInts} interações avaliadas, a incidência de ataques diretos é baixa (${hateInts}), predominando um vocabulário neutro ou de apoio institucional.`;
     } else {
-        diagText = `A maioria das interações (${m.comentarios_totais_count || 0} avaliadas) é composta por vocabulário neutro ou de apoio. O ecossistema de comentários apresenta alta resiliência linguística neste momento.`;
+        diagText = `RESILIÊNCIA MÁXIMA: Ambiente altamente blindado. O ecossistema de comentários (baseado em ${totalInts} avaliações) é composto quase integralmente por interações positivas ou de apoio, sem sinais de toxicidade detectáveis.`;
     }
 
     // Risco baseado em volumetria
