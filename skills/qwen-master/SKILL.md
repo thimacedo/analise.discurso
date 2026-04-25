@@ -1,22 +1,22 @@
-ï»¿---
+---
 name: qwen-master-diligence
-description: Protocolo de automaÃ§Ã£o diligente e otimizada para o uso do Qwen Coder Local.
+description: Protocolo de automação diligente e otimizada para o uso do Qwen Coder Local.
 ---
 
 # Skill: Qwen Master Diligence
-Description: Protocolo de automaÃ§Ã£o diligente e otimizada para o uso do Qwen Coder Local.
+Description: Protocolo de automação diligente e otimizada para o uso do Qwen Coder Local.
 
-## ğŸ›¡ï¸ Hardware & Processamento (Cuidado MÃ¡ximo)
-- **Check-In**: Antes de cada geraÃ§Ã£o massiva, verifique a carga de CPU. Se > 70%, sugira modo de economia.
+## ??? Hardware & Processamento (Cuidado Máximo)
+- **Check-In**: Antes de cada geração massiva, verifique a carga de CPU. Se > 70%, sugira modo de economia.
 - **Model Steering**:
-    - **0.5B**: RefatoraÃ§Ãµes simples.
-    - **1.5B**: LÃ³gica funcional.
-    - **7B**: Arquitetura e SeguranÃ§a.
+    - **0.5B**: Refatorações simples.
+    - **1.5B**: Lógica funcional.
+    - **7B**: Arquitetura e Segurança.
 
-## ğŸ¤– AutomaÃ§Ã£o & ProgramaÃ§Ã£o
-- **Test-First**: Cada funÃ§Ã£o exige script de verificaÃ§Ã£o.
-- **Self-Healing**: Loop de reparo automÃ¡tico de atÃ© 3 tentativas.
+## ?? Automação & Programação
+- **Test-First**: Cada função exige script de verificação.
+- **Self-Healing**: Loop de reparo automático de até 3 tentativas.
 
-## ğŸ” DiligÃªncia Forense
+## ?? Diligência Forense
 - **Clean Code**: SRP rigoroso.
 - **Docs**: Docstrings estilo Google.

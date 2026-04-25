@@ -61,7 +61,7 @@ class SupabasePipeline:
                     if r.status_code not in [200, 201]:
                         spider.logger.error(f"❌ Erro Supabase ({table}): {r.text}")
                     else:
-                        print(f"📊 [PIPELINE] Item salvo com sucesso em {table}")
+                        print(f"📊 [PIPELINE] Item smonitorado com sucesso em {table}")
             except Exception as e:
                 spider.logger.error(f"⚠️ Erro de rede no Pipeline: {e}")
 

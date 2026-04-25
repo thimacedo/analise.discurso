@@ -114,7 +114,7 @@ class ColetorSeguro:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             nome = f"dados_brutos_{timestamp}.csv"
             df_final.to_csv(nome, index=False, encoding="utf-8-sig")
-            print(f"\n💾 Dados salvos em {nome} ({len(df_final)} comentários)")
+            print(f"\n💾 Dados smonitorados em {nome} ({len(df_final)} comentários)")
             return df_final
         else:
             print("❌ Nenhum dado coletado.")

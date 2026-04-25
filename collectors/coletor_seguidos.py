@@ -28,7 +28,7 @@ def scrape_following_safe():
         with open(output_file, "w", encoding="utf-8") as f:
             json.dump(following_list, f, indent=4, ensure_ascii=False)
             
-        print(f"✅ SUCESSO! {len(following_list)} perfis mapeados e salvos em '{output_file}'.")
+        print(f"✅ SUCESSO! {len(following_list)} perfis mapeados e smonitorados em '{output_file}'.")
         print("💡 ESTRATÉGIA: Agora o seu pipeline pode ler este arquivo JSON em vez de buscar IDs via API a cada execução.")
         
     except Exception as e:

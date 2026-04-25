@@ -17,7 +17,7 @@ Transformação do dashboard Sentinela em um **Centro de Comando de Inteligênci
     - **Agressividade:** Nível de toxicidade nas interações (Laranja/Âmbar).
 - **Interação:** Clique no estado para filtrar o panorama regional.
 
-### 3.2 Módulo 1: Termômetro de Alvos (Saúde Digital)
+### 3.2 Módulo 1: Termômetro de monitorados (Saúde Digital)
 - Monitoramento da "Resiliência Digital" de figuras públicas.
 - Indicadores de desgaste narrativo e picos de menções.
 

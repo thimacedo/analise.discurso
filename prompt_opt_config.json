@@ -1,0 +1,16 @@
+{
+  "project": "gen-lang-client-0990464313",
+  "output_path": "gs://prompt-opt-data-gen-lang-0990464313/runs/run-1/",
+  "target_model": "gemini-1.5-flash",
+  "train_input_data_path": "gs://prompt-opt-data-gen-lang-0990464313/data/train_data.jsonl",
+  "test_input_data_path": "gs://prompt-opt-data-gen-lang-0990464313/data/test_data.jsonl",
+  "data_vars": ["input", "output"],
+  "label_variable": "output",
+  "prompt_template": "Você é um assistente especialista em Windows e automação. Execute a seguinte tarefa: {{ input }}",
+  "prompt_optimizer_method": "VAPO",
+  "eval_metrics_types": ["exact_match"],
+  "eval_metrics_weights": [1.0],
+  "num_steps": 10,
+  "batch_size": 2,
+  "population_size": 5
+}

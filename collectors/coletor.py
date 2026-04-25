@@ -184,7 +184,7 @@ class ColetorPublico:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             nome = f"dados_brutos_{timestamp}.csv"
             df_final.to_csv(nome, index=False, encoding="utf-8-sig")
-            self.log(f"Dados salvos em {nome} ({len(df_final)} comentarios)")
+            self.log(f"Dados smonitorados em {nome} ({len(df_final)} comentarios)")
             return df_final
             
         self.log("Nenhum comentario coletado no total.")

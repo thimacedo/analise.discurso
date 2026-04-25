@@ -34,7 +34,7 @@ class MemoriaExecucao:
         self.salvar()
 
     def get_perfil_memoria(self, perfil: str) -> dict:
-        """Retorna os dados salvos para um perfil, ou um dicionário vazio"""
+        """Retorna os dados smonitorados para um perfil, ou um dicionário vazio"""
         return self.dados["perfis"].get(perfil, {})
 
     def get_ultimo_post_id(self, perfil: str) -> Optional[str]:

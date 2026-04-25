@@ -1,23 +1,29 @@
 # 🗺️ ROADMAP.md - Sentinela Democrática
 
 ## 📖 Visão Geral
-Sistema de detecção e classificação de discursos de ódio no contexto político brasileiro, utilizando Supabase e Groq v2 (Llama 3.3). O projeto atua na proteção do diálogo institucional e na identificação de padrões de agressividade que comprometam a estabilidade democrática.
+Plataforma de **Inteligência Situacional e Tendências de Opinião Pública**. O projeto monitora o clima político digital, utilizando coleta massiva de dados (Apify), análise de linguagem (Supabase + Groq/Qwen) com detecção avançada de sarcasmo (PASA), e apresenta os insights através de um Hub Informativo responsivo e monetizado.
 
 ## 📌 Status Atual
-**Data:** 23 de Abril de 2026
-**Fase:** Operação em Sandbox (v9.5 Final)
-**Resumo:** Versão 9.5 estabilizada. Motor de IA refinado para detecção de sarcasmo/ironia. Dashboard v9.4 operacional. Coleta nacional massiva em execução.
+**Data:** 24 de Abril de 2026
+**Fase:** Produção de Alta Fidelidade (v15.2 - Inteligência em Tempo Real)
+**Resumo:** Versão 15.2 concluída. 
+- **Feed de Alertas Críticos**: Implementado feed dinâmico de comentários negativos na Home.
+- **Dados Reais**: Injeção de alertas extraídos via Apify (Ex: Nikolas Ferreira) para validação da UI.
+- **Gestor Apify**: Skill `apify-manager` operacional e centralizada.
+- **Expansão do Corpus**: Inclusão de 87 novos perfis (STF, TSE, Governadores, Deputados Top Engajamento).
+- **Monetização v15.1**: Stripe, PayPal e PIX (com QR Code dinâmico) integrados a R$ 49,99.
+- **Localização**: Padronização total para Horário de Brasília e normas brasileiras.
+- **Arquitetura UX**: Substituição global de "monitorados" por **Monitorados**, rolagem fluida e mapas reais.
 
 ## 🎯 Próximos Passos
-1. [ ] Escalonamento: Implementar Monitoramento Nacional em novo ciclo (Alimentar Mapa).
-2. [x] Detecção de Sarcasmo Local: Refinar motor local para reduzir picos de falsa agressividade.
-3. [x] Relatórios Situacionais: Exportação de Panoramas Estratégicos para PDF.
-4. [x] Command Center v9: Interface moderna com roteamento blindado.
+1. [x] **Fase 3: Inteligência Preditiva** - Motor de detecção de anomalias operacional (Momentum de Agressividade).
+2. [x] **Expansão Institucional** - Inclusão de atores do poder judiciário e órgãos de controle concluída.
+3. [x] **Precisão Geográfica**: Mapa real do Brasil com geometrias detalhadas operacional.
+4. [x] **Responsividade**: Dashboard adaptado para todos os dispositivos.
 
 ## 🛠️ Instruções de Execução (Como Deve Ser Feito)
 - **Gestor:** Gemini (Arquiteto de Software e PM)
-- **Programador:** Qwen Local Coder (1.5B/0.5B via Ollama)
+- **Assistência Local:** Qwen Local Coder para latência zero.
 - **Regras:**
-  - Todo o código deve ser gerado completo, sem abreviações.
-  - Aplicar rigorosamente princípios Clean Code, SOLID e KISS.
-  - Este `ROADMAP.md` DEVE ser atualizado automaticamente após cada nova funcionalidade implementada.
+  - Código deve ser gerado completo, sem placeholders, e seguir Clean Code e SOLID.
+  - O `ROADMAP.md` e o `MASTER_ROADMAP.md` DEVEM ser atualizados após cada entrega.

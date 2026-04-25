@@ -60,7 +60,7 @@ async def analyze_hybrid(text):
         "1. INCONGRUÊNCIA DE SENTIMENTO: Identifique se há elogios seguidos de emojis de deboche (ex: 🤡, 🙄, 👏) ou valência oposta.\n"
         "2. INTENSIFICADORES PRAGMÁTICOS: Atribua SARCASMO a termos como 'genial', 'parabéns', 'um orgulho' quando o contexto geral do comentário indica desaprovação.\n"
         "3. PONTUAÇÃO E REPETIÇÃO: Múltiplas exclamações ou repetições de caracteres (ex: 'lindo0000') são marcadores de ironia.\n"
-        "4. ALVOS DE RIDÍCULO: Diferencie 'Debate Crítico' (legítimo) de 'Ataque Reputacional' (Agressivo).\n\n"
+        "4. monitoradoS DE RIDÍCULO: Diferencie 'Debate Crítico' (legítimo) de 'Ataque Reputacional' (Agressivo).\n\n"
         "REGRA DE CLASSIFICAÇÃO:\n"
         "- Se for SARCASMO CRÍTICO (sem xingamentos diretos): is_hate = false, categoria = 'Sarcasmo Situacional'.\n"
         "- Se o sarcasmo for usado para humilhação/desumanização: is_hate = true, categoria = 'Ataque Agravado'.\n\n"

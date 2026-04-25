@@ -91,7 +91,7 @@ class ApifyFullScraper:
                     # 3. Salvar no Banco
                     self.save_to_db(username, shortcode, comments)
                     stats["comments_collected"] += len(comments)
-                    print(f"   ✅ {len(comments)} comentários salvos.")
+                    print(f"   ✅ {len(comments)} comentários smonitorados.")
 
             except Exception as e:
                 error_msg = f"Erro em @{username}: {str(e)}"

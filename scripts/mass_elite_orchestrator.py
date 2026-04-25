@@ -96,7 +96,7 @@ def main():
     with open("data/priority_queue.json", "r") as f:
         queue = json.load(f)
 
-    print(f"🕵️ ORQUESTRADOR DE ELITE v7.1 - Alvos: {len(queue)}")
+    print(f"🕵️ ORQUESTRADOR DE ELITE v7.1 - monitorados: {len(queue)}")
     
     for target in queue:
         raw_file = run_extraction(target)

@@ -6,7 +6,7 @@ from datetime import datetime
 # CONFIGURAÇÕES SUPABASE (UNIFICADO)
 SUPABASE_URL = "https://vhamejkldzxbeibqeqpk.supabase.co"
 # Usando SERVICE ROLE para ignorar RLS durante a migração inicial
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoYW1lamtsZHp4YmVpYnFlcXBrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjQ4ODEyNSwiZXhwIjoyMDkyMDY0MTI1fQ.GfvAI7rV8isgdhVeJp4mOUscWpdOqOuBoURGm82VdtY"
+SUPABASE_KEY = "SUPABASE_KEY_PLACEHOLDER"
 
 def migrate_to_supabase_v2():
     print("🚀 Iniciando migração PROFISSIONAL para o Supabase...")

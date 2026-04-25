@@ -9,7 +9,14 @@ export async function fetchCandidatos() {
 }
 
 export async function fetchComentarios(limit = 100) {
-    const res = await fetch(`${SB_URL}/comentarios?select=categoria_ia&limit=${limit}`, { headers });
+    const res = await fetch(`${SB_URL}/comentarios?select=*,candidatos(username,nome_completo)&limit=${limit}`, { headers });
     if (!res.ok) throw new Error(`Fetch Error: ${res.status}`);
+    return await res.json();
+}
+
+export async function fetchAlertas(limit = 10) {
+    // Busca comentários classificados com alta agressividade ou categoria_ia negativa
+    const res = await fetch(`${SB_URL}/comentarios?select=*,candidatos(username)&categoria_ia=eq.Odio&order=criado_em.desc&limit=${limit}`, { headers });
+    if (!res.ok) throw new Error(`Fetch Alertas Error: ${res.status}`);
     return await res.json();
 }

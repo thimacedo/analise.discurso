@@ -9,7 +9,7 @@ Baseada nas diretrizes do **MPF**, **STF** e doutrina penal brasileira.
 
 ### A. Discurso de Ódio Penalmente Punível
 Para ser classificado como ódio real (Flag Vermelha), o conteúdo deve apresentar:
-1. **Alvo Protegido:** Ataque baseado em raça, cor, etnia, religião, procedência nacional, orientação sexual ou identidade de gênero.
+1. **monitorado Protegido:** Ataque baseado em raça, cor, etnia, religião, procedência nacional, orientação sexual ou identidade de gênero.
 2. **Desumanização:** Uso de termos que comparam seres humanos a animais, pragas ou objetos.
 3. **Incitação:** Estímulo direto ou indireto à violência física ou exclusão social.
 4. **Hostilidade Política Extrema:** Ataques que visam anular a dignidade do opositor, indo além da crítica à gestão (Injúria, Calúnia ou Difamação).

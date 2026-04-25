@@ -56,7 +56,7 @@ def run_orchestrated_collection():
     
     # 3. Executar Raspagem
     scraper = ApifyFullScraper()
-    # Mockando a lista de perfis apenas com os alvos do turno para o scraper
+    # Mockando a lista de perfis apenas com os monitorados do turno para o scraper
     original_profiles_file = scraper.profiles_file
     temp_profiles_path = "data/temp_targets.json"
     

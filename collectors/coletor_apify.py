@@ -130,7 +130,7 @@ class ColetorApify:
         if not df_comentarios.empty:
             df_final = df_comentarios.merge(df_perfis, left_on="candidato", right_on="username", how="left")
             df_final.to_csv("dados_brutos_apify_teste.csv", index=False, encoding="utf-8-sig")
-            print(f"✅ TESTE CONCLUÍDO. {len(df_final)} comentários salvos em dados_brutos_apify_teste.csv")
+            print(f"✅ TESTE CONCLUÍDO. {len(df_final)} comentários smonitorados em dados_brutos_apify_teste.csv")
             return df_final
         else:
             print("❌ Nenhum comentário coletado no teste.")

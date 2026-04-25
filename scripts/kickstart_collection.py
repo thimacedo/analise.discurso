@@ -56,13 +56,13 @@ async def kickstart():
         monitor_id = r.json()["data"]["user"]["id"]
         
         # 2. Obter Seguidos
-        print(f"📡 Monitor ID: {monitor_id}. Coletando alvos...")
+        print(f"📡 Monitor ID: {monitor_id}. Coletando monitorados...")
         r = await client.get(f"https://www.instagram.com/api/v1/friendships/{monitor_id}/following/", headers=HEADERS_IG)
         targets = r.json().get("users", [])[:3] # Pegar os 3 primeiros para o arranque rápido
         
         all_data = []
         for t in targets:
-            print(f"👤 Alvo: @{t['username']}. Coletando posts...")
+            print(f"👤 monitorado: @{t['username']}. Coletando posts...")
             r_feed = await client.get(f"https://www.instagram.com/api/v1/feed/user/{t['pk']}/", headers=HEADERS_IG)
             posts = r_feed.json().get("items", [])[:1]
             

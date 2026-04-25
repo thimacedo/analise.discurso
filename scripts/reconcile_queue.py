@@ -32,7 +32,7 @@ def reconcile():
         # mas aqui assumimos que o arquivo tem a lista de perfis.
         pass
 
-    print(f"📊 Reconciliando {len(PRIORITY_NAMES)} alvos de elite.")
+    print(f"📊 Reconciliando {len(PRIORITY_NAMES)} monitorados de elite.")
     
     # Criar fila de execução imediata
     queue = PRIORITY_NAMES # Começamos com os mapeados

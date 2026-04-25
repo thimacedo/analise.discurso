@@ -15,7 +15,7 @@ def sincronizar():
             }
             with open("perfis_monitorados.json", "w", encoding="utf-8") as f:
                 json.dump(dados, f, indent=2, ensure_ascii=False)
-            print(f"Sucesso: {len(perfis)} perfis salvos em 'perfis_monitorados.json'")
+            print(f"Sucesso: {len(perfis)} perfis smonitorados em 'perfis_monitorados.json'")
         else:
             print("Aviso: Nenhun perfil encontrado ou erro no login.")
             
