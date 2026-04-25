@@ -153,77 +153,66 @@ function renderImpactCharts() {
     const ctxEl = document.getElementById('chartMain');
     if(!ctxEl) return;
 
-    const nacItems = appState.classified.filter(i => i.scenario === 'Nacional');
-    const regItems = appState.classified.filter(i => i.scenario === 'Regional');
-
-    // Métricas para o Radar - FOCADO EM NEGATIVADAS (ÓDIO)
-    const metrics = {
-        hate: [
-            nacItems.reduce((s, c) => s + (c.comentarios_odio_count || 0), 0),
-            regItems.reduce((s, c) => s + (c.comentarios_odio_count || 0), 0)
-        ],
-        targets: [nacItems.length, regItems.length],
-        avgHate: [
-            nacItems.reduce((s, c) => s + (c.comentarios_odio_count || 0), 0) / (nacItems.length || 1),
-            regItems.reduce((s, c) => s + (c.comentarios_odio_count || 0), 0) / (regItems.length || 1)
-        ],
-        density: [
-            (nacItems.reduce((s, c) => s + (c.comentarios_odio_count || 0), 0) / (nacItems.reduce((s, c) => s + (c.comentarios_totais_count || 0), 0) || 1) * 100),
-            (regItems.reduce((s, c) => s + (c.comentarios_odio_count || 0), 0) / (regItems.reduce((s, c) => s + (c.comentarios_totais_count || 0), 0) || 1) * 100)
-        ]
-    };
-
-    // Normalização para o Radar
-    const dataNac = [
-        metrics.hate[0] / 10, // Escalonado
-        metrics.targets[0] * 2,
-        metrics.avgHate[0] * 5,
-        metrics.density[0] * 10
-    ];
-    const dataReg = [
-        metrics.hate[1] / 10,
-        metrics.targets[1] * 2,
-        metrics.avgHate[1] * 5,
-        metrics.density[1] * 10
-    ];
+    // Preparar dados para a Matriz de Risco
+    const bubbleData = appState.classified.map(c => {
+        const resiliencia = (c.comentarios_totais_count || 0) > 0 
+            ? (100 - ((c.comentarios_odio_count || 0) / c.comentarios_totais_count * 100)) 
+            : 100;
+        
+        return {
+            x: resiliencia.toFixed(1), // Eixo X: Resiliência (Blindagem)
+            y: c.comentarios_odio_count || 0, // Eixo Y: Volume de Ódio
+            r: Math.min(Math.max((c.comentarios_totais_count || 0) / 10, 4), 30), // Tamanho: Impacto Social
+            label: `@${c.username}`,
+            scenario: c.scenario
+        };
+    });
 
     if(mainChart) mainChart.destroy();
     const ctx = ctxEl.getContext('2d');
     
     mainChart = new Chart(ctx, {
-        type: 'radar',
+        type: 'bubble',
         data: { 
-            labels: ['Vol. Negativo', 'Atores Afetados', 'Média/Ator', 'Densidade %'], 
             datasets: [
                 { 
                     label: 'Nacional', 
-                    data: dataNac, 
-                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                    data: bubbleData.filter(d => d.scenario === 'Nacional'), 
+                    backgroundColor: 'rgba(239, 68, 68, 0.6)',
                     borderColor: '#ef4444',
-                    pointBackgroundColor: '#ef4444',
-                    borderWidth: 2
+                    borderWidth: 1
                 },
                 { 
                     label: 'Regional', 
-                    data: dataReg, 
-                    backgroundColor: 'rgba(245, 158, 11, 0.2)',
-                    borderColor: '#f59e0b',
-                    pointBackgroundColor: '#f59e0b',
-                    borderWidth: 2
+                    data: bubbleData.filter(d => d.scenario === 'Regional'), 
+                    backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                    borderColor: '#3b82f6',
+                    borderWidth: 1
                 }
             ] 
         },
         options: { 
-            responsive: true, maintainAspectRatio: false, 
+            responsive: true, 
+            maintainAspectRatio: false, 
             plugins: { 
-                legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 9, family: 'JetBrains Mono' } } } 
+                legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 9, family: 'JetBrains Mono' } } },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => `${ctx.raw.label}: Resiliência ${ctx.raw.x}% | Ódio: ${ctx.raw.y}`
+                    }
+                }
             },
             scales: { 
-                r: {
-                    angleLines: { color: 'rgba(255,255,255,0.05)' },
-                    grid: { color: 'rgba(255,255,255,0.05)' },
-                    pointLabels: { color: '#64748b', font: { size: 8, weight: 'bold' } },
-                    ticks: { display: false }
+                x: {
+                    title: { display: true, text: 'ÍNDICE DE RESILIÊNCIA (%)', color: '#64748b', font: { size: 8, weight: 'bold' } },
+                    grid: { color: 'rgba(255,255,255,0.03)' },
+                    ticks: { color: '#64748b' },
+                    min: 0, max: 100
+                },
+                y: {
+                    title: { display: true, text: 'VOLUME DE ATAQUES (PASA)', color: '#64748b', font: { size: 8, weight: 'bold' } },
+                    grid: { color: 'rgba(255,255,255,0.03)' },
+                    ticks: { color: '#64748b' }
                 }
             } 
         }
