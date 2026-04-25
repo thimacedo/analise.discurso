@@ -36,14 +36,15 @@ async function classifyNewTargets() {
 
             const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
-                headers: { "Authorization": `Bearer ${LL_API_KEY}`, "Content-Type": "application/json" },
+                headers: { "Authorization": `Bearer ${LLM_API_KEY}`, "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    model: "gemma2-9b-it",
-                    messages: [{ role: "user", content: prompt }],
-                    temperature: 0.1
+                    model: "llama-3.3-70b-versatile",
+                    messages: [{ role: "user", content: forensicPrompt }],
+                    temperature: 0.1,
+                    response_format: { type: "json_object" }
                 })
             });
-            const data = await response.json();
+
             const novoEstado = data.choices[0].message.content.trim().toUpperCase().substring(0, 2);
 
             await fetch(`${SB_URL}/candidatos?id=eq.${t.id}`, {
@@ -83,14 +84,15 @@ async function classifyNarratives() {
 
             const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
-                headers: { "Authorization": `Bearer ${LL_API_KEY}`, "Content-Type": "application/json" },
+                headers: { "Authorization": `Bearer ${LLM_API_KEY}`, "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    model: "gemma2-9b-it",
+                    model: "llama-3.3-70b-versatile",
                     messages: [{ role: "user", content: forensicPrompt }],
                     temperature: 0.1,
                     response_format: { type: "json_object" }
                 })
             });
+
             
             const data = await response.json();
             const result = JSON.parse(data.choices[0].message.content);

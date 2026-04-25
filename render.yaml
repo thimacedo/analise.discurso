@@ -5,7 +5,7 @@ services:
     region: ohio
     runtime: python
     buildCommand: pip install -r requirements.txt
-    runCommand: python worker_sentinela.py
+    runCommand: python backend/collectors/worker_sentinela.py
     envVars:
       - key: SUPABASE_URL
         value: https://vhamejkldzxbeibqeqpk.supabase.co
@@ -24,7 +24,7 @@ services:
     region: ohio
     runtime: node
     buildCommand: npm install
-    runCommand: node pasa-worker.js
+    runCommand: node backend/intelligence/pasa-worker.js
     envVars:
       - key: SUPABASE_URL
         value: https://vhamejkldzxbeibqeqpk.supabase.co
