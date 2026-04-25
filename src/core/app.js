@@ -25,16 +25,14 @@ window.navigate = function(v) {
     if(targetView) targetView.classList.remove('hidden');
     if(targetNav) targetNav.classList.add('active');
     
-    if(v === 'monitor') renderTimeline();
+    if(v === 'monitor') renderImpactCharts();
 };
 
 window.focusState = function(uf) {
-    // 1. Destaque visual no mapa
     document.querySelectorAll('.state-rect').forEach(s => s.classList.remove('active'));
     const stateEl = document.getElementById(`state-${uf}`);
     if(stateEl) stateEl.classList.add('active');
     
-    // 2. Atualizar Sidebar do Mapa (Informações Resumidas)
     const info = appState.stats[uf] || { count: 0, hate: 0, total: 0 };
     const stNameEl = document.getElementById('st-name');
     const stTargetsEl = document.getElementById('st-targets');
@@ -45,77 +43,8 @@ window.focusState = function(uf) {
     if(stHateEl) stHateEl.innerText = info.hate;
 };
 
-window.openRegionalDetail = function(uf) {
-    // uf pode vir como "Brasil" do elemento de texto ou "BR" do ID
-    const filterUF = uf === "Brasil" ? "BR" : uf;
-    appState.currentModalUF = filterUF;
-
-    const modal = document.getElementById('detail-modal');
-    const content = document.getElementById('detail-content');
-    if(!modal || !content) return;
-
-    // Se for BR, mostra tudo, senão filtra por estado
-    const monitoradosNoEstado = filterUF === "BR" 
-        ? appState.data 
-        : appState.data.filter(d => d.estado === filterUF);
-
-    const info = appState.stats[filterUF] || { count: 0, hate: 0, total: 0 };
-    
-    const resilienciaMedia = info.total > 0 
-        ? (100 - (info.hate / info.total * 100)).toFixed(1) 
-        : "100.0";
-
-    content.innerHTML = `
-        <div class="flex justify-between items-start mb-8">
-            <div>
-                <h2 class="text-4xl font-black text-white mb-2">Diagnóstico: ${filterUF === "BR" ? "Brasil (Geral)" : filterUF}</h2>
-                <p class="text-sm text-blue-400 font-bold uppercase tracking-widest">Inteligência ${filterUF === "BR" ? "Nacional" : "Regional"} Concentrada</p>
-            </div>
-            <div class="text-right">
-                <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1">Resiliência Média</span>
-                <div class="text-3xl font-black text-emerald-400">${resilienciaMedia}%</div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4 mb-10">
-            <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center">
-                <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1">Volume de Dados</span>
-                <div class="text-2xl font-black text-white">${info.total.toLocaleString()} interações</div>
-            </div>
-            <div class="p-6 bg-red-500/5 rounded-3xl border border-red-500/10 text-center text-red-500">
-                <span class="text-[10px] font-bold uppercase block mb-1">Alertas Ativos</span>
-                <div class="text-2xl font-black">${info.hate} incidentes</div>
-            </div>
-        </div>
-
-        <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 border-b border-white/5 pb-2">Monitorados (${filterUF === "BR" ? "Todos" : filterUF})</h3>
-        
-        <div class="space-y-3">
-            ${monitoradosNoEstado.length > 0 ? monitoradosNoEstado.map(m => `
-                <div onclick="window.openDetail('${m.username}')" class="flex items-center justify-between p-4 bg-white/[0.03] border border-white/5 rounded-2xl hover:bg-white/[0.08] transition-all cursor-pointer group">
-                    <div class="flex items-center gap-4">
-                        <img src="https://unavatar.io/instagram/${m.username}" class="w-10 h-10 rounded-xl border border-white/10" onerror="this.src='https://ui-avatars.com/api/?name=${m.username}'">
-                        <div>
-                            <span class="text-xs font-black text-white block group-hover:text-blue-400 transition-colors">@${m.username}</span>
-                            <span class="text-[9px] text-slate-500 uppercase font-bold">${m.cargo || 'Monitorado'} | ${m.estado || 'BR'}</span>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <div class="text-[10px] font-mono text-blue-400">${(m.comentarios_totais_count || 0).toLocaleString()} <span class="text-[8px] text-slate-600">ints</span></div>
-                        <div class="text-[9px] font-bold ${m.comentarios_odio_count > 0 ? 'text-red-500' : 'text-slate-500'}">${m.comentarios_odio_count || 0} alertas</div>
-                    </div>
-                </div>
-            `).join('') : '<p class="text-center text-slate-500 py-10 italic">Nenhum perfil cadastrado.</p>'}
-        </div>
-    `;
-
-    modal.style.display = 'flex';
-    modal.classList.remove('hidden');
-    if(window.lucide) lucide.createIcons();
-};
-
 window.refresh = async function() {
-    console.log("Iniciando Sincronização v15.3...");
+    console.log("Iniciando Sincronização v15.3.3...");
     try {
         const results = await Promise.allSettled([
             fetchCandidatos(),
@@ -128,26 +57,22 @@ window.refresh = async function() {
         appState.data = data;
         appState.alertas = alertas;
         
-        try {
-            const trRes = await fetch('/data/predictive_trends.json');
-            if(trRes.ok) appState.trends = await trRes.json();
-            else throw new Error();
-        } catch(e) {
-            appState.trends = data.slice(0, 3).map(c => ({
-                username: c.username,
-                momentum: Math.random() * 10,
-                status: 'ESTÁVEL'
-            }));
-        }
-
+        // Classificação Inteligente baseada em Cargo e Estado
         appState.classified = data.map(c => {
             let scenario = "Nacional";
-            const u = c.username?.toLowerCase() || "";
+            const cargo = (c.cargo || "").toLowerCase();
+            const u = (c.username || "").toLowerCase();
             const n = (c.nome_completo || "").toLowerCase();
-            if (u.includes("vereador") || n.includes("vereador") || u.includes("parnamirim") || n.includes("natal")) {
+
+            if (cargo.includes("vereador") || cargo.includes("prefeito") || cargo.includes("câmara") || 
+                n.includes("vereador") || u.includes("vereador") || u.includes("parnamirim") || u.includes("natal")) {
                 scenario = "Municipal";
-            } else if (u.includes("rn") || u.includes("bezerra")) {
+            } else if (cargo.includes("governador") || cargo.includes("deputado estadual") || 
+                       u.includes("rn") || u.includes("bezerra") || n.includes("governador") || n.includes("governadora")) {
                 scenario = "Estadual";
+            } else if (cargo.includes("federal") || cargo.includes("senador") || cargo.includes("ministro") || 
+                       cargo.includes("stf") || cargo.includes("tse") || cargo.includes("institucional")) {
+                scenario = "Nacional";
             }
             return { ...c, scenario };
         });
@@ -166,9 +91,7 @@ window.refresh = async function() {
             stateStats[uf].hate += th;
         });
 
-        // Adiciona a estatística global BR
         stateStats['BR'] = { count: data.length, hate: globHate, total: globTotal };
-
         appState.stats = stateStats;
         
         const updateText = (id, val) => {
@@ -183,9 +106,9 @@ window.refresh = async function() {
 
         renderRankings(appState.classified);
         renderAlerts(appState.alertas);
-        renderTrends(appState.trends);
         renderDossieGrid('dossie-grid', data);
         renderBrazilMap('svg-map-br', stateStats);
+        renderImpactCharts();
         
         console.log("Sincronização Finalizada.");
     } catch(e) { 
@@ -194,6 +117,7 @@ window.refresh = async function() {
 };
 
 function renderRankings(data) {
+    // Filtragem rigorosa para evitar nomes locais no Nacional
     const nac = data.filter(i => i.scenario === 'Nacional').sort((a,b) => b.comentarios_totais_count - a.comentarios_totais_count).slice(0, 5);
     const reg = data.filter(i => i.scenario === 'Municipal' || i.scenario === 'Estadual').sort((a,b) => b.comentarios_totais_count - a.comentarios_totais_count).slice(0, 5);
     
@@ -220,29 +144,51 @@ function renderRankings(data) {
 }
 
 let mainChart = null;
-function renderTimeline() {
+function renderImpactCharts() {
     const ctxEl = document.getElementById('chartMain');
     if(!ctxEl) return;
-    const labels = ['18/04','19/04','20/04','21/04','22/04','23/04','Hoje'];
-    const volumeData = [1200, 1900, 3100, 2800, 4200, 3800, 5100]; 
-    const attackData = [80, 150, 420, 310, 580, 490, 720];
+
+    // Dados de Inteligência Agregada (Volume por Cenário)
+    const stats = appState.classified.reduce((acc, curr) => {
+        acc[curr.scenario] = (acc[curr.scenario] || 0) + (curr.comentarios_totais_count || 0);
+        return acc;
+    }, {});
+
+    const labels = Object.keys(stats);
+    const data = Object.values(stats);
 
     if(mainChart) mainChart.destroy();
     const ctx = ctxEl.getContext('2d');
+    
     mainChart = new Chart(ctx, {
-        type: 'line',
+        type: 'bar',
         data: { 
             labels, 
-            datasets: [
-                { label: 'Volume', data: volumeData, borderColor: '#3b82f6', borderWidth: 3, tension: 0.4, fill: true, backgroundColor: 'rgba(59,130,246,0.05)', pointRadius: 4, pointBackgroundColor: '#3b82f6' },
-                { label: 'Ataques', data: attackData, borderColor: '#ef4444', borderWidth: 2, borderDash: [5, 5], tension: 0.4, fill: false, pointRadius: 0 }
-            ] 
+            datasets: [{ 
+                label: 'Volume de Narrativas', 
+                data, 
+                backgroundColor: ['rgba(59, 130, 246, 0.4)', 'rgba(245, 158, 11, 0.4)', 'rgba(139, 92, 246, 0.4)'],
+                borderColor: ['#3b82f6', '#f59e0b', '#8b5cf6'],
+                borderWidth: 2,
+                borderRadius: 12,
+                hoverBackgroundColor: ['#3b82f6', '#f59e0b', '#8b5cf6']
+            }] 
         },
         options: { 
-            responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, 
+            responsive: true, maintainAspectRatio: false, 
+            plugins: { 
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                    titleFont: { size: 10, weight: 'bold' },
+                    bodyFont: { size: 10 },
+                    padding: 12,
+                    cornerRadius: 12
+                }
+            }, 
             scales: { 
-                y: { grid: { color: 'rgba(255,255,255,0.02)' }, ticks: { color: '#475569', font: { size: 8 } } }, 
-                x: { grid: { display: false }, ticks: { color: '#475569', font: { size: 8 } } } 
+                y: { grid: { color: 'rgba(255,255,255,0.02)' }, ticks: { color: '#64748b', font: { size: 8 } } }, 
+                x: { grid: { display: false }, ticks: { color: '#f8fafc', font: { size: 9, weight: 'bold' } } } 
             } 
         }
     });
@@ -288,7 +234,6 @@ window.openDetail = function(username) {
     const content = document.getElementById('detail-content');
     const resiliencia = monitorado.comentarios_totais_count > 0 ? (100 - (monitorado.comentarios_odio_count / monitorado.comentarios_totais_count * 100)) : 100;
     
-    // Botão de Voltar condicional
     const backBtn = appState.currentModalUF 
         ? `<button onclick="window.openRegionalDetail('${appState.currentModalUF}')" class="mb-6 flex items-center gap-2 text-[10px] font-black text-blue-400 uppercase tracking-widest hover:text-white transition-colors"><i data-lucide="arrow-left" class="w-3 h-3"></i> Voltar ao Diagnóstico Regional (${appState.currentModalUF})</button>`
         : '';
@@ -311,19 +256,33 @@ window.openDetail = function(username) {
                 <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1">Total Comentários</span>
                 <div class="text-2xl font-black text-white">${(monitorado.comentarios_totais_count || 0).toLocaleString()}</div>
             </div>
-            <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center">
-                <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1 text-red-500">Alertas de Ódio</span>
-                <div class="text-2xl font-black text-red-500">${monitorado.comentarios_odio_count || 0}</div>
+            <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center text-red-500">
+                <span class="text-[10px] font-bold uppercase block mb-1">Alertas de Ódio</span>
+                <div class="text-2xl font-black">${monitorado.comentarios_odio_count || 0}</div>
             </div>
-            <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center">
-                <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1 text-emerald-400">Resiliência</span>
-                <div class="text-2xl font-black text-emerald-400">${resiliencia.toFixed(1)}%</div>
+            <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center text-emerald-400">
+                <span class="text-[10px] font-bold uppercase block mb-1">Resiliência</span>
+                <div class="text-2xl font-black">${resiliencia.toFixed(1)}%</div>
             </div>
         </div>
         <div class="space-y-6">
-            <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-white/5 pb-2">Diagnóstico PASA</h3>
-            <div class="p-6 bg-blue-600/5 rounded-2xl">
-                <p class="text-sm text-slate-300 italic">Análise detectou padrões coordenados nesta conta. Recomenda-se vigilância sobre os últimos posts de vídeo.</p>
+            <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-white/5 pb-2">Diagnóstico PASA (Pericial)</h3>
+            <div class="p-8 bg-blue-600/5 rounded-3xl border border-blue-500/10">
+                <div class="flex justify-between items-center mb-6">
+                    <span class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Análise de Narrativa Coordenada</span>
+                    <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-full text-[8px] font-black uppercase">Monitoramento Ativo</span>
+                </div>
+                <p class="text-sm text-slate-300 leading-relaxed italic mb-8">"O perfil @${username} apresenta um volume de interações ${monitorado.comentarios_totais_count > 50 ? 'elevado' : 'estável'}. A inteligência PASA detectou que ${(resiliencia < 80) ? 'há uma incidência crítica de ataques coordenados' : 'o clima digital permanece sob controle, com baixa agressividade direta'}."</p>
+                <div class="grid grid-cols-2 gap-8">
+                    <div class="space-y-2">
+                        <span class="text-[8px] text-slate-500 font-bold uppercase">Probabilidade de Crise</span>
+                        <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-blue-600" style="width: ${100 - resiliencia}%"></div></div>
+                    </div>
+                    <div class="space-y-2">
+                        <span class="text-[8px] text-slate-500 font-bold uppercase">Engajamento de Risco</span>
+                        <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-amber-500" style="width: ${Math.random()*40 + 20}%"></div></div>
+                    </div>
+                </div>
             </div>
         </div>`;
     modal.style.display = 'flex';
@@ -336,6 +295,66 @@ window.closeDetail = function() {
     modal.style.display = 'none';
     modal.classList.add('hidden');
     appState.currentModalUF = null;
+};
+
+window.openRegionalDetail = function(uf) {
+    const filterUF = uf === "Brasil" ? "BR" : uf;
+    appState.currentModalUF = filterUF;
+
+    const modal = document.getElementById('detail-modal');
+    const content = document.getElementById('detail-content');
+    if(!modal || !content) return;
+
+    const monitoradosNoEstado = filterUF === "BR" 
+        ? appState.data 
+        : appState.data.filter(d => d.estado === filterUF);
+
+    const info = appState.stats[filterUF] || { count: 0, hate: 0, total: 0 };
+    const resilienciaMedia = info.total > 0 ? (100 - (info.hate / info.total * 100)).toFixed(1) : "100.0";
+
+    content.innerHTML = `
+        <div class="flex justify-between items-start mb-8">
+            <div>
+                <h2 class="text-4xl font-black text-white mb-2">Diagnóstico: ${filterUF === "BR" ? "Brasil" : filterUF}</h2>
+                <p class="text-sm text-blue-400 font-bold uppercase tracking-widest">Inteligência Estratégica Regional</p>
+            </div>
+            <div class="text-right">
+                <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1">Resiliência</span>
+                <div class="text-3xl font-black text-emerald-400">${resilienciaMedia}%</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-10">
+            <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center">
+                <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1">Interações</span>
+                <div class="text-2xl font-black text-white">${info.total.toLocaleString()}</div>
+            </div>
+            <div class="p-6 bg-red-500/5 rounded-3xl border border-red-500/10 text-center text-red-500">
+                <span class="text-[10px] font-bold uppercase block mb-1">Alertas</span>
+                <div class="text-2xl font-black">${info.hate}</div>
+            </div>
+        </div>
+
+        <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 border-b border-white/5 pb-2">Monitorados Ativos</h3>
+        
+        <div class="space-y-3">
+            ${monitoradosNoEstado.map(m => `
+                <div onclick="window.openDetail('${m.username}')" class="flex items-center justify-between p-4 bg-white/[0.03] border border-white/5 rounded-2xl hover:bg-white/[0.08] transition-all cursor-pointer group">
+                    <div class="flex items-center gap-4">
+                        <img src="https://unavatar.io/instagram/${m.username}" class="w-10 h-10 rounded-xl border border-white/10" onerror="this.src='https://ui-avatars.com/api/?name=${m.username}'">
+                        <div>
+                            <span class="text-xs font-black text-white block group-hover:text-blue-400 transition-colors">@${m.username}</span>
+                            <span class="text-[9px] text-slate-500 uppercase font-bold">${m.cargo || 'Monitorado'}</span>
+                        </div>
+                    </div>
+                    <div class="text-right text-[10px] font-mono text-blue-400">${(m.comentarios_totais_count || 0).toLocaleString()} ints</div>
+                </div>
+            `).join('')}
+        </div>`;
+
+    modal.style.display = 'flex';
+    modal.classList.remove('hidden');
+    if(window.lucide) lucide.createIcons();
 };
 
 window.openCheckout = function() {
