@@ -21,5 +21,6 @@ Plataforma de **Inteligência Situacional e Tendências de Opinião Pública**. 
 - **Semântica de Resguardo:** Para garantir a segurança jurídica do projeto, é **terminantemente proibido** o uso de terminologia forense ou jurídica na interface e nos resultados.
     - **NÃO UTILIZAR:** "Prova", "Evidência", "Laudo", "Crime", "Culpa" ou "Perícia".
     - **UTILIZAR:** "Fundamento Técnico", "Indício Informativo", "Dossiê de Inteligência", "Padrão Identificado" ou "Análise de Dados".
-- **Tom de Voz:** Estritamente jornalístico-informativo. O objetivo é fornecer transparência sobre o clima digital, não emitir sentenças legais.
+- **Definição de Termos:** Caso seja necessário explicar algum conceito do ecossistema político-eleitoral, deve-se utilizar obrigatoriamente as definições contidas no [Glossário Eleitoral do TSE](https://www.tse.jus.br/servicos-eleitorais/glossario/glossario-eleitoral).
+- **Tom de Voz:** Estritamente jornalístico-informativo.
 - **Frequência:** O worker `pasa-worker.js` garante a atualização do "Cérebro" a cada 60s.
