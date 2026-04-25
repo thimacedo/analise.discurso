@@ -2,23 +2,11 @@ import os
 import time
 import json
 import httpx
-from datetime import datetime, timedelta
+from datetime import datetime
 
 # Configurações do Ambiente
-env_path = ".env"
-config = {}
-if os.path.exists(env_path):
-    with open(env_path, "r") as f:
-        for line in f:
-            if "=" in line and not line.startswith("#"):
-                k, v = line.strip().split("=", 1)
-                config[k.strip()] = v.strip().strip('"').strip("'")
-
-def get_env(key, default=None):
-    return os.environ.get(key) or config.get(key, default)
-
-SUPABASE_URL = get_env("SUPABASE_URL")
-SUPABASE_KEY = get_env("SUPABASE_KEY")
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 
 headers = {
     "apikey": SUPABASE_KEY,
@@ -27,47 +15,50 @@ headers = {
 }
 
 def log_worker(msg):
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {msg}")
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {msg}", flush=True)
 
 def get_queue():
-    # Busca candidatos ordenados por data de última análise (os mais antigos primeiro)
-    # E prioritários (podemos usar uma coluna 'is_priority' se existir, ou gap > 24h)
-    r = httpx.get(f"{SUPABASE_URL}/rest/v1/candidatos?select=id,username,data_ultima_analise,is_priority&order=data_ultima_analise.asc.nullsfirst", headers=headers)
-    return r.json()
+    try:
+        # Busca candidatos ordenados por 'atualizado_em'
+        r = httpx.get(f"{SUPABASE_URL}/rest/v1/candidatos?select=id,username,comentarios_totais_count,atualizado_em&order=atualizado_em.asc.nullsfirst", headers=headers)
+        if r.status_code != 200:
+            log_worker(f"Erro na API Supabase: {r.status_code}")
+            return []
+        return r.json()
+    except Exception as e:
+        log_worker(f"Falha de conexão: {str(e)}")
+        return []
 
 def run_scrape_batch(profiles):
     if not profiles: return
-    
-    # Criar um arquivo temporário de fila para o raspar.py ler
     with open("temp_queue.json", "w") as f:
         json.dump(profiles, f)
-        
-    log_worker(f"Iniciando raspagem de {len(profiles)} perfis...")
-    # Aqui chamamos o motor principal de raspagem
-    # Assumindo que raspar.py pode receber uma lista de perfis
+    log_worker(f"Enviando {len(profiles)} perfis para o motor de raspagem...")
+    # Chama o motor principal (ajuste para usar o interpretador correto se necessário)
     os.system(f"python raspar.py --file temp_queue.json")
 
 def main():
-    log_worker("Iniciando Ciclo Diário de Monitoramento Sentinela...")
-    
+    log_worker("🚀 Iniciando Coleta Programada Sentinela...")
     all_candidates = get_queue()
+    if not all_candidates:
+        log_worker("❌ Sem perfis para processar.")
+        return
+
+    # Prioridade: Quem tem 0 ou null comentários
+    prioritarios = [c for c in all_candidates if (c.get('comentarios_totais_count') or 0) == 0]
     
-    # Separar prioritários (Ex: Gap > 24h ou flag manual)
-    prioritarios = [c for c in all_candidates if c.get('is_priority') or not c.get('data_ultima_analise')]
-    sequenciais = [c for c in all_candidates if c not in prioritarios]
+    if not prioritarios:
+        log_worker("✅ Todos os perfis já possuem dados básicos. Processando fila sequencial por 'atualizado_em'...")
+        prioritarios = all_candidates[:20] # Pega os 20 mais antigos
+
+    log_worker(f"📍 Total na fila de execução: {len(prioritarios)}")
     
-    # 1. Processar 100% dos prioritários
-    log_worker(f"Prioritários identificados: {len(prioritarios)}")
-    run_scrape_batch(prioritarios)
+    # Limita o lote extra solicitado
+    lote_max = 50
+    a_processar = prioritarios[:lote_max]
     
-    # 2. Processar sequenciais dentro da margem de segurança (Ex: Max 30 por dia para evitar block)
-    margem_seguranca = 30
-    a_processar = sequenciais[:margem_seguranca]
-    
-    log_worker(f"Processando sequenciais (Margem Segura): {len(a_processar)}")
     run_scrape_batch(a_processar)
-    
-    log_worker("Ciclo concluído com sucesso.")
+    log_worker("✅ Ciclo de coleta finalizado.")
 
 if __name__ == "__main__":
     main()
