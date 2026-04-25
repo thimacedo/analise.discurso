@@ -8,7 +8,8 @@ let appState = {
     stats: {},
     classified: [],
     alertas: [],
-    trends: []
+    trends: [],
+    currentModalUF: null // Rastreia o estado (UF) aberto no modal
 };
 
 // EXPOSIÇÃO GLOBAL PARA O HTML
@@ -42,13 +43,11 @@ window.focusState = function(uf) {
     if(stNameEl) stNameEl.innerText = uf;
     if(stTargetsEl) stTargetsEl.innerText = info.count;
     if(stHateEl) stHateEl.innerText = info.hate;
-
-    // NOTA: Modal não abre mais automaticamente. Abre apenas ao clicar no card lateral.
 };
 
 window.openRegionalDetail = function(uf) {
-    // Se uf for "Brasil", não abre o modal regional (opcional)
     if(uf === "Brasil") return;
+    appState.currentModalUF = uf; // Salva o contexto regional
 
     const modal = document.getElementById('detail-modal');
     const content = document.getElementById('detail-content');
@@ -280,7 +279,14 @@ window.openDetail = function(username) {
     const modal = document.getElementById('detail-modal');
     const content = document.getElementById('detail-content');
     const resiliencia = monitorado.comentarios_totais_count > 0 ? (100 - (monitorado.comentarios_odio_count / monitorado.comentarios_totais_count * 100)) : 100;
+    
+    // Botão de Voltar condicional
+    const backBtn = appState.currentModalUF 
+        ? `<button onclick="window.openRegionalDetail('${appState.currentModalUF}')" class="mb-6 flex items-center gap-2 text-[10px] font-black text-blue-400 uppercase tracking-widest hover:text-white transition-colors"><i data-lucide="arrow-left" class="w-3 h-3"></i> Voltar ao Diagnóstico Regional (${appState.currentModalUF})</button>`
+        : '';
+
     content.innerHTML = `
+        ${backBtn}
         <div class="flex items-center gap-8 mb-10">
             <img src="https://unavatar.io/instagram/${username}" class="w-32 h-32 rounded-3xl border-4 border-blue-600/20 shadow-2xl" onerror="this.src='https://ui-avatars.com/api/?name=${username}'">
             <div>
@@ -321,6 +327,7 @@ window.closeDetail = function() {
     const modal = document.getElementById('detail-modal');
     modal.style.display = 'none';
     modal.classList.add('hidden');
+    appState.currentModalUF = null; // Limpa o contexto ao fechar o modal
 };
 
 window.openCheckout = function() {
