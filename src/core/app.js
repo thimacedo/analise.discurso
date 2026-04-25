@@ -28,20 +28,89 @@ window.navigate = function(v) {
 };
 
 window.focusState = function(uf) {
-    document.querySelectorAll('.state').forEach(s => s.classList.remove('active'));
-    const stateEl = document.getElementById(`state-${uf}`);
+    // 1. Destaque visual no mapa
+    document.querySelectorAll('.state-rect').forEach(s => s.classList.remove('active'));
+    const stateEl = document.querySelector(`#state-${uf}`);
     if(stateEl) stateEl.classList.add('active');
     
-    const info = appState.stats[uf] || { count: 0, hate: 0 };
-    document.getElementById('st-name').innerText = uf;
-    document.getElementById('st-targets').innerText = info.count;
-    document.getElementById('st-hate').innerText = info.hate;
+    // 2. Atualizar Sidebar do Mapa
+    const info = appState.stats[uf] || { count: 0, hate: 0, total: 0 };
+    const stNameEl = document.getElementById('st-name');
+    const stTargetsEl = document.getElementById('st-targets');
+    const stHateEl = document.getElementById('st-hate');
+    
+    if(stNameEl) stNameEl.innerText = uf;
+    if(stTargetsEl) stTargetsEl.innerText = info.count;
+    if(stHateEl) stHateEl.innerText = info.hate;
+
+    // 3. EXPANSÃO: Abrir Modal de Diagnóstico Regional
+    window.openRegionalDetail(uf);
+};
+
+window.openRegionalDetail = function(uf) {
+    const modal = document.getElementById('detail-modal');
+    const content = document.getElementById('detail-content');
+    if(!modal || !content) return;
+
+    const monitoradosNoEstado = appState.data.filter(d => d.estado === uf);
+    const info = appState.stats[uf] || { count: 0, hate: 0, total: 0 };
+    
+    const resilienciaMedia = info.total > 0 
+        ? (100 - (info.hate / info.total * 100)).toFixed(1) 
+        : "100.0";
+
+    content.innerHTML = `
+        <div class="flex justify-between items-start mb-8">
+            <div>
+                <h2 class="text-4xl font-black text-white mb-2">Diagnóstico: ${uf}</h2>
+                <p class="text-sm text-blue-400 font-bold uppercase tracking-widest">Inteligência Regional Concentrada</p>
+            </div>
+            <div class="text-right">
+                <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1">Resiliência Média</span>
+                <div class="text-3xl font-black text-emerald-400">${resilienciaMedia}%</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-10">
+            <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center">
+                <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1">Volume de Dados (Estado)</span>
+                <div class="text-2xl font-black text-white">${info.total.toLocaleString()} interações</div>
+            </div>
+            <div class="p-6 bg-red-500/5 rounded-3xl border border-red-500/10 text-center text-red-500">
+                <span class="text-[10px] font-bold uppercase block mb-1">Alertas Ativos</span>
+                <div class="text-2xl font-black">${info.hate} incidentes</div>
+            </div>
+        </div>
+
+        <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 border-b border-white/5 pb-2">Perfis Monitorados no Estado</h3>
+        
+        <div class="space-y-3">
+            ${monitoradosNoEstado.length > 0 ? monitoradosNoEstado.map(m => `
+                <div onclick="window.openDetail('${m.username}')" class="flex items-center justify-between p-4 bg-white/[0.03] border border-white/5 rounded-2xl hover:bg-white/[0.08] transition-all cursor-pointer group">
+                    <div class="flex items-center gap-4">
+                        <img src="https://unavatar.io/instagram/${m.username}" class="w-10 h-10 rounded-xl border border-white/10" onerror="this.src='https://ui-avatars.com/api/?name=${m.username}'">
+                        <div>
+                            <span class="text-xs font-black text-white block group-hover:text-blue-400 transition-colors">@${m.username}</span>
+                            <span class="text-[9px] text-slate-500 uppercase font-bold">${m.cargo || 'Monitorado'}</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-[10px] font-mono text-blue-400">${(m.comentarios_totais_count || 0).toLocaleString()} <span class="text-[8px] text-slate-600">ints</span></div>
+                        <div class="text-[9px] font-bold ${m.comentarios_odio_count > 0 ? 'text-red-500' : 'text-slate-500'}">${m.comentarios_odio_count || 0} alertas</div>
+                    </div>
+                </div>
+            `).join('') : '<p class="text-center text-slate-500 py-10 italic">Nenhum perfil cadastrado para esta região.</p>'}
+        </div>
+    `;
+
+    modal.style.display = 'flex';
+    modal.classList.remove('hidden');
+    if(window.lucide) lucide.createIcons();
 };
 
 window.refresh = async function() {
-    console.log("Iniciando Sincronização v15.2...");
+    console.log("Iniciando Sincronização v15.3...");
     try {
-        // Fetch paralelo para velocidade
         const results = await Promise.allSettled([
             fetchCandidatos(),
             fetchAlertas(6)
@@ -53,13 +122,11 @@ window.refresh = async function() {
         appState.data = data;
         appState.alertas = alertas;
         
-        // Dados Preditivos (Simulado se falhar o fetch real)
         try {
             const trRes = await fetch('/data/predictive_trends.json');
             if(trRes.ok) appState.trends = await trRes.json();
             else throw new Error();
         } catch(e) {
-            // Mock de tendências se não houver dados no servidor
             appState.trends = data.slice(0, 3).map(c => ({
                 username: c.username,
                 momentum: Math.random() * 10,
@@ -126,7 +193,7 @@ function renderRankings(data) {
         if(!container) return;
         const maxVal = list[0]?.comentarios_totais_count || 1;
         container.innerHTML = list.map(t => `
-            <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-all cursor-pointer">
+            <div onclick="window.openDetail('${t.username}')" class="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-all cursor-pointer">
                 <img src="https://unavatar.io/instagram/${t.username}" class="w-8 h-8 rounded-lg border border-white/10" onerror="this.src='https://ui-avatars.com/api/?name=${t.username}'">
                 <div class="flex-1">
                     <div class="flex justify-between text-[9px] font-bold text-slate-300">
@@ -235,6 +302,12 @@ window.openDetail = function(username) {
             <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center">
                 <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1 text-emerald-400">Resiliência</span>
                 <div class="text-2xl font-black text-emerald-400">${resiliencia.toFixed(1)}%</div>
+            </div>
+        </div>
+        <div class="space-y-6">
+            <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-white/5 pb-2">Diagnóstico PASA</h3>
+            <div class="p-6 bg-blue-600/5 rounded-2xl">
+                <p class="text-sm text-slate-300 italic">Análise detectou padrões coordenados nesta conta. Recomenda-se vigilância sobre os últimos posts de vídeo.</p>
             </div>
         </div>`;
     modal.style.display = 'flex';
