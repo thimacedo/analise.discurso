@@ -5,18 +5,18 @@ Plataforma de **Inteligência Situacional e Tendências de Opinião Pública**. 
 
 ## 📌 Status Atual
 **Data:** 25 de Abril de 2026
-**Fase:** Produção de Alta Fidelidade (v15.4.1 - Refino de Inteligência)
-**Resumo:** Versão 15.4.1 concluída. 
-- **Diagnóstico de Linguagem PASA**: Lógica dinâmica baseada em resiliência real (sem termos jurídicos).
-- **Feed de Alertas**: Exibição dos últimos registros detectados (histórico garantido).
-- **UX/UI**: Inclusão de percentuais nas barras de risco e avatares reais via Instagram.
-- **Governança**: Terminologia de monitoramento 100% saneada.
+**Fase:** Produção de Alta Fidelidade (v15.4.1 - Consolidada)
+**Resumo:** Versão 15.4.1 concluída e comitada. 
+- **Validação de UI**: Testes de integridade realizados com Playwright (v15_check.spec.ts).
+- **Diagnóstico de Linguagem PASA**: Lógica dinâmica baseada em resiliência real.
+- **Governança**: Terminologia de monitoramento 100% saneada e commitada.
+- **Sincronização**: Estrutura de scripts para Supabase Master preparada.
 
 ## 🎯 Próximos Passos
-1. [x] **Fase 3: Inteligência Preditiva** - Motor de detecção de anomalias operacional (Momentum de Agressividade).
-2. [x] **Expansão Institucional** - Inclusão de atores do poder judiciário e órgãos de controle concluída.
-3. [x] **Precisão Geográfica**: Mapa real do Brasil com geometrias detalhadas operacional.
-4. [x] **Responsividade**: Dashboard adaptado para todos os dispositivos.
+1. [ ] **Fase 4: Automação de Coleta** - Deploy do Apify Actor customizado (TS/Worker).
+2. [ ] **Integração Realtime**: Ativação do Step 6 (Chat/Feedback em tempo real) via Supabase.
+3. [ ] **Pipeline de CI/CD**: Automação total dos testes Playwright no GitHub Actions.
+4. [ ] **Expansão de Canais**: Inclusão de monitoramento via RapidAPI para redes sociais emergentes.
 
 ## 🛠️ Instruções de Execução (Como Deve Ser Feito)
 - **Gestor:** Gemini (Arquiteto de Software e PM)
