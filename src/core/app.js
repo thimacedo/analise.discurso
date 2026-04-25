@@ -441,42 +441,70 @@ window.openRegionalDetail = function(uf) {
 };
 
 window.openCheckout = function() {
-    document.getElementById('checkout-modal').style.display = 'flex';
+    const modal = document.getElementById('checkout-modal');
+    document.getElementById('payment-methods-area').classList.remove('hidden');
+    document.getElementById('pix-area').classList.add('hidden');
+    modal.style.display = 'flex';
+    modal.classList.remove('hidden');
 };
 
 window.closeCheckout = function() {
-    document.getElementById('checkout-modal').style.display = 'none';
+    const modal = document.getElementById('checkout-modal');
+    modal.style.display = 'none';
+    modal.classList.add('hidden');
+};
+
+window.backToPayments = function() {
+    document.getElementById('payment-methods-area').classList.remove('hidden');
     document.getElementById('pix-area').classList.add('hidden');
 };
 
 window.payWithPix = async function() {
     const area = document.getElementById('pix-area');
+    const methods = document.getElementById('payment-methods-area');
     const img = document.getElementById('pix-qr-img');
     const text = document.getElementById('pix-payload-text');
+    
     try {
+        methods.classList.add('hidden');
+        area.classList.remove('hidden');
+        text.innerText = "Gerando código...";
+        
         const response = await fetch('/api/generate-pix');
         const data = await response.json();
+        
         if(data.qr_code) {
             img.src = data.qr_code;
             text.innerText = data.payload;
-            area.classList.remove('hidden');
-            area.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            throw new Error("Falha no payload");
         }
-    } catch (e) { alert("Erro ao gerar QR Code PIX."); }
+    } catch (e) { 
+        alert("Serviço de PIX temporariamente indisponível. Tente novamente em instantes."); 
+        window.backToPayments();
+    }
 };
 
 window.payWithPayPal = function() {
-    const url = "https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=thi.macedo@gmail.com&item_name=Dossie%20Sentinela&amount=49.99&currency_code=BRL";
-    window.open(url, '_blank');
+    try {
+        const url = "https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=thi.macedo@gmail.com&item_name=Dossie%20Sentinela&amount=49.99&currency_code=BRL";
+        const win = window.open(url, '_blank');
+        if (!win) alert("Por favor, habilite pop-ups para prosseguir com o PayPal.");
+    } catch (e) {
+        alert("Erro ao iniciar PayPal.");
+    }
 };
 
 window.payWithStripe = async function() {
     try {
         const response = await fetch('/api/create-checkout-session', { method: 'POST' });
+        if (!response.ok) throw new Error("API Error");
         const data = await response.json();
         if(data.url) window.location.href = data.url;
-        else alert("Erro ao iniciar Checkout.");
-    } catch (e) { alert("Erro de conexão com o gateway."); }
+        else throw new Error("No URL");
+    } catch (e) { 
+        alert("O checkout via Cartão está em manutenção. Use PIX para liberação imediata."); 
+    }
 };
 
 window.addEventListener('DOMContentLoaded', () => {
