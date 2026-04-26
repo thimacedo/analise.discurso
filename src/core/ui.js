@@ -46,7 +46,9 @@ async function renderMonitorImpacto() {
 
     const data = await apiGet('stats/top-alvos');
     if (!data || !Array.isArray(data) || data.length === 0) {
-        container.innerHTML = '<p class="text-[10px] text-slate-600 text-center py-10 uppercase font-black">Aguardando integridade de dados...</p>';
+        container.innerHTML = '<p class="text-[10px] text-slate-600 text-center py-20 font-black animate-pulse uppercase tracking-[0.2em]">Conectando à Base de Dados...</p>';
+        // Tentar re-renderizar em 5 segundos se falhar
+        setTimeout(renderMonitorImpacto, 5000);
         return;
     }
 

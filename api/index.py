@@ -35,19 +35,26 @@ def get_supabase_headers():
 @app.get("/api/v1/stats/top-alvos")
 async def get_top_alvos():
     try:
-        url = f"{SUPABASE_URL}/rest/v1/candidatos?select=username,estado,comentarios_totais_count,comentarios_odio_count&status_monitoramento=ilike.Ativo&order=comentarios_totais_count.desc&limit=12"
+        # REMOVIDO FILTRO DE STATUS: Foco total em trazer quem tem dados
+        url = f"{SUPABASE_URL}/rest/v1/candidatos?select=username,estado,comentarios_totais_count,comentarios_odio_count&comentarios_totais_count=gt.0&order=comentarios_totais_count.desc&limit=12"
+        
         async with httpx.AsyncClient(timeout=20.0) as client:
             res = await client.get(url, headers=get_supabase_headers())
-            if res.status_code != 200: return []
+            if res.status_code != 200: 
+                print(f"🔴 Erro Supabase: {res.status_code} - {res.text}")
+                return []
+                
             data = res.json()
+            if not isinstance(data, list): return []
+
             processed = []
             for c in data:
                 total = c.get('comentarios_totais_count') or 0
                 odio = c.get('comentarios_odio_count') or 0
-                # Cálculo de Blindagem
                 blindagem = 100.0
                 if total > 0:
                     blindagem = 100 - ((odio / total) * 100)
+                
                 processed.append({
                     "username": c['username'],
                     "estado": c['estado'],
@@ -55,24 +62,24 @@ async def get_top_alvos():
                 })
             return processed
     except Exception as e:
+        print(f"🔴 Falha Crítica API: {e}")
         return []
 
 @app.get("/api/v1/live-intelligence")
 async def get_live_intelligence():
-    # Retorna uma lista vazia segura se o arquivo não existir
     try:
-        if os.path.exists("data/pasa_live_logs.json"):
-            with open("data/pasa_live_logs.json", "r", encoding="utf-8") as f:
+        # Tenta ler do diretório de dados persistentes do Vercel
+        path = "data/pasa_live_logs.json"
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
                 return json.load(f)
         return []
-    except:
-        return []
+    except: return []
 
 @app.get("/api/v1/status")
 async def status():
-    return {"status": "online", "version": "15.8.0", "engine": "Sentinela Core"}
+    return {"status": "online", "version": "15.8.4", "engine": "Sentinela Core"}
 
-# Fallback para rotas não encontradas na API
 @app.get("/api/{path_name:path}")
 async def catch_all_api(path_name: str):
-    return JSONResponse({"error": "Endpoint não encontrado", "path": path_name}, status_code=404)
+    return JSONResponse({"error": "Endpoint nao encontrado", "path": path_name}, status_code=404)

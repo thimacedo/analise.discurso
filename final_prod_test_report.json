@@ -1,0 +1,30 @@
+{
+    "status": "success",
+    "checks": [
+        {
+            "name": "Servidor Online",
+            "passed": true,
+            "detail": "Status 200"
+        },
+        {
+            "name": "T\u00edtulo Limpo",
+            "passed": true,
+            "detail": "T\u00edtulo atual: SENTINELA"
+        },
+        {
+            "name": "KPIs Carregados",
+            "passed": false,
+            "detail": "Alertas: ---"
+        },
+        {
+            "name": "Rota Metodologia",
+            "passed": false,
+            "detail": "P\u00e1gina acess\u00edvel"
+        },
+        {
+            "name": "M\u00f3dulo Auditoria",
+            "passed": true,
+            "detail": "Aba de revis\u00e3o funcional"
+        }
+    ]
+}
