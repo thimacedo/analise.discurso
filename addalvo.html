@@ -16,6 +16,7 @@
         .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
         .btn-secondary { background: rgba(255,255,255,0.05); color: #94a3b8; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 600; transition: all 0.2s; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
         .btn-secondary:hover { background: rgba(255,255,255,0.1); color: white; }
+        .sort-active { color: #3b82f6 !important; }
     </style>
 </head>
 <body class="text-slate-200 min-h-screen flex items-center justify-center p-4">
@@ -112,17 +113,23 @@
                 <h3 class="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">Alvos em Monitoramento</h3>
                 <div class="relative w-64">
                     <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-slate-500"></i>
-                    <input type="text" id="search-input" oninput="loadTargets()" placeholder="Buscar perfil..." class="input-dark pl-10 py-2 text-xs">
+                    <input type="text" id="search-input" oninput="renderTargets()" placeholder="Buscar perfil..." class="input-dark pl-10 py-2 text-xs">
                 </div>
             </div>
 
             <div class="overflow-hidden rounded-2xl border border-white/5">
                 <table class="w-full text-left text-xs">
-                    <thead class="bg-white/5 text-slate-500 font-black uppercase tracking-widest">
+                    <thead class="bg-white/5 text-slate-500 font-black uppercase tracking-widest cursor-pointer select-none">
                         <tr>
-                            <th class="p-4">Perfil</th>
-                            <th class="p-4">Cargo / UF</th>
-                            <th class="p-4 text-center">Status</th>
+                            <th class="p-4 hover:text-white transition-colors" onclick="setSort('username')">
+                                <div class="flex items-center gap-2">Perfil <i id="icon-username" data-lucide="chevrons-up-down" class="w-3 h-3"></i></div>
+                            </th>
+                            <th class="p-4 hover:text-white transition-colors" onclick="setSort('cargo')">
+                                <div class="flex items-center gap-2">Cargo / UF <i id="icon-cargo" data-lucide="chevrons-up-down" class="w-3 h-3 sort-active"></i></div>
+                            </th>
+                            <th class="p-4 text-center hover:text-white transition-colors" onclick="setSort('status')">
+                                <div class="flex items-center gap-2 justify-center">Status <i id="icon-status" data-lucide="chevrons-up-down" class="w-3 h-3"></i></div>
+                            </th>
                             <th class="p-4 text-right">Ação</th>
                         </tr>
                     </thead>
@@ -135,16 +142,41 @@
     </div>
 
     <script>
-        // Determina a base da API dinamicamente para ser sempre o mesmo servidor que serve a página
-        const currentPath = window.location.pathname;
-        const API_BASE = currentPath.includes('/admin') ? "/api/v1" : "/api/v1";
-        
-        // Fallback para debug local se não houver path (aberto via file:// por exemplo)
-        const FINAL_API_BASE = (window.location.protocol === 'file:') 
-            ? "http://localhost:8000/api/v1" 
-            : "/api/v1";
+        const FINAL_API_BASE = (window.location.protocol === 'file:') ? "http://localhost:8000/api/v1" : "/api/v1";
 
         let authToken = localStorage.getItem('sentinela_admin_token');
+        let allTargets = [];
+        let currentSort = { field: 'cargo', direction: 'asc' };
+
+        function init() {
+            lucide.createIcons();
+            if (authToken) {
+                showAdmin();
+            }
+        }
+
+        function setSort(field) {
+            if (currentSort.field === field) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.field = field;
+                currentSort.direction = 'asc';
+            }
+            
+            // Atualizar ícones visualmente
+            ['username', 'cargo', 'status'].forEach(f => {
+                const el = document.getElementById(`icon-${f}`);
+                if (f === field) {
+                    el.classList.add('sort-active');
+                    el.setAttribute('data-lucide', currentSort.direction === 'asc' ? 'chevron-up' : 'chevron-down');
+                } else {
+                    el.classList.remove('sort-active');
+                    el.setAttribute('data-lucide', 'chevrons-up-down');
+                }
+            });
+            
+            renderTargets();
+        }
 
         async function verifyAuth() {
             const codeInput = document.getElementById('totp-code');
@@ -167,8 +199,7 @@
                     errorEl.classList.remove('hidden');
                 }
             } catch (e) {
-                console.error("Erro na autenticação:", e);
-                alert("Erro ao conectar com a API. Verifique se o backend está rodando na porta 8088.");
+                alert("Erro ao conectar com a API.");
             }
         }
 
@@ -186,50 +217,83 @@
         }
 
         async function loadTargets() {
-            const search = document.getElementById('search-input').value;
             try {
-                const res = await fetch(`${API_BASE}/admin/targets?search=${search}`);
-                const targets = await res.json();
-                const tbody = document.getElementById('targets-table');
-                tbody.innerHTML = '';
-
-                targets.forEach(t => {
-                    const statusText = t.status || 'Ativo';
-                    const isActive = statusText === 'Ativo';
-                    tbody.innerHTML += `
-                        <tr class="hover:bg-white/[0.02] transition-colors">
-                            <td class="p-4">
-                                <div class="font-bold text-white">@${t.username}</div>
-                                <div class="text-[10px] text-slate-500">${t.nome_completo || 'Não informado'}</div>
-                            </td>
-                            <td class="p-4">
-                                <span class="px-2 py-1 bg-slate-800 rounded text-[9px] uppercase font-black mr-2">${t.cargo || 'Monitorado'}</span>
-                                <span class="text-blue-400 font-black">${t.estado || 'BR'}</span>
-                            </td>
-                            <td class="p-4 text-center">
-                                <span class="px-3 py-1 rounded-full text-[8px] font-black uppercase ${isActive ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-slate-800 text-slate-500 border border-white/5'}">
-                                    ${statusText}
-                                </span>
-                            </td>
-                            <td class="p-4 text-right">
-                                <button onclick="toggleStatus('${t.username}', '${isActive ? 'Inativo' : 'Ativo'}')" 
-                                    class="text-[9px] font-black uppercase hover:text-white transition-colors cursor-pointer ${isActive ? 'text-red-400' : 'text-emerald-400'}">
-                                    ${isActive ? 'Desativar' : 'Ativar'}
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                });
+                const res = await fetch(`${FINAL_API_BASE}/admin/targets`);
+                allTargets = await res.json();
+                renderTargets();
             } catch (e) { console.error("Erro ao carregar alvos:", e); }
+        }
+
+        function renderTargets() {
+            const tbody = document.getElementById('targets-table');
+            const search = document.getElementById('search-input').value.toLowerCase();
+            
+            // 1. Filtrar
+            let filtered = allTargets.filter(t => 
+                t.username.toLowerCase().includes(search) || 
+                (t.nome_completo && t.nome_completo.toLowerCase().includes(search)) ||
+                (t.cargo && t.cargo.toLowerCase().includes(search)) ||
+                (t.estado && t.estado.toLowerCase().includes(search))
+            );
+
+            // 2. Ordenar Multinível (Padrão: Cargo > UF > Perfil > Status)
+            filtered.sort((a, b) => {
+                const dir = currentSort.direction === 'asc' ? 1 : -1;
+                
+                // Prioridade de campos definida pelo usuário
+                const priority = [currentSort.field, 'cargo', 'estado', 'username', 'status'];
+                // Remover duplicata do campo principal de sort
+                const uniquePriority = [...new Set(priority)];
+
+                for (let f of uniquePriority) {
+                    let valA = (a[f === 'status' ? 'status' : f] || '').toString().toLowerCase();
+                    let valB = (b[f === 'status' ? 'status' : f] || '').toString().toLowerCase();
+                    
+                    if (valA < valB) return -1 * (f === currentSort.field ? dir : 1);
+                    if (valA > valB) return 1 * (f === currentSort.field ? dir : 1);
+                }
+                return 0;
+            });
+
+            tbody.innerHTML = '';
+            filtered.forEach(t => {
+                const statusText = t.status || 'Ativo';
+                const isActive = statusText === 'Ativo';
+                tbody.innerHTML += `
+                    <tr class="hover:bg-white/[0.02] transition-colors">
+                        <td class="p-4">
+                            <div class="font-bold text-white">@${t.username}</div>
+                            <div class="text-[10px] text-slate-500">${t.nome_completo || 'Não informado'}</div>
+                        </td>
+                        <td class="p-4">
+                            <span class="px-2 py-1 bg-slate-800 rounded text-[9px] uppercase font-black mr-2">${t.cargo || 'Monitorado'}</span>
+                            <span class="text-blue-400 font-black">${t.estado || 'BR'}</span>
+                        </td>
+                        <td class="p-4 text-center">
+                            <span class="px-3 py-1 rounded-full text-[8px] font-black uppercase ${isActive ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-slate-800 text-slate-500 border border-white/5'}">
+                                ${statusText}
+                            </span>
+                        </td>
+                        <td class="p-4 text-right">
+                            <button onclick="toggleStatus('${t.username}', '${isActive ? 'Inativo' : 'Ativo'}')" 
+                                class="text-[9px] font-black uppercase hover:text-white transition-colors cursor-pointer ${isActive ? 'text-red-400' : 'text-emerald-400'}">
+                                ${isActive ? 'Desativar' : 'Ativar'}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            lucide.createIcons();
         }
 
         async function toggleStatus(username, newStatus) {
             try {
-                const res = await fetch(`${API_BASE}/admin/targets/${username}/status?status=${newStatus}`, { method: 'PATCH' });
+                const res = await fetch(`${FINAL_API_BASE}/admin/targets/${username}/status?status=${newStatus}`, { method: 'PATCH' });
                 if (res.ok) {
-                    loadTargets();
-                } else {
-                    alert("Erro ao atualizar status.");
+                    // Atualiza localmente para não precisar de novo fetch
+                    const target = allTargets.find(t => t.username === username);
+                    if (target) target.status = newStatus;
+                    renderTargets();
                 }
             } catch (e) { console.error(e); }
         }
@@ -243,23 +307,21 @@
                 status: 'Ativo'
             };
 
-            const res = await fetch(`${API_BASE}/admin/targets/upsert`, {
+            const res = await fetch(`${FINAL_API_BASE}/admin/targets/upsert`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
 
             if (res.ok) {
-                alert("Alvo adicionado com sucesso!");
                 loadTargets();
             }
         }
 
         function downloadModel() {
-            window.open(`${API_BASE}/admin/targets/template`, '_blank');
+            window.open(`${FINAL_API_BASE}/admin/targets/template`, '_blank');
         }
 
-        // CSV DROPZONE
         const dropZone = document.getElementById('drop-zone');
         const fileInput = document.getElementById('csv-input');
         dropZone.onclick = () => fileInput.click();
