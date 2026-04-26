@@ -85,6 +85,12 @@ async def get_attack_neighborhood():
             author_map[a].add(target)
         return sorted([{"autor": k, "alvos": list(v), "intensidade": len(v)} for k, v in author_map.items() if len(v) > 1], key=lambda x: x['intensidade'], reverse=True)[:10]
 
+@app.get("/docs/analise-violencia", response_class=HTMLResponse)
+@app.get("/docs/analise-violencia.html", response_class=HTMLResponse)
+async def analise_page():
+    with open("docs/analise-violencia.html", "r", encoding="utf-8") as f:
+        return HTMLResponse(content=f.read(), media_type="text/html; charset=utf-8")
+
 @app.get("/", response_class=HTMLResponse)
 async def home_page():
     with open("index.html", "r", encoding="utf-8") as f:
