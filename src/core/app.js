@@ -1,523 +1,56 @@
+import { state, setViewState } from './state.js';
 import { fetchCandidatos, fetchAlertas } from '../services/apiService.js';
-import { renderBrazilMap } from '../components/BrazilMap.js';
-import { renderDossieGrid } from '../components/Dossie.js';
 
-let appState = {
-    view: 'monitor',
-    data: [],
-    stats: {},
-    classified: [],
-    alertas: [],
-    trends: [],
-    currentModalUF: null
-};
+/**
+ * Orquestrador Principal do Sentinela
+ * v15.5.0
+ */
 
-// EXPOSIÇÃO GLOBAL PARA O HTML
-window.navigate = function(v) {
-    appState.view = v;
-    window.location.hash = v;
-    document.querySelectorAll('.view-content').forEach(el => el.classList.add('hidden'));
-    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+async function init() {
+    console.log(`🛡️ Sentinela Core ${state.config.version} Initializing...`);
     
-    const targetView = document.getElementById(`view-${v}`);
-    const targetNav = document.getElementById(`nav-${v}`);
+    // Restaurar navegação por hash
+    const initialView = window.location.hash.substring(1) || 'monitor';
+    setViewState(initialView);
     
-    if(targetView) targetView.classList.remove('hidden');
-    if(targetNav) targetNav.classList.add('active');
+    // Iniciar Sincronização
+    await refreshData();
     
-    if(v === 'monitor') renderImpactCharts();
-};
+    // Eventos Globais
+    window.navigate = setViewState;
+    window.refresh = refreshData;
+    
+    lucide.createIcons();
+}
 
-window.focusState = function(uf) {
-    document.querySelectorAll('.state-rect').forEach(s => s.classList.remove('active'));
-    const stateEl = document.getElementById(`state-${uf}`);
-    if(stateEl) stateEl.classList.add('active');
-    
-    const info = appState.stats[uf] || { count: 0, hate: 0, total: 0 };
-    const stNameEl = document.getElementById('st-name');
-    const stTargetsEl = document.getElementById('st-targets');
-    const stHateEl = document.getElementById('st-hate');
-    
-    if(stNameEl) stNameEl.innerText = uf === "BR" ? "Brasil" : uf;
-    if(stTargetsEl) stTargetsEl.innerText = info.count;
-    if(stHateEl) stHateEl.innerText = info.hate;
-};
-
-window.refresh = async function() {
-    console.log("Iniciando Sincronização v15.4.4 (Engine Responsiva)...");
+async function refreshData() {
     try {
-        const results = await Promise.allSettled([
+        const [candidatos, alertas] = await Promise.all([
             fetchCandidatos(),
             fetchAlertas(12)
         ]);
-
-        const data = results[0].status === 'fulfilled' ? results[0].value : [];
-        const alertas = results[1].status === 'fulfilled' ? results[1].value : [];
         
-        appState.data = data;
-        appState.alertas = alertas;
+        state.data = candidatos;
+        state.alertas = alertas;
         
-        // --- CLASSIFICAÇÃO ESTREITA POR CENÁRIO ---
-        appState.classified = data.map(c => {
-            const estado = (c.estado || "").toUpperCase();
-            // Regra: Apenas o estado 'BR' (Elite Presidencial/Nacional) entra no cenário Nacional.
-            const scenario = estado === "BR" ? "Nacional" : "Regional";
-            return { ...c, scenario };
-        });
-
-        let globTotal = 0, globHate = 0;
-        const stateStats = {};
-        
-        data.forEach(c => {
-            const ti = c.comentarios_totais_count || 0;
-            const th = c.comentarios_odio_count || 0;
-            globTotal += ti; globHate += th;
-            const uf = c.estado || 'BR';
-            if(!stateStats[uf]) stateStats[uf] = { count: 0, hate: 0, total: 0 };
-            stateStats[uf].count++;
-            stateStats[uf].total += ti;
-            stateStats[uf].hate += th;
-        });
-
-        stateStats['BR'] = { count: data.length, hate: globHate, total: globTotal };
-        appState.stats = stateStats;
-        
-        const updateText = (id, val) => {
-            const el = document.getElementById(id);
-            if(el) el.innerText = val;
-        };
-
-        updateText('kpi-monitorados', data.length);
-        updateText('kpi-total', globTotal.toLocaleString());
-        updateText('kpi-hate', globHate);
-        updateText('kpi-res', `${(100 - (globHate/globTotal*100 || 0)).toFixed(1)}%`);
-
-        renderRankings(appState.classified);
-        renderAlerts(appState.alertas);
-        renderDossieGrid('dossie-grid', data);
-        renderBrazilMap('svg-map-br', stateStats);
-        renderImpactCharts();
-        
-        console.log("Sincronização v15.4.4 Finalizada.");
-    } catch(e) { 
-        console.error("Critical Refresh Error:", e);
-    }
-};
-
-function renderRankings(data) {
-    const nac = data.filter(i => i.scenario === 'Nacional').sort((a,b) => b.comentarios_totais_count - a.comentarios_totais_count).slice(0, 5);
-    const reg = data.filter(i => i.scenario === 'Regional').sort((a,b) => b.comentarios_totais_count - a.comentarios_totais_count).slice(0, 5);
-    
-    const draw = (list, id) => {
-        const container = document.getElementById(id);
-        if(!container) return;
-        const maxVal = list[0]?.comentarios_totais_count || 1;
-        container.innerHTML = list.map(t => `
-            <div onclick="window.openDetail('${t.username}')" class="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-all cursor-pointer group">
-                <img src="https://unavatar.io/instagram/${t.username}" class="w-8 h-8 rounded-lg border border-white/10" onerror="this.src='https://ui-avatars.com/api/?name=${t.username}'">
-                <div class="flex-1">
-                    <div class="flex justify-between text-[9px] font-bold text-slate-300">
-                        <span class="truncate w-24 group-hover:text-blue-400 transition-colors">@${t.username}</span>
-                        <span class="font-mono text-blue-400">${(t.comentarios_totais_count || 0).toLocaleString()}</span>
-                    </div>
-                    <div class="w-full h-1 bg-white/5 rounded-full mt-1.5 overflow-hidden">
-                        <div class="h-full bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.5)]" style="width: ${(t.comentarios_totais_count/maxVal*100)}%"></div>
-                    </div>
-                </div>
-            </div>`).join('');
-    };
-    draw(nac, 'rank-nac');
-    draw(reg, 'rank-reg');
-}
-
-let mainChart = null;
-function renderImpactCharts() {
-    const ctxEl = document.getElementById('chartMain');
-    if(!ctxEl) return;
-
-    // Preparar dados para a Matriz de Risco
-    const bubbleData = appState.classified.map(c => {
-        const resiliencia = (c.comentarios_totais_count || 0) > 0 
-            ? (100 - ((c.comentarios_odio_count || 0) / c.comentarios_totais_count * 100)) 
-            : 100;
-        
-        return {
-            x: resiliencia.toFixed(1), // Eixo X: Resiliência (Blindagem)
-            y: c.comentarios_odio_count || 0, // Eixo Y: Volume de Ódio
-            r: Math.min(Math.max((c.comentarios_totais_count || 0) / 10, 4), 30), // Tamanho: Impacto Social
-            label: `@${c.username}`,
-            scenario: c.scenario
-        };
-    });
-
-    if(mainChart) mainChart.destroy();
-    const ctx = ctxEl.getContext('2d');
-    
-    mainChart = new Chart(ctx, {
-        type: 'bubble',
-        data: { 
-            datasets: [
-                { 
-                    label: 'Nacional', 
-                    data: bubbleData.filter(d => d.scenario === 'Nacional'), 
-                    backgroundColor: 'rgba(239, 68, 68, 0.6)',
-                    borderColor: '#ef4444',
-                    borderWidth: 1
-                },
-                { 
-                    label: 'Regional', 
-                    data: bubbleData.filter(d => d.scenario === 'Regional'), 
-                    backgroundColor: 'rgba(59, 130, 246, 0.6)',
-                    borderColor: '#3b82f6',
-                    borderWidth: 1
-                }
-            ] 
-        },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false, 
-            plugins: { 
-                legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 9, family: 'JetBrains Mono' } } },
-                tooltip: {
-                    callbacks: {
-                        label: (ctx) => `${ctx.raw.label}: Resiliência ${ctx.raw.x}% | Ódio: ${ctx.raw.y}`
-                    }
-                }
-            },
-            scales: { 
-                x: {
-                    title: { display: true, text: 'ÍNDICE DE RESILIÊNCIA (%)', color: '#64748b', font: { size: 8, weight: 'bold' } },
-                    grid: { color: 'rgba(255,255,255,0.03)' },
-                    ticks: { color: '#64748b' },
-                    min: 0, max: 100
-                },
-                y: {
-                    title: { display: true, text: 'VOLUME DE ATAQUES (PASA)', color: '#64748b', font: { size: 8, weight: 'bold' } },
-                    grid: { color: 'rgba(255,255,255,0.03)' },
-                    ticks: { color: '#64748b' }
-                }
-            } 
-        }
-    });
-}
-
-function renderAlerts(alertas) {
-    const container = document.getElementById('feed-alertas');
-    if(!container) return;
-    if(!alertas || alertas.length === 0) {
-        container.innerHTML = `<div class="col-span-full py-10 text-center text-slate-500 text-[10px] font-bold uppercase tracking-widest italic">Nenhum registro encontrado.</div>`;
-        return;
-    }
-    container.innerHTML = alertas.map(a => {
-        // Se is_fallback for verdadeiro, não é um ataque de ódio, mas sim a última interação capturada
-        const isHate = !a.is_fallback;
-        const color = isHate ? 'red' : 'blue';
-        const icon = isHate ? 'alert-triangle' : 'message-square';
-        const title = isHate ? 'Ataque Detectado' : 'Interação Recente';
-        const confianca = isHate ? '98%' : 'N/A';
-
-        return `
-        <div class="glass-card p-6 bg-${color}-500/[0.03] border-${color}-500/10 hover:bg-${color}-500/[0.06] transition-all group relative overflow-hidden">
-            <div class="absolute top-0 right-0 p-2 opacity-20 group-hover:opacity-100 transition-opacity"><i data-lucide="${icon}" class="w-4 h-4 text-${color}-500"></i></div>
-            <div class="flex items-center gap-3 mb-4">
-                <img src="https://unavatar.io/instagram/${a.candidato_id}" class="w-6 h-6 rounded-full border border-${color}-500/20" onerror="this.src='https://ui-avatars.com/api/?name=${a.candidato_id}'">
-                <div><span class="text-[9px] font-black text-white block">@${a.candidato_id}</span><span class="text-[7px] text-slate-500 uppercase font-bold tracking-tighter">${new Date(a.data_coleta).toLocaleString('pt-BR')}</span></div>
-            </div>
-            <p class="text-[11px] text-slate-300 leading-relaxed italic border-l-2 border-${color}-500/30 pl-3 mb-4">"${a.texto_bruto || a.texto}"</p>
-            <div class="flex justify-between items-center">
-                <span class="px-2 py-0.5 bg-${color}-500/10 text-${color}-400 rounded text-[7px] font-black uppercase border border-${color}-500/20">${title}</span>
-                <span class="text-[8px] font-bold text-slate-500">Confiança: ${confianca}</span>
-            </div>
-        </div>`;
-    }).join('');
-    if(window.lucide) lucide.createIcons();
-}
-
-function renderTrends() {
-    const container = document.getElementById('predictive-trends');
-    if(!container) return;
-    
-    // Momentum Real
-    const topTrends = appState.classified
-        .filter(c => (c.comentarios_totais_count || 0) > 0)
-        .map(c => ({
-            username: c.username,
-            ratio: ((c.comentarios_odio_count || 0) / (c.comentarios_totais_count || 1)),
-            status: ((c.comentarios_odio_count || 0) / (c.comentarios_totais_count || 1)) > 0.1 ? 'RISCO ALTO' : 'ESTÁVEL'
-        }))
-        .sort((a,b) => b.ratio - a.ratio)
-        .slice(0, 3);
-
-    container.innerHTML = topTrends.map(t => `
-        <div class="p-4 bg-blue-600/5 rounded-2xl border border-blue-500/10 flex items-center justify-between">
-            <div class="flex items-center gap-3"><div class="w-2 h-2 ${t.status === 'RISCO ALTO' ? 'bg-red-500 animate-pulse' : 'bg-blue-500 animate-ping'} rounded-full"></div><span class="text-[10px] font-black text-white uppercase">@${t.username}</span></div>
-            <span class="text-[8px] font-bold ${t.status === 'RISCO ALTO' ? 'text-red-400 bg-red-500/10' : 'text-blue-400 bg-blue-500/10'} px-2 py-0.5 rounded uppercase tracking-tighter">${t.status}</span>
-        </div>`).join('') || '<p class="text-[9px] text-slate-500 italic text-center py-4">Aguardando dados de volumetria.</p>';
-}
-
-window.openDetail = function(username) {
-    const m = appState.data.find(d => d.username === username);
-    if(!m) return;
-    const modal = document.getElementById('detail-modal');
-    const content = document.getElementById('detail-content');
-    const res = (m.comentarios_totais_count || 0) > 0 ? (100 - ((m.comentarios_odio_count || 0) / m.comentarios_totais_count * 100)) : 100;
-    
-    const backBtn = appState.currentModalUF 
-        ? `<button onclick="window.openRegionalDetail('${appState.currentModalUF}')" class="mb-6 flex items-center gap-2 text-[10px] font-black text-blue-400 uppercase tracking-widest hover:text-white transition-colors"><i data-lucide="arrow-left" class="w-3 h-3"></i> Voltar ao Diagnóstico Regional (${appState.currentModalUF})</button>`
-        : '';
-
-    // Lógica de diagnóstico dinâmico baseada em linguística (PASA)
-    let diagText = "";
-    const totalInts = m.comentarios_totais_count || 0;
-    const hateInts = m.comentarios_odio_count || 0;
-
-    if (totalInts === 0) {
-        diagText = "Aguardando processamento de dados. O perfil está na fila de monitoramento e ainda não possui interações recentes avaliadas pelo motor PASA nas últimas 24h.";
-    } else if (res < 65) {
-        diagText = `ALERTA CRÍTICO: Detectada saturação de discurso hostil. Das ${totalInts} interações capturadas, ${hateInts} apresentam agressividade direta ou ataques coordenados, indicando um ambiente de alta toxicidade e rejeição orgânica severa.`;
-    } else if (res < 85) {
-        diagText = `ESTADO DE ATENÇÃO: Identificada polarização moderada. A análise capturou ${hateInts} interações com forte ironia ou críticas ácidas. O clima semântico sugere tensão política e vulnerabilidade a crises de imagem.`;
-    } else if (res < 95) {
-        diagText = `ESTABILIDADE MONITORADA: O perfil apresenta resiliência linguística satisfatória. Com ${totalInts} interações avaliadas, a incidência de ataques diretos é baixa (${hateInts}), predominando um vocabulário neutro ou de apoio institucional.`;
-    } else {
-        diagText = `RESILIÊNCIA MÁXIMA: Ambiente altamente blindado. O ecossistema de comentários (baseado em ${totalInts} avaliações) é composto quase integralmente por interações positivas ou de apoio, sem sinais de toxicidade detectáveis.`;
-    }
-
-    // Risco baseado em volumetria
-    const riscoPercent = Math.min((100 - res) * 1.5, 100).toFixed(1);
-    const engajRisco = (((m.comentarios_odio_count || 0) + 5) / ((m.comentarios_totais_count || 0) + 10) * 100).toFixed(1);
-
-    content.innerHTML = `
-        ${backBtn}
-        <div class="flex items-center gap-8 mb-10">
-            <img src="https://unavatar.io/instagram/${username}" class="w-32 h-32 rounded-3xl border-4 border-blue-600/20 shadow-2xl" onerror="this.src='https://ui-avatars.com/api/?name=${username}'">
-            <div>
-                <h2 class="text-4xl font-black text-white mb-2">@${username}</h2>
-                <p class="text-lg text-blue-400 font-bold uppercase tracking-widest">${m.nome_completo || 'Identidade Preservada'}</p>
-                <div class="flex gap-3 mt-4">
-                    <span class="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold text-slate-400 border border-white/10 uppercase">${m.cargo || 'Monitorado'}</span>
-                    <span class="px-3 py-1 bg-blue-600/10 rounded-full text-[10px] font-bold text-blue-400 border border-blue-500/20 uppercase">${m.estado || 'BR'}</span>
-                </div>
-            </div>
-        </div>
-        <div class="grid grid-cols-3 gap-6 mb-10">
-            <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center">
-                <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1 text-blue-400">Total Comentários</span>
-                <div class="text-2xl font-black text-white">${(m.comentarios_totais_count || 0).toLocaleString()}</div>
-            </div>
-            <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center text-red-500">
-                <span class="text-[10px] font-bold uppercase block mb-1">Alertas de Ódio</span>
-                <div class="text-2xl font-black">${m.comentarios_odio_count || 0}</div>
-            </div>
-            <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center text-emerald-400">
-                <span class="text-[10px] font-bold uppercase block mb-1">Resiliência</span>
-                <div class="text-2xl font-black">${res.toFixed(1)}%</div>
-            </div>
-        </div>
-        <div class="space-y-6">
-            <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-white/5 pb-2">Análise Linguística PASA</h3>
-            <div class="p-8 bg-blue-600/5 rounded-3xl border border-blue-500/10">
-                <div class="flex justify-between items-center mb-6">
-                    <span class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Diagnóstico Situacional</span>
-                    <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-full text-[8px] font-black uppercase">Monitoramento Ativo</span>
-                </div>
-                <p class="text-sm text-slate-300 leading-relaxed italic mb-8">"${diagText}"</p>
-                <div class="grid grid-cols-2 gap-8">
-                    <div class="space-y-2">
-                        <div class="flex justify-between text-[8px] font-bold uppercase">
-                            <span class="text-slate-500">Probabilidade de Crise</span>
-                        </div>
-                        <div class="w-full h-4 bg-white/5 rounded-full overflow-hidden relative">
-                            <div class="h-full bg-blue-600 transition-all duration-1000 flex items-center justify-end pr-2" style="width: ${riscoPercent}%">
-                                <span class="text-[8px] font-bold text-white shadow-sm">${riscoPercent}%</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="space-y-2">
-                        <div class="flex justify-between text-[8px] font-bold uppercase">
-                            <span class="text-slate-500">Engajamento de Risco</span>
-                        </div>
-                        <div class="w-full h-4 bg-white/5 rounded-full overflow-hidden relative">
-                            <div class="h-full bg-amber-500 transition-all duration-1000 flex items-center justify-end pr-2" style="width: ${engajRisco}%">
-                                <span class="text-[8px] font-bold text-white shadow-sm">${engajRisco}%</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>`;
-    modal.style.display = 'flex';
-    modal.classList.remove('hidden');
-    if(window.lucide) lucide.createIcons();
-};
-
-window.closeDetail = function() {
-    const modal = document.getElementById('detail-modal');
-    modal.style.display = 'none';
-    modal.classList.add('hidden');
-    appState.currentModalUF = null;
-};
-
-window.openRegionalDetail = function(uf, sortBy = 'total') {
-    const filterUF = uf === "Brasil" ? "BR" : uf;
-    appState.currentModalUF = filterUF;
-
-    const modal = document.getElementById('detail-modal');
-    const content = document.getElementById('detail-content');
-    if(!modal || !content) return;
-
-    let monitorados = appState.data.filter(d => d.estado === filterUF);
-    
-    // Ordenamento Dinâmico
-    if (sortBy === 'total') monitorados.sort((a,b) => (b.comentarios_totais_count || 0) - (a.comentarios_totais_count || 0));
-    else if (sortBy === 'hate') monitorados.sort((a,b) => (b.comentarios_odio_count || 0) - (a.comentarios_odio_count || 0));
-    else if (sortBy === 'res') {
-        monitorados.sort((a,b) => {
-            const resA = (a.comentarios_totais_count || 0) > 0 ? (100 - (a.comentarios_odio_count/a.comentarios_totais_count*100)) : 100;
-            const resB = (b.comentarios_totais_count || 0) > 0 ? (100 - (b.comentarios_odio_count/b.comentarios_totais_count*100)) : 100;
-            return resA - resB; // Menor resiliência primeiro
-        });
-    }
-
-    const info = appState.stats[filterUF] || { count: 0, hate: 0, total: 0 };
-    const resilienciaMedia = info.total > 0 ? (100 - (info.hate / info.total * 100)).toFixed(1) : "100.0";
-
-    content.innerHTML = `
-        <div class="flex justify-between items-start mb-8">
-            <div>
-                <h2 class="text-4xl font-black text-white mb-2">Diagnóstico: ${filterUF === "BR" ? "Brasil (Nacional)" : filterUF}</h2>
-                <p class="text-sm text-blue-400 font-bold uppercase tracking-widest">Inteligência Estratégica Regional</p>
-            </div>
-            <div class="text-right">
-                <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1">Resiliência Média</span>
-                <div class="text-3xl font-black text-emerald-400">${resilienciaMedia}%</div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4 mb-10">
-            <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center">
-                <span class="text-[10px] text-slate-500 font-bold uppercase block mb-1 text-blue-400">Total Interações</span>
-                <div class="text-2xl font-black text-white">${info.total.toLocaleString()}</div>
-            </div>
-            <div class="p-6 bg-red-500/5 rounded-3xl border border-red-500/10 text-center text-red-500">
-                <span class="text-[10px] font-bold uppercase block mb-1">Alertas Totais</span>
-                <div class="text-2xl font-black">${info.hate}</div>
-            </div>
-        </div>
-
-        <div class="flex justify-between items-center mb-6 border-b border-white/5 pb-2">
-            <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest">Monitorados Ativos</h3>
-            <div class="flex items-center gap-3">
-                <span class="text-[8px] font-black text-slate-500 uppercase">Ordenar por:</span>
-                <select onchange="window.openRegionalDetail('${uf}', this.value)" class="bg-slate-900 border border-white/10 rounded-lg text-[9px] font-bold text-blue-400 px-3 py-1.5 focus:outline-none focus:border-blue-500">
-                    <option value="total" ${sortBy === 'total' ? 'selected' : ''}>MAIOR ENGAJAMENTO</option>
-                    <option value="hate" ${sortBy === 'hate' ? 'selected' : ''}>MAIOR VOLUME ÓDIO</option>
-                    <option value="res" ${sortBy === 'res' ? 'selected' : ''}>MENOR RESILIÊNCIA</option>
-                </select>
-            </div>
-        </div>
-        
-        <div class="space-y-3">
-            ${monitorados.map(m => {
-                const resM = (m.comentarios_totais_count || 0) > 0 ? (100 - (m.comentarios_odio_count/m.comentarios_totais_count*100)).toFixed(1) : "100.0";
-                return `
-                <div onclick="window.openDetail('${m.username}')" class="flex items-center justify-between p-4 bg-white/[0.03] border border-white/5 rounded-2xl hover:bg-white/[0.08] transition-all cursor-pointer group">
-                    <div class="flex items-center gap-4">
-                        <img src="https://unavatar.io/instagram/${m.username}" class="w-10 h-10 rounded-xl border border-white/10" onerror="this.src='https://ui-avatars.com/api/?name=${m.username}'">
-                        <div>
-                            <span class="text-xs font-black text-white block group-hover:text-blue-400 transition-colors">@${m.username}</span>
-                            <span class="text-[9px] text-slate-500 uppercase font-bold">${m.cargo || 'Monitorado'}</span>
-                        </div>
-                    </div>
-                    <div class="flex gap-6 items-center">
-                        <div class="text-right">
-                            <span class="text-[7px] text-slate-500 font-bold uppercase block">Resiliência</span>
-                            <span class="text-[10px] font-black ${resM < 70 ? 'text-red-500' : 'text-emerald-400'}">${resM}%</span>
-                        </div>
-                        <div class="text-right text-[10px] font-mono text-blue-400 bg-blue-600/5 px-3 py-1 rounded-lg border border-blue-500/10">
-                            ${(m.comentarios_totais_count || 0).toLocaleString()} <span class="text-[8px] text-slate-500">ints</span>
-                        </div>
-                    </div>
-                </div>`;
-            }).join('') || '<div class="py-10 text-center text-slate-600 text-[10px] font-bold uppercase italic">Nenhum alvo específico deste cenário.</div>'}
-        </div>`;
-
-    modal.style.display = 'flex';
-    modal.classList.remove('hidden');
-    if(window.lucide) lucide.createIcons();
-};
-
-window.openCheckout = function() {
-    const modal = document.getElementById('checkout-modal');
-    document.getElementById('payment-methods-area').classList.remove('hidden');
-    document.getElementById('pix-area').classList.add('hidden');
-    modal.style.display = 'flex';
-    modal.classList.remove('hidden');
-};
-
-window.closeCheckout = function() {
-    const modal = document.getElementById('checkout-modal');
-    modal.style.display = 'none';
-    modal.classList.add('hidden');
-};
-
-window.backToPayments = function() {
-    document.getElementById('payment-methods-area').classList.remove('hidden');
-    document.getElementById('pix-area').classList.add('hidden');
-};
-
-window.payWithPix = async function() {
-    const area = document.getElementById('pix-area');
-    const methods = document.getElementById('payment-methods-area');
-    const img = document.getElementById('pix-qr-img');
-    const text = document.getElementById('pix-payload-text');
-    
-    try {
-        methods.classList.add('hidden');
-        area.classList.remove('hidden');
-        text.innerText = "Gerando código...";
-        
-        const response = await fetch('/api/generate-pix');
-        const data = await response.json();
-        
-        if(data.qr_code) {
-            img.src = data.qr_code;
-            text.innerText = data.payload;
-        } else {
-            throw new Error("Falha no payload");
-        }
-    } catch (e) { 
-        alert("Serviço de PIX temporariamente indisponível. Tente novamente em instantes."); 
-        window.backToPayments();
-    }
-};
-
-window.payWithPayPal = function() {
-    try {
-        const url = "https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=thi.macedo@gmail.com&item_name=Dossie%20Sentinela&amount=49.99&currency_code=BRL";
-        const win = window.open(url, '_blank');
-        if (!win) alert("Por favor, habilite pop-ups para prosseguir com o PayPal.");
+        updateKPIs();
+        // Disparar renderizações (implementadas no ui.js)
     } catch (e) {
-        alert("Erro ao iniciar PayPal.");
+        console.error("Sync Error:", e);
     }
-};
+}
 
-window.payWithStripe = async function() {
-    try {
-        const response = await fetch('/api/create-checkout-session', { method: 'POST' });
-        if (!response.ok) throw new Error("API Error");
-        const data = await response.json();
-        if(data.url) window.location.href = data.url;
-        else throw new Error("No URL");
-    } catch (e) { 
-        alert("O checkout via Cartão está em manutenção. Use PIX para liberação imediata."); 
-    }
-};
+function updateKPIs() {
+    const total = state.data.length;
+    const hate = state.data.reduce((acc, curr) => acc + (curr.comentarios_odio_count || 0), 0);
+    
+    const set = (id, val) => {
+        const el = document.getElementById(id);
+        if(el) el.innerText = val;
+    };
+    
+    set('kpi-monitorados', total);
+    set('kpi-hate', hate);
+}
 
-window.addEventListener('DOMContentLoaded', () => {
-    window.navigate(window.location.hash.substring(1) || 'monitor');
-    window.refresh();
-    window.addEventListener('keydown', (e) => {
-        if(e.key === 'Escape') { window.closeCheckout(); window.closeDetail(); }
-    });
-});
+document.addEventListener('DOMContentLoaded', init);

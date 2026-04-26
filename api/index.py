@@ -8,6 +8,7 @@ from datetime import datetime
 from typing import Optional
 from fastapi import FastAPI, Request, HTTPException, UploadFile, File
 from fastapi.responses import JSONResponse, StreamingResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import stripe
@@ -30,6 +31,14 @@ app.add_middleware(
     expose_headers=["*"]
 )
 
+# Servir arquivos estáticos (CSS, JS, Imagens)
+# Importante: No Vercel, esses arquivos são servidos automaticamente se estiverem na raiz ou via vercel.json
+# Mas para o teste local (localhost:8000), precisamos do mount.
+if os.path.exists("src"):
+    app.mount("/src", StaticFiles(directory="src"), name="src")
+if os.path.exists("docs"):
+    app.mount("/docs", StaticFiles(directory="docs"), name="docs")
+
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
@@ -51,17 +60,24 @@ class TargetUpsertRequest(BaseModel):
     estado: Optional[str] = "BR"
     status: Optional[str] = "Ativo"
 
-# --- ROTAS DE STATUS ---
-@app.get("/api/v1/status")
-@app.get("/api/status")
-async def status():
-    return {"status": "online", "database": "connected", "version": "15.5.2"}
+# --- ROTAS DE SERVIÇO DE PÁGINAS ---
 
-# --- ROTAS ADMIN ---
+@app.get("/", response_class=HTMLResponse)
+async def home_page():
+    with open("index.html", "r", encoding="utf-8") as f:
+        return f.read()
+
 @app.get("/admin", response_class=HTMLResponse)
 async def admin_page():
     with open("addalvo.html", "r", encoding="utf-8") as f:
         return f.read()
+
+# --- ROTAS DE API ---
+
+@app.get("/api/v1/status")
+@app.get("/api/status")
+async def status():
+    return {"status": "online", "database": "connected", "version": "15.5.4"}
 
 @app.post("/api/v1/admin/auth/verify")
 async def verify_totp(request: AuthRequest):
@@ -122,7 +138,26 @@ async def upsert_target_api(target: TargetUpsertRequest):
         await client.post(f"{SUPABASE_URL}/rest/v1/candidatos", headers=headers, json=data)
         return {"status": "success"}
 
-# Rota raiz
-@app.get("/")
-async def root():
-    return {"message": "Sentinela Intelligence API", "admin": "/admin"}
+@app.post("/api/v1/create-checkout-session")
+async def checkout(request: Request):
+    try:
+        origin = request.headers.get("origin") or "https://sentinela.politica.digital"
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'brl',
+                    'product_data': {
+                        'name': 'Dossiê Sentinela v15 - Relatório Profundo',
+                    },
+                    'unit_amount': 4999,
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=f"{origin}/complete.html?session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{origin}/index.html",
+        )
+        return JSONResponse({"url": session.url})
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
