@@ -30,28 +30,35 @@ async def get_top_alvos():
 
 @app.get("/api/v1/status")
 async def status():
-    return {"status": "online", "version": "15.9.3"}
+    return {"status": "online", "version": "15.9.4"}
 
-# --- ROTAS EXPLÍCITAS (FIM DO 404) ---
+# --- ROTAS EXPLÍCITAS ULTRA-SIMPLIFICADAS ---
 
 def serve_html(filename):
-    # Procura no root do projeto
-    path = os.path.join(os.path.dirname(__file__), "..", filename)
-    if not os.path.exists(path):
-        # Fallback para o mesmo diretório
-        path = os.path.join(os.path.dirname(__file__), filename)
+    # Procura em todos os lugares possíveis no Sandbox do Vercel
+    base_dir = os.path.dirname(__file__)
+    possible_paths = [
+        os.path.join(base_dir, "..", filename),
+        os.path.join(base_dir, filename),
+        os.path.join("/var/task", filename), # Caminho padrão Vercel
+        os.path.join(os.getcwd(), filename)
+    ]
     
-    with open(path, "r", encoding="utf-8") as f:
-        return HTMLResponse(content=f.read())
+    for path in possible_paths:
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                return HTMLResponse(content=f.read())
+    
+    return HTMLResponse(content=f"<h1>Erro Interno</h1><p>Arquivo {filename} nao localizado.</p>", status_code=500)
 
 @app.get("/", response_class=HTMLResponse)
-async def home(): return serve_html("index.html")
+async def route_home(): return serve_html("index.html")
 
 @app.get("/admin", response_class=HTMLResponse)
-async def admin(): return serve_html("addalvo.html")
+async def route_admin(): return serve_html("addalvo.html")
 
-@app.get("/analise-extremismo", response_class=HTMLResponse)
-async def analise(): return serve_html("analise-extremismo.html")
+@app.get("/analise", response_class=HTMLResponse)
+async def route_analise(): return serve_html("analise-extremismo.html")
 
-@app.get("/metodologia", response_class=HTMLResponse)
-async def metodologia(): return serve_html("metodologia.html")
+@app.get("/metodo", response_class=HTMLResponse)
+async def route_metodo(): return serve_html("metodologia.html")
