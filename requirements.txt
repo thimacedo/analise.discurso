@@ -9,3 +9,5 @@ stripe>=11.0.0
 segno>=1.6.0
 python-multipart>=0.0.9
 fpdf2>=2.7.0
+pyotp>=2.9.0
+qrcode>=7.4.2

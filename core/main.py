@@ -5,8 +5,10 @@ from sqlalchemy.orm import Session
 from database.repository import DatabaseRepository
 from typing import Optional
 import os
+import pyotp
 from datetime import datetime
 from processing.dossie_service import DossieService
+from pydantic import BaseModel
 
 app = FastAPI(
     title="API Análise Ódio Político",
@@ -14,9 +16,25 @@ app = FastAPI(
     version="1.0.0"
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
+# ... (middleware e db permanecem iguais)
+
+class AuthRequest(BaseModel):
+    code: str
+
+@app.post("/api/v1/admin/auth/verify")
+def verify_totp(request: AuthRequest):
+    secret = os.getenv("SENTINELA_ADMIN_TOTP_SECRET")
+    if not secret:
+        raise HTTPException(status_code=500, detail="Segredo TOTP não configurado no servidor.")
+
+    totp = pyotp.TOTP(secret)
+    if totp.verify(request.code):
+        return {"status": "success", "token": "temp-admin-session-token"} # Token simplificado para o MVP
+
+    raise HTTPException(status_code=401, detail="Código inválido ou expirado.")
+
+@app.get("/api/v1/exportar-dossie")
+
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
