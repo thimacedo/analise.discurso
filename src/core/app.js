@@ -5,67 +5,58 @@ import { renderBrazilMap } from '../components/BrazilMap.js';
 
 /**
  * Orquestrador Principal do Sentinela
- * v15.5.18 - Resilient Integration
+ * v15.6.6 - Performance & INP Optimization
  */
+
+// Helper para evitar sobrecarga de processamento (Debounce)
+let renderTimeout;
+function debouncedRender() {
+    clearTimeout(renderTimeout);
+    renderTimeout = setTimeout(() => {
+        renderAll();
+    }, 300);
+}
 
 async function init() {
     console.log(`🛡️ Sentinela Core ${state.config.version} Initializing...`);
     
-    // 1. Restaurar navegação por hash
     const initialView = window.location.hash.substring(1) || 'monitor';
     setViewState(initialView);
     
-    // 2. Iniciar Sincronização de Dados
     await refreshData();
     
-    // 3. Expor Eventos Globais
+    if (document.getElementById('svg-map-br')) {
+        renderBrazilMap('svg-map-br');
+    }
+    
+    // Exposição Global Otimizada
     window.navigate = (view) => {
         setViewState(view);
-        renderAll();
+        renderAll(); // Renderização imediata na troca de aba
     };
+    
+    window.debouncedRender = debouncedRender;
     window.refresh = refreshData;
     window.renderAll = renderAll;
     
-    // Lógica de Mapa (Interatividade)
-    window.focusState = (uf) => {
-        if(window.updateMapCard) window.updateMapCard(uf);
-    };
-
     window.openDetail = (username) => {
-        console.log(`🔍 Abrindo dossiê detalhado: @${username}`);
-        alert(`Dossiê Detalhado de @${username} disponível na versão Premium.`);
+        console.log(`🔍 Solicitação de Dossiê: @${username}`);
+        const modal = document.getElementById('checkout-modal');
+        if(modal) modal.classList.remove('hidden');
     };
 
     lucide.createIcons();
 }
 
 async function refreshData() {
-    console.log("🔄 Sincronizando com Supabase...");
     try {
         const [candidatos, alertas] = await Promise.all([
             fetchCandidatos(),
             fetchAlertas(15)
         ]);
-        
         state.data = candidatos;
         state.alertas = alertas;
-        
-        // 4. Renderização Completa
         renderAll();
-        
-        // 5. Atualizar Mapa com dados reais
-        if (document.getElementById('svg-map-br')) {
-            const stats = {};
-            candidatos.forEach(t => {
-                const uf = (t.estado || 'BR').toUpperCase();
-                if(!stats[uf]) stats[uf] = { count: 0, hate: 0 };
-                stats[uf].count += 1;
-                stats[uf].hate += (t.comentarios_odio_count || 0);
-            });
-            renderBrazilMap('svg-map-br', stats);
-        }
-
-        console.log("✅ Sistema sincronizado e visualizado.");
     } catch (e) {
         console.error("Sync Error:", e);
     }
