@@ -1,7 +1,7 @@
 import os
 import httpx
 import json
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
@@ -17,6 +17,7 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 def get_supabase_headers():
     return {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}", "Content-Type": "application/json"}
 
+# --- API ---
 @app.get("/api/v1/stats/top-alvos")
 async def get_top_alvos():
     try:
@@ -39,29 +40,36 @@ async def get_live_intelligence():
 
 @app.get("/api/v1/status")
 async def status():
-    return {"status": "online", "version": "15.8.7"}
+    return {"status": "online", "version": "15.8.8"}
 
-# FIX DE CAMINHO: Usar caminhos relativos ao diretório raiz do projeto no Vercel
-@app.get("/", response_class=HTMLResponse)
-async def read_index():
-    path = os.path.join(os.path.dirname(__file__), "..", "index.html")
-    with open(path, "r", encoding="utf-8") as f:
-        return HTMLResponse(content=f.read())
+# --- ROTEADOR UNIVERSAL (FRONTEND) ---
+@app.get("/{full_path:path}", response_class=HTMLResponse)
+async def catch_all(request: Request, full_path: str):
+    base_dir = os.path.join(os.path.dirname(__file__), "..")
+    
+    # 1. Mapear rotas para arquivos físicos
+    route_map = {
+        "": "index.html",
+        "admin": "addalvo.html",
+        "docs/analise-violencia": "docs/analise-violencia.html",
+        "docs/metodologia": "docs/metodologia.html"
+    }
+    
+    # Remover slash final se houver
+    clean_path = full_path.rstrip("/")
+    target_file = route_map.get(clean_path)
+    
+    if target_file:
+        file_path = os.path.join(base_dir, target_file)
+        if os.path.exists(file_path):
+            with open(file_path, "r", encoding="utf-8") as f:
+                return HTMLResponse(content=f.read())
+    
+    # 2. Se for um arquivo estático (JS/CSS)
+    file_path = os.path.join(base_dir, full_path)
+    if os.path.exists(file_path) and not os.path.isdir(file_path):
+        # Para estáticos, o Vercel deveria cuidar, mas como fallback:
+        with open(file_path, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
 
-@app.get("/admin", response_class=HTMLResponse)
-async def read_admin():
-    path = os.path.join(os.path.dirname(__file__), "..", "addalvo.html")
-    with open(path, "r", encoding="utf-8") as f:
-        return HTMLResponse(content=f.read())
-
-@app.get("/docs/analise-violencia", response_class=HTMLResponse)
-async def read_analise():
-    path = os.path.join(os.path.dirname(__file__), "..", "docs", "analise-violencia.html")
-    with open(path, "r", encoding="utf-8") as f:
-        return HTMLResponse(content=f.read())
-
-@app.get("/docs/metodologia", response_class=HTMLResponse)
-async def read_metodologia():
-    path = os.path.join(os.path.dirname(__file__), "..", "docs", "metodologia.html")
-    with open(path, "r", encoding="utf-8") as f:
-        return HTMLResponse(content=f.read())
+    return HTMLResponse(content="<h1>404 - Rota nao encontrada no Sentinela</h1>", status_code=404)
