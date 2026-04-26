@@ -14,7 +14,7 @@ Plataforma de **Inteligência Situacional e Tendências de Opinião Pública**. 
 ## 🎯 Próximos Passos (Prioridade Máxima)
 1. [x] **Inteligência Híbrida**: Automação 24/7 de estados e narrativas.
 2. [x] **Identificação de Redes Coordenadas (Ponto 2)**: Refinada a detecção de scripts de repetição linguística e mimetismo de massa.
-3. [ ] **Dossiês de Inteligência (Ponto 4)**: Implementar a exportação de "Dossiês de Evidências Informativas" em PDF para jornalistas e analistas políticos.
+3. [x] **Dossiês de Inteligência (Ponto 4)**: Implementar a exportação de "Dossiês de Evidências Informativas" em PDF para jornalistas e analistas políticos.
 4. [ ] **Extensão UFRN**: Estruturar o laboratório de análise situacional para a turma de Linguística.
 
 ## 🛠️ Instruções de Execução e Blindagem Jurídica
