@@ -30,35 +30,32 @@ async def get_top_alvos():
 
 @app.get("/api/v1/status")
 async def status():
-    return {"status": "online", "version": "15.9.8"}
+    return {"status": "online", "version": "15.9.9"}
 
-# --- SERVIDOR DE ARQUIVOS (SANDBOX) ---
+# --- MOTOR DE BYPASS DE ROTA (V15.9.9) ---
 
-def serve_from_local(filename):
-    # Procura no mesmo diretório do index.py
+def load_ui(filename):
     base_dir = os.path.dirname(__file__)
+    # Tentativa 1: Local (Sandbox)
     path = os.path.join(base_dir, filename)
-    
     if os.path.exists(path):
         with open(path, "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
-            
-    # Tenta um nível acima se falhar
-    path_up = os.path.join(base_dir, "..", filename)
-    if os.path.exists(path_up):
-        with open(path_up, "r", encoding="utf-8") as f:
+    # Tentativa 2: Root
+    path = os.path.join(base_dir, "..", filename)
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
-
-    return HTMLResponse(content=f"<h1>404</h1><p>Arquivo {filename} nao localizado no sandbox.</p>", status_code=404)
+    return HTMLResponse(content=f"<h1>Erro de Sistema</h1><p>Recurso {filename} nao localizado.</p>", status_code=500)
 
 @app.get("/", response_class=HTMLResponse)
-async def home(): return serve_from_local("index.html")
+async def home_route(): return load_ui("index.html")
 
 @app.get("/admin", response_class=HTMLResponse)
-async def admin(): return serve_from_local("addalvo.html")
+async def admin_route(): return load_ui("addalvo.html")
 
-@app.get("/analise.html", response_class=HTMLResponse)
-async def analise(): return serve_from_local("analise.html")
+@app.get("/infografico", response_class=HTMLResponse)
+async def info_route(): return load_ui("analise.html")
 
-@app.get("/metodo.html", response_class=HTMLResponse)
-async def metodo(): return serve_from_local("metodo.html")
+@app.get("/protocolo", response_class=HTMLResponse)
+async def proto_route(): return load_ui("metodo.html")
