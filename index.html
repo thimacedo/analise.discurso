@@ -174,7 +174,7 @@
                         <h2 class="text-2xl font-800 tracking-tighter uppercase text-white">Dossiê de Alvos</h2>
                         <div class="relative w-64">
                             <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-slate-500"></i>
-                            <input type="text" id="dossie-search" placeholder="Filtrar inteligência..." class="input-dark pl-10 py-2 text-xs">
+                            <input type="text" id="dossie-search" oninput="window.renderAll()" placeholder="Filtrar inteligência..." class="input-dark pl-10 py-2 text-xs">
                         </div>
                     </div>
                     <div id="dossie-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 pb-20"></div>
