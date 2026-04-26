@@ -1,12 +1,11 @@
-// SENTINELA SQUARE-GRID v2.0 - RECOGNIZABLE BRAZIL CARTOGRAM
-// Modelo de grade quadrada para identificação imediata dos estados brasileiros.
+// SENTINELA SQUARE-GRID v2.1 - ERROR RESILIENT CARTOGRAM
+// Modelo de grade quadrada com proteção contra dados nulos.
 
-const boxSize = 50; // Tamanho de cada quadrado (estado)
-const gap = 4; // Espaçamento entre estados
+const boxSize = 50; 
+const gap = 4; 
 
-// Grade Geográfica Padrão (Linha, Coluna) para formar o mapa do Brasil
 const gridLayout = {
-    "BR": { r: 0, c: 0 }, // Opção Geral Brasil
+    "BR": { r: 0, c: 0 },
     "RR": { r: 0, c: 2 }, "AP": { r: 0, c: 4 },
     "AM": { r: 1, c: 1 }, "PA": { r: 1, c: 2 }, "MA": { r: 1, c: 3 }, "PI": { r: 1, c: 4 }, "CE": { r: 1, c: 5 }, "RN": { r: 1, c: 6 },
     "AC": { r: 2, c: 0 }, "RO": { r: 2, c: 1 }, "MT": { r: 2, c: 2 }, "TO": { r: 2, c: 3 }, "BA": { r: 2, c: 4 }, "PE": { r: 2, c: 5 }, "PB": { r: 2, c: 6 },
@@ -15,11 +14,13 @@ const gridLayout = {
     "RS": { r: 5, c: 1 }, "SC": { r: 5, c: 2 }
 };
 
-export function renderBrazilMap(containerId, stats) {
+export function renderBrazilMap(containerId, stats = {}) {
     const svg = document.getElementById(containerId);
     if (!svg) return;
     
-    // ViewBox calibrado para a grade quadrada (Expandido para caber o BR à esquerda)
+    // Proteção: Garantir que stats é um objeto válido
+    const safeStats = stats || {};
+    
     svg.setAttribute("viewBox", "0 0 550 450");
     
     svg.innerHTML = `
@@ -31,14 +32,13 @@ export function renderBrazilMap(containerId, stats) {
         </defs>
         <g id="grid-root" transform="translate(40, 40)">
         ${Object.entries(gridLayout).map(([uf, pos]) => {
-            const info = stats[uf] || { count: 0, hate: 0 };
+            const info = safeStats[uf] || { count: 0, hate: 0 };
             const x = pos.c * (boxSize + gap);
             const y = pos.r * (boxSize + gap);
             
             const isBR = uf === "BR";
             const hasHate = info.hate > 0;
             
-            // Estilização diferenciada para o BR
             let fill = info.count > 0 ? (hasHate ? 'rgba(239, 68, 68, 0.5)' : 'rgba(59, 130, 246, 0.4)') : 'rgba(30, 41, 59, 0.6)';
             if(isBR) fill = 'rgba(59, 130, 246, 0.2)';
             
@@ -61,7 +61,6 @@ export function renderBrazilMap(containerId, stats) {
                       class="${isBR ? 'text-[14px]' : 'text-xs'} font-black pointer-events-none tracking-tighter">
                     ${uf}
                 </text>
-                <title>${isBR ? 'Brasil (Geral)' : uf + ': ' + info.count + ' monitorados / ' + info.hate + ' alertas'}</title>
             </g>`;
         }).join('')}
         </g>
