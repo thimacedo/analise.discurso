@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENTINELA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="/src/styles/main.css?v=15.11.0">
+</head>
+<body class="antialiased text-slate-200 bg-[#020617]">
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        <aside class="w-72 flex flex-col p-8 shrink-0 bg-[#020617]/90 backdrop-blur-3xl border-r border-white/5">
+            <div class="flex items-center gap-4 mb-12">
+                <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center">
+                    <i data-lucide="shield" class="w-7 h-7 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-800 uppercase text-white leading-none">Sentinela</h1>
+                    <span class="text-[9px] text-blue-400 font-black uppercase tracking-widest">Intelligence v15.11</span>
+                </div>
+            </div>
+            
+            <nav class="flex flex-col gap-1 mb-8">
+                <a href="#monitor" id="nav-monitor" class="nav-item group active flex items-center gap-3 p-3 rounded-xl transition-all">
+                    <i data-lucide="layout-grid" class="w-5 h-5"></i> 
+                    <span>Vis&atilde;o Geral</span>
+                </a>
+                <a href="#dossie" id="nav-dossie" class="nav-item group flex items-center gap-3 p-3 rounded-xl transition-all">
+                    <i data-lucide="fingerprint" class="w-5 h-5"></i> 
+                    <span>Dossi&ecirc; de Alvos</span>
+                </a>
+                <a href="#map" id="nav-map" class="nav-item group flex items-center gap-3 p-3 rounded-xl transition-all">
+                    <i data-lucide="globe" class="w-5 h-5"></i> 
+                    <span>Geopol&iacute;tica UF</span>
+                </a>
+                <a href="/analise.html" class="nav-item group opacity-60 flex items-center gap-3 p-3 rounded-xl transition-all">
+                    <i data-lucide="shield-alert" class="w-5 h-5 text-amber-500"></i> 
+                    <span>An&aacute;lise de Extremismo</span>
+                </a>
+                <a href="/metodologia.html" class="nav-item group opacity-60 flex items-center gap-3 p-3 rounded-xl transition-all">
+                    <i data-lucide="book-open" class="w-5 h-5"></i> 
+                    <span>Metodologia</span>
+                </a>
+            </nav>
+
+            <div class="mt-auto p-5 bg-white/[0.02] border border-white/5 rounded-3xl">
+                <div class="flex items-center gap-2 mb-3">
+                    <i data-lucide="gavel" class="w-4 h-4 text-blue-500"></i>
+                    <h4 class="text-[10px] font-black text-white uppercase tracking-widest">TSE 2026</h4>
+                </div>
+                <p class="text-[10px] text-slate-400 leading-relaxed">Conformidade total com rotulagem de IA.</p>
+            </div>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="flex-1 flex flex-col p-8 gap-8 overflow-y-auto custom-scrollbar">
+            <header class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="glass-card p-6 rounded-3xl bg-white/[0.02] border border-white/5">
+                    <span class="text-[10px] text-slate-500 font-black uppercase">Monitorados</span>
+                    <div id="kpi-monitorados" class="text-3xl font-black text-white">---</div>
+                </div>
+                <div class="glass-card p-6 rounded-3xl bg-white/[0.02] border-l-4 border-l-red-600/50">
+                    <span class="text-[10px] text-red-500 font-black uppercase">Alertas</span>
+                    <div id="kpi-hate" class="text-3xl font-black text-white">---</div>
+                </div>
+                <div class="glass-card p-6 rounded-3xl bg-white/[0.02] border border-white/5">
+                    <span class="text-[10px] text-slate-500 font-black uppercase">Amostragem</span>
+                    <div id="kpi-total" class="text-3xl font-black text-white">---</div>
+                </div>
+                <div class="glass-card p-6 rounded-3xl bg-white/[0.02] border-l-4 border-l-emerald-600/50">
+                    <span class="text-[10px] text-emerald-500 font-black uppercase">Status IA</span>
+                    <div id="kpi-res" class="text-3xl font-black text-white">Online</div>
+                </div>
+            </header>
+
+            <div class="flex-1 relative">
+                <div id="view-monitor" class="view-content absolute inset-0 space-y-8">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div class="lg:col-span-2 glass-card p-8 rounded-3xl border border-white/5 bg-white/[0.02]">
+                            <h3 class="text-xs font-black text-blue-400 uppercase tracking-widest mb-1">Monitor de Hostilidade</h3>
+                            <p class="text-lg font-bold text-white mb-6">Top Alvos: Propor&ccedil;&atilde;o de Narrativa</p>
+                            <div id="chartMain" class="space-y-4">
+                                <p class="text-center py-20 text-[10px] text-slate-500 animate-pulse uppercase font-black">Sincronizando Intelig&ecirc;ncia...</p>
+                            </div>
+                        </div>
+                        <div class="space-y-6">
+                            <div id="dossie-top-nac" class="glass-card p-6 rounded-3xl border-l-4 border-l-blue-600/50 bg-white/[0.02]"></div>
+                            <div id="dossie-top-reg" class="glass-card p-6 rounded-3xl border-l-4 border-l-amber-600/50 bg-white/[0.02]"></div>
+                        </div>
+                    </div>
+                    <div id="feed-alertas" class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-20"></div>
+                </div>
+
+                <div id="view-dossie" class="view-content absolute inset-0 hidden">
+                    <div id="dossie-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 pb-20"></div>
+                </div>
+
+                <div id="view-map" class="view-content absolute inset-0 hidden">
+                    <div class="flex flex-col lg:flex-row gap-12 items-center h-full p-8">
+                        <svg id="svg-map-br" class="flex-1 w-full max-w-[600px] h-auto drop-shadow-2xl"></svg>
+                        <div class="w-full lg:w-[400px] glass-card p-10 bg-slate-900/60 border-l-4 border-l-blue-600 rounded-3xl">
+                            <h3 id="st-name" class="text-4xl font-black text-white mb-2">Brasil</h3>
+                            <div class="grid grid-cols-2 gap-6 mt-8">
+                                <div class="text-center p-4 bg-white/5 rounded-2xl">
+                                    <span class="text-[10px] text-slate-500 font-black uppercase">Alvos</span>
+                                    <div id="st-targets" class="text-2xl font-black text-white">---</div>
+                                </div>
+                                <div class="text-center p-4 bg-white/5 rounded-2xl">
+                                    <span class="text-[10px] text-slate-500 font-black uppercase">Alertas</span>
+                                    <div id="st-hate" class="text-2xl font-black text-amber-500">---</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script type="module" src="/src/core/app.js?v=15.11.0"></script>
+</body>
+</html>

@@ -1,8 +1,6 @@
 import os
 import httpx
-import json
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
@@ -23,29 +21,10 @@ async def get_top_alvos():
         url = f"{SUPABASE_URL}/rest/v1/candidatos?select=username,estado,comentarios_totais_count,comentarios_odio_count&comentarios_totais_count=gt.0&order=comentarios_totais_count.desc&limit=12"
         async with httpx.AsyncClient(timeout=15.0) as client:
             res = await client.get(url, headers=get_supabase_headers())
-            return [{"username": c['username'], "estado": c['estado'], "share_blindagem": round(100 - ((c.get('comentarios_odio_count', 0) / c.get('comentarios_totais_count', 1)) * 100), 2)} for c in res.json()] if res.status_code == 200 else []
+            if res.status_code != 200: return []
+            return [{"username": c['username'], "estado": c['estado'], "share_blindagem": round(100 - ((c.get('comentarios_odio_count', 0) / c.get('comentarios_totais_count', 1)) * 100), 2)} for c in res.json()]
     except: return []
 
 @app.get("/api/v1/status")
-async def status(): return {"status": "online", "version": "15.10.4"}
-
-# --- ROTEADOR DE PARÂMETROS (V15.10.4) ---
-
-def serve(filename):
-    base = os.path.dirname(__file__)
-    path = os.path.join(base, "templates", filename)
-    if os.path.exists(path):
-        with open(path, "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
-    return HTMLResponse(content=f"<h1>Erro</h1><p>{filename} nao localizado.</p>", status_code=404)
-
-@app.get("/")
-async def universal_router(page: str = None):
-    if page == "analise": return serve("analise.html")
-    if page == "metodo": return serve("metodo.html")
-    if page == "admin": return serve("addalvo.html")
-    return serve("index.html")
-
-# Rota explícita para o Vercel não se perder
-@app.get("/api/status")
-async def status_v1(): return {"status": "ok"}
+async def status():
+    return {"status": "online", "version": "15.11.0", "project": "Sentinela Unificado"}
