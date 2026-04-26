@@ -1,62 +1,51 @@
-# Baliza de Treinamento: Linguística Forense e Discurso de Ódio
-**Versão:** 1.0 (Baseada em Normas Jurídicas e Pesquisa Acadêmica Brasileira)
-**Objetivo:** Estabelecer critérios objetivos para a classificação de mensagens e treinamento de modelos IA (BERTimbau/Qwen) no ecossistema ForenseNet.
+# ⚖️ Baliza de Treinamento: Linguística Forense e Discurso de Ódio
+**Versão:** 15.5.0 (Edição Especialista UFRN/Sentinela)
+**Objetivo:** Protocolo avançado para classificação de evidências e calibração de modelos PASA.
 
 ---
 
-## ⚖️ 1. Matriz de Critérios Jurídico-Periciais
-Baseada nas diretrizes do **MPF**, **STF** e doutrina penal brasileira.
+## 🔬 1. Matriz de Rigor Pericial (Pragmática e Semântica)
+Extraído das bases acadêmicas da UFRN e doutrina brasileira.
 
-### A. Discurso de Ódio Penalmente Punível
-Para ser classificado como ódio real (Flag Vermelha), o conteúdo deve apresentar:
-1. **monitorado Protegido:** Ataque baseado em raça, cor, etnia, religião, procedência nacional, orientação sexual ou identidade de gênero.
-2. **Desumanização:** Uso de termos que comparam seres humanos a animais, pragas ou objetos.
-3. **Incitação:** Estímulo direto ou indireto à violência física ou exclusão social.
-4. **Hostilidade Política Extrema:** Ataques que visam anular a dignidade do opositor, indo além da crítica à gestão (Injúria, Calúnia ou Difamação).
+### A. Análise de Intencionalidade (Mens Rea)
+O motor IA não deve apenas buscar palavras-chave, mas identificar o *animus injuriandi*:
+1.  **Dissonância Dialetal:** Reconhecer que termos como "rapariga" ou gírias regionais possuem cargas pejorativas distintas dependendo da UF ou país de origem (ex: PT vs BR).
+2.  **Paralelismo Sintático:** Múltiplas mensagens com a mesma estrutura gramatical, mesmo com léxico diferente = **Evidência de Campanha Coordenada (Bots/Militância)**.
+3.  **Marcadores Idioleitais:** Identificação de padrões únicos de pontuação e erro (marcas de autoria) para rastrear redes de ataques.
 
-### B. Zona de Sombra (Falsos Positivos)
-Não devem ser marcados como ódio (exceto se houver agressão explícita):
-- **Crítica Institucional:** "Este governo é corrupto" ou "Este político é incompetente" (Lógica: Direito à crítica política).
-- **Ironia e Sarcasmo:** Uso de figuras de linguagem sem incitação à violência.
-- **Linguagem Informal de Apoio:** Uso de termos fortes ("Matou a pau", "Acabou com eles") em contextos de vitória ou debate.
-
----
-
-## 🎓 2. Critérios Linguísticos e Acadêmicos (USP/UNICAMP/FGV)
-Critérios para ajuste fino dos pesos da IA:
-
-- **Intencionalidade (Mens rea):** A IA deve buscar marcadores de *animus injuriandi* (intenção de ofender).
-- **Contextualidade:** Verificação do post original. Se o post é sobre "Causa Animal", a palavra "matar" no comentário deve ser analisada como denúncia, não como ódio.
-- **Toxicidade Colaborativa:** Identificação de padrões de repetição (ataques coordenados por bots).
+### B. Blindagem de Falsos Positivos (Filtro Anti-Ruído)
+**NUNCA** classificar como ódio:
+-   **Crítica à Gestão:** "Incompetente", "Corrupto", "Desgoverno".
+-   **Ironia Política:** Sarcasmo sem incitação direta à violência.
+-   **Dopamine Agreement:** Elogios, aplausos (👏) e palavras de apoio isoladas.
 
 ---
 
-## 🛠️ 3. Taxonomia de Classificação (Labels)
-| Categoria | Descrição | Flag |
+## 🛠️ 2. Taxonomia Expandida de Classificação
+| Categoria | Definição Pericial | Nível de Risco |
 | :--- | :--- | :--- |
-| **ÓDIO_RACIAL** | Ataque direto a etnia ou cor. | 🚩 CRÍTICO |
-| **ÓDIO_GENERO** | Misoginia, homofobia ou transfobia. | 🚩 CRÍTICO |
-| **AMEAÇA_FISICA** | Promessa de dano à integridade. | 🚩 CRÍTICO |
-| **INSULTO_POLITICO** | Xingamentos diretos sem base em pauta. | 🟠 ALERTA |
-| **CRÍTICA_DURA** | Crítica severa mas dentro da lei. | ⚪ NEUTRO |
-| **APOIO/EMOJI** | Emojis, elogios e incentivos. | ✅ SEGURO |
+| **ÓDIO_IDENTITÁRIO** | Ataque a raça, cor, etnia, religião ou procedência. | 🔴 CRÍTICO |
+| **VIOLÊNCIA_GÊNERO** | Misoginia, transfobia ou ataques à dignidade da mulher. | 🔴 CRÍTICO |
+| **AMEAÇA_DIRETA** | Promessa de dano físico ou "visita" ao monitorado. | 🔴 CRÍTICO |
+| **ATAQUE_COORDENADO** | Padrões repetitivos de N-gramas e paralelismo sintático. | 🔴 CRÍTICO |
+| **INSULTO_AD_HOMINEM** | Xingamentos pessoais desvinculados de pauta política. | 🟠 ALERTA |
+| **DISSIDÊNCIA_DURA** | Crítica feroz à atuação pública, sem ferir a lei. | ⚪ NEUTRO |
+| **APOIO_ORGÂNICO** | Elogios, incentivos e emojis de suporte. | ✅ SEGURO |
 
 ---
 
-## 🔄 4. Gatilhos de Atualização (Continuous Learning)
-Para manter nossos parâmetros sempre atualizados, o sistema deve disparar reavaliações quando:
-
-1. **Mudança Legislativa:** Atualização no Código Penal (Ex: Inclusão de novos grupos protegidos).
-2. **Drift de Linguagem:** Surgimento de novas gírias ou "dog whistles" (códigos usados por grupos de ódio para burlar filtros).
-3. **Feedback do Perito:** Toda vez que você (Investigador) marcar um "Falso Positivo" no Dashboard, este `.md` deve ser consultado para ajustar o `cloud_classifier.py`.
-4. **Novas Teses:** Inclusão de referências de repositórios (UFRN, UFU, UFMS) a cada 6 meses.
+## 📈 3. Lógica Forense Aplicada (N-Gramas e Adjetivação)
+Baseado no protocolo de Leonardo Vichi (2026):
+1.  **Densidade de Adjetivos:** O sistema deve calcular a proporção de adjetivos pejorativos vs. substantivos neutros.
+2.  **Isolamento de Sentenças:** A análise de Bigramas/Trigramas não deve cruzar sinais de pontuação (., !, ?), preservando a coerência da frase original.
+3.  **Léxico de Milícias:** Mapeamento de termos usados na "machosfera" e grupos extremistas para detecção precoce de radicalização.
 
 ---
 
-## 📚 Referências Consolidadas
-- **Jurídico:** JOTA (Critérios de Caracterização), MPF (Respeite a Diferença).
-- **Plataformas:** Meta (Hateful Conduct Policy).
-- **Acadêmico:** Estudos USP (IA Transparente), Unicamp (Datasets de Ódio), FGV (Monitoramento de Redes).
+## 📚 Fontes de Referência Integradas
+- **Acadêmico:** Disciplina Linguística Forense e Tecnologias Digitais (UFRN).
+- **Jurídico:** Matrizes de Rastreamento de Violência Política (Brasil).
+- **IA:** Modelos BERTimbau e Llama 3.3 calibrados para o léxico político brasileiro.
 
 ---
-**Próxima Revisão Agendada:** 18/10/2026
+**Atualização:** 26/04/2026 | **Aprovação:** Arquiteto Sentinela

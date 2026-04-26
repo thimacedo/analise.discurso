@@ -65,6 +65,13 @@ main {
     overflow-y: auto;
 }
 
+/* Chart Container */
+.chart-container {
+    height: 280px;
+    position: relative;
+    width: 100%;
+}
+
 /* Glass Components */
 .glass-card { 
     background: var(--glass); 
@@ -72,6 +79,7 @@ main {
     border: 1px solid var(--border); 
     border-radius: 24px; 
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
 }
 
 .glass-card:hover {

@@ -1,5 +1,6 @@
 import { state, setViewState } from './state.js';
 import { fetchCandidatos, fetchAlertas } from '../services/apiService.js';
+import { renderAll } from './ui.js';
 
 /**
  * Orquestrador Principal do Sentinela
@@ -24,6 +25,7 @@ async function init() {
 }
 
 async function refreshData() {
+    console.log("🔄 Sincronizando dados com o servidor...");
     try {
         const [candidatos, alertas] = await Promise.all([
             fetchCandidatos(),
@@ -33,24 +35,13 @@ async function refreshData() {
         state.data = candidatos;
         state.alertas = alertas;
         
-        updateKPIs();
-        // Disparar renderizações (implementadas no ui.js)
+        // Disparar Renderização de todos os componentes
+        renderAll();
+        
+        console.log("✅ Dados sincronizados e interface atualizada.");
     } catch (e) {
         console.error("Sync Error:", e);
     }
-}
-
-function updateKPIs() {
-    const total = state.data.length;
-    const hate = state.data.reduce((acc, curr) => acc + (curr.comentarios_odio_count || 0), 0);
-    
-    const set = (id, val) => {
-        const el = document.getElementById(id);
-        if(el) el.innerText = val;
-    };
-    
-    set('kpi-monitorados', total);
-    set('kpi-hate', hate);
 }
 
 document.addEventListener('DOMContentLoaded', init);
