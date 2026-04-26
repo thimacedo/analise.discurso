@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
@@ -7,11 +7,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="/src/styles/main.css?v=15.8.5">
+    <link rel="stylesheet" href="/src/styles/main.css?v=15.8.6">
 </head>
 <body class="antialiased text-slate-200 bg-[#020617]">
     <div class="app-container">
-        <!-- SIDEBAR STEALTH -->
         <aside class="w-72 flex flex-col p-8 shrink-0 relative overflow-hidden bg-[#020617]/90 backdrop-blur-3xl border-r border-white/5">
             <div class="flex items-center gap-4 mb-12 relative z-10">
                 <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-500/20">
@@ -46,7 +45,6 @@
                 </a>
             </nav>
 
-            <!-- COMPLIANCE TSE -->
             <div class="mt-auto p-5 bg-white/[0.02] border border-white/5 rounded-3xl relative z-10">
                 <div class="flex items-center gap-2 mb-3">
                     <i data-lucide="gavel" class="w-4 h-4 text-blue-500"></i>
@@ -67,9 +65,7 @@
             </div>
         </aside>
 
-        <!-- MAIN AREA -->
         <main class="flex-1 flex flex-col p-8 gap-8 overflow-y-auto custom-scrollbar">
-            <!-- TOP KPI HEADER -->
             <header class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 shrink-0">
                 <div class="glass-card p-6 flex flex-col justify-between border border-white/5 rounded-3xl bg-white/[0.02]">
                     <div class="flex justify-between items-start mb-4">
@@ -105,52 +101,29 @@
                 </div>
             </header>
 
-            <!-- VIEWS -->
             <div class="flex-1 relative">
-                <!-- VIEW: MONITOR -->
                 <div id="view-monitor" class="view-content absolute inset-0 space-y-8">
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         <div class="lg:col-span-2 glass-card p-8 flex flex-col h-full relative overflow-hidden bg-white/[0.02] border border-white/5 rounded-3xl">
                             <div class="flex justify-between items-start mb-6 relative z-10">
                                 <div>
                                     <h3 class="text-xs font-black text-blue-400 uppercase tracking-[0.2em] mb-1">Monitor de Impacto &amp; Hostilidade</h3>
-                                    <p class="text-lg font-bold text-white">Top 12 Alvos: Propor&ccedil;&atilde;o de Narrativa</p>
+                                    <p class="text-lg font-bold text-white">Propor&ccedil;&atilde;o de Narrativa</p>
                                 </div>
                                 <div class="flex flex-col items-end gap-1">
                                     <span class="badge badge-danger animate-pulse bg-red-500/10 text-red-500 px-2 py-1 rounded text-[8px] font-black uppercase">Vigil&acirc;ncia Ativa</span>
-                                    <span class="text-[8px] font-black text-slate-500 uppercase tracking-tighter">Engine v15.8</span>
                                 </div>
                             </div>
                             <div id="chartMain" class="flex-1 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-2">
-                                <p class="text-[10px] text-slate-500 animate-pulse uppercase font-black text-center py-10">Sincronizando Matriz...</p>
+                                <p class="text-[10px] text-slate-500 animate-pulse uppercase font-black text-center py-20 tracking-widest">Sincronizando Base de Dados...</p>
                             </div>
                         </div>
                         <div class="flex flex-col gap-6 h-full">
-                            <!-- TOP ALVO NACIONAL -->
-                            <div class="glass-card p-6 flex-1 border-l-4 border-l-blue-600/50 border-white/5 rounded-3xl bg-white/[0.02] flex flex-col justify-between">
-                                <div class="flex justify-between items-start mb-4">
-                                    <span class="text-[9px] font-black text-blue-400 uppercase tracking-widest font-bold">L&iacute;der de Audi&ecirc;ncia (BR)</span>
-                                    <i data-lucide="award" class="w-3 h-3 text-blue-500"></i>
-                                </div>
-                                <div id="dossie-top-nac" class="flex-1 flex flex-col justify-center py-2">
-                                    <p class="text-[10px] text-slate-500 animate-pulse uppercase font-black text-center">Sincronizando...</p>
-                                </div>
-                            </div>
-
-                            <!-- TOP ALVO REGIONAL -->
-                            <div class="glass-card p-6 flex-1 border-l-4 border-l-amber-600/50 border-white/5 rounded-3xl bg-white/[0.02] flex flex-col justify-between">
-                                <div class="flex justify-between items-start mb-4">
-                                    <span class="text-[9px] font-black text-amber-400 uppercase tracking-widest font-bold">L&iacute;der Regional (UFs)</span>
-                                    <i data-lucide="map-pin" class="w-3 h-3 text-amber-500"></i>
-                                </div>
-                                <div id="dossie-top-reg" class="flex-1 flex flex-col justify-center py-2">
-                                    <p class="text-[10px] text-slate-500 animate-pulse uppercase font-black text-center">Sincronizando...</p>
-                                </div>
-                            </div>
+                            <div id="dossie-top-nac" class="glass-card p-6 flex-1 border-l-4 border-l-blue-600/50 bg-white/[0.02] rounded-3xl"></div>
+                            <div id="dossie-top-reg" class="glass-card p-6 flex-1 border-l-4 border-l-amber-600/50 bg-white/[0.02] rounded-3xl"></div>
                         </div>
                     </div>
 
-                    <!-- FEED DE ALERTAS -->
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-10">
                         <div class="lg:col-span-2 space-y-6">
                             <div class="flex items-center gap-3 px-2">
@@ -159,41 +132,38 @@
                             </div>
                             <div id="feed-alertas" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                         </div>
-                        <div class="space-y-6">
+                        <div class="space-y-6" id="predictive-trends">
                             <div class="flex items-center gap-3 px-2">
                                 <i data-lucide="cpu" class="w-4 h-4 text-blue-400"></i>
                                 <h3 class="text-xs font-black text-white uppercase tracking-widest">Intelig&ecirc;ncia Preditiva</h3>
                             </div>
-                            <div id="predictive-trends" class="space-y-4"></div>
                         </div>
                     </div>
                 </div>
 
-                <!-- VIEW: DOSSIE -->
                 <div id="view-dossie" class="view-content absolute inset-0 hidden">
                     <div class="flex justify-between items-center mb-8 px-2">
                         <h2 class="text-2xl font-800 tracking-tighter uppercase text-white">Dossi&ecirc; de Alvos</h2>
                         <div class="relative w-64">
                             <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-slate-500"></i>
-                            <input type="text" id="dossie-search" oninput="window.renderAll()" placeholder="Filtrar intelig&ecirc;ncia..." class="bg-white/5 border border-white/10 text-white rounded-xl pl-10 py-2 text-xs w-full focus:border-blue-500 outline-none">
+                            <input type="text" id="dossie-search" oninput="window.debouncedRender()" placeholder="Filtrar intelig&ecirc;ncia..." class="bg-white/5 border border-white/10 text-white rounded-xl pl-10 py-2 text-xs w-full focus:border-blue-500 outline-none">
                         </div>
                     </div>
                     <div id="dossie-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 pb-20"></div>
                 </div>
 
-                <!-- VIEW: MAPA -->
                 <div id="view-map" class="view-content absolute inset-0 hidden">
                     <div class="flex flex-col lg:flex-row gap-12 items-center h-full p-8">
                         <div class="flex-1 w-full flex justify-center"><svg id="svg-map-br" class="w-full max-w-[600px] h-auto drop-shadow-2xl"></svg></div>
-                        <div onclick="window.openRegionalDetail(document.getElementById('st-name').innerText)" class="w-full lg:w-[400px] glass-card p-10 bg-slate-900/60 border-l-4 border-l-blue-600 rounded-3xl cursor-pointer hover:bg-slate-900/80 transition-all">
+                        <div class="w-full lg:w-[400px] glass-card p-10 bg-slate-900/60 border-l-4 border-l-blue-600 rounded-3xl">
                             <h3 id="st-name" class="text-4xl font-black text-white mb-2">Brasil</h3>
-                            <p class="text-[11px] text-slate-500 font-bold uppercase mb-8 border-b border-white/5 pb-6">Diagn&oacute;stico Situacional por UF</p>
+                            <p id="st-info" class="text-[11px] text-slate-500 font-bold uppercase mb-8 border-b border-white/5 pb-6">Diagn&oacute;stico Situacional</p>
                             <div class="grid grid-cols-2 gap-6">
-                                <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center">
+                                <div class="p-6 bg-white/5 rounded-3xl text-center">
                                     <span class="text-[10px] text-slate-500 font-black uppercase block mb-1">Alvos</span>
                                     <div id="st-targets" class="text-3xl font-black text-white">---</div>
                                 </div>
-                                <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center">
+                                <div class="p-6 bg-white/5 rounded-3xl text-center">
                                     <span class="text-[10px] text-slate-500 font-black uppercase block mb-1">Alertas</span>
                                     <div id="st-hate" class="text-3xl font-black text-amber-500">---</div>
                                 </div>
@@ -214,15 +184,13 @@
                     <i data-lucide="unlock" class="w-8 h-8 text-blue-500"></i>
                 </div>
                 <h3 class="text-2xl font-black uppercase text-white tracking-tight">Relat&oacute;rio Premium</h3>
-                <p class="text-sm text-slate-500 mt-2 font-medium">Acesso total &agrave; intelig&ecirc;ncia situacional</p>
             </div>
             <div class="space-y-4 text-center">
-                <p class="text-xs text-slate-400 uppercase font-black tracking-widest mb-4">Entre em contato para faturamento corporativo</p>
                 <a href="mailto:contato@sentinela.digital" class="w-full py-5 bg-blue-600 text-white font-black uppercase text-[11px] tracking-widest rounded-2xl flex items-center justify-center gap-3 transition-transform hover:scale-[1.02]"><i data-lucide="mail"></i> SOLICITAR ACESSO</a>
             </div>
         </div>
     </div>
 
-    <script type="module" src="/src/core/app.js?v=15.8.5"></script>
+    <script type="module" src="/src/core/app.js?v=15.8.6"></script>
 </body>
 </html>
