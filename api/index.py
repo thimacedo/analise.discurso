@@ -30,27 +30,35 @@ async def get_top_alvos():
 
 @app.get("/api/v1/status")
 async def status():
-    return {"status": "online", "version": "15.9.7"}
+    return {"status": "online", "version": "15.9.8"}
 
-# --- SERVIDOR DE ARQUIVOS PURO (EVITA 404 DO VERCEL) ---
+# --- SERVIDOR DE ARQUIVOS (SANDBOX) ---
 
-def serve_html(filename):
+def serve_from_local(filename):
+    # Procura no mesmo diretório do index.py
     base_dir = os.path.dirname(__file__)
-    path = os.path.abspath(os.path.join(base_dir, "..", filename))
-    if not os.path.exists(path):
-        path = os.path.join(base_dir, filename)
+    path = os.path.join(base_dir, filename)
     
-    with open(path, "r", encoding="utf-8") as f:
-        return HTMLResponse(content=f.read())
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+            
+    # Tenta um nível acima se falhar
+    path_up = os.path.join(base_dir, "..", filename)
+    if os.path.exists(path_up):
+        with open(path_up, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+
+    return HTMLResponse(content=f"<h1>404</h1><p>Arquivo {filename} nao localizado no sandbox.</p>", status_code=404)
 
 @app.get("/", response_class=HTMLResponse)
-async def route_index(): return serve_html("index.html")
+async def home(): return serve_from_local("index.html")
 
 @app.get("/admin", response_class=HTMLResponse)
-async def route_admin(): return serve_html("addalvo.html")
+async def admin(): return serve_from_local("addalvo.html")
 
 @app.get("/analise.html", response_class=HTMLResponse)
-async def route_analise(): return serve_html("analise.html")
+async def analise(): return serve_from_local("analise.html")
 
 @app.get("/metodo.html", response_class=HTMLResponse)
-async def route_metodo(): return serve_html("metodo.html")
+async def metodo(): return serve_from_local("metodo.html")
