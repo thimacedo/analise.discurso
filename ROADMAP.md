@@ -1,25 +1,24 @@
 # 🗺️ ROADMAP.md - Sentinela Democrática
 
 ## 📖 Visão Geral
-Plataforma Independente de **Inteligência Situacional e Análise de Discurso**. O sistema utiliza o **Protocolo PASA v15.8** para monitoramento de dados com foco em estabilidade, resiliência e persistência técnica.
+Plataforma Independente de **Inteligência Situacional e Análise Forense**. O sistema utiliza o **Protocolo PASA v15.14** para monitoramento de crimes digitais e hostilidade política via Llama 3.1 e ScrapeGraphAI.
 
-## 🚀 Status Atual: v15.8.5 (Pacificação Técnica)
-- [x] **Protocolo de Persistência**: Regras de arquitetura seladas para evitar regressão de funcionalidades.
-- [x] **Restauração do Mapa**: Geopolítica UF 100% operacional com agregação de dados em tempo real.
-- [x] **Estabilização de Rotas**: Acesso normalizado às páginas de documentação e auditoria via Vercel Edge.
-- [x] **Independência Total**: Metodologia proprietária consolidada e marcas limpas.
-- [x] **Motor de Curadoria**: Interface administrativa para auditoria de alertas e correção de dados.
+## 🚀 Status Atual: v15.14.0 (Resiliência Consolidada)
+- [x] **Unificação de Projeto**: Resolvido o conflito entre múltiplos projetos Vercel sob o ID `prj_hbfDAwwIfrz6nJgIkZWLNacCWpeq`.
+- [x] **Bypass de Automação**: Configurado segredo de elite para auditoria e testes de produção.
+- [x] **Build Destravado**: Corrigido erro de BOM no `requirements.txt` e simplificação do backend FastAPI.
+- [x] **Recuperação de Inteligência**: Motor de **Tendências Preditivas** e **Saúde do Sistema** restaurados.
+- [x] **Painel de Controle v2**: Novo sistema de cadastro de alvos com e-mail de contato e auditoria rápida.
 
-## 🛠️ Próximos Passos
-1. [ ] **Relatórios Automatizados**: Geração de PDFs com sumários executivos de inteligência.
-2. [ ] **Alertas de Crise**: Integração com APIs de notificação externa (Telegram/Webhook).
-3. [ ] **Filtros Temporais Avançados**: Seleção de intervalos específicos no Dossiê e Geopolítica.
+## 🛠️ Próximos Passos (Prioridade Máxima)
+1. [!] **Sincronização de Schema**: Executar migração SQL para adicionar `classificacao_pasa` à tabela `comentarios`.
+2. [ ] **Alimentação em Lote**: Ativar o script `tools/coletor_sgai.py` para popular alvos com 0 comentários.
+3. [ ] **Dossiê em PDF**: Implementar geração de evidências forenses para uso jurídico.
 
-## 🔒 Proteção de Núcleo (Regras Imutáveis)
-- **Navegação**: Somente via `Hash (#)` para visualizações internas.
-- **Mídia**: Fallback nativo (`onerror`) obrigatório para avatares.
-- **Roteamento**: Configurações de reescrita de URL devem residir no `vercel.json`.
-- **Integridade**: Scripts de sincronização devem ser executados antes de cada release major.
+## 🔒 Protocolo de Estabilidade (Persistência)
+- **Estrutura**: Raiz plana para HTML (Estáticos Vercel), pasta `api/` exclusiva para Python (Funções Serverless).
+- **Dados**: Uso obrigatório de cache-buster (`?t=ts`) em todas as chamadas de API do frontend.
+- **Segurança**: Nunca comitar segredos. Usar bypass oficial para automação.
 
 ---
-**Atualização:** 26/04/2026 | **Versão:** 15.8.5-stable
+**Atualização Final:** 26/04/2026 | **Versão:** 15.14.0-stable
