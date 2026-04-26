@@ -2,7 +2,7 @@ import os
 import httpx
 import json
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
@@ -23,20 +23,33 @@ async def get_top_alvos():
         url = f"{SUPABASE_URL}/rest/v1/candidatos?select=username,estado,comentarios_totais_count,comentarios_odio_count&comentarios_totais_count=gt.0&order=comentarios_totais_count.desc&limit=12"
         async with httpx.AsyncClient(timeout=15.0) as client:
             res = await client.get(url, headers=get_supabase_headers())
-            if res.status_code != 200: return []
-            data = res.json()
+            data = res.json() if res.status_code == 200 else []
             return [{"username": c['username'], "estado": c['estado'], "share_blindagem": round(100 - ((c.get('comentarios_odio_count', 0) / c.get('comentarios_totais_count', 1)) * 100), 2)} for c in data]
-    except: return []
-
-@app.get("/api/v1/live-intelligence")
-async def get_live_intelligence():
-    try:
-        if os.path.exists("api/data/pasa_live_logs.json"):
-            with open("api/data/pasa_live_logs.json", "r", encoding="utf-8") as f:
-                return json.load(f)
-        return []
     except: return []
 
 @app.get("/api/v1/status")
 async def status():
-    return {"status": "online", "version": "15.9.10"}
+    return {"status": "online", "version": "15.10.0"}
+
+# --- ROTEADOR DE TEMPLATES (SANDBOX SAFE) ---
+
+def render(filename):
+    # Procura na pasta templates que criamos dentro de api/
+    base = os.path.dirname(__file__)
+    path = os.path.join(base, "templates", filename)
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse(content=f"<h1>Erro</h1><p>Template {filename} nao localizado.</p>", status_code=404)
+
+@app.get("/", response_class=HTMLResponse)
+async def home(): return render("index.html")
+
+@app.get("/admin", response_class=HTMLResponse)
+async def admin(): return render("addalvo.html")
+
+@app.get("/analise", response_class=HTMLResponse)
+async def analise(): return render("analise.html")
+
+@app.get("/metodo", response_class=HTMLResponse)
+async def metodo(): return render("metodo.html")
