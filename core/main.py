@@ -1,11 +1,13 @@
-from fastapi import FastAPI, Query, Depends, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, Query, Depends, HTTPException, UploadFile, File
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from database.repository import DatabaseRepository
 from typing import Optional
 import os
 import pyotp
+import pandas as pd
+import io
 from datetime import datetime
 from processing.dossie_service import DossieService
 from pydantic import BaseModel
@@ -16,25 +18,9 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# ... (middleware e db permanecem iguais)
-
-class AuthRequest(BaseModel):
-    code: str
-
-@app.post("/api/v1/admin/auth/verify")
-def verify_totp(request: AuthRequest):
-    secret = os.getenv("SENTINELA_ADMIN_TOTP_SECRET")
-    if not secret:
-        raise HTTPException(status_code=500, detail="Segredo TOTP não configurado no servidor.")
-
-    totp = pyotp.TOTP(secret)
-    if totp.verify(request.code):
-        return {"status": "success", "token": "temp-admin-session-token"} # Token simplificado para o MVP
-
-    raise HTTPException(status_code=401, detail="Código inválido ou expirado.")
-
-@app.get("/api/v1/exportar-dossie")
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -49,6 +35,141 @@ def get_db():
     finally:
         session.close()
 
+# --- AUTH MODELS & ENDPOINTS ---
+
+class AuthRequest(BaseModel):
+    code: str
+
+@app.post("/api/v1/admin/auth/verify")
+def verify_totp(request: AuthRequest):
+    secret = os.getenv("SENTINELA_ADMIN_TOTP_SECRET")
+    if not secret:
+        raise HTTPException(status_code=500, detail="Segredo TOTP não configurado no servidor.")
+
+    totp = pyotp.TOTP(secret)
+    if totp.verify(request.code):
+        return {"status": "success", "token": "temp-admin-session-token"}
+
+    raise HTTPException(status_code=401, detail="Código inválido ou expirado.")
+
+# --- GESTÃO DE ALVOS MODELS & ENDPOINTS ---
+
+class TargetUpsertRequest(BaseModel):
+    username: str
+    nome_completo: Optional[str] = "Não informado"
+    cargo: Optional[str] = "Monitorado"
+    estado: Optional[str] = "BR"
+    status: Optional[str] = "Ativo"
+
+@app.get("/api/v1/admin/targets")
+def list_admin_targets(search: Optional[str] = None):
+    with db.get_session() as session:
+        from database.models import Candidato
+        query = session.query(Candidato)
+        if search:
+            query = query.filter(Candidato.username.ilike(f"%{search}%") | Candidato.nome_completo.ilike(f"%{search}%"))
+        
+        targets = query.order_by(Candidato.status_monitoramento.asc(), Candidato.username.asc()).all()
+        return [
+            {
+                "username": t.username,
+                "nome_completo": t.nome_completo,
+                "cargo": t.cargo,
+                "estado": t.estado,
+                "status": t.status_monitoramento
+            } for t in targets
+        ]
+
+@app.post("/api/v1/admin/targets/upsert")
+def upsert_target(target: TargetUpsertRequest):
+    with db.get_session() as session:
+        from database.models import Candidato
+        username_clean = target.username.strip().replace("@", "").lower()
+        
+        db_target = session.query(Candidato).filter(Candidato.username == username_clean).first()
+        if db_target:
+            db_target.nome_completo = target.nome_completo
+            db_target.cargo = target.cargo
+            db_target.estado = target.estado
+            db_target.status_monitoramento = target.status
+        else:
+            new_target = Candidato(
+                username=username_clean,
+                nome_completo=target.nome_completo,
+                cargo=target.cargo,
+                estado=target.estado,
+                status_monitoramento=target.status
+            )
+            session.add(new_target)
+        
+        session.commit()
+        return {"status": "success", "message": f"@{username_clean} atualizado/adicionado."}
+
+@app.patch("/api/v1/admin/targets/{username}/status")
+def toggle_target_status(username: str, status: str):
+    with db.get_session() as session:
+        from database.models import Candidato
+        db_target = session.query(Candidato).filter(Candidato.username == username.lower()).first()
+        if not db_target:
+            raise HTTPException(status_code=404, detail="Alvo não encontrado.")
+        
+        db_target.status_monitoramento = status
+        session.commit()
+        return {"status": "success", "new_status": status}
+
+@app.post("/api/v1/admin/targets/import")
+async def import_targets(file: UploadFile = File(...)):
+    if not file.filename.endswith('.csv'):
+        raise HTTPException(status_code=400, detail="Apenas arquivos .csv são aceitos.")
+    
+    contents = await file.read()
+    df = pd.read_csv(io.BytesIO(contents))
+    
+    required = ['username', 'full_name']
+    if not all(col in df.columns for col in required):
+        raise HTTPException(status_code=400, detail=f"CSV inválido. Colunas obrigatórias: {required}")
+    
+    success_count = 0
+    with db.get_session() as session:
+        from database.models import Candidato
+        for _, row in df.iterrows():
+            username = str(row['username']).strip().replace("@", "").lower()
+            data = {
+                "username": username,
+                "nome_completo": row.get('full_name', "Não informado"),
+                "cargo": row.get('cargo', "Monitorado"),
+                "estado": row.get('estado', "BR"),
+                "status_monitoramento": row.get('status', "Ativo")
+            }
+            
+            target = session.query(Candidato).filter(Candidato.username == username).first()
+            if target:
+                target.nome_completo = data["nome_completo"]
+                target.cargo = data["cargo"]
+                target.estado = data["estado"]
+                target.status_monitoramento = data["status_monitoramento"]
+            else:
+                session.add(Candidato(**data))
+            success_count += 1
+        
+        session.commit()
+    
+    return {"status": "success", "message": f"{success_count} perfis processados com sucesso."}
+
+@app.get("/api/v1/admin/targets/template")
+def download_template():
+    df = pd.DataFrame(columns=['username', 'full_name', 'cargo', 'estado', 'status'])
+    df.loc[0] = ['lulaoficial', 'Luiz Inácio Lula da Silva', 'Presidente', 'BR', 'Ativo']
+    
+    stream = io.StringIO()
+    df.to_csv(stream, index=False)
+    
+    response = StreamingResponse(iter([stream.getvalue()]), media_type="text/csv")
+    response.headers["Content-Disposition"] = "attachment; filename=modelo_importacao_sentinela.csv"
+    return response
+
+# --- PUBLIC ENDPOINTS ---
+
 @app.get("/api/v1/exportar-dossie")
 def exportar_dossie(candidate: Optional[str] = None):
     with db.get_session() as session:
@@ -60,7 +181,6 @@ def exportar_dossie(candidate: Optional[str] = None):
         if candidate:
             query = query.filter(Candidato.username == candidate)
             
-        # Pega os 50 mais recentes para o dossiê
         resultados = query.order_by(Comentario.data_publicacao.desc()).limit(50).all()
         
         if not resultados:
@@ -107,7 +227,6 @@ def get_estatisticas_resumo():
         total_comentarios = session.query(Comentario).count()
         total_odio = session.query(Classificacao).filter(func.lower(Classificacao.categoria_odio) != 'neutro').count()
         
-        # Categorias de ódio
         categorias = session.query(
             Classificacao.categoria_odio, 
             func.count(Classificacao.id)
@@ -125,13 +244,8 @@ def get_estatisticas_resumo():
 def get_linha_do_tempo():
     with db.get_session() as session:
         from database.models import Comentario, Classificacao
-        from sqlalchemy import func, String, cast
+        from sqlalchemy import func
         
-        # Agrupando por dia (depende do dialect do BD, no sqlite e pg é ligeiramente diferente, vamos usar substr para data ISO ou date)
-        # SQLite: substr(data_publicacao, 1, 10)
-        # Postgres: cast(data_publicacao as date)
-        # Como o BD pode ser SQLite ou PG, faremos um cast genérico ou processaremos no Python se for leve. 
-        # Aqui, vamos pegar a data formatada:
         resultados = session.query(
             func.date(Comentario.data_publicacao).label('dia'),
             func.count(Comentario.id).label('total'),

@@ -54,7 +54,7 @@ comentarios = coletor.pipeline_completo()
 
 ## 🔄 Funcionamento do Pipeline
 ```
-1. 🔍 Coleta automaticamente todos os perfis seguidos pela @monitoramento.discurso
+1. 🔍 Consulta os perfis monitorados diretamente na tabela `candidatos` do Supabase.
 2. 📸 Para cada perfil, coleta os últimos 3 posts
 3. 💬 Para cada post, coleta os últimos 10 comentários
 4. 💾 Salva tudo em `dados_brutos_apify.csv`
