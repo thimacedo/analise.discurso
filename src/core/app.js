@@ -5,61 +5,55 @@ import { renderBrazilMap } from '../components/BrazilMap.js';
 
 /**
  * Orquestrador Principal do Sentinela
- * v15.6.6 - Performance & INP Optimization
+ * v15.8.1 - Absolute Stability
  */
-
-// Helper para evitar sobrecarga de processamento (Debounce)
-let renderTimeout;
-function debouncedRender() {
-    clearTimeout(renderTimeout);
-    renderTimeout = setTimeout(() => {
-        renderAll();
-    }, 300);
-}
 
 async function init() {
     console.log(`🛡️ Sentinela Core ${state.config.version} Initializing...`);
     
+    // 1. Definir View Inicial
     const initialView = window.location.hash.substring(1) || 'monitor';
     setViewState(initialView);
     
-    await refreshData();
-    
-    if (document.getElementById('svg-map-br')) {
-        renderBrazilMap('svg-map-br');
+    // 2. Carregar Dados com Silêncio Operacional
+    try {
+        await refreshData();
+    } catch (e) {
+        console.error("FALHA INICIAL:", e);
     }
     
-    // Exposição Global Otimizada
+    // 3. Renderizar Componentes Fixos com Proteção
+    if (document.getElementById('svg-map-br')) {
+        try {
+            renderBrazilMap('svg-map-br', {}); // Iniciar mapa vazio/neutro
+        } catch (e) { console.warn("Erro ao iniciar mapa:", e); }
+    }
+    
+    // 4. Exposição Global
     window.navigate = (view) => {
         setViewState(view);
-        renderAll(); // Renderização imediata na troca de aba
+        renderAll();
     };
     
-    window.debouncedRender = debouncedRender;
-    window.refresh = refreshData;
     window.renderAll = renderAll;
-    
     window.openDetail = (username) => {
-        console.log(`🔍 Solicitação de Dossiê: @${username}`);
         const modal = document.getElementById('checkout-modal');
         if(modal) modal.classList.remove('hidden');
     };
 
-    lucide.createIcons();
+    if (window.lucide) lucide.createIcons();
 }
 
 async function refreshData() {
-    try {
-        const [candidatos, alertas] = await Promise.all([
-            fetchCandidatos(),
-            fetchAlertas(15)
-        ]);
-        state.data = candidatos;
-        state.alertas = alertas;
-        renderAll();
-    } catch (e) {
-        console.error("Sync Error:", e);
-    }
+    const [candidatos, alertas] = await Promise.all([
+        fetchCandidatos().catch(() => []),
+        fetchAlertas(15).catch(() => [])
+    ]);
+    
+    state.data = Array.isArray(candidatos) ? candidatos : [];
+    state.alertas = Array.isArray(alertas) ? alertas : [];
+    
+    renderAll();
 }
 
 document.addEventListener('DOMContentLoaded', init);
