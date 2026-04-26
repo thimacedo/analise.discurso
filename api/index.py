@@ -1,7 +1,7 @@
 import os
 import httpx
 import json
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
@@ -30,35 +30,27 @@ async def get_top_alvos():
 
 @app.get("/api/v1/status")
 async def status():
-    return {"status": "online", "version": "15.9.4"}
+    return {"status": "online", "version": "15.9.5"}
 
-# --- ROTAS EXPLÍCITAS ULTRA-SIMPLIFICADAS ---
+# --- ROTEAMENTO BLINDADO ---
 
-def serve_html(filename):
-    # Procura em todos os lugares possíveis no Sandbox do Vercel
+def serve_file(filename):
+    # Procura no root do projeto (Vercel Task Root)
     base_dir = os.path.dirname(__file__)
-    possible_paths = [
-        os.path.join(base_dir, "..", filename),
-        os.path.join(base_dir, filename),
-        os.path.join("/var/task", filename), # Caminho padrão Vercel
-        os.path.join(os.getcwd(), filename)
-    ]
-    
-    for path in possible_paths:
-        if os.path.exists(path):
-            with open(path, "r", encoding="utf-8") as f:
-                return HTMLResponse(content=f.read())
-    
-    return HTMLResponse(content=f"<h1>Erro Interno</h1><p>Arquivo {filename} nao localizado.</p>", status_code=500)
+    path = os.path.abspath(os.path.join(base_dir, "..", filename))
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse(content=f"<h1>Erro</h1><p>Arquivo {filename} nao localizado em {path}</p>", status_code=500)
 
 @app.get("/", response_class=HTMLResponse)
-async def route_home(): return serve_html("index.html")
+async def home(): return serve_file("index.html")
 
 @app.get("/admin", response_class=HTMLResponse)
-async def route_admin(): return serve_html("addalvo.html")
+async def admin(): return serve_file("addalvo.html")
 
 @app.get("/analise", response_class=HTMLResponse)
-async def route_analise(): return serve_html("analise-extremismo.html")
+async def analise(): return serve_file("analise.html")
 
 @app.get("/metodo", response_class=HTMLResponse)
-async def route_metodo(): return serve_html("metodologia.html")
+async def metodo(): return serve_file("metodo.html")
