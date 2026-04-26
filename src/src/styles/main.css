@@ -1,0 +1,139 @@
+/**
+ * SENTINELA CORE DESIGN SYSTEM v15.5.0
+ * Estética: Stealth / Intelligence / Dark
+ */
+
+:root {
+    /* Colors */
+    --bg-base: #020617;
+    --bg-side: rgba(2, 6, 23, 0.9);
+    --glass: rgba(15, 23, 42, 0.6);
+    --border: rgba(255, 255, 255, 0.05);
+    --accent: #2563eb;
+    --accent-glow: rgba(37, 99, 235, 0.2);
+    --danger: #dc2626;
+    --danger-glow: rgba(220, 38, 38, 0.15);
+    --success: #10b981;
+    
+    /* Typography */
+    --font-main: 'Plus Jakarta Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* Base Reset */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body { 
+    font-family: var(--font-main);
+    background-color: var(--bg-base);
+    background-image: radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.05) 0px, transparent 50%);
+    color: #f8fafc; 
+    height: 100vh;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar Customization */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+
+/* Layout Structure */
+.app-container {
+    display: flex;
+    height: 100vh;
+}
+
+aside {
+    width: 18rem;
+    background: var(--bg-side);
+    backdrop-filter: blur(40px);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    z-index: 50;
+}
+
+main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    gap: 2rem;
+    overflow-y: auto;
+}
+
+/* Chart Container */
+.chart-container {
+    height: 280px;
+    position: relative;
+    width: 100%;
+}
+
+/* Glass Components */
+.glass-card { 
+    background: var(--glass); 
+    backdrop-filter: blur(20px); 
+    border: 1px solid var(--border); 
+    border-radius: 24px; 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.glass-card:hover {
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* Interactive Elements */
+.nav-item { 
+    display: flex; 
+    align-items: center; 
+    gap: 1rem; 
+    padding: 0.85rem 1.25rem; 
+    border-radius: 14px; 
+    font-weight: 600; 
+    font-size: 0.85rem; 
+    color: #64748b; 
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: 0.2s all ease;
+}
+
+.nav-item:hover { color: #fff; background: rgba(255,255,255,0.03); }
+.nav-item.active { 
+    background: linear-gradient(90deg, rgba(37, 99, 235, 0.1) 0%, transparent 100%);
+    color: #fff; 
+    border-left: 3px solid var(--accent);
+}
+
+/* Status & Badges */
+.badge {
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.badge-danger { background: rgba(220, 38, 38, 0.1); color: #ef4444; border: 1px solid rgba(220, 38, 38, 0.2); }
+
+/* KPI Dynamics */
+.kpi-value {
+    font-family: var(--font-mono);
+    letter-spacing: -0.05em;
+    text-shadow: 0 0 20px rgba(255,255,255,0.1);
+}
+
+/* Utilities */
+.hidden { display: none !important; }
+
+@media (max-width: 1024px) {
+    .app-container { flex-direction: column; }
+    aside { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+    main { padding: 1rem; }
+}
