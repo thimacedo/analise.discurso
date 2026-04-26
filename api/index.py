@@ -17,7 +17,6 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 def get_supabase_headers():
     return {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}", "Content-Type": "application/json"}
 
-# --- API ---
 @app.get("/api/v1/stats/top-alvos")
 async def get_top_alvos():
     try:
@@ -31,32 +30,27 @@ async def get_top_alvos():
 
 @app.get("/api/v1/status")
 async def status():
-    return {"status": "online", "version": "15.9.6"}
+    return {"status": "online", "version": "15.9.7"}
 
-# --- ROTEAMENTO MANUAL DE FRONTEND ---
+# --- SERVIDOR DE ARQUIVOS PURO (EVITA 404 DO VERCEL) ---
 
 def serve_html(filename):
-    # Procura no sandbox do Vercel
     base_dir = os.path.dirname(__file__)
-    possible_paths = [
-        os.path.join(base_dir, "..", filename),
-        os.path.join(base_dir, filename),
-        os.path.join("/var/task", filename)
-    ]
-    for path in possible_paths:
-        if os.path.exists(path):
-            with open(path, "r", encoding="utf-8") as f:
-                return HTMLResponse(content=f.read())
-    return HTMLResponse(content=f"<h1>404</h1><p>Arquivo {filename} nao localizado.</p>", status_code=404)
+    path = os.path.abspath(os.path.join(base_dir, "..", filename))
+    if not os.path.exists(path):
+        path = os.path.join(base_dir, filename)
+    
+    with open(path, "r", encoding="utf-8") as f:
+        return HTMLResponse(content=f.read())
 
 @app.get("/", response_class=HTMLResponse)
-async def root(): return serve_html("index.html")
+async def route_index(): return serve_html("index.html")
 
 @app.get("/admin", response_class=HTMLResponse)
-async def admin(): return serve_html("addalvo.html")
+async def route_admin(): return serve_html("addalvo.html")
 
-@app.get("/analise", response_class=HTMLResponse)
-async def analise(): return serve_html("analise.html")
+@app.get("/analise.html", response_class=HTMLResponse)
+async def route_analise(): return serve_html("analise.html")
 
-@app.get("/metodo", response_class=HTMLResponse)
-async def metodo(): return serve_html("metodo.html")
+@app.get("/metodo.html", response_class=HTMLResponse)
+async def route_metodo(): return serve_html("metodo.html")
