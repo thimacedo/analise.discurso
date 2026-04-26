@@ -3,146 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SENTINELA CORE | Dashboard Forense</title>
+    <title>SENTINELA | Radiografia</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        :root {
-            --bg-base: #020617;
-            --accent: #3b82f6;
-            --danger: #f43f5e;
-            --border: rgba(255, 255, 255, 0.05);
-        }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-base); color: #f8fafc; }
-        .glass-card { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(40px); border: 1px solid var(--border); border-radius: 24px; }
-        .kpi-value { font-family: 'JetBrains Mono', monospace; font-weight: 800; }
-        .badge { font-size: 9px; font-weight: 900; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; letter-spacing: 0.1em; }
-        .badge-danger { background: rgba(244, 63, 94, 0.1); color: var(--danger); border: 1px solid rgba(244, 63, 94, 0.2); }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #020617; color: #f8fafc; }
+        .glass-card { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 32px; }
         .chart-line { stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: draw 3s ease-out forwards; }
         @keyframes draw { to { stroke-dashoffset: 0; } }
     </style>
 </head>
-<body class="p-4 md:p-8 lg:p-12 antialiased">
-    <div class="max-w-7xl mx-auto flex flex-col gap-8">
-        
-        <!-- HEADER -->
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-white/5 pb-10">
-            <div>
-                <div class="flex items-center gap-3 mb-3">
-                    <span class="badge badge-danger animate-pulse">Vigil&acirc;ncia Ativa</span>
-                    <span class="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">Motor PASA v3.0</span>
-                </div>
-                <h1 class="text-3xl md:text-5xl font-800 text-white tracking-tighter uppercase leading-none">Radiografia do <span class="text-blue-500">Extremismo Digital</span></h1>
-                <p class="text-slate-500 mt-4 text-sm md:text-base font-medium max-w-2xl">Monitoramento estrutural da viol&ecirc;ncia pol&iacute;tica e ecossistema democr&aacute;tico brasileiro.</p>
-            </div>
-            <a href="/" class="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3">
-                <i data-lucide="arrow-left" class="w-4 h-4"></i> Dashboard Principal
-            </a>
+<body class="p-6 md:p-20 antialiased">
+    <div class="max-w-6xl mx-auto space-y-16">
+        <nav class="mb-12">
+            <a href="/" class="text-blue-400 font-black text-[10px] uppercase tracking-[0.3em]">&larr; Dashboard Principal</a>
+        </nav>
+        <header class="space-y-6">
+            <h1 class="text-4xl md:text-6xl font-800 text-white uppercase tracking-tighter">Radiografia do Extremismo</h1>
+            <p class="text-slate-400 text-lg max-w-3xl">Monitoramento estrutural da viol&ecirc;ncia pol&iacute;tica no Brasil.</p>
         </header>
 
         <!-- KPI GRID -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="glass-card p-8">
-                <h3 class="text-[10px] text-slate-500 uppercase tracking-widest font-black mb-4">Acelera&ccedil;&atilde;o da Viol&ecirc;ncia</h3>
-                <div class="kpi-value text-4xl text-rose-500">1 a cada 1h30</div>
-                <p class="text-[10px] text-slate-500 mt-4 font-bold uppercase leading-relaxed">Frequ&ecirc;ncia de ataques na reta final do 1&ordm; turno de 2024.</p>
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="glass-card p-8 border-l-4 border-l-red-600">
+                <span class="text-[10px] text-slate-500 font-black uppercase mb-4 block">Acelera&ccedil;&atilde;o</span>
+                <div class="text-3xl font-black">1 a cada 1h30</div>
             </div>
-            <div class="glass-card p-8">
-                <h3 class="text-[10px] text-slate-500 uppercase tracking-widest font-black mb-4">Crescimento de Xenofobia</h3>
-                <div class="kpi-value text-4xl text-blue-400">+874%</div>
-                <p class="text-[10px] text-slate-500 mt-4 font-bold uppercase leading-relaxed">Aumento no volume de den&uacute;ncias durante o ciclo eleitoral.</p>
+            <div class="glass-card p-8 border-l-4 border-l-blue-600">
+                <span class="text-[10px] text-slate-500 font-black uppercase mb-4 block">Xenofobia</span>
+                <div class="text-3xl font-black">+874%</div>
             </div>
             <div class="glass-card p-8 border-l-4 border-l-amber-500">
-                <h3 class="text-[10px] text-slate-500 uppercase tracking-widest font-black mb-4">Letalidade Racial</h3>
-                <div class="kpi-value text-4xl text-amber-400">80%</div>
-                <p class="text-[10px] text-slate-500 mt-4 font-bold uppercase leading-relaxed">V&iacute;timas negras em casos de homic&iacute;dio pol&iacute;tico mapeados.</p>
+                <span class="text-[10px] text-slate-500 font-black uppercase mb-4 block">Letalidade Racial</span>
+                <div class="text-3xl font-black">80%</div>
             </div>
-        </div>
+        </section>
 
-        <!-- MAIN ANALYTICS GRID -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            <!-- LINE CHART (SVG NATIVO) -->
-            <div class="lg:col-span-2 glass-card p-8 flex flex-col">
-                <div class="flex justify-between items-center mb-10">
-                    <h3 class="text-sm font-bold text-white uppercase tracking-wider">Curva de V&iacute;timas por Dia (S&eacute;rie Hist&oacute;rica)</h3>
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 bg-rose-500 rounded-full"></span>
-                        <span class="text-[9px] font-black text-slate-500 uppercase">Acelera&ccedil;&atilde;o Cr&iacute;tica</span>
-                    </div>
-                </div>
-                
-                <div class="relative flex-1 min-h-[300px] w-full">
-                    <!-- Eixos -->
-                    <div class="absolute inset-0 flex flex-col justify-between text-[10px] font-black text-slate-700 pointer-events-none">
-                        <span>16.0</span><span>8.0</span><span>1.5</span><span>0.1</span>
-                    </div>
-                    <!-- Gráfico SVG -->
-                    <svg viewBox="0 0 400 150" class="w-full h-full overflow-visible">
-                        <path d="M 0 145 Q 100 140, 200 120 T 400 10" 
-                              fill="none" 
-                              stroke="#f43f5e" 
-                              stroke-width="4" 
-                              stroke-linecap="round"
-                              class="chart-line" />
-                        <circle cx="400" cy="10" r="5" fill="#f43f5e" class="animate-pulse" />
-                    </svg>
-                    <!-- Labels X -->
-                    <div class="flex justify-between mt-4 text-[10px] font-black text-slate-500 uppercase">
-                        <span>2018</span><span>2020</span><span>2022</span><span>2024</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- VETORES DE AMEAÇA -->
-            <div class="glass-card p-8 flex flex-col justify-between">
-                <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-8 flex items-center gap-2">
-                    <i data-lucide="shield-alert" class="w-4 h-4 text-blue-500"></i> Vetores de Amea&ccedil;a
-                </h3>
-                
-                <div class="space-y-10">
-                    <div>
-                        <div class="flex justify-between items-end mb-3">
-                            <span class="text-xs font-black text-slate-400 uppercase">Machosfera</span>
-                            <span class="kpi-value text-purple-400">+250%</span>
-                        </div>
-                        <div class="w-full h-2 bg-white/5 rounded-full overflow-hidden">
-                            <div class="bg-purple-500 h-full rounded-full" style="width: 75%"></div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <div class="flex justify-between items-end mb-3">
-                            <span class="text-xs font-black text-slate-400 uppercase">Viol&ecirc;ncia de G&ecirc;nero</span>
-                            <span class="kpi-value text-rose-500">38%</span>
-                        </div>
-                        <div class="w-full h-2 bg-white/5 rounded-full overflow-hidden">
-                            <div class="bg-rose-500 h-full rounded-full" style="width: 38%"></div>
-                        </div>
-                        <p class="text-[10px] text-slate-500 mt-4 leading-relaxed font-medium">
-                            Mesmo compondo apenas 33% das candidaturas, mulheres sofrem a maior carga de ataques virtuais.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="mt-10 pt-8 border-t border-white/5">
-                    <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-4">Status de Monitoramento</span>
-                    <div class="flex gap-2">
-                        <span class="badge bg-blue-500/10 text-blue-400">NLP Active</span>
-                        <span class="badge bg-emerald-500/10 text-emerald-400">OSINT High</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <footer class="text-center pt-10 pb-10">
-            <p class="text-slate-600 text-[9px] uppercase tracking-[0.4em]">
-                Sentinela Democr&aacute;tica &copy; 2026 | Intelig&ecirc;ncia Forense v15.7.1
-            </p>
-        </footer>
+        <!-- SVG CHART -->
+        <section class="glass-card p-10">
+            <h3 class="text-sm font-bold mb-10 uppercase">Curva de V&iacute;timas (2018-2024)</h3>
+            <svg viewBox="0 0 400 150" class="w-full h-64 overflow-visible">
+                <path d="M 0 145 Q 100 140, 200 120 T 400 10" fill="none" stroke="#f43f5e" stroke-width="4" class="chart-line" />
+            </svg>
+        </section>
     </div>
     <script>lucide.createIcons();</script>
 </body>

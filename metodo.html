@@ -3,84 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Metodologia | Sentinela Democrática</title>
+    <title>SENTINELA | Metodologia</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #020617; color: #f8fafc; }
         .glass-card { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 24px; }
-        h1, h2, h3 { font-weight: 800; text-transform: uppercase; letter-spacing: -0.02em; }
-        code { font-family: 'JetBrains Mono', monospace; background: rgba(255,255,255,0.05); padding: 2px 4px; border-radius: 4px; }
     </style>
 </head>
-<body class="p-6 md:p-12 lg:p-20 antialiased">
+<body class="p-6 md:p-20 antialiased">
     <div class="max-w-4xl mx-auto space-y-12">
-        <nav class="mb-10">
-            <a href="/" class="inline-flex items-center gap-2 text-blue-400 font-black text-[10px] uppercase tracking-widest hover:text-white transition-colors">
-                <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar ao Dashboard
-            </a>
-        </nav>
-
+        <nav class="mb-10"><a href="/" class="text-blue-400 font-black text-[10px] uppercase tracking-widest">&larr; Dashboard</a></nav>
         <header class="text-center space-y-4">
-            <h1 class="text-4xl md:text-5xl text-white leading-tight">Metodologia e Métricas de Inteligência</h1>
-            <p class="text-slate-400 text-lg max-w-2xl mx-auto">Fundamentação técnica do ecossistema Sentinela para o monitoramento de discurso político digital.</p>
+            <h1 class="text-4xl md:text-5xl text-white font-800 uppercase tracking-tighter">Metodologia PASA</h1>
+            <p class="text-slate-400 text-lg">Protocolo Independente de Intelig&ecirc;ncia Situacional.</p>
         </header>
-
-        <section class="glass-card p-8 md:p-12 space-y-8">
-            <div class="flex items-center gap-4 border-b border-white/5 pb-6">
-                <div class="w-12 h-12 bg-blue-600/20 rounded-2xl flex items-center justify-center"><i data-lucide="brain" class="text-blue-400"></i></div>
-                <h2 class="text-2xl text-blue-400">Protocolo PASA</h2>
-            </div>
-            <p class="text-slate-300 leading-relaxed text-lg italic">
-                "Análise Situacional Avançada: A transição da detecção de palavras para a compreensão da intenção."
-            </p>
-            <p class="text-slate-400 leading-relaxed">
-                O **PASA** utiliza modelos de linguagem de grande escala (LLMs) para identificar não apenas termos explícitos de ódio, mas também **dissonância semântica** (sarcasmo, ironia e críticas veladas) que algoritmos tradicionais ignoram.
-            </p>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-                <div class="p-6 bg-white/5 rounded-3xl border border-white/5">
-                    <h3 class="text-xs text-white mb-3 tracking-widest">Dissonância Semântica</h3>
-                    <p class="text-xs text-slate-500 leading-relaxed">Identifica o uso de elogios em contextos de crise ou o uso de emojis positivos em frases de ataque, calibrando o risco real da interação.</p>
-                </div>
-                <div class="p-6 bg-white/5 rounded-3xl border border-white/5">
-                    <h3 class="text-xs text-white mb-3 tracking-widest">Análise de Entropia</h3>
-                    <p class="text-xs text-slate-500 leading-relaxed">Mede a desordem nas interações de um post. Picos de entropia costumam preceder crises reputacionais orgânicas.</p>
-                </div>
+        <section class="glass-card p-10 space-y-8">
+            <h2 class="text-2xl text-blue-400 font-bold uppercase">An&aacute;lise Situacional</h2>
+            <p class="text-slate-300 leading-relaxed">Utilizamos modelos de linguagem para identificar ataques de deslegitima&ccedil;&atilde;o e cinismo digital através de disson&acirc;ncia sem&acirc;ntica.</p>
+            <div class="p-6 bg-black/40 rounded-3xl border border-blue-500/10 font-mono text-blue-400 text-center uppercase text-sm">
+                Resili&ecirc;ncia = 100 - ((Alertas / Volume) * 100)
             </div>
         </section>
-
-        <section class="glass-card p-8 md:p-12 space-y-8">
-            <div class="flex items-center gap-4 border-b border-white/5 pb-6">
-                <div class="w-12 h-12 bg-emerald-600/20 rounded-2xl flex items-center justify-center"><i data-lucide="shield-check" class="text-emerald-400"></i></div>
-                <h2 class="text-2xl text-emerald-400">Índice de Resiliência Digital</h2>
-            </div>
-            <p class="text-slate-400 leading-relaxed">
-                Este KPI central quantifica a saúde do ambiente digital de um monitorado. Diferente do engajamento bruto, a resiliência foca na **qualidade da recepção**.
-            </p>
-            <div class="p-8 bg-black/40 rounded-3xl font-mono text-center text-blue-400 border border-blue-500/10">
-                <span class="text-[10px] text-slate-500 block mb-4 uppercase tracking-widest">Algoritmo de Cálculo</span>
-                Resiliência = 100 - ( (Alertas PASA / Vol. Total) * 100 )
-            </div>
-            <div class="space-y-4">
-                <div class="flex items-center gap-4 p-4 bg-white/5 rounded-2xl">
-                    <div class="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                    <div class="flex-1 text-sm"><strong class="text-emerald-400 uppercase">90-100% (Estável):</strong> Diálogo saudável; suporte orgânico predominante.</div>       
-                </div>
-                <div class="flex items-center gap-4 p-4 bg-white/5 rounded-2xl">
-                    <div class="w-2 h-2 bg-amber-500 rounded-full"></div>
-                    <div class="flex-1 text-sm"><strong class="text-amber-400 uppercase">70-89% (Alerta):</strong> Presença de dissonância; risco de contágio negativo.</div>        
-                </div>
-                <div class="flex items-center gap-4 p-4 bg-white/5 rounded-2xl">
-                    <div class="w-2 h-2 bg-red-500 rounded-full"></div>
-                    <div class="flex-1 text-sm"><strong class="text-red-400 uppercase">Abaixo de 70% (Crise):</strong> Ambiente hostil; necessidade de intervenção estratégica.</div>
-                </div>
-            </div>
-        </section>
-
-        <footer class="text-center pt-20 pb-10 text-slate-600 text-[9px] uppercase tracking-[0.2em]">
-            Sentinela Democrática &copy; 2026 | Inteligência Forense e Análise de Dados
-        </footer>
     </div>
     <script>lucide.createIcons();</script>
 </body>
