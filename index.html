@@ -1,20 +1,19 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SENTINELA | Deep Intel v15.6.1</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>ðŸ›¡ï¸</text></svg>">
+    <title>SENTINELA | Deep Intel v15.6.2</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Removido Chart.js e Stripe fixo para evitar RegisterClientLocalizationsError -->
     <link rel="stylesheet" href="/src/styles/main.css?v=15.6.2">
 </head>
-<body class="antialiased text-slate-200">
+<body class="antialiased text-slate-200 bg-[#020617]">
     <div class="app-container">
         <!-- SIDEBAR STEALTH -->
-        <aside class="w-72 flex flex-col p-8 shrink-0 relative overflow-hidden">
+        <aside class="w-72 flex flex-col p-8 shrink-0 relative overflow-hidden bg-[#020617]/90 backdrop-blur-3xl border-r border-white/5">
             <div class="flex items-center gap-4 mb-12 relative z-10">
                 <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-500/20">
                     <i data-lucide="shield" class="w-7 h-7 text-white"></i>
@@ -26,20 +25,20 @@
             </div>
             
             <nav class="flex flex-col gap-1 mb-8 relative z-10">
-                <a href="#monitor" id="nav-monitor" class="nav-item group active">
-                    <i data-lucide="layout-grid"></i> 
+                <a href="#monitor" id="nav-monitor" class="nav-item group active flex items-center gap-3 p-3 rounded-xl transition-all">
+                    <i data-lucide="layout-grid" class="w-5 h-5"></i> 
                     <span>Panorama Global</span>
                 </a>
-                <a href="#dossie" id="nav-dossie" class="nav-item group">
-                    <i data-lucide="fingerprint"></i> 
-                    <span>DossiÃª de Alvos</span>
+                <a href="#dossie" id="nav-dossie" class="nav-item group flex items-center gap-3 p-3 rounded-xl transition-all">
+                    <i data-lucide="fingerprint" class="w-5 h-5"></i> 
+                    <span>Dossiê de Alvos</span>
                 </a>
-                <a href="#map" id="nav-map" class="nav-item group">
-                    <i data-lucide="globe"></i> 
-                    <span>GeopolÃ­tica UF</span>
+                <a href="#map" id="nav-map" class="nav-item group flex items-center gap-3 p-3 rounded-xl transition-all">
+                    <i data-lucide="globe" class="w-5 h-5"></i> 
+                    <span>Geopolítica UF</span>
                 </a>
-                <a href="/docs/metodologia.html" class="nav-item group opacity-60">
-                    <i data-lucide="book-open"></i> 
+                <a href="/docs/metodologia.html" class="nav-item group opacity-60 flex items-center gap-3 p-3 rounded-xl transition-all">
+                    <i data-lucide="book-open" class="w-5 h-5"></i> 
                     <span>Metodologia</span>
                 </a>
             </nav>
@@ -48,28 +47,28 @@
             <div class="mt-auto p-5 bg-white/[0.02] border border-white/5 rounded-3xl relative z-10">
                 <div class="flex items-center gap-2 mb-3">
                     <i data-lucide="gavel" class="w-4 h-4 text-blue-500"></i>
-                    <h4 class="text-[10px] font-black text-white uppercase tracking-widest">TSE 2026 Compliance</h4>
+                    <h4 class="text-[10px] font-black text-white uppercase tracking-widest text-xs">TSE 2026 Compliance</h4>
                 </div>
                 <p class="text-[10px] text-slate-400 leading-relaxed font-medium mb-4">
-                    Monitoramento em conformidade com as resoluÃ§Ãµes de rotulagem de IA e combate Ã  desinformaÃ§Ã£o.
+                    Monitoramento em conformidade com as resoluções de rotulagem de IA e combate à desinformação.
                 </p>
                 <div class="flex flex-col gap-2">
                     <a href="https://www.tse.jus.br" target="_blank" class="text-[9px] font-bold text-blue-400 hover:text-white transition-colors flex items-center gap-2">
-                        <i data-lucide="external-link" class="w-3 h-3"></i> VER RESOLUÃ‡Ã•ES
+                        <i data-lucide="external-link" class="w-3 h-3"></i> VER RESOLUÇÕES
                     </a>
                 </div>
             </div>
 
             <div class="pt-6 mt-6 border-t border-white/5 relative z-10">
-                <button onclick="window.openCheckout()" class="w-full py-4 bg-blue-600 text-white hover:bg-blue-500 transition-all rounded-2xl text-[10px] font-black tracking-widest uppercase shadow-xl shadow-blue-500/10">Exportar InteligÃªncia</button>
+                <button onclick="window.openCheckout()" class="w-full py-4 bg-blue-600 text-white hover:bg-blue-500 transition-all rounded-2xl text-[10px] font-black tracking-widest uppercase shadow-xl shadow-blue-500/10">Exportar Inteligência</button>
             </div>
         </aside>
 
         <!-- MAIN AREA -->
-        <main class="custom-scrollbar">
+        <main class="flex-1 flex flex-col p-8 gap-8 overflow-y-auto custom-scrollbar">
             <!-- TOP KPI HEADER -->
             <header class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 shrink-0">
-                <div class="glass-card kpi-card p-6 flex flex-col justify-between">
+                <div class="glass-card p-6 flex flex-col justify-between border border-white/5 rounded-3xl bg-white/[0.02]">
                     <div class="flex justify-between items-start mb-4">
                         <span class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Monitorados</span>
                         <i data-lucide="users" class="w-4 h-4 text-blue-500/50"></i>
@@ -77,15 +76,15 @@
                     <div id="kpi-monitorados" class="text-3xl font-black kpi-value text-white">---</div>
                     <div class="mt-2 text-[9px] font-bold text-emerald-500 uppercase flex items-center gap-1"><i data-lucide="trending-up" class="w-3 h-3"></i> +12% esta semana</div>
                 </div>
-                <div class="glass-card kpi-card p-6 flex flex-col justify-between border-l-4 border-l-red-600/50">
+                <div class="glass-card p-6 flex flex-col justify-between border-l-4 border-l-red-600/50 border-white/5 rounded-3xl bg-white/[0.02]">
                     <div class="flex justify-between items-start mb-4">
-                        <span class="text-[10px] text-red-500 font-black uppercase tracking-widest">Alertas CrÃ­ticos</span>
+                        <span class="text-[10px] text-red-500 font-black uppercase tracking-widest">Alertas Críticos</span>
                         <i data-lucide="alert-triangle" class="w-4 h-4 text-red-500/50"></i>
                     </div>
                     <div id="kpi-hate" class="text-3xl font-black kpi-value text-white">---</div>
                     <div class="mt-2 text-[9px] font-bold text-red-400 uppercase">Protocolo PASA Ativo</div>
                 </div>
-                <div class="glass-card kpi-card p-6 flex flex-col justify-between">
+                <div class="glass-card p-6 flex flex-col justify-between border border-white/5 rounded-3xl bg-white/[0.02]">
                     <div class="flex justify-between items-start mb-4">
                         <span class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Amostragem</span>
                         <i data-lucide="database" class="w-4 h-4 text-blue-500/50"></i>
@@ -93,9 +92,9 @@
                     <div id="kpi-total" class="text-3xl font-black kpi-value text-white">---</div>
                     <div class="mt-2 text-[9px] font-bold text-slate-500 uppercase">Dados Processados</div>
                 </div>
-                <div class="glass-card kpi-card p-6 flex flex-col justify-between border-l-4 border-l-emerald-600/50">
+                <div class="glass-card p-6 flex flex-col justify-between border-l-4 border-l-emerald-600/50 border-white/5 rounded-3xl bg-white/[0.02]">
                     <div class="flex justify-between items-start mb-4">
-                        <span class="text-[10px] text-emerald-500 font-black uppercase tracking-widest">SaÃºde Sistema</span>
+                        <span class="text-[10px] text-emerald-500 font-black uppercase tracking-widest">Saúde Sistema</span>
                         <i data-lucide="activity" class="w-4 h-4 text-emerald-500/50"></i>
                     </div>
                     <div id="kpi-res" class="text-3xl font-black kpi-value text-white">---</div>
@@ -108,42 +107,41 @@
                 <!-- VIEW: MONITOR -->
                 <div id="view-monitor" class="view-content absolute inset-0 space-y-8">
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <div class="lg:col-span-2 glass-card p-8 flex flex-col h-full relative overflow-hidden">
+                        <div class="lg:col-span-2 glass-card p-8 flex flex-col h-full relative overflow-hidden bg-white/[0.02] border border-white/5 rounded-3xl">
                             <div class="flex justify-between items-start mb-6 relative z-10">
                                 <div>
                                     <h3 class="text-xs font-black text-blue-400 uppercase tracking-[0.2em] mb-1">Monitor de Impacto & Hostilidade</h3>
-                                    <p class="text-lg font-bold text-white">Top 10 Alvos: ProporÃ§Ã£o de Narrativa</p>
+                                    <p class="text-lg font-bold text-white">Top 10 Alvos: Proporção de Narrativa</p>
                                 </div>
                                 <div class="flex flex-col items-end gap-1">
-                                    <span class="badge badge-danger animate-pulse">VigilÃ¢ncia Ativa</span>
+                                    <span class="badge badge-danger animate-pulse bg-red-500/10 text-red-500 px-2 py-1 rounded text-[8px] font-black uppercase">Vigilância Ativa</span>
                                     <span class="text-[8px] font-black text-slate-500 uppercase tracking-tighter">Motor PASA v3.0</span>
                                 </div>
                             </div>
                             <div id="chartMain" class="flex-1 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-2">
-                                <!-- Renderizado via ui.js -->
                                 <p class="text-[10px] text-slate-500 animate-pulse uppercase font-black text-center py-10">Processando Matriz...</p>
                             </div>
                         </div>
                         <div class="flex flex-col gap-6 h-full">
                             <!-- TOP ALVO NACIONAL -->
-                            <div class="glass-card p-6 flex-1 border-l-4 border-l-blue-600/50 flex flex-col justify-between">
+                            <div class="glass-card p-6 flex-1 border-l-4 border-l-blue-600/50 border-white/5 rounded-3xl bg-white/[0.02] flex flex-col justify-between">
                                 <div class="flex justify-between items-start mb-4">
-                                    <span class="text-[9px] font-black text-blue-400 uppercase tracking-widest">LÃ­der de AudiÃªncia (BR)</span>
+                                    <span class="text-[9px] font-black text-blue-400 uppercase tracking-widest font-bold">Líder de Audiência (BR)</span>
                                     <i data-lucide="award" class="w-3 h-3 text-blue-500"></i>
                                 </div>
-                                <div id="dossie-top-nac" class="flex-1 flex flex-col justify-center text-center py-2">
-                                    <p class="text-[10px] text-slate-500 animate-pulse uppercase font-black">Sincronizando...</p>
+                                <div id="dossie-top-nac" class="flex-1 flex flex-col justify-center py-2">
+                                    <p class="text-[10px] text-slate-500 animate-pulse uppercase font-black text-center">Sincronizando...</p>
                                 </div>
                             </div>
 
                             <!-- TOP ALVO REGIONAL -->
-                            <div class="glass-card p-6 flex-1 border-l-4 border-l-amber-600/50 flex flex-col justify-between">
+                            <div class="glass-card p-6 flex-1 border-l-4 border-l-amber-600/50 border-white/5 rounded-3xl bg-white/[0.02] flex flex-col justify-between">
                                 <div class="flex justify-between items-start mb-4">
-                                    <span class="text-[9px] font-black text-amber-400 uppercase tracking-widest">LÃ­der Regional (UFs)</span>
+                                    <span class="text-[9px] font-black text-amber-400 uppercase tracking-widest font-bold">Líder Regional (UFs)</span>
                                     <i data-lucide="map-pin" class="w-3 h-3 text-amber-500"></i>
                                 </div>
-                                <div id="dossie-top-reg" class="flex-1 flex flex-col justify-center text-center py-2">
-                                    <p class="text-[10px] text-slate-500 animate-pulse uppercase font-black">Sincronizando...</p>
+                                <div id="dossie-top-reg" class="flex-1 flex flex-col justify-center py-2">
+                                    <p class="text-[10px] text-slate-500 animate-pulse uppercase font-black text-center">Sincronizando...</p>
                                 </div>
                             </div>
                         </div>
@@ -171,10 +169,10 @@
                 <!-- VIEW: DOSSIE -->
                 <div id="view-dossie" class="view-content absolute inset-0 hidden">
                     <div class="flex justify-between items-center mb-8 px-2">
-                        <h2 class="text-2xl font-800 tracking-tighter uppercase text-white">DossiÃª de Alvos</h2>
+                        <h2 class="text-2xl font-800 tracking-tighter uppercase text-white">Dossiê de Alvos</h2>
                         <div class="relative w-64">
                             <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-slate-500"></i>
-                            <input type="text" id="dossie-search" oninput="window.renderAll()" placeholder="Filtrar inteligÃªncia..." class="input-dark pl-10 py-2 text-xs">
+                            <input type="text" id="dossie-search" oninput="window.renderAll()" placeholder="Filtrar inteligência..." class="bg-white/5 border border-white/10 text-white rounded-xl pl-10 py-2 text-xs w-full focus:border-blue-500 outline-none">
                         </div>
                     </div>
                     <div id="dossie-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 pb-20"></div>
@@ -184,9 +182,9 @@
                 <div id="view-map" class="view-content absolute inset-0 hidden">
                     <div class="flex flex-col lg:flex-row gap-12 items-center h-full p-8">
                         <div class="flex-1 w-full flex justify-center"><svg id="svg-map-br" class="w-full max-w-[600px] h-auto drop-shadow-2xl"></svg></div>
-                        <div onclick="window.openRegionalDetail(document.getElementById('st-name').innerText)" class="w-full lg:w-[400px] glass-card p-10 bg-slate-900/60 border-l-4 border-l-blue-600 cursor-pointer hover:bg-slate-900/80 transition-all">
+                        <div onclick="window.openRegionalDetail(document.getElementById('st-name').innerText)" class="w-full lg:w-[400px] glass-card p-10 bg-slate-900/60 border-l-4 border-l-blue-600 rounded-3xl cursor-pointer hover:bg-slate-900/80 transition-all">
                             <h3 id="st-name" class="text-4xl font-black text-white mb-2">Brasil</h3>
-                            <p class="text-[11px] text-slate-500 font-bold uppercase mb-8 border-b border-white/5 pb-6">DiagnÃ³stico Situacional por UF</p>
+                            <p class="text-[11px] text-slate-500 font-bold uppercase mb-8 border-b border-white/5 pb-6">Diagnóstico Situacional por UF</p>
                             <div class="grid grid-cols-2 gap-6">
                                 <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center">
                                     <span class="text-[10px] text-slate-500 font-black uppercase block mb-1">Alvos</span>
@@ -205,17 +203,16 @@
     </div>
 
     <!-- MODAL PREMIUM -->
-    <div id="checkout-modal" class="modal-overlay hidden" style="background:rgba(2,6,23,0.98); backdrop-filter:blur(40px);">
-        <div class="glass-card w-full max-w-[480px] p-12 flex flex-col relative border-blue-500/20 shadow-2xl shadow-blue-500/10">
+    <div id="checkout-modal" class="modal-overlay fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
+        <div class="glass-card w-full max-w-[480px] p-12 flex flex-col relative border border-white/10 rounded-3xl shadow-2xl">
             <button onclick="window.closeCheckout()" class="absolute top-6 right-6 text-slate-500 hover:text-white transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
             <div class="text-center mb-10">
                 <div class="w-16 h-16 bg-blue-600/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
                     <i data-lucide="unlock" class="w-8 h-8 text-blue-500"></i>
                 </div>
-                <h3 class="text-2xl font-black uppercase text-white tracking-tight">RelatÃ³rio Premium</h3>
-                <p class="text-sm text-slate-500 mt-2 font-medium">Acesso total Ã  inteligÃªncia situacional</p>
+                <h3 class="text-2xl font-black uppercase text-white tracking-tight">Relatório Premium</h3>
+                <p class="text-sm text-slate-500 mt-2 font-medium">Acesso total à inteligência situacional</p>
             </div>
-            
             <div class="space-y-4 text-center">
                 <p class="text-xs text-slate-400 uppercase font-black tracking-widest mb-4">Entre em contato para faturamento corporativo</p>
                 <a href="mailto:contato@sentinela.digital" class="w-full py-5 bg-blue-600 text-white font-black uppercase text-[11px] tracking-widest rounded-2xl flex items-center justify-center gap-3 transition-transform hover:scale-[1.02]"><i data-lucide="mail"></i> SOLICITAR ACESSO</a>
