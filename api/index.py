@@ -74,6 +74,30 @@ async def admin_page():
 
 # --- ROTAS DE API ---
 
+@app.get("/api/v1/stats/top-alvos")
+async def get_top_alvos():
+    url = f"{SUPABASE_URL}/rest/v1/candidatos?select=username,estado,comentarios_totais_count,comentarios_odio_count&status_monitoramento=ilike.Ativo&order=comentarios_totais_count.desc&limit=10"
+    async with httpx.AsyncClient() as client:
+        res = await client.get(url, headers=get_supabase_headers())
+        if res.status_code != 200:
+            return []
+        
+        data = res.json()
+        processed = []
+        for c in data:
+            total = c.get('comentarios_totais_count') or 0
+            odio = c.get('comentarios_odio_count') or 0
+            blindagem = 100.0
+            if total > 0:
+                blindagem = 100 - ((odio / total) * 100)
+            
+            processed.append({
+                "username": c['username'],
+                "estado": c['estado'],
+                "share_blindagem": round(blindagem, 2)
+            })
+        return processed
+
 @app.get("/api/v1/status")
 @app.get("/api/status")
 async def status():

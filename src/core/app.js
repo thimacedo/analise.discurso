@@ -5,7 +5,7 @@ import { renderBrazilMap } from '../components/BrazilMap.js';
 
 /**
  * Orquestrador Principal do Sentinela
- * v15.5.17 - Total Integration
+ * v15.5.18 - Resilient Integration
  */
 
 async function init() {
@@ -18,12 +18,7 @@ async function init() {
     // 2. Iniciar Sincronização de Dados
     await refreshData();
     
-    // 3. Inicializar Mapa (Geopolítica)
-    if (document.getElementById('svg-map-br')) {
-        renderBrazilMap('svg-map-br');
-    }
-    
-    // 4. Expor Eventos Globais
+    // 3. Expor Eventos Globais
     window.navigate = (view) => {
         setViewState(view);
         renderAll();
@@ -31,10 +26,13 @@ async function init() {
     window.refresh = refreshData;
     window.renderAll = renderAll;
     
-    // Lógica de Detalhes (Modal ou View)
+    // Lógica de Mapa (Interatividade)
+    window.focusState = (uf) => {
+        if(window.updateMapCard) window.updateMapCard(uf);
+    };
+
     window.openDetail = (username) => {
         console.log(`🔍 Abrindo dossiê detalhado: @${username}`);
-        // Por enquanto, apenas log e alerta. Podemos expandir para um modal real.
         alert(`Dossiê Detalhado de @${username} disponível na versão Premium.`);
     };
 
@@ -52,8 +50,22 @@ async function refreshData() {
         state.data = candidatos;
         state.alertas = alertas;
         
+        // 4. Renderização Completa
         renderAll();
-        console.log("✅ Sistema sincronizado.");
+        
+        // 5. Atualizar Mapa com dados reais
+        if (document.getElementById('svg-map-br')) {
+            const stats = {};
+            candidatos.forEach(t => {
+                const uf = (t.estado || 'BR').toUpperCase();
+                if(!stats[uf]) stats[uf] = { count: 0, hate: 0 };
+                stats[uf].count += 1;
+                stats[uf].hate += (t.comentarios_odio_count || 0);
+            });
+            renderBrazilMap('svg-map-br', stats);
+        }
+
+        console.log("✅ Sistema sincronizado e visualizado.");
     } catch (e) {
         console.error("Sync Error:", e);
     }

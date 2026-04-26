@@ -117,7 +117,8 @@ def get_feed_by_hashtag(tag):
 # --- EXECUÇÃO PRINCIPAL ---
 if __name__ == "__main__":
     print("Buscando alvos no Supabase...")
-    response = supabase.get("/candidatos?status_monitoramento=eq.ATIVO&order=atualizado_em.asc&limit=10")
+    # Uso ilike.ativo para ignorar caixa (Ativo, ATIVO, ativo)
+    response = supabase.get("/candidatos?status_monitoramento=ilike.ativo&order=atualizado_em.asc.nullsfirst&limit=20")
     target_profiles = response.json()
     
     if not target_profiles:
@@ -129,6 +130,9 @@ if __name__ == "__main__":
     for profile in target_profiles:
         username = profile['username']
         print(f"\n--- Raspando @{username} via RapidAPI ---")
+        
+        # Delay de segurança entre perfis
+        time.sleep(10) 
         
         # 1. Atualiza dados do candidato (se a API prover info do user, você pode puxar aqui)
         upsert_candidato({
