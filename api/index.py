@@ -17,6 +17,7 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 def get_supabase_headers():
     return {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}", "Content-Type": "application/json"}
 
+# --- API ---
 @app.get("/api/v1/stats/top-alvos")
 async def get_top_alvos():
     try:
@@ -28,29 +29,41 @@ async def get_top_alvos():
             return [{"username": c['username'], "estado": c['estado'], "share_blindagem": round(100 - ((c.get('comentarios_odio_count', 0) / c.get('comentarios_totais_count', 1)) * 100), 2)} for c in data]
     except: return []
 
+@app.get("/api/v1/live-intelligence")
+async def get_live_intelligence():
+    try:
+        if os.path.exists("api/data/pasa_live_logs.json"):
+            with open("api/data/pasa_live_logs.json", "r", encoding="utf-8") as f:
+                return json.load(f)
+        return []
+    except: return []
+
 @app.get("/api/v1/status")
 async def status():
-    return {"status": "online", "version": "15.9.0"}
+    return {"status": "online", "version": "15.9.1"}
 
+# --- ROTEADOR SIMPLIFICADO (FLAT ROOT) ---
 @app.get("/{full_path:path}", response_class=HTMLResponse)
 async def catch_all(request: Request, full_path: str):
-    # DIRETÓRIO RAIZ DA FUNÇÃO NO VERCEL
-    base_dir = os.path.dirname(__file__)
+    base_dir = os.path.dirname(__file__) # Pasta api/
+    root_dir = os.path.join(base_dir, "..")
     
     clean_path = full_path.strip("/")
     if clean_path == "": clean_path = "index.html"
     if clean_path == "admin": clean_path = "addalvo.html"
+    if clean_path == "metodologia": clean_path = "metodologia.html"
+    if clean_path == "analise-extremismo": clean_path = "analise-extremismo.html"
     
-    # Tentativas de arquivo no mesmo diretório ou subpastas
-    attempts = [
-        os.path.join(base_dir, clean_path),
-        os.path.join(base_dir, clean_path + ".html"),
-        os.path.join(base_dir, clean_path if clean_path.endswith(".html") else clean_path + "/index.html")
-    ]
+    # Tentativa 1: No root_dir (..)
+    file_path = os.path.join(root_dir, clean_path)
+    if os.path.exists(file_path) and os.path.isfile(file_path):
+        with open(file_path, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+            
+    # Tentativa 2: No base_dir (api/)
+    file_path = os.path.join(base_dir, clean_path)
+    if os.path.exists(file_path) and os.path.isfile(file_path):
+        with open(file_path, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
     
-    for file_path in attempts:
-        if os.path.exists(file_path) and os.path.isfile(file_path):
-            with open(file_path, "r", encoding="utf-8") as f:
-                return HTMLResponse(content=f.read())
-    
-    return HTMLResponse(content=f"<h1>404 - Arquivo nao localizado</h1><p>Path: {clean_path}</p>", status_code=404)
+    return HTMLResponse(content=f"<h1>404 - Arquivo não localizado</h1><p>Path: {clean_path}</p>", status_code=404)
