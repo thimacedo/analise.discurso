@@ -1,20 +1,35 @@
 {
   "version": 2,
-  "cleanUrls": true,
-  "trailingSlash": false,
-  "headers": [
+  "builds": [
     {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Cache-Control", "value": "no-store, max-age=0" }
-      ]
+      "src": "api/index.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "src/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "docs/**",
+      "use": "@vercel/static"
     }
   ],
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index.py" },
-    { "source": "/api/v1/(.*)", "destination": "/api/index.py" },
-    { "source": "/src/(.*)", "destination": "/src/$1" },
-    { "source": "/docs/(.*)", "destination": "/docs/$1" }
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/docs/analise-violencia",
+      "destination": "/docs/analise-violencia.html"
+    },
+    {
+      "source": "/docs/metodologia",
+      "destination": "/docs/metodologia.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/api/index.py"
+    }
   ]
 }
