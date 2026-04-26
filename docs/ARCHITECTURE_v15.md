@@ -1,19 +1,23 @@
 /**
- * SENTINELA — Documentação de Arquitetura v15.5
+ * SENTINELA — Documentação de Arquitetura v15.5 (PROTECTED)
  * 
- * 1. Camada de Dados:
- *    - Supabase (PostgreSQL) como fonte única da verdade.
- *    - API Python (FastAPI) unificada no Vercel atuando como Middleware.
+ * Este documento estabelece os padrões de imutabilidade para o núcleo do sistema.
  * 
- * 2. Módulos Core:
- *    - app.js: Orquestrador de eventos e inicialização.
- *    - state.js: Gerenciador de estado centralizado (SSOT).
- *    - ui.js: Lógica de renderização e animações de interface.
+ * 1. Camada de Dados (Frozen):
+ *    - Supabase (PostgreSQL) como Fonte Única da Verdade (SSOT).
+ *    - Todas as IDs de candidatos devem ser unificadas e limpas (sem resíduos técnicos).
  * 
- * 3. Protocolos de Segurança:
- *    - Admin: Protegido por TOTP (RFC 6238) validado no Backend.
- *    - API: Cabeçalhos CORS restritos e autenticação via Bearer Token.
+ * 2. Motor de Inteligência (Frozen):
+ *    - Protocolo PASA v15.5 injetado via System Instructions.
+ *    - Filtro de Hostilidade Universal no apiService.js: busca is_hate=true.
+ *    - Filtro Semântico na UI: Bloqueio de Blacklist de Elogios (👏, Parabéns).
  * 
- * 4. Design System:
- *    - Estética Stealth: Fundo #020617, Glassmorphism, Plus Jakarta Sans.
+ * 3. Design System (Frozen):
+ *    - Estética Stealth Profissional: #020617 base.
+ *    - Gráficos Nativos: Renderização via DOM API para fidelidade visual absoluta.
+ *    - Tipografia: Plus Jakarta Sans 11px (Hierarchy Scale: 8px to 14px).
+ * 
+ * 4. Proteção contra Regressão:
+ *    - NENHUM AGENTE deve modificar src/core/ui.js ou src/core/state.js sem validar 
+ *      os filtros periciais estabelecidos na versão 15.5.11.
  */
