@@ -109,6 +109,16 @@ async def home_page():
             return HTMLResponse(content=f.read(), media_type="text/html; charset=utf-8")
     except: return HTMLResponse(content="Erro ao carregar Dashboard", status_code=500)
 
+@app.get("/api/v1/live-intelligence")
+async def get_live_intelligence():
+    try:
+        path = "data/pasa_live_logs.json"
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        return []
+    except: return []
+
 @app.get("/api/v1/status")
 async def status():
     return {"status": "online", "version": "15.7.5"}
