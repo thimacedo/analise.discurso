@@ -1,6 +1,6 @@
 /**
- * SENTINELA UI ENGINE v15.6.4
- * Final Stability & Image Resilience
+ * SENTINELA UI ENGINE v15.6.5
+ * Professional Stealth - Elite Image Proxy Edition
  */
 
 import { state } from './state.js';
@@ -28,17 +28,23 @@ function cleanName(target) {
 }
 
 /**
- * Retorna o HTML do Avatar com Fallback Nativo
+ * MOTOR DE IMAGEM DE ALTA DISPONIBILIDADE
+ * v15.6.5 - Utiliza Statically + Weserv para bypass de bloqueio do Instagram
  */
 function imgHtml(username, className = "w-10 h-10 rounded-xl") {
     const clean = username.replace('@', '').trim();
-    // Fonte primária: unavatar | Fallback imediato: ui-avatars (iniciais)
-    const primary = `https://unavatar.io/instagram/${clean}`;
-    const fallback = `https://ui-avatars.com/api/?name=${clean}&background=0f172a&color=3b82f6&bold=true`;
+    
+    // Proxy 1: Statically (CDN de alto desempenho)
+    // Proxy 2: Weserv (Fallback de processamento de imagem)
+    const primary = `https://cdn.statically.io/img/unavatar.io/instagram/${clean}`;
+    const secondary = `https://images.weserv.nl/?url=unavatar.io/instagram/${clean}&w=150&h=150&fit=cover`;
+    const finalFallback = `https://ui-avatars.com/api/?name=${clean}&background=0f172a&color=3b82f6&bold=true`;
     
     return `<img src="${primary}" 
-                 class="${className} border border-white/10" 
-                 onerror="this.onerror=null; this.src='${fallback}';" 
+                 class="${className} border border-white/10 shadow-lg bg-slate-900" 
+                 loading="lazy"
+                 onerror="this.onerror=null; this.src='${secondary}'; this.setAttribute('on-second-error', 'true');" 
+                 onload="this.classList.add('opacity-100')"
                  alt="">`;
 }
 
@@ -60,10 +66,10 @@ function renderMonitorImpacto() {
         const blindagem = total > 0 ? (100 - (alvo.comentarios_odio_count / total * 100)) : 100;
         const hostilidade = 100 - blindagem;
         return `
-            <div onclick="window.openDetail('${alvo.username}')" class="flex flex-col gap-3 p-4 bg-slate-800/40 border border-slate-700/50 rounded-xl hover:bg-slate-800 transition-all cursor-pointer group">
+            <div onclick="window.openDetail('${alvo.username}')" class="flex flex-col gap-3 p-4 bg-slate-800/40 border border-slate-700/50 rounded-xl hover:bg-slate-800 transition-all duration-300 cursor-pointer group">
                 <div class="flex justify-between items-center">
                     <div class="flex items-center gap-3">
-                        ${imgHtml(cleanName(alvo), "w-6 h-6 rounded-md")}
+                        ${imgHtml(cleanName(alvo), "w-7 h-7 rounded-md")}
                         <span class="text-sm font-bold text-slate-200 group-hover:text-blue-400">@${cleanName(alvo)}</span>
                     </div>
                     <div class="text-right">
@@ -71,8 +77,8 @@ function renderMonitorImpacto() {
                     </div>
                 </div>
                 <div class="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden flex">
-                    <div class="h-full bg-blue-600" style="width: ${blindagem}%"></div>
-                    <div class="h-full bg-red-600" style="width: ${hostilidade}%"></div>
+                    <div class="h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-700" style="width: ${blindagem}%"></div>
+                    <div class="h-full bg-gradient-to-r from-rose-500 to-red-600 transition-all duration-700" style="width: ${hostilidade}%"></div>
                 </div>
             </div>`;
     }).join('');
@@ -108,7 +114,7 @@ function renderDossieGrid() {
                         <div class="flex justify-between items-end"><span class="text-[8px] text-slate-500 font-black uppercase tracking-tighter">Blindagem</span><span class="text-[10px] font-black ${resM < 70 ? 'text-red-500' : 'text-emerald-500'} font-mono">${resM}%</span></div>
                         <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden"><div class="h-full ${resM < 70 ? 'bg-red-600 shadow-[0_0_8px_#ef4444]' : 'bg-blue-600'}" style="width: ${resM}%"></div></div>
                     </div>
-                    <button onclick="window.openDetail('${t.username}')" class="mt-6 w-full py-2.5 bg-white/5 hover:bg-blue-600/20 text-blue-400 text-[8px] font-black border border-white/5 rounded-lg transition-all uppercase">Dossiê Detalhado</button>
+                    <button onclick="window.openDetail('${t.username}')" class="mt-6 w-full py-2.5 bg-white/5 hover:bg-blue-600/20 text-blue-400 text-[8px] font-black border border-white/5 rounded-lg transition-all uppercase tracking-widest">Dossiê Detalhado</button>
                 </div>`;
             }).join('')}`;
     };
@@ -126,8 +132,8 @@ function renderFocusDossiers() {
             <div onclick="window.openDetail('${target.username}')" class="cursor-pointer group">
                 <div class="flex items-center gap-4 mb-6">
                     <div class="relative">
-                        ${imgHtml(cleanName(target), "w-14 h-14 rounded-2xl border-2 border-white/10 shadow-xl")}
-                        <span class="absolute -bottom-1 -right-1 px-1.5 py-0.5 bg-blue-600 text-[7px] font-black text-white rounded uppercase">${target.estado || 'BR'}</span>
+                        ${imgHtml(cleanName(target), "w-16 h-16 rounded-2xl border-2 border-white/10 shadow-2xl")}
+                        <span class="absolute -bottom-1 -right-1 px-1.5 py-0.5 bg-blue-600 text-[7px] font-black text-white rounded uppercase shadow-lg border border-[#020617]">${target.estado || 'BR'}</span>
                     </div>
                     <div class="text-left min-w-0">
                         <h4 class="text-[11px] font-900 text-white group-hover:text-blue-400 truncate">@${cleanName(target)}</h4>
@@ -174,9 +180,9 @@ function renderAlerts() {
     container.innerHTML = elite.map(a => `
         <div class="glass-card p-6 bg-red-600/[0.01] border-red-500/10 hover:border-red-500/30 transition-all group relative">
             <div class="flex items-center gap-3 mb-4">
-                ${imgHtml(cleanName({candidato_id: a.candidato_id}), "w-8 h-8 rounded-lg")}
+                ${imgHtml(cleanName({username: a.candidato_id}), "w-8 h-8 rounded-lg")}
                 <div>
-                    <span class="text-[10px] font-black text-white block">@${cleanName({candidato_id: a.candidato_id})}</span>
+                    <span class="text-[10px] font-black text-white block">@${cleanName({username: a.candidato_id})}</span>
                     <span class="text-[7px] text-slate-500 font-bold uppercase">${new Date(a.data_coleta).toLocaleString('pt-BR')}</span>
                 </div>
             </div>
