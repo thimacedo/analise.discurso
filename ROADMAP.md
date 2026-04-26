@@ -3,7 +3,8 @@
 ## 📖 Visão Geral
 Plataforma Independente de **Inteligência Situacional e Análise de Discurso**. O sistema utiliza o **Protocolo PASA v15.7** para oferecer previsibilidade política, detecção de redes coordenadas e transparência de inteligência artificial.
 
-## 🚀 Status Atual: v15.7.5 (Transparência de Inteligência)
+## 🚀 Status Atual: v15.7.6 (Curadoria e Refino)
+- [x] **Módulo de Refino Pericial**: Interface administrativa para correção humana de falsos positivos e negativos.
 - [x] **Monitoramento Live do Llama**: Stream de vereditos em tempo real integrado ao Dashboard.
 - [x] **Infográfico de Ameaças v3.0**: Radiografia visual completa da violência política brasileira (2018-2026).
 - [x] **Rigor Pericial v15.6.11**: Motor recalibrado para capturar acusações criminais, vulgaridades e ironias cínicas.
@@ -24,4 +25,4 @@ Plataforma Independente de **Inteligência Situacional e Análise de Discurso**.
 - **NLP Forensic**: Metodologia proprietária Sentinela Intelligence.
 
 ---
-**Atualização:** 26/04/2026 | **Versão:** 15.7.5-stable
+**Atualização:** 26/04/2026 | **Versão:** 15.7.6-stable
