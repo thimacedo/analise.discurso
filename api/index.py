@@ -27,9 +27,9 @@ async def get_top_alvos():
     except: return []
 
 @app.get("/api/v1/status")
-async def status(): return {"status": "online", "version": "15.10.3"}
+async def status(): return {"status": "online", "version": "15.10.4"}
 
-# --- ROTEAMENTO BLINDADO (SANDBOX SAFE) ---
+# --- ROTEADOR DE PARÂMETROS (V15.10.4) ---
 
 def serve(filename):
     base = os.path.dirname(__file__)
@@ -39,14 +39,13 @@ def serve(filename):
             return HTMLResponse(content=f.read())
     return HTMLResponse(content=f"<h1>Erro</h1><p>{filename} nao localizado.</p>", status_code=404)
 
-@app.get("/api/pages/analise")
-async def pg_analise(): return serve("analise.html")
-
-@app.get("/api/pages/metodo")
-async def pg_metodo(): return serve("metodo.html")
-
-@app.get("/api/pages/admin")
-async def pg_admin(): return serve("addalvo.html")
-
 @app.get("/")
-async def pg_home(): return serve("index.html")
+async def universal_router(page: str = None):
+    if page == "analise": return serve("analise.html")
+    if page == "metodo": return serve("metodo.html")
+    if page == "admin": return serve("addalvo.html")
+    return serve("index.html")
+
+# Rota explícita para o Vercel não se perder
+@app.get("/api/status")
+async def status_v1(): return {"status": "ok"}
