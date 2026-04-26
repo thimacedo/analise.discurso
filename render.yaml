@@ -1,4 +1,19 @@
 services:
+  # API WEB (FASTAPI)
+  - type: web
+    name: sentinela-api
+    region: ohio
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn core.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: SUPABASE_URL
+        value: https://vhamejkldzxbeibqeqpk.supabase.co
+      - key: SUPABASE_KEY
+        sync: false
+      - key: SENTINELA_SUPABASE_KEY
+        sync: false
+
   # COLETOR (PYTHON)
   - type: worker
     name: sentinela-daily-worker
