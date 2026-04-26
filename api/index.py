@@ -1,8 +1,8 @@
 import os
 import httpx
 import json
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
@@ -28,34 +28,15 @@ async def get_top_alvos():
             return [{"username": c['username'], "estado": c['estado'], "share_blindagem": round(100 - ((c.get('comentarios_odio_count', 0) / c.get('comentarios_totais_count', 1)) * 100), 2)} for c in data]
     except: return []
 
+@app.get("/api/v1/live-intelligence")
+async def get_live_intelligence():
+    try:
+        if os.path.exists("api/data/pasa_live_logs.json"):
+            with open("api/data/pasa_live_logs.json", "r", encoding="utf-8") as f:
+                return json.load(f)
+        return []
+    except: return []
+
 @app.get("/api/v1/status")
 async def status():
-    return {"status": "online", "version": "15.9.9"}
-
-# --- MOTOR DE BYPASS DE ROTA (V15.9.9) ---
-
-def load_ui(filename):
-    base_dir = os.path.dirname(__file__)
-    # Tentativa 1: Local (Sandbox)
-    path = os.path.join(base_dir, filename)
-    if os.path.exists(path):
-        with open(path, "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
-    # Tentativa 2: Root
-    path = os.path.join(base_dir, "..", filename)
-    if os.path.exists(path):
-        with open(path, "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
-    return HTMLResponse(content=f"<h1>Erro de Sistema</h1><p>Recurso {filename} nao localizado.</p>", status_code=500)
-
-@app.get("/", response_class=HTMLResponse)
-async def home_route(): return load_ui("index.html")
-
-@app.get("/admin", response_class=HTMLResponse)
-async def admin_route(): return load_ui("addalvo.html")
-
-@app.get("/infografico", response_class=HTMLResponse)
-async def info_route(): return load_ui("analise.html")
-
-@app.get("/protocolo", response_class=HTMLResponse)
-async def proto_route(): return load_ui("metodo.html")
+    return {"status": "online", "version": "15.9.10"}
