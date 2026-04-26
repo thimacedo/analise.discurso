@@ -4,7 +4,7 @@ import { renderAll } from './ui.js';
 import { renderBrazilMap } from '../components/BrazilMap.js';
 
 async function init() {
-    console.log(`🛡️ Sentinela Core ${state.config.version} Initializing...`);
+    console.log(`🛡️ Sentinela Core v15.14.1 Initializing...`);
     const initialView = window.location.hash.substring(1) || 'monitor';
     setViewState(initialView);
     await refreshData();
@@ -33,8 +33,8 @@ async function refreshData() {
             fetchCandidatos(),
             fetchAlertas(15)
         ]);
-        state.data = candidatos;
-        state.alertas = alertas;
+        state.data = candidatos || [];
+        state.alertas = alertas || [];
         renderAll();
     } catch (e) {
         console.error("Sync Error:", e);
