@@ -29,41 +29,32 @@ async def get_top_alvos():
             return [{"username": c['username'], "estado": c['estado'], "share_blindagem": round(100 - ((c.get('comentarios_odio_count', 0) / c.get('comentarios_totais_count', 1)) * 100), 2)} for c in data]
     except: return []
 
-@app.get("/api/v1/live-intelligence")
-async def get_live_intelligence():
-    try:
-        if os.path.exists("api/data/pasa_live_logs.json"):
-            with open("api/data/pasa_live_logs.json", "r", encoding="utf-8") as f:
-                return json.load(f)
-        return []
-    except: return []
-
 @app.get("/api/v1/status")
 async def status():
-    return {"status": "online", "version": "15.9.1"}
+    return {"status": "online", "version": "15.9.2"}
 
-# --- ROTEADOR SIMPLIFICADO (FLAT ROOT) ---
+# --- ROTEADOR UNIVERSAL ---
 @app.get("/{full_path:path}", response_class=HTMLResponse)
 async def catch_all(request: Request, full_path: str):
-    base_dir = os.path.dirname(__file__) # Pasta api/
-    root_dir = os.path.join(base_dir, "..")
+    # Diretório raiz onde os arquivos HTML estão localizados
+    base_dir = os.path.join(os.path.dirname(__file__), "..")
     
     clean_path = full_path.strip("/")
     if clean_path == "": clean_path = "index.html"
     if clean_path == "admin": clean_path = "addalvo.html"
-    if clean_path == "metodologia": clean_path = "metodologia.html"
-    if clean_path == "analise-extremismo": clean_path = "analise-extremismo.html"
     
-    # Tentativa 1: No root_dir (..)
-    file_path = os.path.join(root_dir, clean_path)
-    if os.path.exists(file_path) and os.path.isfile(file_path):
-        with open(file_path, "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
-            
-    # Tentativa 2: No base_dir (api/)
-    file_path = os.path.join(base_dir, clean_path)
-    if os.path.exists(file_path) and os.path.isfile(file_path):
-        with open(file_path, "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
+    # Tentativas de Arquivo
+    attempts = [
+        os.path.join(base_dir, clean_path),
+        os.path.join(base_dir, clean_path + ".html"),
+        os.path.join(base_dir, "api", clean_path), # Fallback dentro da pasta api
+        os.path.join(base_dir, "api", clean_path + ".html")
+    ]
     
-    return HTMLResponse(content=f"<h1>404 - Arquivo não localizado</h1><p>Path: {clean_path}</p>", status_code=404)
+    for file_path in attempts:
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            with open(file_path, "r", encoding="utf-8") as f:
+                return HTMLResponse(content=f.read())
+    
+    # Erro informativo
+    return HTMLResponse(content=f"<h1>404 - Arquivo não localizado</h1><p>O Sentinela não encontrou o recurso: {clean_path}</p>", status_code=404)
