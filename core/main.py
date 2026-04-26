@@ -1,8 +1,12 @@
-from fastapi import FastAPI, Query, Depends
+from fastapi import FastAPI, Query, Depends, HTTPException
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from database.repository import DatabaseRepository
 from typing import Optional
+import os
+from datetime import datetime
+from processing.dossie_service import DossieService
 
 app = FastAPI(
     title="API Análise Ódio Político",
@@ -26,6 +30,47 @@ def get_db():
         yield session
     finally:
         session.close()
+
+@app.get("/api/v1/exportar-dossie")
+def exportar_dossie(candidate: Optional[str] = None):
+    with db.get_session() as session:
+        from database.models import Comentario, Classificacao, Candidato
+        query = session.query(Comentario, Classificacao, Candidato)\
+            .join(Classificacao, isouter=True)\
+            .join(Candidato)
+        
+        if candidate:
+            query = query.filter(Candidato.username == candidate)
+            
+        # Pega os 50 mais recentes para o dossiê
+        resultados = query.order_by(Comentario.data_publicacao.desc()).limit(50).all()
+        
+        if not resultados:
+            raise HTTPException(status_code=404, detail="Nenhum dado encontrado para exportação.")
+            
+        dados_formatados = [
+            {
+                "candidatos": {"username": can.username},
+                "texto_bruto": c.texto_bruto,
+                "is_hate": cl.categoria_odio != 'neutro' if cl else False,
+                "categoria_ia": cl.categoria_odio if cl else "Não Classificado"
+            } for c, cl, can in resultados
+        ]
+        
+        output_dir = os.path.join(os.getcwd(), "data", "reports")
+        os.makedirs(output_dir, exist_ok=True)
+        
+        filename = f"dossie_inteligencia_{candidate if candidate else 'geral'}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        filepath = os.path.join(output_dir, filename)
+        
+        service = DossieService()
+        service.generate_dossie(dados_formatados, filepath)
+        
+        return FileResponse(
+            path=filepath,
+            filename=filename,
+            media_type='application/pdf'
+        )
 
 @app.get("/api/v1/status")
 def get_status():
