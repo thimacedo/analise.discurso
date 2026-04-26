@@ -12,9 +12,9 @@
         .glass-card { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); border-radius: 1.5rem; }
         .input-dark { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 0.75rem; padding: 0.75rem; width: 100%; }
         .input-dark:focus { border-color: #3b82f6; outline: none; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
-        .btn-primary { background: #2563eb; color: white; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; transition: all 0.2s; }
+        .btn-primary { background: #2563eb; color: white; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; transition: all 0.2s; cursor: pointer; }
         .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
-        .btn-secondary { background: rgba(255,255,255,0.05); color: #94a3b8; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 600; transition: all 0.2s; border: 1px solid rgba(255,255,255,0.05); }
+        .btn-secondary { background: rgba(255,255,255,0.05); color: #94a3b8; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 600; transition: all 0.2s; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
         .btn-secondary:hover { background: rgba(255,255,255,0.1); color: white; }
     </style>
 </head>
@@ -87,9 +87,9 @@
                         <h3 class="text-xs font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
                             <i data-lucide="file-up" class="w-4 h-4"></i> Importação em Lote (CSV)
                         </h3>
-                        <a href="http://localhost:8000/api/v1/admin/targets/template" class="text-[10px] font-black text-blue-400 hover:text-white uppercase tracking-widest flex items-center gap-1">
+                        <button onclick="downloadModel()" class="text-[10px] font-black text-blue-400 hover:text-white uppercase tracking-widest flex items-center gap-1 bg-transparent border-0 cursor-pointer">
                             <i data-lucide="download" class="w-3 h-3"></i> Baixar Modelo
-                        </a>
+                        </button>
                     </div>
                     
                     <div id="drop-zone" class="border-2 border-dashed border-white/10 rounded-3xl p-12 text-center hover:border-blue-500/50 hover:bg-blue-500/5 transition-all cursor-pointer group">
@@ -135,22 +135,24 @@
     </div>
 
     <script>
-        const API_BASE = "https://sentinela-api.onrender.com/api/v1";
+        // Determina a base da API dinamicamente para ser sempre o mesmo servidor que serve a página
+        const currentPath = window.location.pathname;
+        const API_BASE = currentPath.includes('/admin') ? "/api/v1" : "/api/v1";
+        
+        // Fallback para debug local se não houver path (aberto via file:// por exemplo)
+        const FINAL_API_BASE = (window.location.protocol === 'file:') 
+            ? "http://localhost:8000/api/v1" 
+            : "/api/v1";
+
         let authToken = localStorage.getItem('sentinela_admin_token');
 
-        function init() {
-            lucide.createIcons();
-            if (authToken) {
-                showAdmin();
-            }
-        }
-
         async function verifyAuth() {
-            const code = document.getElementById('totp-code').value;
+            const codeInput = document.getElementById('totp-code');
+            const code = codeInput.value;
             const errorEl = document.getElementById('auth-error');
             
             try {
-                const res = await fetch(`${API_BASE}/admin/auth/verify`, {
+                const res = await fetch(`${FINAL_API_BASE}/admin/auth/verify`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ code })
@@ -165,7 +167,8 @@
                     errorEl.classList.remove('hidden');
                 }
             } catch (e) {
-                console.error(e);
+                console.error("Erro na autenticação:", e);
+                alert("Erro ao conectar com a API. Verifique se o backend está rodando na porta 8088.");
             }
         }
 
@@ -191,31 +194,43 @@
                 tbody.innerHTML = '';
 
                 targets.forEach(t => {
-                    const isActive = t.status === 'Ativo';
+                    const statusText = t.status || 'Ativo';
+                    const isActive = statusText === 'Ativo';
                     tbody.innerHTML += `
                         <tr class="hover:bg-white/[0.02] transition-colors">
                             <td class="p-4">
                                 <div class="font-bold text-white">@${t.username}</div>
-                                <div class="text-[10px] text-slate-500">${t.nome_completo}</div>
+                                <div class="text-[10px] text-slate-500">${t.nome_completo || 'Não informado'}</div>
                             </td>
                             <td class="p-4">
-                                <span class="px-2 py-1 bg-slate-800 rounded text-[9px] uppercase font-black mr-2">${t.cargo}</span>
-                                <span class="text-blue-400 font-black">${t.estado}</span>
+                                <span class="px-2 py-1 bg-slate-800 rounded text-[9px] uppercase font-black mr-2">${t.cargo || 'Monitorado'}</span>
+                                <span class="text-blue-400 font-black">${t.estado || 'BR'}</span>
                             </td>
                             <td class="p-4 text-center">
                                 <span class="px-3 py-1 rounded-full text-[8px] font-black uppercase ${isActive ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-slate-800 text-slate-500 border border-white/5'}">
-                                    ${t.status}
+                                    ${statusText}
                                 </span>
                             </td>
                             <td class="p-4 text-right">
                                 <button onclick="toggleStatus('${t.username}', '${isActive ? 'Inativo' : 'Ativo'}')" 
-                                    class="text-[9px] font-black uppercase hover:text-white transition-colors ${isActive ? 'text-red-400' : 'text-emerald-400'}">
+                                    class="text-[9px] font-black uppercase hover:text-white transition-colors cursor-pointer ${isActive ? 'text-red-400' : 'text-emerald-400'}">
                                     ${isActive ? 'Desativar' : 'Ativar'}
                                 </button>
                             </td>
                         </tr>
                     `;
                 });
+            } catch (e) { console.error("Erro ao carregar alvos:", e); }
+        }
+
+        async function toggleStatus(username, newStatus) {
+            try {
+                const res = await fetch(`${API_BASE}/admin/targets/${username}/status?status=${newStatus}`, { method: 'PATCH' });
+                if (res.ok) {
+                    loadTargets();
+                } else {
+                    alert("Erro ao atualizar status.");
+                }
             } catch (e) { console.error(e); }
         }
 
@@ -224,7 +239,8 @@
                 username: document.getElementById('add-username').value,
                 nome_completo: document.getElementById('add-nome').value,
                 cargo: document.getElementById('add-cargo').value,
-                estado: document.getElementById('add-estado').value
+                estado: document.getElementById('add-estado').value,
+                status: 'Ativo'
             };
 
             const res = await fetch(`${API_BASE}/admin/targets/upsert`, {
@@ -239,38 +255,14 @@
             }
         }
 
-        async function toggleStatus(username, newStatus) {
-            await fetch(`${API_BASE}/admin/targets/${username}/status?status=${newStatus}`, { method: 'PATCH' });
-            loadTargets();
+        function downloadModel() {
+            window.open(`${API_BASE}/admin/targets/template`, '_blank');
         }
 
-        // CSV DROPZONE LOGIC
+        // CSV DROPZONE
         const dropZone = document.getElementById('drop-zone');
         const fileInput = document.getElementById('csv-input');
-
         dropZone.onclick = () => fileInput.click();
-        
-        fileInput.onchange = (e) => handleFiles(e.target.files);
-
-        async function handleFiles(files) {
-            const file = files[0];
-            const statusEl = document.getElementById('import-status');
-            statusEl.classList.remove('hidden');
-            
-            const formData = new FormData();
-            formData.append('file', file);
-
-            try {
-                const res = await fetch(`${API_BASE}/admin/targets/import`, {
-                    method: 'POST',
-                    body: formData
-                });
-                const result = await res.json();
-                alert(result.message);
-                loadTargets();
-            } catch (e) { alert("Erro ao importar CSV"); }
-            statusEl.classList.add('hidden');
-        }
 
         init();
     </script>
