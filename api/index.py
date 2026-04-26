@@ -91,6 +91,12 @@ async def analise_page():
     with open("docs/analise-violencia.html", "r", encoding="utf-8") as f:
         return HTMLResponse(content=f.read(), media_type="text/html; charset=utf-8")
 
+@app.get("/docs/metodologia", response_class=HTMLResponse)
+@app.get("/docs/metodologia.html", response_class=HTMLResponse)
+async def metodologia_page():
+    with open("docs/metodologia.html", "r", encoding="utf-8") as f:
+        return HTMLResponse(content=f.read(), media_type="text/html; charset=utf-8")
+
 @app.get("/", response_class=HTMLResponse)
 async def home_page():
     with open("index.html", "r", encoding="utf-8") as f:
