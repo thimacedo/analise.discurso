@@ -1,18 +1,17 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SENTINELA</title>
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="/src/styles/main.css?v=15.11.9">
+    <link rel="stylesheet" href="/src/styles/main.css?v=15.11.10">
 </head>
 <body class="antialiased text-slate-200 bg-[#020617]">
     <div class="app-container">
-        
+        <!-- SIDEBAR -->
         <aside class="w-72 flex flex-col p-8 shrink-0 relative overflow-hidden bg-[#020617]/90 backdrop-blur-3xl border-r border-white/5">
             <div class="flex items-center gap-4 mb-12 relative z-10">
                 <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-500/20">
@@ -31,17 +30,17 @@
                 </a>
                 <a href="#dossie" id="nav-dossie" class="nav-item group flex items-center gap-3 p-3 rounded-xl transition-all">
                     <i data-lucide="fingerprint" class="w-5 h-5"></i> 
-                    <span>DossiÃª de Alvos</span>
+                    <span>Dossi&ecirc; de Alvos</span>
                 </a>
                 <a href="#map" id="nav-map" class="nav-item group flex items-center gap-3 p-3 rounded-xl transition-all">
                     <i data-lucide="globe" class="w-5 h-5"></i> 
-                    <span>GeopolÃ­tica UF</span>
+                    <span>Geopol&iacute;tica UF</span>
                 </a>
-                <a href="/docs/analise-violencia" class="nav-item group opacity-60 flex items-center gap-3 p-3 rounded-xl transition-all">
+                <a href="/analise" class="nav-item group opacity-60 flex items-center gap-3 p-3 rounded-xl transition-all">
                     <i data-lucide="shield-alert" class="w-5 h-5 text-amber-500"></i> 
-                    <span>AnÃ¡lise de Extremismo</span>
+                    <span>An&aacute;lise de Extremismo</span>
                 </a>
-                <a href="/docs/metodologia" class="nav-item group opacity-60 flex items-center gap-3 p-3 rounded-xl transition-all">
+                <a href="/metodo" class="nav-item group opacity-60 flex items-center gap-3 p-3 rounded-xl transition-all">
                     <i data-lucide="book-open" class="w-5 h-5"></i> 
                     <span>Metodologia</span>
                 </a>
@@ -53,24 +52,17 @@
                     <h4 class="text-[10px] font-black text-white uppercase tracking-widest text-xs">TSE 2026 Compliance</h4>
                 </div>
                 <p class="text-[10px] text-slate-400 leading-relaxed font-medium mb-4">
-                    Monitoramento em conformidade com as resoluÃ§Ãµes de rotulagem de IA e combate Ã  desinformaÃ§Ã£o.
+                    Monitoramento em conformidade com as resolu&ccedil;&otilde;es de rotulagem de IA.
                 </p>
-                <div class="flex flex-col gap-2">
-                    <a href="https://www.tse.jus.br" target="_blank" class="text-[9px] font-bold text-blue-400 hover:text-white transition-colors flex items-center gap-2">
-                        <i data-lucide="external-link" class="w-3 h-3"></i> VER RESOLUÃ‡Ã•ES
-                    </a>
-                </div>
             </div>
 
             <div class="pt-6 mt-6 border-t border-white/5 relative z-10">
-                <button onclick="window.openCheckout()" class="w-full py-4 bg-blue-600 text-white hover:bg-blue-500 transition-all rounded-2xl text-[10px] font-black tracking-widest uppercase shadow-xl shadow-blue-500/10">
-                    Exportar InteligÃªncia
-                </button>
+                <button onclick="window.openCheckout()" class="w-full py-4 bg-blue-600 text-white hover:bg-blue-500 transition-all rounded-2xl text-[10px] font-black tracking-widest uppercase shadow-xl shadow-blue-500/10">Exportar Intelig&ecirc;ncia</button>
             </div>
         </aside>
 
+        <!-- MAIN -->
         <main class="flex-1 flex flex-col p-8 gap-8 overflow-y-auto custom-scrollbar">
-            
             <header class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 shrink-0">
                 <div class="glass-card p-6 flex flex-col justify-between border border-white/5 rounded-3xl bg-white/[0.02]">
                     <div class="flex justify-between items-start mb-4">
@@ -78,51 +70,41 @@
                         <i data-lucide="users" class="w-4 h-4 text-blue-500/50"></i>
                     </div>
                     <div id="kpi-monitorados" class="text-3xl font-black kpi-value text-white">---</div>
-                    <div class="mt-2 text-[9px] font-bold text-emerald-500 uppercase flex items-center gap-1">
-                        <i data-lucide="trending-up" class="w-3 h-3"></i> +12% esta semana
-                    </div>
                 </div>
-                
                 <div class="glass-card p-6 flex flex-col justify-between border-l-4 border-l-red-600/50 border-white/5 rounded-3xl bg-white/[0.02]">
                     <div class="flex justify-between items-start mb-4">
-                        <span class="text-[10px] text-red-500 font-black uppercase tracking-widest">Alertas CrÃ­ticos</span>
+                        <span class="text-[10px] text-red-500 font-black uppercase tracking-widest">Alertas</span>
                         <i data-lucide="alert-triangle" class="w-4 h-4 text-red-500/50"></i>
                     </div>
                     <div id="kpi-hate" class="text-3xl font-black kpi-value text-white">---</div>
-                    <div class="mt-2 text-[9px] font-bold text-red-400 uppercase">VigilÃ¢ncia Ativa</div>
                 </div>
-                
                 <div class="glass-card p-6 flex flex-col justify-between border border-white/5 rounded-3xl bg-white/[0.02]">
                     <div class="flex justify-between items-start mb-4">
                         <span class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Amostragem</span>
                         <i data-lucide="database" class="w-4 h-4 text-blue-500/50"></i>
                     </div>
                     <div id="kpi-total" class="text-3xl font-black kpi-value text-white">---</div>
-                    <div class="mt-2 text-[9px] font-bold text-slate-500 uppercase">Dados Processados</div>
                 </div>
-                
                 <div class="glass-card p-6 flex flex-col justify-between border-l-4 border-l-emerald-600/50 border-white/5 rounded-3xl bg-white/[0.02]">
                     <div class="flex justify-between items-start mb-4">
-                        <span class="text-[10px] text-emerald-500 font-black uppercase tracking-widest">SaÃºde Sistema</span>
+                        <span class="text-[10px] text-emerald-500 font-black uppercase tracking-widest">Sa&uacute;de</span>
                         <i data-lucide="activity" class="w-4 h-4 text-emerald-500/50"></i>
                     </div>
                     <div id="kpi-res" class="text-3xl font-black kpi-value text-white">---</div>
-                    <div class="mt-2 text-[9px] font-bold text-emerald-500 uppercase">Online 24/7</div>
                 </div>
             </header>
 
             <div class="flex-1 relative">
-                
                 <div id="view-monitor" class="view-content absolute inset-0 space-y-8">
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         <div class="lg:col-span-2 glass-card p-8 flex flex-col h-full relative overflow-hidden bg-white/[0.02] border border-white/5 rounded-3xl">
                             <div class="flex justify-between items-start mb-6 relative z-10">
                                 <div>
-                                    <h3 class="text-xs font-black text-blue-400 uppercase tracking-[0.2em] mb-1">Monitor de Impacto & Hostilidade</h3>
-                                    <p class="text-lg font-bold text-white">ProporÃ§Ã£o de Narrativa</p>
+                                    <h3 class="text-xs font-black text-blue-400 uppercase tracking-[0.2em] mb-1">Monitor de Hostilidade</h3>
+                                    <p class="text-lg font-bold text-white">Propor&ccedil;&atilde;o de Narrativa</p>
                                 </div>
                                 <div class="flex flex-col items-end gap-1">
-                                    <span class="badge badge-danger animate-pulse bg-red-500/10 text-red-500 px-2 py-1 rounded text-[8px] font-black uppercase">VigilÃ¢ncia Ativa</span>
+                                    <span class="badge badge-danger animate-pulse bg-red-500/10 text-red-500 px-2 py-1 rounded text-[8px] font-black uppercase">Vigil&acirc;ncia Ativa</span>
                                 </div>
                             </div>
                             <div id="chartMain" class="flex-1 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-2">
@@ -144,20 +126,17 @@
                             <div id="feed-alertas" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                         </div>
                         <div class="space-y-6" id="predictive-trends">
-                            <div class="flex items-center gap-3 px-2">
-                                <i data-lucide="cpu" class="w-4 h-4 text-blue-400"></i>
-                                <h3 class="text-xs font-black text-white uppercase tracking-widest">InteligÃªncia Preditiva</h3>
-                            </div>
+                            <!-- Intelig&ecirc;ncia Preditiva via JS -->
                         </div>
                     </div>
                 </div>
 
                 <div id="view-dossie" class="view-content absolute inset-0 hidden">
                     <div class="flex justify-between items-center mb-8 px-2">
-                        <h2 class="text-2xl font-800 tracking-tighter uppercase text-white">DossiÃª de Alvos</h2>
+                        <h2 class="text-2xl font-800 tracking-tighter uppercase text-white">Dossi&ecirc; de Alvos</h2>
                         <div class="relative w-64">
                             <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-slate-500"></i>
-                            <input type="text" id="dossie-search" oninput="window.debouncedRender()" placeholder="Filtrar inteligÃªncia..." class="bg-white/5 border border-white/10 text-white rounded-xl pl-10 py-2 text-xs w-full focus:border-blue-500 outline-none">
+                            <input type="text" id="dossie-search" oninput="window.debouncedRender()" placeholder="Filtrar intelig&ecirc;ncia..." class="bg-white/5 border border-white/10 text-white rounded-xl pl-10 py-2 text-xs w-full focus:border-blue-500 outline-none">
                         </div>
                     </div>
                     <div id="dossie-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 pb-20"></div>
@@ -165,13 +144,10 @@
 
                 <div id="view-map" class="view-content absolute inset-0 hidden">
                     <div class="flex flex-col lg:flex-row gap-12 items-center h-full p-8">
-                        <div class="flex-1 w-full flex justify-center">
-                            <svg id="svg-map-br" class="w-full max-w-[600px] h-auto drop-shadow-2xl"></svg>
-                        </div>
+                        <div class="flex-1 w-full flex justify-center"><svg id="svg-map-br" class="w-full max-w-[600px] h-auto drop-shadow-2xl"></svg></div>
                         <div class="w-full lg:w-[400px] glass-card p-10 bg-slate-900/60 border-l-4 border-l-blue-600 rounded-3xl">
                             <h3 id="st-name" class="text-4xl font-black text-white mb-2">Brasil</h3>
-                            <p id="st-info" class="text-[11px] text-slate-500 font-bold uppercase mb-8 border-b border-white/5 pb-6">DiagnÃ³stico Situacional</p>
-                            <div class="grid grid-cols-2 gap-6">
+                            <div class="grid grid-cols-2 gap-6 mt-8">
                                 <div class="p-6 bg-white/5 rounded-3xl text-center">
                                     <span class="text-[10px] text-slate-500 font-black uppercase block mb-1">Alvos</span>
                                     <div id="st-targets" class="text-3xl font-black text-white">---</div>
@@ -184,30 +160,24 @@
                         </div>
                     </div>
                 </div>
-
             </div>
         </main>
     </div>
 
+    <!-- MODAL -->
     <div id="checkout-modal" class="modal-overlay fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
         <div class="glass-card w-full max-w-[480px] p-12 flex flex-col relative border border-white/10 rounded-3xl shadow-2xl">
-            <button onclick="window.closeCheckout()" class="absolute top-6 right-6 text-slate-500 hover:text-white transition-colors">
-                <i data-lucide="x" class="w-6 h-6"></i>
-            </button>
+            <button onclick="window.closeCheckout()" class="absolute top-6 right-6 text-slate-500 hover:text-white transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
             <div class="text-center mb-10">
-                <div class="w-16 h-16 bg-blue-600/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                    <i data-lucide="unlock" class="w-8 h-8 text-blue-500"></i>
-                </div>
-                <h3 class="text-2xl font-black uppercase text-white tracking-tight">RelatÃ³rio Premium</h3>
+                <div class="w-16 h-16 bg-blue-600/20 rounded-3xl flex items-center justify-center mx-auto mb-6"><i data-lucide="unlock" class="w-8 h-8 text-blue-500"></i></div>
+                <h3 class="text-2xl font-black uppercase text-white tracking-tight">Relat&oacute;rio Premium</h3>
             </div>
             <div class="space-y-4 text-center">
-                <a href="mailto:contato@sentinela.digital" class="w-full py-5 bg-blue-600 text-white font-black uppercase text-[11px] tracking-widest rounded-2xl flex items-center justify-center gap-3 transition-transform hover:scale-[1.02]">
-                    <i data-lucide="mail"></i> SOLICITAR ACESSO
-                </a>
+                <a href="mailto:contato@sentinela.digital" class="w-full py-5 bg-blue-600 text-white font-black uppercase text-[11px] tracking-widest rounded-2xl flex items-center justify-center gap-3 transition-transform hover:scale-[1.02]"><i data-lucide="mail"></i> SOLICITAR ACESSO</a>
             </div>
         </div>
     </div>
 
-    <script type="module" src="/src/core/app.js?v=15.11.9"></script>
+    <script type="module" src="/src/core/app.js?v=15.11.10"></script>
 </body>
 </html>
