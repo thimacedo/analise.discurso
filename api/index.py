@@ -30,18 +30,18 @@ async def get_top_alvos():
 
 @app.get("/api/v1/status")
 async def status():
-    return {"status": "online", "version": "15.8.9"}
+    return {"status": "online", "version": "15.9.0"}
 
 @app.get("/{full_path:path}", response_class=HTMLResponse)
 async def catch_all(request: Request, full_path: str):
-    base_dir = os.path.join(os.path.dirname(__file__), "..")
+    # DIRETÓRIO RAIZ DA FUNÇÃO NO VERCEL
+    base_dir = os.path.dirname(__file__)
     
-    # 1. Normalizar o caminho
     clean_path = full_path.strip("/")
     if clean_path == "": clean_path = "index.html"
     if clean_path == "admin": clean_path = "addalvo.html"
     
-    # 2. Lista de tentativas de arquivo
+    # Tentativas de arquivo no mesmo diretório ou subpastas
     attempts = [
         os.path.join(base_dir, clean_path),
         os.path.join(base_dir, clean_path + ".html"),
@@ -53,4 +53,4 @@ async def catch_all(request: Request, full_path: str):
             with open(file_path, "r", encoding="utf-8") as f:
                 return HTMLResponse(content=f.read())
     
-    return HTMLResponse(content="<h1>404 - Arquivo nao localizado</h1>", status_code=404)
+    return HTMLResponse(content=f"<h1>404 - Arquivo nao localizado</h1><p>Path: {clean_path}</p>", status_code=404)
