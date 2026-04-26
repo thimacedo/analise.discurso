@@ -3,8 +3,7 @@
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.py" },
     { "source": "/admin", "destination": "/addalvo.html" },
-    { "source": "/docs/analise-violencia", "destination": "/docs/analise-violencia.html" },
-    { "source": "/docs/metodologia", "destination": "/docs/metodologia.html" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/docs/(.*)", "destination": "/docs/$1.html" },
+    { "source": "/(.*)", "destination": "/$1" }
   ]
 }
