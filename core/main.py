@@ -169,6 +169,10 @@ def exportar_dossie(candidate: Optional[str] = None):
         service.generate_dossie(dados_formatados, filepath)
         return FileResponse(path=filepath, filename=filename, media_type='application/pdf')
 
+@app.get("/")
+def read_root():
+    return {"status": "Sentinela API Online", "docs": "/docs"}
+
 @app.get("/api/v1/status")
 def get_status():
     return {"status": "online", "version": "1.0.0", "database": "connected"}
