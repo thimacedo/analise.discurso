@@ -1,28 +1,25 @@
 # 🗺️ ROADMAP.md - Sentinela Democrática
 
 ## 📖 Visão Geral
-Plataforma Independente de **Inteligência Situacional e Análise de Discurso**. O sistema utiliza o **Protocolo PASA v15.7** para oferecer previsibilidade política, detecção de redes coordenadas e transparência de inteligência artificial.
+Plataforma Independente de **Inteligência Situacional e Monitoramento de Dados**. O sistema utiliza análise de linguagem automatizada para detecção de redes e avaliação de resiliência digital.
 
-## 🚀 Status Atual: v15.7.6 (Curadoria e Refino)
-- [x] **Módulo de Refino Pericial**: Interface administrativa para correção humana de falsos positivos e negativos.
-- [x] **Monitoramento Live do Llama**: Stream de vereditos em tempo real integrado ao Dashboard.
-- [x] **Infográfico de Ameaças v3.0**: Radiografia visual completa da violência política brasileira (2018-2026).
-- [x] **Rigor Pericial v15.6.11**: Motor recalibrado para capturar acusações criminais, vulgaridades e ironias cínicas.
-- [x] **Monitor de Impacto v3.0**: Design de alta fidelidade com gradientes de risco e soberania.
-- [x] **Rotas Blindadas**: Acesso normalizado às páginas de Metodologia e Análise sem necessidade de extensões.
-- [x] **Resiliência de Dados**: Sincronização de integridade para contadores do Supabase e fallback de imagens.
+## 🚀 Status Atual: v15.7.7 (Maturidade Operacional)
+- [x] **Auditoria de Alertas**: Interface para correção manual de classificações automáticas.
+- [x] **Monitoramento em Tempo Real**: Stream de atividade da IA integrado ao Dashboard.
+- [x] **Radiografia do Extremismo**: Dashboard analítico com tendências históricas e vetores de risco.
+- [x] **Gestão de Alvos**: Adição e controle dinâmico de perfis monitorados.
+- [x] **Design Profissional**: Estética Stealth focada em alta performance e legibilidade.
 
 ## 🛠️ Próximos Passos
-1. [ ] **Dossiê em PDF**: Exportação de relatórios corporativos com sumários de IA.
-2. [ ] **Geopolítica Avançada**: Filtro de incidentes por cidade e região metropolitana.
-3. [ ] **Alertas de Pico**: Notificações automáticas via Telegram/Email para picos de hostilidade.
+1. [ ] **Relatórios PDF**: Exportação de sumários de inteligência para uso corporativo.
+2. [ ] **Alertas Externos**: Notificações automáticas via canais de mensageria.
+3. [ ] **Expansão de Base**: Suporte a monitoramento de palavras-chave transversais.
 
-## 🔒 Proteção de Núcleo (Core Freeze)
-- `src/core/ui.js` | `src/core/state.js` | `api/index.py` | `scripts/process_new_evidence_groq.py`
+## 🔒 Proteção de Núcleo
+- `src/core/` | `api/index.py` | `scripts/process_new_evidence_groq.py`
 
 ## ⚖️ Governança
-- **TSE 2026**: Conformidade total com transparência algorítmica e rotulagem de IA.
-- **NLP Forensic**: Metodologia proprietária Sentinela Intelligence.
+- **Conformidade TSE 2026**: Transparência e rotulagem algorítmica.
 
 ---
-**Atualização:** 26/04/2026 | **Versão:** 15.7.6-stable
+**Atualização:** 26/04/2026 | **Versão:** 15.7.7-stable
