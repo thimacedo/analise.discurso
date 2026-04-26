@@ -1,25 +1,25 @@
 # 🗺️ ROADMAP.md - Sentinela Democrática
 
 ## 📖 Visão Geral
-Plataforma Independente de **Inteligência Situacional e Monitoramento de Dados**. O sistema utiliza análise de linguagem automatizada para detecção de redes e avaliação de resiliência digital.
+Plataforma Independente de **Inteligência Situacional e Análise de Discurso**. O sistema utiliza o **Protocolo PASA v15.8** para monitoramento de dados com foco em estabilidade, resiliência e persistência técnica.
 
-## 🚀 Status Atual: v15.7.7 (Maturidade Operacional)
-- [x] **Auditoria de Alertas**: Interface para correção manual de classificações automáticas.
-- [x] **Monitoramento em Tempo Real**: Stream de atividade da IA integrado ao Dashboard.
-- [x] **Radiografia do Extremismo**: Dashboard analítico com tendências históricas e vetores de risco.
-- [x] **Gestão de Alvos**: Adição e controle dinâmico de perfis monitorados.
-- [x] **Design Profissional**: Estética Stealth focada em alta performance e legibilidade.
+## 🚀 Status Atual: v15.8.5 (Pacificação Técnica)
+- [x] **Protocolo de Persistência**: Regras de arquitetura seladas para evitar regressão de funcionalidades.
+- [x] **Restauração do Mapa**: Geopolítica UF 100% operacional com agregação de dados em tempo real.
+- [x] **Estabilização de Rotas**: Acesso normalizado às páginas de documentação e auditoria via Vercel Edge.
+- [x] **Independência Total**: Metodologia proprietária consolidada e marcas limpas.
+- [x] **Motor de Curadoria**: Interface administrativa para auditoria de alertas e correção de dados.
 
 ## 🛠️ Próximos Passos
-1. [ ] **Relatórios PDF**: Exportação de sumários de inteligência para uso corporativo.
-2. [ ] **Alertas Externos**: Notificações automáticas via canais de mensageria.
-3. [ ] **Expansão de Base**: Suporte a monitoramento de palavras-chave transversais.
+1. [ ] **Relatórios Automatizados**: Geração de PDFs com sumários executivos de inteligência.
+2. [ ] **Alertas de Crise**: Integração com APIs de notificação externa (Telegram/Webhook).
+3. [ ] **Filtros Temporais Avançados**: Seleção de intervalos específicos no Dossiê e Geopolítica.
 
-## 🔒 Proteção de Núcleo
-- `src/core/` | `api/index.py` | `scripts/process_new_evidence_groq.py`
-
-## ⚖️ Governança
-- **Conformidade TSE 2026**: Transparência e rotulagem algorítmica.
+## 🔒 Proteção de Núcleo (Regras Imutáveis)
+- **Navegação**: Somente via `Hash (#)` para visualizações internas.
+- **Mídia**: Fallback nativo (`onerror`) obrigatório para avatares.
+- **Roteamento**: Configurações de reescrita de URL devem residir no `vercel.json`.
+- **Integridade**: Scripts de sincronização devem ser executados antes de cada release major.
 
 ---
-**Atualização:** 26/04/2026 | **Versão:** 15.7.7-stable
+**Atualização:** 26/04/2026 | **Versão:** 15.8.5-stable
