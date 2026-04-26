@@ -4,6 +4,7 @@ import json
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -17,7 +18,6 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 def get_supabase_headers():
     return {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}", "Content-Type": "application/json"}
 
-# --- API ---
 @app.get("/api/v1/stats/top-alvos")
 async def get_top_alvos():
     try:
@@ -28,26 +28,36 @@ async def get_top_alvos():
     except: return []
 
 @app.get("/api/v1/status")
-async def status(): return {"status": "online", "version": "15.10.1"}
+async def status(): return {"status": "online", "version": "15.10.2"}
 
-# --- ROTEAMENTO BLINDADO VIA PREFIXO /api/ ---
+# --- MOTOR DE RENDERIZAÇÃO ---
 
-def serve(filename):
-    path = os.path.join(os.path.dirname(__file__), "templates", filename)
+def render(filename):
+    # Procura na pasta api/templates/
+    base = os.path.dirname(__file__)
+    path = os.path.join(base, "templates", filename)
     if os.path.exists(path):
         with open(path, "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
-    return HTMLResponse(content=f"<h1>404</h1><p>{filename} nao localizado.</p>", status_code=404)
+    return HTMLResponse(content=f"<h1>Erro</h1><p>Recurso {filename} nao localizado.</p>", status_code=404)
 
-@app.get("/api/pages/analise")
-async def pg_analise(): return serve("analise.html")
-
-@app.get("/api/pages/metodo")
-async def pg_metodo(): return serve("metodo.html")
-
-@app.get("/api/pages/admin")
-async def pg_admin(): return serve("addalvo.html")
-
-# Rota raiz também no prefixo
 @app.get("/")
-async def pg_home(): return serve("index.html")
+async def home(): return render("index.html")
+
+@app.get("/admin")
+async def admin(): return render("addalvo.html")
+
+@app.get("/analise")
+async def analise(): return render("analise.html")
+
+@app.get("/metodo")
+async def metodo(): return render("metodo.html")
+
+# Servir estáticos de forma explícita se o Vercel falhar
+@app.get("/src/{path:path}")
+async def serve_src(path: str):
+    base = os.path.join(os.path.dirname(__file__), "src", path)
+    if os.path.exists(base):
+        with open(base, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return JSONResponse({"error": "Static not found"}, status_code=404)
