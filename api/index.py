@@ -39,15 +39,29 @@ async def get_live_intelligence():
 
 @app.get("/api/v1/status")
 async def status():
-    return {"status": "online", "version": "15.8.6"}
+    return {"status": "online", "version": "15.8.7"}
 
-# ROTA DE EMERGÊNCIA PARA A HOME (Caso o static fail)
+# FIX DE CAMINHO: Usar caminhos relativos ao diretório raiz do projeto no Vercel
 @app.get("/", response_class=HTMLResponse)
 async def read_index():
-    with open("index.html", "r", encoding="utf-8") as f:
+    path = os.path.join(os.path.dirname(__file__), "..", "index.html")
+    with open(path, "r", encoding="utf-8") as f:
         return HTMLResponse(content=f.read())
 
 @app.get("/admin", response_class=HTMLResponse)
 async def read_admin():
-    with open("addalvo.html", "r", encoding="utf-8") as f:
+    path = os.path.join(os.path.dirname(__file__), "..", "addalvo.html")
+    with open(path, "r", encoding="utf-8") as f:
+        return HTMLResponse(content=f.read())
+
+@app.get("/docs/analise-violencia", response_class=HTMLResponse)
+async def read_analise():
+    path = os.path.join(os.path.dirname(__file__), "..", "docs", "analise-violencia.html")
+    with open(path, "r", encoding="utf-8") as f:
+        return HTMLResponse(content=f.read())
+
+@app.get("/docs/metodologia", response_class=HTMLResponse)
+async def read_metodologia():
+    path = os.path.join(os.path.dirname(__file__), "..", "docs", "metodologia.html")
+    with open(path, "r", encoding="utf-8") as f:
         return HTMLResponse(content=f.read())
