@@ -1,7 +1,7 @@
 import os
 import httpx
 import json
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
@@ -17,7 +17,6 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 def get_supabase_headers():
     return {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}", "Content-Type": "application/json"}
 
-# --- API ---
 @app.get("/api/v1/stats/top-alvos")
 async def get_top_alvos():
     try:
@@ -31,30 +30,28 @@ async def get_top_alvos():
 
 @app.get("/api/v1/status")
 async def status():
-    return {"status": "online", "version": "15.9.2"}
+    return {"status": "online", "version": "15.9.3"}
 
-# --- ROTEADOR UNIVERSAL ---
-@app.get("/{full_path:path}", response_class=HTMLResponse)
-async def catch_all(request: Request, full_path: str):
-    # Diretório raiz onde os arquivos HTML estão localizados
-    base_dir = os.path.join(os.path.dirname(__file__), "..")
+# --- ROTAS EXPLÍCITAS (FIM DO 404) ---
+
+def serve_html(filename):
+    # Procura no root do projeto
+    path = os.path.join(os.path.dirname(__file__), "..", filename)
+    if not os.path.exists(path):
+        # Fallback para o mesmo diretório
+        path = os.path.join(os.path.dirname(__file__), filename)
     
-    clean_path = full_path.strip("/")
-    if clean_path == "": clean_path = "index.html"
-    if clean_path == "admin": clean_path = "addalvo.html"
-    
-    # Tentativas de Arquivo
-    attempts = [
-        os.path.join(base_dir, clean_path),
-        os.path.join(base_dir, clean_path + ".html"),
-        os.path.join(base_dir, "api", clean_path), # Fallback dentro da pasta api
-        os.path.join(base_dir, "api", clean_path + ".html")
-    ]
-    
-    for file_path in attempts:
-        if os.path.exists(file_path) and os.path.isfile(file_path):
-            with open(file_path, "r", encoding="utf-8") as f:
-                return HTMLResponse(content=f.read())
-    
-    # Erro informativo
-    return HTMLResponse(content=f"<h1>404 - Arquivo não localizado</h1><p>O Sentinela não encontrou o recurso: {clean_path}</p>", status_code=404)
+    with open(path, "r", encoding="utf-8") as f:
+        return HTMLResponse(content=f.read())
+
+@app.get("/", response_class=HTMLResponse)
+async def home(): return serve_html("index.html")
+
+@app.get("/admin", response_class=HTMLResponse)
+async def admin(): return serve_html("addalvo.html")
+
+@app.get("/analise-extremismo", response_class=HTMLResponse)
+async def analise(): return serve_html("analise-extremismo.html")
+
+@app.get("/metodologia", response_class=HTMLResponse)
+async def metodologia(): return serve_html("metodologia.html")
