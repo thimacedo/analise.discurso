@@ -1,35 +1,26 @@
 {
   "version": 2,
   "builds": [
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "src/**",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "docs/**",
-      "use": "@vercel/static"
-    }
+    { "src": "api/index.py", "use": "@vercel/python" },
+    { "src": "src/**", "use": "@vercel/static" },
+    { "src": "docs/**", "use": "@vercel/static" },
+    { "src": "index.html", "use": "@vercel/static" },
+    { "src": "addalvo.html", "use": "@vercel/static" }
   ],
   "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/index.py"
-    },
-    {
-      "source": "/docs/analise-violencia",
-      "destination": "/docs/analise-violencia.html"
-    },
-    {
-      "source": "/docs/metodologia",
-      "destination": "/docs/metodologia.html"
-    },
+    { "source": "/api/(.*)", "destination": "/api/index.py" },
+    { "source": "/admin", "destination": "/addalvo.html" },
+    { "source": "/docs/analise-violencia", "destination": "/docs/analise-violencia.html" },
+    { "source": "/docs/metodologia", "destination": "/docs/metodologia.html" },
+    { "source": "/", "destination": "/index.html" }
+  ],
+  "headers": [
     {
       "source": "/(.*)",
-      "destination": "/api/index.py"
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
     }
   ]
 }
