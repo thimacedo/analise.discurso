@@ -2,148 +2,96 @@ import os
 import asyncio
 import httpx
 import json
-from datetime import datetime
-from groq import Groq
-from braintrust import traced, init_logger
+import time
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# Credenciais
+# Configurações de API
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-GROQ_KEY = os.getenv("GROQ_API_KEY")
-BRAINTRUST_API_KEY = os.getenv("BRAINTRUST_API_KEY")
 
-# Inicializa Logger da Braintrust
-logger = init_logger(project="braintrust-beige-umbrella", api_key=BRAINTRUST_API_KEY)
-client_groq = Groq(api_key=GROQ_KEY)
-
-HEADERS_SB = {
+headers = {
     "apikey": SUPABASE_KEY,
     "Authorization": f"Bearer {SUPABASE_KEY}",
-    "Content-Type": "application/json",
-    "Prefer": "resolution=merge-duplicates"
+    "Content-Type": "application/json"
 }
 
-async def analyze_with_qwen_local(text):
-    """Fallback: Análise pericial usando Qwen 2.5 Coder 1.5B local via Ollama."""
+async def analyze_comment(text):
+    """Motor de IA v15.6.10 - Scanner de Ironia e Rigor Criminal."""
+    system_instruction = (
+        "Você é um Perito em Linguística Forense (Protocolo PASA v15.6) independente.\n\n"
+        "DIRETRIZES DE RIGOR PERICIAL:\n"
+        "1. SCANNER DE IRONIA: Desconstrua elogios cínicos. Se o usuário usa termos positivos ('parabéns', 'lindo', 'gênio') para descrever resultados negativos ou crises, classifique como INSULTO ou ATAQUE.\n"
+        "2. ACUSAÇÕES CRIMINAIS: Marque como 'ATAQUE_INSTITUCIONAL' qualquer imputação de crime sem provas (ladrão, traficante, corrupto, genocida).\n"
+        "3. ESCATOLOGIA: Termos vulgares (lixo, cocô, merda) são sempre INSULTO.\n"
+        "4. NEUTRO: Apenas para apoio real, dúvidas administrativas ou críticas educadas sem adjetivação pejorativa.\n\n"
+        "TAXONOMIA: ÓDIO_IDENTITÁRIO, VIOLÊNCIA_GÊNERO, AMEAÇA, INSULTO_AD_HOMINEM, ATAQUE_INSTITUCIONAL, NEUTRO.\n\n"
+        "Retorne EXATAMENTE um JSON: {\"is_hate\": boolean, \"categoria_ia\": \"string\", \"justificativa\": \"string\"}"
+    )
+
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    data = {
+        "model": "llama-3.3-70b-versatile",
+        "messages": [
+            {"role": "system", "content": system_instruction},
+            {"role": "user", "content": f"Analise: {text}"}
+        ],
+        "response_format": {"type": "json_object"}
+    }
+
     try:
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            payload = {
-                "model": "qwen2.5-coder:1.5b",
-                "messages": [
-                    {
-                        "role": "system", 
-                        "content": "Analise o comentário quanto a discurso de ódio. Retorne JSON: {\"is_hate\": boolean, \"categoria\": \"string\"}. Categorias: Racismo, Misoginia, Homofobia, Xenofobia, Ódio Político, Neutro."
-                    },
-                    {"role": "user", "content": text}
-                ],
-                "stream": False,
-                "format": "json"
-            }
-            r = await client.post("http://localhost:11434/api/chat", json=payload)
-            result = r.json()
-            content = json.loads(result["message"]["content"])
-            return content
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            res = await client.post(url, headers={"Authorization": f"Bearer {GROQ_API_KEY}"}, json=data)
+            return json.loads(res.json()['choices'][0]['message']['content'])
     except Exception as e:
-        print(f"      ⚠️ Falha Fallback Qwen: {e}")
+        print(f"Erro IA: {e}")
         return None
 
-@traced(name="Advanced Situacional Analysis v9.6")
-async def analyze_hybrid(text):
-    """Motor de IA instruído com protocolos de detecção de sarcasmo e linguística forense."""
-    system_instruction = (
-        "Você é um Perito em Linguística Forense (Protocolo PASA v15.5) operando sob as diretrizes do STF e UFRN.\n\n"
-        "DIRETRIZES DE RIGOR PERICIAL (MENS REA):\n"
-        "1. DISSONÂNCIA DIALETAL: Avalie o contexto geográfico. Termos regionais ou gírias devem ser interpretados dentro da sua cultura de origem.\n"
-        "2. BLINDAGEM DE FALSOS POSITIVOS: NUNCA classifique como ódio: 'Crítica à Gestão' (Incompetente, Corrupto), 'Ironia Política' sem incitação, ou 'Dopamine Agreement' (aplausos 👏, elogios, 'parabéns', 'show').\n"
-        "3. PARALELISMO SINTÁTICO: Identifique padrões robóticos ou N-gramas coordenados (Ataque Coordenado).\n\n"
-        "TAXONOMIA EXIGIDA (Use exatamente estas categorias):\n"
-        "- ÓDIO_IDENTITÁRIO (Raça, cor, etnia, religião)\n"
-        "- VIOLÊNCIA_GÊNERO (Misoginia, transfobia)\n"
-        "- AMEAÇA_DIRETA (Promessa de dano físico)\n"
-        "- ATAQUE_COORDENADO (Padrões de milícia digital)\n"
-        "- INSULTO_AD_HOMINEM (Xingamento pessoal, sem pauta)\n"
-        "- DISSIDÊNCIA_DURA (Crítica severa, porém legal)\n"
-        "- APOIO_ORGÂNICO (Elogios, emojis neutros/positivos)\n\n"
-        "REGRA DE CLASSIFICAÇÃO FATAL:\n"
-        "Se o comentário contiver APENAS aplausos, elogios ou apoio (ex: 👏👏👏, 'Lula lá', 'Força'), is_hate DEVE SER false e a categoria DEVE SER 'APOIO_ORGÂNICO'.\n"
-        "is_hate = true APENAS para ameaças, violência de gênero, ódio identitário ou ataques pessoais diretos.\n\n"
-        "RETORNO OBRIGATÓRIO: JSON {\"is_hate\": boolean, \"categoria\": \"string\", \"analise_linguistica\": \"string\"}"
-    )
-    
-    try:
-        completion = client_groq.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "system", "content": system_instruction},
-                {"role": "user", "content": text}
-            ],
-            response_format={"type": "json_object"}
-        )
-        analysis = json.loads(completion.choices[0].message.content)
-        analysis["engine"] = "groq-llama-70b-pasa"
-        return analysis
-    except Exception as e:
-        if "rate_limit" in str(e).lower() or "limit" in str(e).lower():
-            print(f"   📉 Limite Groq atingido. Acionando Fallback Qwen Local...")
-            analysis = await analyze_with_qwen_local(text)
-            if analysis:
-                analysis["engine"] = "qwen-local-1.5b"
-                return analysis
-        else:
-            print(f"   ⚠️ Erro Groq: {e}")
-    return None
-
-@traced(name="Supabase Sinc")
-async def update_supabase(client, id_db, update_data):
-    # Nota: Ajustado para o nome da coluna correto no Supabase
-    up_res = await client.patch(
-        f"{SUPABASE_URL}/rest/v1/comentarios?id_externo=eq.{id_db}",
-        json=update_data,
-        headers=HEADERS_SB
-    )
-    return up_res
-
-async def process_pendencies():
-    print("🧠 INICIANDO MOTOR HÍBRIDO (GROQ + QWEN FALLBACK v6.2)...")
-    
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        # Busca evidências não processadas
-        r = await client.get(
-            f"{SUPABASE_URL}/rest/v1/comentarios?or=(processado_ia.is.null,processado_ia.eq.false)&limit=50", 
-            headers=HEADERS_SB
-        )
+async def process_batch():
+    async with httpx.AsyncClient() as client:
+        # Buscar próximos 50 itens pendentes
+        res = await client.get(f"{SUPABASE_URL}/rest/v1/comentarios?processado_ia=eq.false&limit=50", headers=headers)
+        comentarios = res.json()
         
-        pendencies = r.json() if r.status_code == 200 else []
-        if not pendencies:
-            print("✅ Tudo processado.")
-            return
-
-        print(f"📊 {len(pendencies)} itens na fila.")
-
-        for item in pendencies:
-            text = item.get("texto_bruto", "")
-            id_db = item.get("id_externo")
+        if not comentarios or not isinstance(comentarios, list):
+            return 0
             
-            print(f"   📝 Analisando: {text[:30]}...")
-            analysis = await analyze_hybrid(text)
+        for com in comentarios:
+            text = com.get('texto_bruto') or com.get('texto')
+            if not text: continue
             
-            if analysis:
-                engine_name = analysis.get('engine', 'groq-70b').upper()
-                update_data = {
-                    "is_hate": analysis.get("is_hate", False),
-                    "categoria_ia": f"[{engine_name}] {analysis.get('categoria', 'NEUTRO').upper()}",
-                    "processado_ia": True
-                }
+            print(f"📝 Analisando: {text[:50]}...")
+            result = await analyze_comment(text)
+            
+            if result:
+                is_hate = result.get('is_hate', False)
+                cat = result.get('categoria_ia', 'NEUTRO')
+                print(f"   ✅ {'🚨 ALERTA' if is_hate else '🏳️ NEUTRO'} [{cat}]")
                 
-                await update_supabase(client, id_db, update_data)
-                
-                veredito = "🚨 ÓDIO" if analysis.get("is_hate") else "🏳️ NEUTRO"
-                print(f"   ✅ {veredito} [{analysis.get('engine')}]")
-            
-            await asyncio.sleep(0.2)
+                # Atualizar banco instantaneamente
+                await client.patch(
+                    f"{SUPABASE_URL}/rest/v1/comentarios?id=eq.{com['id']}", 
+                    headers=headers,
+                    json={
+                        "processado_ia": True,
+                        "is_hate": is_hate,
+                        "categoria_ia": cat,
+                        "justificativa": result.get('justificativa', '')
+                    }
+                )
+            await asyncio.sleep(0.5)
+        return len(comentarios)
+
+async def main():
+    print("🧠 INICIANDO PROCESSAMENTO INTEGRAL PASA v15.6.10...")
+    while True:
+        processed_count = await process_batch()
+        if processed_count == 0:
+            print("✨ Backlog zerado. Aguardando novas evidências...")
+            break
+        print(f"📦 Lote de {processed_count} concluído. Continuando...")
 
 if __name__ == "__main__":
-    asyncio.run(process_pendencies())
+    asyncio.run(main())

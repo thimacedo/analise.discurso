@@ -1,24 +1,26 @@
 # 🗺️ ROADMAP.md - Sentinela Democrática
 
 ## 📖 Visão Geral
-Plataforma Independente de **Inteligência Situacional e Tendências de Opinião Pública**. O projeto utiliza coleta massiva e análise de linguagem (Protocolo PASA) para oferecer previsibilidade política e detecção de ataques coordenados.
+Plataforma Independente de **Inteligência Situacional e Análise de Discurso**. O sistema utiliza o **Protocolo PASA v15.7** para oferecer previsibilidade política, detecção de redes coordenadas e análise de resiliência digital.
 
-## 🚀 Status Atual: v15.6.0 (Independência Técnica)
-- [x] **Motor PASA v15.6**: Protocolo proprietário de análise situacional profunda.
-- [x] **Design Stealth Professional**: Interface unificada Home/Admin com estética de centro de inteligência.
-- [x] **Gráfico de Guerra Nativo**: Monitor de hostilidade em HTML/CSS.
-- [x] **Geopolítica UF**: Mapa interativo conectado ao Supabase.
-- [x] **Dossiê de Alvos**: Estrutura de grade para 242 perfis com agrupamento dinâmico.
+## 🚀 Status Atual: v15.7.1 (Maturidade Pericial)
+- [x] **Independência Técnica**: 100% autônomo, sem referências institucionais externas.
+- [x] **Monitor v3.0**: Novo motor de visualização de hostilidade com gradientes dinâmicos e precisão mono.
+- [x] **Dossiê Analítico**: Agrupamentos nacionais/regionais com Nuvem de Idioleto e Timeline de Estresse 48h.
+- [x] **Detecção de Redes**: Identificação de atores transversais (Mapa de Vizinhança).
+- [x] **Análise de Extremismo**: Página dedicada (`/docs/analise-violencia.html`) baseada em levantamento profundo de dados.
 
 ## 🛠️ Próximos Passos
-1. [ ] **Nuvem de "Idioleto de Ódio"**: Extração de termos frequentes baseada em análise forense proprietária.
-2. [ ] **Timeline de Estresse**: Mini-gráfico de tendência de ódio nas últimas 48h.
-3. [ ] **Agrupamento por Perfil**: Filtragem do dossiê por relevância (Nacional/Estadual/Setorial).
-4. [ ] **Exportação Corporativa**: Relatórios inteligentes para gestão de crise.
+1. [ ] **Exportação Corporativa**: Geração de relatórios PDF com análise automatizada de risco.
+2. [ ] **Alertas de Push**: Notificação em tempo real para picos de hostilidade acima de 30%.
+3. [ ] **Worker de Sincronização**: Automação total da integridade de contadores (DB Integrity).
 
-## 🔒 Proteção de Núcleo (Core Freeze)
-- `src/core/ui.js` | `src/core/state.js` | `src/services/apiService.js`
+## 🔒 Proteção de Núcleo
+- `src/core/ui.js` | `src/core/state.js` | `api/index.py`
 
-## ⚖️ Governança e Compliance
-- **TSE 2026**: Alinhamento total com as resoluções de rotulagem de IA.
-- **Protocolo de Comunicação**: Documentado em `docs/PADRAO_COMUNICACAO.md`.
+## ⚖️ Governança
+- **TSE 2026**: Total conformidade com transparência algorítmica.
+- **NLP Forensic**: Metodologia proprietária Sentinela.
+
+---
+**Atualização:** 26/04/2026 | **Versão:** 15.7.1-stable

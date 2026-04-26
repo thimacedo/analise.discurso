@@ -12,7 +12,6 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-import pyotp
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -30,7 +29,9 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 def get_supabase_headers():
     return {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}", "Content-Type": "application/json"}
 
-STOPWORDS = {"a", "o", "que", "e", "do", "da", "em", "um", "para", "com", "não", "uma", "os", "as", "no", "na", "por", "mais", "mas", "ao", "se", "como", "esta", "está"}
+# --- UTILITÁRIOS ---
+
+STOPWORDS = {"a", "o", "que", "e", "do", "da", "em", "um", "para", "com", "não", "uma", "os", "as", "no", "na", "por", "mais", "mas", "ao", "se", "como"}
 
 def extract_idiolect(texts: List[str]) -> List[str]:
     words = []
@@ -41,75 +42,54 @@ def extract_idiolect(texts: List[str]) -> List[str]:
 
 # --- ROTAS DE API ---
 
-@app.get("/api/v1/stats/neighborhood")
-async def get_attack_neighborhood():
-    """Identifica autores que atacam múltiplos alvos (Redes Coordenadas)"""
-    url = f"{SUPABASE_URL}/rest/v1/comentarios?select=autor,candidato_id&is_hate=eq.true&limit=1000"
+@app.get("/api/v1/stats/top-alvos")
+async def get_top_alvos():
+    """Versão 3.0: Cálculo de Blindagem e Monitor de Impacto"""
+    url = f"{SUPABASE_URL}/rest/v1/candidatos?select=username,estado,comentarios_totais_count,comentarios_odio_count&status_monitoramento=ilike.Ativo&order=comentarios_totais_count.desc&limit=10"
+    
     async with httpx.AsyncClient() as client:
         res = await client.get(url, headers=get_supabase_headers())
         if res.status_code != 200: return []
         data = res.json()
         
-        # Mapear Autor -> Lista de Alvos
-        author_map = {}
-        for item in data:
-            autor = item['autor']
-            alvo = item['candidato_id']
-            if autor == 'anonimo' or not autor: continue
-            if autor not in author_map: author_map[autor] = set()
-            author_map[autor].add(alvo)
-        
-        # Filtrar apenas quem ataca > 1 alvo
-        networks = []
-        for author, targets in author_map.items():
-            if len(targets) > 1:
-                networks.append({"autor": author, "alvos": list(targets), "intensidade": len(targets)})
-        
-        return sorted(networks, key=lambda x: x['intensidade'], reverse=True)[:10]
-
-@app.get("/api/v1/stats/top-alvos")
-async def get_top_alvos():
-    url_c = f"{SUPABASE_URL}/rest/v1/candidatos?select=username,estado,comentarios_totais_count,comentarios_odio_count&status_monitoramento=ilike.Ativo&order=comentarios_totais_count.desc&limit=24"
-    async with httpx.AsyncClient() as client:
-        res_c = await client.get(url_c, headers=get_supabase_headers())
-        if res_c.status_code != 200: return []
-        candidatos = res_c.json()
-
-        two_days_ago = (datetime.now() - timedelta(days=2)).isoformat()
-        url_h = f"{SUPABASE_URL}/rest/v1/comentarios?select=candidato_id,texto_bruto,data_coleta&is_hate=eq.true&data_coleta=gt.{two_days_ago}"
-        res_h = await client.get(url_h, headers=get_supabase_headers())
-        hate_data = res_h.json() if res_h.status_code == 200 else []
-
         processed = []
-        for c in candidatos:
-            un = c['username']
+        for c in data:
             total = c.get('comentarios_totais_count') or 0
             odio = c.get('comentarios_odio_count') or 0
-            blindagem = 100.0 - ((odio / total * 100) if total > 0 else 0)
-            target_hate = [h for h in hate_data if h['candidato_id'] == un]
-            idioleto = extract_idiolect([h['texto_bruto'] for h in target_hate if h.get('texto_bruto')])
             
-            timeline = [0] * 8
-            now = datetime.now()
-            for h in target_hate:
-                try:
-                    dt = datetime.fromisoformat(h['data_coleta'].replace('Z', '+00:00'))
-                    diff = now - dt.replace(tzinfo=None)
-                    idx = 7 - int(diff.total_seconds() // (6 * 3600))
-                    if 0 <= idx < 8: timeline[idx] += 1
-                except: continue
-
+            # Lógica Next.js adaptada: Blindagem Inversa
+            share_blindagem = 100.0
+            if total > 0:
+                share_blindagem = 100 - ((odio / total) * 100)
+            
             processed.append({
-                "username": un, "estado": c['estado'], "share_blindagem": round(blindagem, 2),
-                "idioleto": idioleto if idioleto else ["Estável"], "timeline": timeline
+                "username": c['username'],
+                "estado": c['estado'],
+                "share_blindagem": round(share_blindagem, 2),
+                "total": total,
+                "odio": odio
             })
         return processed
 
-@app.get("/")
+@app.get("/api/v1/stats/neighborhood")
+async def get_attack_neighborhood():
+    url = f"{SUPABASE_URL}/rest/v1/comentarios?select=autor,candidato_id&is_hate=eq.true&limit=1000"
+    async with httpx.AsyncClient() as client:
+        res = await client.get(url, headers=get_supabase_headers())
+        if res.status_code != 200: return []
+        author_map = {}
+        for item in res.json():
+            a, target = item.get('autor'), item.get('candidato_id')
+            if not a or a == 'anonimo': continue
+            if a not in author_map: author_map[a] = set()
+            author_map[a].add(target)
+        return sorted([{"autor": k, "alvos": list(v), "intensidade": len(v)} for k, v in author_map.items() if len(v) > 1], key=lambda x: x['intensidade'], reverse=True)[:10]
+
+@app.get("/", response_class=HTMLResponse)
 async def home_page():
     with open("index.html", "r", encoding="utf-8") as f:
         return HTMLResponse(content=f.read(), media_type="text/html; charset=utf-8")
 
 @app.get("/api/v1/status")
 async def status():
-    return {"status": "online", "version": "15.6.9"}
+    return {"status": "online", "version": "15.7.1"}
