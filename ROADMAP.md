@@ -3,20 +3,19 @@
 ## Visao Geral
 Plataforma Independente de Inteligencia Situacional. O sistema utiliza o Protocolo PASA v15.19 para monitoramento de crimes digitais.
 
-## Status Atual: v15.19.0 (Intelligence Batch Edition)
-- [x] Desacoplamento Analitico: Raspador e Classificador agora sao processos independentes.
-- [x] NLP Batch Worker: Implementado motor BERTimbau (pysentimiento) para analise de hostilidade.
-- [x] Schema Diamond: Adicionada tabela classificacoes e campos de processamento IA.
-- [x] Fila de Inteligencia: Campo processado_ia gerencia o fluxo entre coleta e analise.
+## Status Atual: v15.19.1 (Automation Edition)
+- [x] Intelligence Worker: Criado workflow .github/workflows/intelligence_worker.yml.
+- [x] Automacao Agendada: Sistema pronto para rodar a cada 30 min no GitHub Actions.
+- [x] Desacoplamento Analitico: Inteligencia removida do coletor para ganho de performance.
 
 ## Proximos Passos
-1. Migracao de Dados: Processar o backlog de 1000+ registros via intelligence worker.
-2. Dashboard Analitico: Implementar filtros por categoria PASA (Racismo, Sexismo, Ideologia).
-3. Auditoria Judicial: Gerar relatorio detalhado unindo raw_metadata e veredito IA.
+1. Configurar Secrets: Adicionar SUPABASE_URL e SUPABASE_KEY no GitHub.
+2. Migracao SQL: Adicionar classificacao_pasa no banco para salvar vereditos detalhados.
+3. Dashboard Analitico: Exibir a categoria PASA nos cards de alerta.
 
 ## Protocolo de Estabilidade
-- Analise: Todo comentario deve ser limpo de links e mencoes antes de ser enviado a IA.
-- Performance: O Intelligence Worker deve rodar em ambiente com min 2GB RAM.
+- Inteligencia: Sempre rodar o worker de IA em ambiente isolado (min 4GB RAM).
+- Documentacao: Manter compound-docs atualizado para toda mudanca em workflows.
 
 ---
-Atualizacao: 26/04/2026 | Versao: 15.19.0-stable
+Atualizacao: 26/04/2026 | Versao: 15.19.1-stable
