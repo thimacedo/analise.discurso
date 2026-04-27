@@ -1,23 +1,22 @@
 # ROADMAP.md - Sentinela Democratica
 
 ## Visao Geral
-Plataforma Independente de Inteligencia Situacional. O sistema utiliza o Protocolo PASA v15.18 para monitoramento de crimes digitais.
+Plataforma Independente de Inteligencia Situacional. O sistema utiliza o Protocolo PASA v15.19 para monitoramento de crimes digitais.
 
-## Status Atual: v15.18.2 (Selagem Arquitetural)
-- [x] Documentacao de Processo: Criado docs/architecture/scraping-v15.md como guia definitivo.
-- [x] Load Balancer: Distribuicao Round-Robin entre 3 APIs operacional.
-- [x] Circuit Breaker: Protecao de creditos e isolamento de falhas validado.
-- [x] Padrao de Evidencia: Sincronizado com metadados forenses (PASA).
+## Status Atual: v15.19.0 (Intelligence Batch Edition)
+- [x] Desacoplamento Analitico: Raspador e Classificador agora sao processos independentes.
+- [x] NLP Batch Worker: Implementado motor BERTimbau (pysentimiento) para analise de hostilidade.
+- [x] Schema Diamond: Adicionada tabela classificacoes e campos de processamento IA.
+- [x] Fila de Inteligencia: Campo processado_ia gerencia o fluxo entre coleta e analise.
 
 ## Proximos Passos
-1. NLP Processor: Iniciar motor de classificacao em lote (Backlog 1000+ registros).
-2. SQL Migracao: Adicao de classificacao_pasa (Acao Manual pendente).
-3. Mobile View: Ajuste de colapso da sidebar Diamond.
+1. Migracao de Dados: Processar o backlog de 1000+ registros via intelligence worker.
+2. Dashboard Analitico: Implementar filtros por categoria PASA (Racismo, Sexismo, Ideologia).
+3. Auditoria Judicial: Gerar relatorio detalhado unindo raw_metadata e veredito IA.
 
 ## Protocolo de Estabilidade
-- Arquitetura: Seguir estritamente o guia em docs/architecture/scraping-v15.md.
-- Documentacao: Uso obrigatorio de compound-docs.
-- Comunicacao: Texto puro sem emojis.
+- Analise: Todo comentario deve ser limpo de links e mencoes antes de ser enviado a IA.
+- Performance: O Intelligence Worker deve rodar em ambiente com min 2GB RAM.
 
 ---
-Atualizacao: 26/04/2026 | Versao: 15.18.2-stable
+Atualizacao: 26/04/2026 | Versao: 15.19.0-stable

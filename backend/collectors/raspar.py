@@ -103,9 +103,10 @@ async def collect_target(client, target, strategy):
                 "candidato_id": c_db_id,
                 "texto_bruto": c.get('text'),
                 "autor_username": c.get('owner', {}).get('username'),
-                "fonte_coleta": strategy.name,
-                "raw_metadata": c
-            } for c in comments]
+                "fonte_coleta": strategy.host,
+                "raw_metadata": c,
+                "processado_ia": False # Alimenta a fila da inteligencia
+            } for c in batch]
 
             if payload:
                 await client.post(f"{SUPABASE_URL}/rest/v1/comentarios", 
