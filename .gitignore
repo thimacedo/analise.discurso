@@ -1,23 +1,41 @@
+# Sentinela .gitignore v15.16.1
+
+# Credenciais e Ambiente
 .env
-.env.local
 .env.*.local
 session.json
 
-# Banco de dados local e memoria de execucao
-*.db
-execucao_memoria.json
-perfis_monitorados.json
-execucao_memoria.json
+# Vercel e Build
+.vercel
+/public
+/dist
+/.next
+node_modules/
+
+# Python e Cache
 __pycache__/
 *.pyc
 .venv/
 venv/
+.pytest_cache/
 
-# Ignorar CSVs e PNGs da raiz para não sujar o repo
-/*.csv
-/*.png
+# Banco de Dados e Memória Local
+*.db
+execucao_memoria.json
+perfis_monitorados.json
 
-# NÃO ignorar o arquivo de dados do dashboard
-!api/dados_latest.csv
-.vercel
-.env*.local
+# Arquivos Temporários de IA e Debug
+PREVIEW_*.html
+audit_*.py
+check_*.py
+verify_*.py
+run_*.py
+*.log
+*.txt
+
+# Ativos de Pesquisa (PDFs grandes)
+/bases_pdf/
+
+# Ignorar relatórios de auditoria na raiz
+/deep_audit_report.json
+/final_prod_test_report.json
