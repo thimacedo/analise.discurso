@@ -1,106 +1,114 @@
 /**
- * SENTINELA DESIGN SYSTEM v15.15.0
- * UX Elite Edition - Accessibility & Interactivity
+ * SENTINELA DIAMOND EDITION v15.16.0
+ * Layout Imutável & Alta Performance
  */
 
 :root {
     --bg-base: #020617;
-    --border: rgba(255, 255, 255, 0.12); /* Ajustado para WCAG AAA */
+    --glass: rgba(15, 23, 42, 0.7);
+    --border: rgba(255, 255, 255, 0.08);
     --accent: #3b82f6;
     --danger: #f43f5e;
-    --font-mono: 'JetBrains Mono', monospace;
 }
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-    background-color: var(--bg-base);
+    background: var(--bg-base);
     color: #f8fafc;
-    overflow-x: hidden;
-}
-
-/* Acessibilidade de Foco */
-*:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-    border-radius: 4px;
-}
-
-.app-container {
-    display: flex;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     height: 100vh;
     width: 100vw;
+    overflow: hidden;
+    display: flex;
 }
 
-/* Cards com Micro-interações */
+/* SIDEBAR FIXA - Nunca descola */
+aside {
+    width: 280px;
+    height: 100vh;
+    background: rgba(2, 6, 23, 0.95);
+    border-right: 1px solid var(--border);
+    backdrop-filter: blur(50px);
+    display: flex;
+    flex-direction: column;
+    padding: 40px 30px;
+    flex-shrink: 0;
+    z-index: 100;
+}
+
+/* MAIN SCROLL - Área de Dados */
+main {
+    flex: 1;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+/* GLASS CARDS - Otimizados */
 .glass-card {
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(40px);
+    background: var(--glass);
     border: 1px solid var(--border);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
+    border-radius: 24px;
+    padding: 24px;
+    transition: transform 0.2s, border-color 0.2s;
 }
 
 .glass-card:hover {
+    border-color: rgba(59, 130, 246, 0.3);
     transform: translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
 }
 
-.glass-card:active {
-    transform: scale(0.98) translateY(0);
-    background: rgba(15, 23, 42, 0.9);
+/* KPI GRID */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
 }
 
-/* Efeito de Pulso para Alertas Críticos */
-.threat-high::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: var(--danger);
-    animation: pulse-threat 2s infinite;
+/* MONITOR CONTAINER */
+.monitor-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 32px;
 }
 
-@keyframes pulse-threat {
-    0%, 100% { opacity: 0.5; }
-    50% { opacity: 1; box-shadow: 0 0 15px var(--danger); }
+/* ACENTOS E CODIFICAÇÃO */
+h1, h2, h3, p, span {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
 }
 
-/* Transições de View (SPA) */
-.view-content {
-    animation: fadeIn 0.3s ease-in-out;
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    color: #94a3b8;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 13px;
+    border-radius: 12px;
+    margin-bottom: 4px;
+    transition: all 0.2s;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(4px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Modal Suave */
-#checkout-modal {
-    transition: all 0.3s ease;
-    opacity: 1;
-}
-
-#checkout-modal.hidden {
-    opacity: 0;
-    pointer-events: none;
-    display: none !important;
-}
-
-/* Skeleton Loading (Bônus) */
-.is-syncing {
-    opacity: 0.6;
-    filter: grayscale(0.5);
-    pointer-events: none;
-}
-
-/* Responsividade de Gráfico */
-#chartMain {
-    width: 100%;
-    min-height: 250px;
-    touch-action: pan-y pinch-zoom;
+.nav-item:hover, .nav-item.active {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--accent);
 }
 
 .custom-scrollbar::-webkit-scrollbar { width: 6px; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+
+/* RESPONSIVIDADE MANUAL - Sem depender de Tailwind */
+@media (max-width: 1024px) {
+    body { flex-direction: column; overflow-y: auto; height: auto; }
+    aside { width: 100%; height: auto; padding: 20px; border-right: none; border-bottom: 1px solid var(--border); }
+    main { height: auto; padding: 20px; }
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    .monitor-grid { grid-template-columns: 1fr; }
+}
