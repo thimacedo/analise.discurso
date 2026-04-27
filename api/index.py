@@ -1,7 +1,7 @@
-from fastapi import FastAPI, HTTPException
+﻿from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from .core.config import settings
-from .core.supabase_client import supabase
+from core.config import settings
+from core.supabase_client import supabase
 from pydantic import BaseModel
 from typing import List, dict
 import time
@@ -67,3 +67,4 @@ async def get_geopolitica():
         stats[uf]["alertas"] += (c['comentarios_odio_count'] or 0)
     
     return stats
+
