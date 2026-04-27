@@ -3,7 +3,6 @@ uvicorn
 httpx
 supabase
 python-dotenv
-pysentimiento
 pyotp
 sqlalchemy
 psycopg2-binary
