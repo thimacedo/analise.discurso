@@ -1,9 +1,9 @@
 fastapi
-httpx
-python-dotenv
 uvicorn
-psycopg2-binary
-pandas
+httpx
 supabase
-tenacity
+python-dotenv
+pysentimiento
+pyotp
 sqlalchemy
+psycopg2-binary
