@@ -1,7 +1,9 @@
-# Sentinela Requirements
 fastapi
 httpx
 python-dotenv
 uvicorn
 psycopg2-binary
 pandas
+supabase
+tenacity
+sqlalchemy

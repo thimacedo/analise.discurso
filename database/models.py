@@ -1,6 +1,5 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Float
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Float, JSON, Text
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
 from datetime import datetime
 
 Base = declarative_base()
@@ -9,30 +8,27 @@ class Candidato(Base):
     __tablename__ = "candidatos"
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
-    nome_completo = Column(String)
-    partido = Column(String)
-    cargo = Column(String)
+    nome = Column(String)
     estado = Column(String)
+    partido = Column(String, nullable=True)
     status_monitoramento = Column(String, default="Ativo")
+    comentarios_totais_count = Column(Integer, default=0)
+    comentarios_odio_count = Column(Integer, default=0)
 
 class Comentario(Base):
     __tablename__ = "comentarios"
     id = Column(Integer, primary_key=True, index=True)
-    id_externo = Column(String, unique=True)
+    id_externo = Column(String, unique=True, index=True)
     candidato_id = Column(Integer, ForeignKey("candidatos.id"))
     autor_username = Column(String)
-    texto_bruto = Column(String)
-    texto_limpo = Column(String)
+    texto_bruto = Column(Text)
+    texto_limpo = Column(Text, nullable=True)
     data_publicacao = Column(DateTime)
     data_coleta = Column(DateTime, default=datetime.utcnow)
-    post_id = Column(String)
-
-class Classificacao(Base):
-    __tablename__ = "classificacoes"
-    id = Column(Integer, primary_key=True, index=True)
-    comentario_id = Column(Integer, ForeignKey("comentarios.id"))
+    post_id = Column(String, index=True)
+    url_post = Column(String, nullable=True)
+    tipo_midia = Column(String, nullable=True)
+    fonte_coleta = Column(String, nullable=True) # PASA: Rastreabilidade
     is_hate = Column(Boolean, default=False)
-    categoria_odio = Column(String)
-    score = Column(Float)
-    modelo_versao = Column(String)
-    data_processamento = Column(DateTime, default=datetime.utcnow)
+    classificacao_pasa = Column(String, nullable=True)
+    raw_metadata = Column(JSON, nullable=True)

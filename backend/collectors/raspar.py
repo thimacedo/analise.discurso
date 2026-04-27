@@ -1,184 +1,147 @@
 import httpx
-import time
-import json
+import asyncio
 import os
-from textblob import TextBlob
-from collections import Counter
-import nltk
-from nltk.corpus import stopwords
+import sys
+import time
+from datetime import datetime
+from dotenv import load_dotenv
 
-nltk.download('stopwords', quiet=True)
-nltk.download('punkt_tab', quiet=True)
+load_dotenv()
 
-# --- CONFIGURAÇÕES SEGURAS (Use variáveis de ambiente no Vercel/GitHub) ---
-RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY", "d0f8b83ba1msh27e35d3d042e3afp134bb9jsnd112e08fb6b8") # Sua chave aqui para teste local
-RAPIDAPI_HOST = "instagram-scrapper-new.p.rapidapi.com"
+# Configurações de Ambiente
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
 
-SUPABASE_URL = os.getenv("SUPABASE_URL", "SUA_URL_DO_SUPABASE")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY", "SUA_SERVICE_ROLE_KEY")
+if not all([SUPABASE_URL, SUPABASE_KEY, RAPIDAPI_KEY]):
+    print("ERRO: Variaveis de ambiente nao configuradas.")
+    sys.exit(1)
 
-# Clientes HTTP
-supabase = httpx.Client(
-    base_url=f"{SUPABASE_URL}/rest/v1",
-    headers={
-        "apikey": SUPABASE_KEY,
-        "Authorization": f"Bearer {SUPABASE_KEY}",
-        "Content-Type": "application/json",
-        "Prefer": "return=representation"
+def get_sb_headers():
+    return {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}", "Content-Type": "application/json"}
+
+# --- ESTRATÉGIAS DE CARGA (LOAD BALANCER) ---
+
+class APIStrategy:
+    def __init__(self, host, name):
+        self.host = host
+        self.name = name
+        self.is_active = True
+        self.failure_count = 0
+        self.cooldown_until = 0
+
+    def mark_failure(self):
+        self.failure_count += 1
+        if self.failure_count >= 3:
+            print(f"[!] CIRCUIT BREAKER: {self.name} em cooldown por 15 min.")
+            self.is_active = False
+            self.cooldown_until = time.time() + 900 # 15 min
+
+    def check_health(self):
+        if not self.is_active and time.time() > self.cooldown_until:
+            self.is_active = True
+            self.failure_count = 0
+            print(f"[+] CIRCUIT BREAKER: {self.name} restaurada.")
+        return self.is_active
+
+class LoadBalancer:
+    def __init__(self):
+        self.strategies = [
+            APIStrategy("instagram-scrapper-new.p.rapidapi.com", "Scraper-New"),
+            APIStrategy("instagram-public-bulk-scraper.p.rapidapi.com", "Bulk-Scraper"),
+            APIStrategy("instagram-scraper-20251.p.rapidapi.com", "Scraper-20251")
+        ]
+        self.current = 0
+
+    def get_next(self):
+        for _ in range(len(self.strategies)):
+            strategy = self.strategies[self.current]
+            self.current = (self.current + 1) % len(self.strategies)
+            if strategy.check_health():
+                return strategy
+        return None
+
+# --- MOTOR DE EXECUÇÃO ---
+
+async def collect_target(client, target, strategy):
+    username = target['username']
+    c_db_id = target['id']
+    
+    print(f"[-] @{username} via {strategy.name}")
+    
+    headers = {
+        "x-rapidapi-key": RAPIDAPI_KEY,
+        "x-rapidapi-host": strategy.host,
+        "Content-Type": "application/json"
     }
-)
 
-rapidapi = httpx.Client(
-    headers={
-        "Content-Type": "application/json",
-        "x-rapidapi-host": RAPIDAPI_HOST,
-        "x-rapidapi-key": RAPIDAPI_KEY
-    }
-)
-
-# --- FUNÇÕES DE NLP ---
-def process_text(comments_list):
-    stop_words = set(stopwords.words('portuguese'))
-    all_words = []
-    sentiments = {"Positivo": 0, "Neutro": 0, "Negativo": 0}
-    for comment in comments_list:
-        polarity = TextBlob(comment).sentiment.polarity
-        if polarity > 0.1: sentiments["Positivo"] += 1
-        elif polarity < -0.1: sentiments["Negativo"] += 1
-        else: sentiments["Neutro"] += 1
-        words = nltk.word_tokenize(comment.lower(), language='portuguese')
-        words = [w for w in words if w.isalpha() and w not in stop_words]
-        all_words.extend(words)
-    return Counter(all_words).most_common(10), sentiments
-
-# --- FUNÇÕES DE BANCO ---
-def upsert_candidato(data):
     try:
-        supabase.post(f"/candidatos?on_conflict=username", json=[data], headers={"Prefer": "return=representation, resolution=merge-duplicates"})
-        print(f"  [DB] Perfil {data['username']} salvo.")
-    except Exception as e:
-        print(f"  [DB ERRO] Perfil: {e}")
-
-def insert_comentarios(comments_data):
-    if not comments_data: return
-    try:
-        supabase.post(f"/comentarios?on_conflict=id_externo", json=comments_data, headers={"Prefer": "return=representation, resolution=merge-duplicates"})
-        print(f"  [DB] {len(comments_data)} comentários salvos.")
-    except Exception as e:
-        print(f"  [DB ERRO] Comentários: {e}")
-
-# --- FUNÇÕES RAPIDAPI ---
-def get_user_feed(username):
-    """Busca os últimos posts de um perfil via RapidAPI"""
-    # NOTA: Verifique na documentação da sua API no RapidAPI qual é o endpoint exato para feed de usuário.
-    # Geralmente é algo como /getFeedByUsername ou /getUserMedias
-    url = f"https://{RAPIDAPI_HOST}/getFeedByUsername" # AJUSTE ESTA ROTA CONFORME A DOCUMENTAÇÃO
-    payload = { "username": username }
-    
-    try:
-        response = rapidapi.post(url, json=payload)
-        response.raise_for_status()
-        data = response.json()
-        # A estrutura exata depende da API. Aqui assumimos que retorna uma lista de posts.
-        # Pode ser data['data'], data['items'], etc.
-        return data.get('data', [])[:3] # Retorna os 3 primeiros posts
-    except Exception as e:
-        print(f"  [API ERRO] Buscando feed de {username}: {e}")
-        return []
-
-def get_comments(post_id):
-    """Busca comentários de um post específico via RapidAPI"""
-    # NOTA: Verifique na documentação o endpoint de comentários. Geralmente /getMediaComments
-    url = f"https://{RAPIDAPI_HOST}/getMediaComments" # AJUSTE ESTA ROTA CONFORME A DOCUMENTAÇÃO
-    payload = { "media_id": post_id }
-    
-    try:
-        response = rapidapi.post(url, json=payload)
-        response.raise_for_status()
-        data = response.json()
-        return data.get('comments', [])[:30] # Limita a 30 comentários
-    except Exception as e:
-        # print(f"  [API ERRO] Buscando comentários do post {post_id}: {e}")
-        return []
-
-def get_feed_by_hashtag(tag):
-    """Função bônus: Usa exatamente o endpoint que você mandou"""
-    url = f"https://{RAPIDAPI_HOST}/getFeedByHashtagLegacy"
-    payload = { "tag": tag } # Geralmente exige o nome da tag no payload
-    
-    try:
-        response = rapidapi.post(url, json=payload)
-        response.raise_for_status()
-        return response.json().get('data', [])
-    except Exception as e:
-        print(f"  [API ERRO] Hashtag #{tag}: {e}")
-        return []
-
-# --- EXECUÇÃO PRINCIPAL ---
-if __name__ == "__main__":
-    print("Buscando alvos no Supabase...")
-    # Uso ilike.ativo para ignorar caixa (Ativo, ATIVO, ativo)
-    response = supabase.get("/candidatos?status_monitoramento=ilike.ativo&order=atualizado_em.asc.nullsfirst&limit=20")
-    target_profiles = response.json()
-    
-    if not target_profiles:
-        print("Nenhum perfil ativo.")
-        exit()
-
-    all_comments_text = []
-
-    for profile in target_profiles:
-        username = profile['username']
-        print(f"\n--- Raspando @{username} via RapidAPI ---")
+        # 1. Busca Feed
+        # Nota: Adaptar o endpoint conforme a documentacao de cada API
+        res = await client.post(f"https://{strategy.host}/getFeedByUsername", 
+                                json={"username": username}, 
+                                headers=headers, 
+                                timeout=20.0)
         
-        # Delay de segurança entre perfis
-        time.sleep(10) 
-        
-        # 1. Atualiza dados do candidato (se a API prover info do user, você pode puxar aqui)
-        upsert_candidato({
-            "username": username,
-            "atualizado_em": time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
-        })
+        if res.status_code == 429:
+            strategy.mark_failure()
+            return
 
-        # 2. Busca os posts
-        posts = get_user_feed(username)
-        
-        comments_to_db = []
+        posts = res.json().get('data', [])[:2]
+        if not posts: return
+
         for post in posts:
-            post_id = post.get('id') # ou 'pk', dependendo do retorno da API
-            if not post_id: continue
+            p_id = post.get('id')
+            # 2. Busca Comentarios
+            c_res = await client.post(f"https://{strategy.host}/getMediaComments", 
+                                     json={"media_id": p_id}, 
+                                     headers=headers)
             
-            print(f"  -> Extraindo comentários do post {post_id}...")
-            comments = get_comments(post_id)
-            
-            for comment in comments:
-                # Mapeamento: Ajuste os nomes dos campos (comment['text'], comment['user']['username']) conforme o JSON que a API retornar
-                comment_data = {
-                    "id_externo": comment.get('id'),
-                    "candidato_id": username,
-                    "post_id": post_id,
-                    "autor_username": comment.get('owner', {}).get('username'), 
-                    "texto_bruto": comment.get('text'),
-                    "data_publicacao": comment.get('created_at'),
-                    "likes": comment.get('likes_count', 0),
-                    "processado_ia": False
-                }
-                comments_to_db.append(comment_data)
-                if comment.get('text'):
-                    all_comments_text.append(comment.get('text'))
-            
-            time.sleep(1) # Pausa de 1s (Apenas para não estourar rate limit da API, se houver)
+            comments = c_res.json().get('comments', [])[:10]
+            payload = [{
+                "id_externo": str(c.get('id')),
+                "candidato_id": c_db_id,
+                "texto_bruto": c.get('text'),
+                "autor_username": c.get('owner', {}).get('username'),
+                "fonte_coleta": strategy.name,
+                "raw_metadata": c
+            } for c in comments]
 
-        # 3. Salva no Supabase
-        insert_comentarios(comments_to_db)
+            if payload:
+                await client.post(f"{SUPABASE_URL}/rest/v1/comentarios", 
+                                json=payload, 
+                                headers={**get_sb_headers(), "Prefer": "resolution=merge-duplicates"})
+        
+        print(f"  [✓] @{username} Finalizado.")
+        strategy.failure_count = 0 # Reset de falhas em caso de sucesso
 
-    # Geração de relatório local
-    if all_comments_text:
-        word_freq, sentiments = process_text(all_comments_text)
-        with open("relatorio_api.md", "w", encoding="utf-8") as f:
-            f.write("# 📊 Relatório via API\n\n")
-            f.write("## 🎭 Sentimento\n")
-            for k, v in sentiments.items(): f.write(f"- **{k}**: {v}\n")
-            f.write("\n## 📈 Top 10 Palavras\n")
-            for word, count in word_freq: f.write(f"1. **{word}**: {count}\n")
-        print("\nRelatório gerado!")
+    except Exception as e:
+        print(f"  [!] Erro em @{username}: {str(e)[:40]}")
+        strategy.mark_failure()
+
+async def main():
+    print("Sentinela Diamond v15.18.0 - Orquestrador Load-Balancer")
+    lb = LoadBalancer()
+    
+    async with httpx.AsyncClient() as client:
+        # Busca alvos ativos
+        res = await client.get(f"{SUPABASE_URL}/rest/v1/candidatos?status_monitoramento=eq.Ativo&select=id,username", headers=get_sb_headers())
+        targets = res.json()
+        
+        # Processamento em lotes de 6 (2 por API simultaneamente)
+        batch_size = 6
+        for i in range(0, len(targets), batch_size):
+            batch = targets[i:i+batch_size]
+            tasks = []
+            for target in batch:
+                strategy = lb.get_next()
+                if strategy:
+                    tasks.append(collect_target(client, target, strategy))
+            
+            if tasks:
+                await asyncio.gather(*tasks)
+                print(f"--- Lote {i//batch_size + 1} Concluido ---")
+                await asyncio.sleep(5) # Cooldown entre lotes
+
+if __name__ == "__main__":
+    asyncio.run(main())
