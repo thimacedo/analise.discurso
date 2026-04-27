@@ -1,11 +1,12 @@
 venv/
 .venv/
 __pycache__/
-archive/
 docs/
-pipelines/
 scripts/
-processing/
+backend/
+workers/
+data/
+bases_pdf/
 *.db
 *.csv
 *.pdf
@@ -14,3 +15,4 @@ processing/
 .vscode/
 .env
 .env.local
+repomix-output.xml
