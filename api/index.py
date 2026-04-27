@@ -1,12 +1,10 @@
 import os
 import httpx
-import asyncio
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
 load_dotenv()
-
 app = FastAPI()
 
 app.add_middleware(
@@ -28,24 +26,11 @@ def get_supabase_headers():
 
 @app.get("/api/v1/status")
 async def status():
-    # Teste de conectividade com Supabase
-    db_status = "error"
-    try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            res = await client.get(f"{SUPABASE_URL}/rest/v1/candidatos?select=id&limit=1", headers=get_supabase_headers())
-            if res.status_code == 200: db_status = "connected"
-    except: pass
-    
-    return {
-        "status": "online",
-        "version": "15.11.8",
-        "database": db_status
-    }
+    return {"status": "online", "version": "15.16.2", "protocol": "PASA Mapping Active"}
 
 @app.get("/api/v1/stats/top-alvos")
 async def get_top_alvos():
     try:
-        # Busca direta para popular o gráfico
         url = f"{SUPABASE_URL}/rest/v1/candidatos?select=username,estado,comentarios_totais_count,comentarios_odio_count&comentarios_totais_count=gt.0&order=comentarios_totais_count.desc&limit=10"
         async with httpx.AsyncClient(timeout=10.0) as client:
             res = await client.get(url, headers=get_supabase_headers())
@@ -59,14 +44,21 @@ async def get_top_alvos():
                 processed.append({
                     "username": c['username'],
                     "estado": c['estado'],
-                    "share_blindagem": round(100 - ((odio / total) * 100), 2)
+                    "share_blindagem": round(100 - ((odio / total) * 100), 2),
+                    "totais": total,
+                    "alertas": odio
                 })
             return processed
-    except Exception as e:
-        print(f"API Error: {e}")
+    except:
         return []
 
-# Fallback para rotas de debug
-@app.get("/api/v1/health")
-async def health():
-    return {"status": "ok"}
+@app.get("/api/v1/live-intelligence")
+async def get_live_intelligence():
+    try:
+        url = f"{SUPABASE_URL}/rest/v1/comentarios?select=texto_bruto,candidato_id,is_hate&order=created_at.desc&limit=5"
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            res = await client.get(url, headers=get_supabase_headers())
+            if res.status_code != 200: return []
+            return [{"alvo": c['candidato_id'], "texto": c['texto_bruto'], "is_hate": c['is_hate']} for c in res.json()]
+    except:
+        return []

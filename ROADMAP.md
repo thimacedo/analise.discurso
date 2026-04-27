@@ -1,24 +1,24 @@
-# 🗺️ ROADMAP.md - Sentinela Democrática
+# ROADMAP.md - Sentinela Democratica
 
-## 📖 Visão Geral
-Plataforma Independente de **Inteligência Situacional e Análise Forense**. O sistema utiliza o **Protocolo PASA v15.14** para monitoramento de crimes digitais e hostilidade política via Llama 3.1 e ScrapeGraphAI.
+## Visao Geral
+Plataforma Independente de Inteligencia Situacional e Analise Forense. O sistema utiliza o Protocolo PASA v15.16 para monitoramento de crimes digitais e hostilidade politica via Llama 3.1.
 
-## 🚀 Status Atual: v15.14.0 (Resiliência Consolidada)
-- [x] **Unificação de Projeto**: Resolvido o conflito entre múltiplos projetos Vercel sob o ID `prj_hbfDAwwIfrz6nJgIkZWLNacCWpeq`.
-- [x] **Bypass de Automação**: Configurado segredo de elite para auditoria e testes de produção.
-- [x] **Build Destravado**: Corrigido erro de BOM no `requirements.txt` e simplificação do backend FastAPI.
-- [x] **Recuperação de Inteligência**: Motor de **Tendências Preditivas** e **Saúde do Sistema** restaurados.
-- [x] **Painel de Controle v2**: Novo sistema de cadastro de alvos com e-mail de contato e auditoria rápida.
+## Status Atual: v15.16.2 (Estabilizacao de Dados)
+- [x] Unificacao de Projeto: ID prj_hbfDAwwIfrz6nJgIkZWLNacCWpeq estabilizado.
+- [x] Bypass de Automacao: Segredo de elite configurado para testes de producao.
+- [x] Build Destravado: Correcao de requisitos e limpeza de caracteres invisiveis (BOM).
+- [x] Higienizacao de Repositorio: Removidos arquivos temporarios e estabelecido .gitignore rigoroso.
+- [x] Protocolo PASA: Mapeamento de dados via campo is_hate devido a limitacao de schema.
 
-## 🛠️ Próximos Passos (Prioridade Máxima)
-1. [!] **Sincronização de Schema**: Executar migração SQL para adicionar `classificacao_pasa` à tabela `comentarios`.
-2. [ ] **Alimentação em Lote**: Ativar o script `tools/coletor_sgai.py` para popular alvos com 0 comentários.
-3. [ ] **Dossiê em PDF**: Implementar geração de evidências forenses para uso jurídico.
+## Proximos Passos (Prioridade Maxima)
+1. Migracao SQL: Adicionar coluna classificacao_pasa na tabela comentarios via Painel Supabase.
+2. Alimentacao em Lote: Executar script de coleta para alvos com 0 registros.
+3. Dossie PDF: Implementar exportacao de evidencias para fins juridicos.
 
-## 🔒 Protocolo de Estabilidade (Persistência)
-- **Estrutura**: Raiz plana para HTML (Estáticos Vercel), pasta `api/` exclusiva para Python (Funções Serverless).
-- **Dados**: Uso obrigatório de cache-buster (`?t=ts`) em todas as chamadas de API do frontend.
-- **Segurança**: Nunca comitar segredos. Usar bypass oficial para automação.
+## Protocolo de Estabilidade
+- Estrutura: Arquivos HTML na raiz (Estaticos), pasta api/ para Python (Serverless).
+- Dados: Cache-buster obrigatorio em todas as chamadas de API.
+- Comunicacao: Texto puro sem emojis para garantir legibilidade em terminais legados.
 
 ---
-**Atualização Final:** 26/04/2026 | **Versão:** 15.14.0-stable
+Atualizacao: 26/04/2026 | Versao: 15.16.2-stable
