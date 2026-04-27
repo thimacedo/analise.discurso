@@ -1,7 +1,7 @@
-from fastapi import FastAPI, HTTPException, Request
+﻿from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from core.config import settings
-from core.supabase_client import supabase
+from .core.config import settings
+from .core.supabase_client import supabase
 from pydantic import BaseModel
 from typing import Optional, List
 import httpx
@@ -53,7 +53,7 @@ async def get_top_alvos():
         })
     return processed
 
-# --- ROTAS DE INTELIGÊNCIA ---
+# --- ROTAS DE INTELIGÃŠNCIA ---
 @app.get("/api/v1/live-intelligence")
 async def get_live_intelligence():
     if not supabase: return []
@@ -71,3 +71,4 @@ async def verify_totp(request: AuthRequest):
         raise HTTPException(status_code=500, detail="TOTP nao configurado.")
     # Implementacao de verificacao real aqui se pyotp disponivel
     return {"status": "success", "token": "admin-session-active"}
+

@@ -4,8 +4,6 @@
   "trailingSlash": false,
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.py" },
-    { "source": "/admin", "destination": "/addalvo" },
-    { "source": "/docs/analise-violencia", "destination": "/docs/analise-violencia.html" },
-    { "source": "/docs/metodologia", "destination": "/docs/metodologia.html" }
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
