@@ -2,20 +2,30 @@ import os
 from fpdf import FPDF
 from datetime import datetime
 import pandas as pd
+import re
 
 class ReportGenerator(FPDF):
     def __init__(self):
         super().__init__()
-        # Adiciona fonte com suporte a UTF-8
+        # Tenta carregar fonte com suporte estendido
+        self.font_family_main = 'Helvetica'
         try:
-            self.add_font('Arial', '', 'C:\\Windows\\Fonts\\arial.ttf')
-            self.add_font('Arial', 'B', 'C:\\Windows\\Fonts\\arialbd.ttf')
-        except:
-            # Fallback para ambientes Linux/Server
-            pass
+            # Em ambientes Windows, tentamos usar Arial para melhor suporte
+            if os.path.exists('C:\\Windows\\Fonts\\arial.ttf'):
+                self.add_font('ArialCustom', '', 'C:\\Windows\\Fonts\\arial.ttf')
+                self.add_font('ArialCustom', 'B', 'C:\\Windows\\Fonts\\arialbd.ttf')
+                self.font_family_main = 'ArialCustom'
+        except Exception as e:
+            print(f"⚠️ Aviso ao carregar fontes: {e}")
+
+    def clean_text(self, text):
+        """Remove caracteres que causam quebra no FPDF (emojis, etc)"""
+        if not text: return ""
+        # Mantém apenas caracteres básicos e acentuação comum
+        return re.sub(r'[^\x00-\x7Fà-úÀ-Ú]', ' ', str(text))
 
     def header(self):
-        self.set_font('Helvetica', 'B', 14)
+        self.set_font(self.font_family_main, 'B', 14)
         self.set_text_color(37, 99, 235)
         self.cell(0, 10, 'SENTINELA DEMOCRÁTICA - DOSSIÊ INTELIGÊNCIA', align="C")
         self.ln(10)
@@ -25,27 +35,29 @@ class ReportGenerator(FPDF):
 
     def footer(self):
         self.set_y(-15)
-        self.set_font('Helvetica', 'I', 8)
+        # Removido 'I' (Itálico) para evitar erro de fonte não carregada
+        self.set_font(self.font_family_main, '', 8)
         self.set_text_color(128, 128, 128)
         self.cell(0, 10, f'Página {self.page_no()} | Gerado em {datetime.now().strftime("%d/%m/%Y %H:%M")}', align='C')
 
     def render_item(self, item):
-        if self.get_y() > 250:
+        if self.get_y() > 240: # Margem de segurança
             self.add_page()
 
         self.set_fill_color(245, 245, 250)
         self.rect(10, self.get_y(), 190, 35, 'F')
         
-        autor = item.get('owner_username', 'Desconhecido')
-        post_ref = item.get('post_shortcode', 'N/A')
+        autor = self.clean_text(item.get('owner_username', 'Desconhecido'))
+        post_ref = self.clean_text(item.get('post_shortcode', 'N/A'))
         
-        self.set_font('Helvetica', 'B', 9)
+        self.set_font(self.font_family_main, 'B', 9)
         self.set_text_color(0, 0, 0)
         self.cell(0, 6, f'Autor: @{autor} | Post: {post_ref}')
         self.ln(6)
 
-        texto = item.get('text', '')[:300] + "..." if len(item.get('text', '')) > 300 else item.get('text', '')
-        self.set_font('Helvetica', '', 8)
+        texto_original = item.get('text', '')
+        texto = self.clean_text(texto_original[:300]) + ("..." if len(texto_original) > 300 else "")
+        self.set_font(self.font_family_main, '', 8)
         self.set_text_color(50, 50, 50)
         self.multi_cell(0, 5, f"Conteúdo: {texto}")
 
@@ -53,7 +65,7 @@ class ReportGenerator(FPDF):
         status = "AGRESSIVO / DISCURSO DE ÓDIO" if is_hate else "NEUTRO / MONITORADO"
         cor = (220, 38, 38) if is_hate else (37, 99, 235)
         
-        self.set_font('Helvetica', 'B', 8)
+        self.set_font(self.font_family_main, 'B', 8)
         self.set_text_color(*cor)
         self.cell(0, 6, f"Status: {status}")
         self.ln(10)
@@ -64,12 +76,17 @@ class ReportGenerator(FPDF):
             return None
 
         self.add_page()
-        self.set_font('Helvetica', '', 10)
+        self.set_font(self.font_family_main, '', 10)
         self.set_text_color(0, 0, 0)
-        self.multi_cell(0, 8, f"Análise situacional contendo {len(df_final)} interações mapeadas.")
+        self.multi_cell(0, 8, self.clean_text(f"Análise situacional contendo {len(df_final)} interações mapeadas."))
         self.ln(5)
 
-        for _, row in df_final.iterrows():
+        # Filtra apenas o que for relevante para o relatório
+        df_report = df_final[df_final['is_hate_speech'] == True].head(50)
+        if df_report.empty:
+            df_report = df_final.head(10) # Fallback
+
+        for _, row in df_report.iterrows():
             self.render_item(row.to_dict())
 
         self.output(output_path)

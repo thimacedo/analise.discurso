@@ -1,16 +1,25 @@
-# 🛡️ PROTOCOLO DE PERSISTÊNCIA - SENTINELA
+# 🛡️ PERSISTÊNCIA TÉCNICA E GOVERNANÇA (MCP) - SENTINELA
 
-## 🚫 PROIBIDO DESFAZER (PONTOS PACIFICADOS)
-1. **Segurança Administrativa**: A página `addalvo.html` EXIGE autenticação via TOTP (Google Authenticator) e sessão de 2 horas via token assinado.
-2. **Navegação SPA**: Links internos DEVEM ser `#monitor`, `#dossie`, `#map`. Nunca use caminhos relativos para navegação entre abas.
-2. **Título do Site**: Deve ser apenas `SENTINELA`. Proibido ícones (favicon) ou letras gregas/emojis.
-3. **Mídia**: As imagens de perfil DEVEM usar o atributo `onerror` para fallback de iniciais.
-4. **Independência**: Nenhuma menção a UFRN ou nomes externos. Metodologia é PASA (Sentinela).
+Este documento serve como a "Memória Técnica" do projeto, garantindo que qualquer agente mantenha a integridade arquitetural v18.5.
 
-## 📁 ESTRUTURA DE ARQUIVOS
-- A raiz deve conter `index.html` e `addalvo.html`.
-- O diretório `src/` e `docs/` devem estar na raiz para acesso direto do Vercel.
+## 🏗️ ARQUITETURA MESTRE (v18.5)
+1. **Coleta**: `sentinela_scraper/` (Nativo Scrapy) acessa API REST do Instagram.
+2. **Nuvem**: `Supabase` armazena `candidatos`, `posts` e `comentarios`.
+3. **Cérebro**: `orquestrador.py` coordena o ciclo completo de atualização.
+4. **Motores (Folder: /processing)**:
+   - `text_processor.py`: Limpeza e Lematização Forense.
+   - `data_miner.py`: Clustering KMeans e Z-Score (Picos de Ódio).
+   - `report_generator.py`: PDF FPDF2 com suporte nativo a UTF-8.
+5. **IA Pericial**: `core/qwen_classifier.py` utiliza o modelo **Qwen 2.5** balizado pelo `CRITERIOS_TREINAMENTO.md`.
 
-## 📡 REGRAS DE API
-- Toda rota `/api/v1/` deve retornar JSON.
-- O backend (`api/index.py`) NÃO deve servir HTML; o Vercel cuida do roteamento estático.
+## 📜 REGRAS INVIOLÁVEIS (GOVERNANÇA)
+- **Código Integral**: Proibido omitir partes de código (`//...`). Entregar sempre o arquivo completo.
+- **Protocolo PASA**: Toda classificação de ódio deve seguir estritamente o `CRITERIOS_TREINAMENTO.md`.
+- **Segurança Admin**: Acesso a `addalvo.html` protegido por TOTP.
+- **Linguagem**: Comunicação estritamente em Português (Brasil), técnica e direta.
+- **Nomenclatura**: Preservar colunas `owner_username`, `post_shortcode` e `texto_bruto`.
+
+## 📡 CONFIGURAÇÕES DE PERSISTÊNCIA (MCP)
+- **Scope**: `project`
+- **Key Facts**: Arquitetura unificada, FPDF2 para encoding, Scrapy nativo.
+- **Trigger**: Sempre ler este arquivo ou `ROADMAP.md` ao iniciar nova sessão.

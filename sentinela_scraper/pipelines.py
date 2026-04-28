@@ -6,7 +6,6 @@ load_dotenv()
 
 class SupabasePipeline:
     def __init__(self):
-        # Garante que a URL tenha o protocolo correto
         url = os.getenv("SUPABASE_URL", "")
         if url and not url.startswith("http"):
             url = f"https://{url}"
@@ -22,35 +21,43 @@ class SupabasePipeline:
 
     def process_item(self, item, spider):
         if not self.url or not self.key:
-            spider.logger.error("❌ SUPABASE_URL ou SUPABASE_KEY nÃ£o configurados no .env")
+            spider.logger.error("❌ SUPABASE_URL ou SUPABASE_KEY não configurados")
             return item
 
         item_type = item.pop('type')
-        table_map = {
-            'profile': 'candidatos',
-            'post': 'posts',
-            'comment': 'comentarios'
-        }
         
-        table = table_map.get(item_type)
-        if not table: return item
-
-        # Mapeamento de campos para compatibilidade com o schema atual
-        payload = item.copy()
+        # Mapeamento corrigido conforme introspecção do Supabase
         if item_type == 'profile':
+            table = "candidatos"
             payload = {
-                "id": item['id'],
                 "username": item['username'],
                 "nome_completo": item.get('full_name', ''),
-                "status_monitoramento": "Ativo"
+                "bio": item.get('bio', ''),
+                "seguidores": item.get('seguidores', 0),
+                "status_monitoramento": "ATIVO"
             }
+        elif item_type == 'comment':
+            table = "comentarios"
+            payload = {
+                "id_externo": str(item['id']),
+                "candidato_id": item['candidato_username'], # FK é para candidatos.username
+                "post_id": str(item['post_shortcode']),
+                "autor_username": item['owner_username'],
+                "texto_bruto": item['text'],
+                "processado_ia": False
+            }
+        else:
+            # Ignora 'post' pois a tabela não existe no schema v18.5
+            return item
         
         try:
             with httpx.Client(timeout=10.0) as client:
+                # Usamos POST com resolution=merge-duplicates (conforme configurado no init)
                 resp = client.post(f"{self.url}/rest/v1/{table}", json=payload, headers=self.headers)
                 if resp.status_code not in [200, 201]:
                     spider.logger.error(f"❌ Erro Supabase ({table}): {resp.status_code} - {resp.text}")
         except Exception as e:
-            spider.logger.error(f"🔥 Falha de conexÃ£o Supabase: {e}")
+            spider.logger.error(f"🔥 Falha de conexão Supabase: {e}")
 
-        return item
+    def close_spider(self, spider):
+        pass

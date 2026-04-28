@@ -1,4 +1,5 @@
 import os
+import sys
 import asyncio
 import subprocess
 import pandas as pd
@@ -30,9 +31,9 @@ class Orchestrator:
 
     async def run_scraper(self):
         print("🚀 [1/5] Iniciando Extração Scrapy (Instagram)...")
-        # scrapy crawl instagram
+        # python -m scrapy crawl instagram
         process = subprocess.run(
-            ["scrapy", "crawl", "instagram"],
+            [sys.executable, "-m", "scrapy", "crawl", "instagram"],
             capture_output=True, text=True, shell=True
         )
         if process.returncode == 0:
@@ -51,9 +52,13 @@ class Orchestrator:
         resp = httpx.get(url, headers=HEADERS)
         if resp.status_code == 200:
             df = pd.DataFrame(resp.json())
-            # Normalização de nomes de colunas
+            # Normalização para motores v18.0
             if 'texto_bruto' in df.columns:
                 df = df.rename(columns={'texto_bruto': 'text'})
+            if 'is_hate' in df.columns:
+                df['is_hate_speech'] = df['is_hate']
+            if 'categoria_ia' in df.columns:
+                df['category'] = df['categoria_ia']
             return df
         else:
             print(f"❌ Erro ao buscar dados: {resp.text}")

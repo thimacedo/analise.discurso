@@ -9,7 +9,7 @@ class InstagramSpider(scrapy.Spider):
     def __init__(self, *args, **kwargs):
         super(InstagramSpider, self).__init__(*args, **kwargs)
         self.session_id = os.getenv("INSTAGRAM_SESSIONID")
-        # App ID estÃ¡tico exigido pela API v1 do Instagram Web
+        # App ID estático exigido pela API v1 do Instagram Web
         self.app_id = "936619743392459" 
         
         self.headers = {
@@ -21,16 +21,18 @@ class InstagramSpider(scrapy.Spider):
             "Cookie": f"sessionid={self.session_id}"
         }
         
+        # Carrega alvos de monitoramento
         try:
+            # Tenta ler o arquivo de prioridade
             with open('E:/projetos/sentinela-democratica/data/priority_queue.json', 'r') as f:
                 self.targets = json.load(f)
         except:
-            self.targets = ["lulaoficial", "bolsonarosp"]
+            # Fallback para alvos críticos se o arquivo falhar
+            self.targets = ["lulaoficial", "flaviobolsonaro", "nikolasferreirainfo", "erikahiltonoficial"]
 
     def start_requests(self):
         for username in self.targets:
             url = f"https://www.instagram.com/api/v1/users/web_profile_info/?username={username}"
-            # O Referer Ã© crucial para evitar o erro 400
             headers = self.headers.copy()
             headers["Referer"] = f"https://www.instagram.com/{username}/"
             
@@ -43,8 +45,9 @@ class InstagramSpider(scrapy.Spider):
             )
 
     def parse_profile(self, response):
+        username = response.meta['username']
         if response.status != 200:
-            self.logger.error(f"❌ Falha no perfil {response.meta['username']} (Status {response.status})")
+            self.logger.error(f"❌ Falha no perfil {username} (Status {response.status})")
             return
 
         try:
@@ -52,41 +55,50 @@ class InstagramSpider(scrapy.Spider):
             user = data.get('data', {}).get('user', {})
             if not user: return
 
+            # Envia perfil para o pipeline (candidatos)
             yield {
                 'type': 'profile',
-                'id': user['id'],
                 'username': user['username'],
                 'full_name': user['full_name'],
-                'profile_pic': user['profile_pic_url']
+                'bio': user.get('biography', ''),
+                'seguidores': user.get('edge_followed_by', {}).get('count', 0)
             }
 
             edges = user.get('edge_owner_to_timeline_media', {}).get('edges', [])
-            for edge in edges[:3]:
+            for edge in edges[:5]: # Analisa os últimos 5 posts
                 node = edge['node']
                 shortcode = node['shortcode']
                 media_id = node['id']
                 
-                yield {
-                    'type': 'post',
-                    'id': media_id,
-                    'shortcode': shortcode,
-                    'owner_id': user['id'],
-                    'timestamp': node['taken_at_timestamp']
-                }
-
-                # API de ComentÃ¡rios (Endpoint alternativo mais resiliente)
+                # Ignoramos o item 'post' no pipeline v18.5 pois a tabela não existe
+                # Mas disparamos a coleta de comentários
                 comments_url = f"https://www.instagram.com/api/v1/media/{media_id}/comments/"
+                c_headers = self.headers.copy()
+                c_headers["Referer"] = f"https://www.instagram.com/p/{shortcode}/"
+                
                 yield scrapy.Request(
                     comments_url, 
-                    headers=self.headers, 
+                    headers=c_headers, 
                     callback=self.parse_comments, 
-                    meta={'post_shortcode': shortcode}
+                    meta={
+                        'post_shortcode': shortcode,
+                        'candidato_username': user['username']
+                    }
                 )
         except Exception as e:
-            self.logger.error(f"Erro no parse de {response.meta['username']}: {e}")
+            self.logger.error(f"Erro no parse de {username}: {e}")
 
     def parse_comments(self, response):
+        if response.status != 200:
+            self.logger.warning(f"⚠️ Comentários inacessíveis para {response.meta['post_shortcode']} (Status {response.status})")
+            return
+
         try:
+            # Se redirecionou para login, o conteúdo não será JSON
+            if not response.text.strip().startswith('{'):
+                self.logger.error(f"🚫 Bloqueio de Login detectado para post {response.meta['post_shortcode']}")
+                return
+
             data = json.loads(response.text)
             comments = data.get('comments', [])
             for comment in comments[:50]:
@@ -96,7 +108,8 @@ class InstagramSpider(scrapy.Spider):
                     'text': comment['text'],
                     'owner_username': comment['user']['username'],
                     'timestamp': comment['created_at'],
-                    'post_shortcode': response.meta['post_shortcode']
+                    'post_shortcode': response.meta['post_shortcode'],
+                    'candidato_username': response.meta['candidato_username']
                 }
         except Exception as e:
-            self.logger.error(f"Erro nos comentÃ¡rios: {e}")
+            self.logger.error(f"Erro no parse de comentários: {e}")

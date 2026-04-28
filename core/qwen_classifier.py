@@ -1,7 +1,6 @@
 import os
 import httpx
 import json
-import ollama
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -16,71 +15,69 @@ HEADERS = {
     "Content-Type": "application/json"
 }
 
-def load_training_criteria():
+# CONFIGURAÇÃO GROQ (CLOUD FALLBACK)
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
+def classify_text_groq(text):
+    if not GROQ_API_KEY:
+        return {"is_hate": False, "category": "ERRO_CONFIG"}
+    
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    prompt = f"""Analise o seguinte comentário sob o Protocolo PASA v16.4:
+"{text}"
+
+Categorias: ODIO_IDENTITARIO, VIOLENCIA_GENERO, AMEACA, INSULTO_AD_HOMINEM, ATAQUE_INSTITUCIONAL, RIGOR_CRIMINAL, NEUTRO.
+
+Responda APENAS em JSON:
+{{"is_hate": true/false, "category": "NOME_DA_CATEGORIA", "confianca": 0.0-1.0}}"""
+
     try:
-        with open('CRITERIOS_TREINAMENTO.md', 'r', encoding='utf-8') as f:
-            return f.read()
-    except:
-        return "Diretrizes não encontradas. Use bom senso pericial."
+        payload = {
+            "model": "llama-3.3-70b-versatile",
+            "messages": [{"role": "user", "content": prompt}],
+            "response_format": {"type": "json_object"}
+        }
+        resp = httpx.post(url, headers=headers, json=payload, timeout=20.0)
+        if resp.status_code == 200:
+            return json.loads(resp.json()['choices'][0]['message']['content'])
+    except Exception as e:
+        print(f"⚠️ Erro Groq: {e}")
+    
+    return {"is_hate": False, "category": "FALHA_IA"}
 
 def run_integrated_qwen_classification():
-    print("🧠 Qwen 2.5 0.5B + Blindagem + Baliza: Iniciando Perícia...")
-    criteria = load_training_criteria()
-    url_fetch = f"{SUPABASE_URL}/rest/v1/comentarios?processado_ia=eq.false&limit=15"
+    print("🧠 Groq Cloud Intelligence: Iniciando Perícia PASA v16.4...")
     
     try:
-        resp = httpx.get(url_fetch, headers=HEADERS)
-        comments = resp.json()
-        if not comments:
+        # Busca comentários não processados
+        url = f"{SUPABASE_URL}/rest/v1/comentarios?processado_ia=eq.false&limit=50"
+        resp = httpx.get(url, headers=HEADERS)
+        comentarios = resp.json()
+
+        if not comentarios:
             print("✅ Tudo processado.")
             return
 
-        for c in comments:
-            text = c.get("texto_bruto", "")
-            comment_id = c.get("id")
+        for c in comentarios:
+            text = c.get('texto_bruto', '')
+            result = classify_text_groq(text)
             
-            # 1. BLINDAGEM (SHIELDING) - Resposta imediata para casos óbvios
-            text_clean = text.lower().strip()
-            shielded_emojis = ["🙌", "👏", "🔥", "❤️", "😍", "🚀", "✅", "👍"]
-            is_shielded = any(emoji in text for emoji in shielded_emojis) or \
-                          any(term in text_clean for term in ["parabéns", "sucesso", "amigo", "deus", "apoio", "estamos juntos"])
+            # Atualiza no Supabase
+            update_url = f"{SUPABASE_URL}/rest/v1/comentarios?id=eq.{c['id']}"
+            patch_data = {
+                "is_hate": result.get('is_hate', False),
+                "categoria_ia": result.get('category', 'NEUTRO'),
+                "processado_ia": True
+            }
+            httpx.patch(update_url, headers=HEADERS, json=patch_data)
             
-            if is_shielded:
-                result = {"is_hate": False, "category": "APOIO/EMOJI", "reasoning": "Blindagem: Identificado como apoio positivo."}
-            else:
-                # 2. PROCESSAMENTO IA (Se não for blindado)
-                prompt = f"""
-                Você é um Perito em Linguística Forense. Use as DIRETRIZES abaixo para classificar o comentário.
-                --- DIRETRIZES MESTRE ---
-                {criteria}
-                --- FIM DAS DIRETRIZES ---
-                Comentário para Análise: "{text}"
-                Responda APENAS em JSON:
-                {{
-                    "is_hate": true/false,
-                    "category": "CATEGORIA_DO_MANUAL",
-                    "reasoning": "Justificativa técnica"
-                }}
-                """
-                response = ollama.generate(model='qwen2.5-coder:0.5b', prompt=prompt)
-                try:
-                    res_raw = response['response']
-                    start = res_raw.find('{')
-                    end = res_raw.rfind('}') + 1
-                    result = json.loads(res_raw[start:end])
-                except:
-                    result = {"is_hate": False, "category": "NEUTRO", "reasoning": "Erro de parse"}
-
-            # 3. ATUALIZAÇÃO CLOUD
-            url_update = f"{SUPABASE_URL}/rest/v1/comentarios?id=eq.{comment_id}"
-            httpx.patch(url_update, json={
-                "processado_ia": True,
-                "is_hate": result.get("is_hate", False),
-                "categoria_ia": result.get("category", "NEUTRO")
-            }, headers=HEADERS)
-            
-            status_icon = "🚩" if result.get("is_hate") else "✅"
-            print(f"   {status_icon} @{c.get('autor_username')}: [{result.get('category')}]")
+            status_icon = "🔥" if patch_data["is_hate"] else "✅"
+            print(f"   {status_icon} @{c.get('autor_username')}: [{patch_data['categoria_ia']}]")
 
     except Exception as e:
         print(f"❌ Erro: {e}")
