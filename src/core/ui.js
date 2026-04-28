@@ -302,8 +302,8 @@ function renderGeopolitica() {
                 ${state.selectedUF ? '<button type="button" class="ghost-btn" onclick="window.clearUFSelection()">Limpar</button>' : ''}
             </div>
             <div class="map-kpis">
-                <div><span>Alvos</span><strong id="st-targets">${selectedState?.alvos ?? state.data.length}</strong></div>
-                <div><span>Alertas</span><strong id="st-hate">${selectedState?.odio ?? state.stats.hate}</strong></div>
+                <div><span>Alvos</span><strong id="st-targets">${state.selectedUF ? (selectedState?.alvos || 0) : state.data.length}</strong></div>
+                <div><span>Alertas</span><strong id="st-hate">${state.selectedUF ? (selectedState?.odio || 0) : state.stats.hate}</strong></div>
             </div>
             <div class="hotspot-list">
                 <span class="eyebrow">Ufs mais tensionadas</span>

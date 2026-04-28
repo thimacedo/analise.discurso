@@ -1,9 +1,10 @@
-## Fluxo de Processamento v16.3 (Forensic Edition)
+## Fluxo de Processamento v18.0 (Unified Backend Edition)
 
-1. **Extração**: `elite_collector.py` captura comentário + autor_username + post_id.
-2. **Classificação Local**: `ollama_intelligence.py` rotula a evidência (ex: INSULTO_AD_HOMINEM).
-3. **Persistência Híbrida**: Dados brutos em SQLite e vereditos periciais em Supabase Cloud.
-4. **Enriquecimento UI**: 
-   - O motor `ui.js` realiza o cruzamento de `candidato_id` com o `state.data` para exibir o nome do alvo.
-   - Gera badges dinâmicos baseados no risco identificado pela IA.
-   - Exibe a trilha: [Autor] atacou [Alvo] na [Postagem].
+O fluxo foi unificado para eliminar gargalos e redundâncias entre workers.
+
+1. **Extração (Scrapy)**: O spider `instagram.py` acessa o perfil monitor, extrai os seguidos, seus 3 últimos posts e até 100 comentários por post. Payload: `text`, `owner_username`, `post_shortcode`, `timestamp`.
+2. **Persistência (Supabase)**: O `SupabasePipeline` realiza `upserts` com cláusula `on_conflict` em tempo real nas tabelas `profiles`, `posts` e `comments`, garantindo zero duplicidade.
+3. **Processamento Forense**: O worker `text_processor.py` consome o banco, aplica limpeza focada em preservar negações (crucial para ódio), converte emojis e gera lemas/_bigrams/trigrams.
+4. **Mineração e Inteligência**: O worker `data_miner.py` aplica TF-IDF, KMeans em clusters dinâmicos e análise temporal (Z-Score para detecção de picos de ódio).
+5. **Classificação (Futura Integração)**: *Espaço reservado* para ingestão do modelo Groq/Qwen (Protocolo PASA) para injetar a coluna `is_hate_speech` no DataFrame.
+6. **Geracao de Dossiê**: O worker `report_generator.py` (usando `fpdf2` com suporte nativo a UTF-8) consome o DataFrame final e renderiza o PDF analítico com quebra de página inteligente.

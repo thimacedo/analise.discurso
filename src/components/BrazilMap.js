@@ -1,63 +1,64 @@
 /**
  * BrazilMap.js - Componente Geopolítico Sentinela
- * v17.1.0 - SVG High Definition & Heatmap Dynamics
+ * v17.2.5 - High-Accuracy Contiguous Mapping
  */
 export function renderBrazilMap(id, ufStats, onSelect) {
     const container = document.getElementById(id);
     if (!container) return;
 
+    // Coordenadas Geográficas Alinhadas (Sistema de Grade Unificado)
     const mapPaths = [
-        { id: 'AC', name: 'Acre', d: 'M106,448 L111,440 L131,438 L152,453 L162,476 L131,507 L95,496 L79,481 L77,460 Z' },
-        { id: 'AL', name: 'Alagoas', d: 'M624,374 L635,372 L640,381 L630,389 L623,387 Z' },
-        { id: 'AP', name: 'Amapá', d: 'M397,143 L413,138 L440,154 L443,184 L415,193 L398,172 Z' },
-        { id: 'AM', name: 'Amazonas', d: 'M87,192 L223,178 L314,244 L323,347 L167,469 L132,434 L115,333 L87,290 Z' },
-        { id: 'BA', name: 'Bahia', d: 'M485,310 L549,307 L603,348 L623,439 L575,510 L486,499 L458,409 Z' },
-        { id: 'CE', name: 'Ceará', d: 'M558,221 L596,219 L617,250 L599,282 L564,278 L552,253 Z' },
-        { id: 'DF', name: 'Distrito Federal', d: 'M461,445 L477,445 L477,460 L461,460 Z' },
-        { id: 'ES', name: 'Espírito Santo', d: 'M590,518 L608,525 L605,558 L588,555 Z' },
-        { id: 'GO', name: 'Goiás', d: 'M404,383 L480,391 L490,490 L425,502 L400,453 Z' },
-        { id: 'MA', name: 'Maranhão', d: 'M444,198 L514,213 L547,301 L484,306 L453,234 Z' },
-        { id: 'MT', name: 'Mato Grosso', d: 'M252,342 L394,321 L403,450 L320,497 L241,441 Z' },
-        { id: 'MS', name: 'Mato Grosso do Sul', d: 'M314,506 L385,504 L404,591 L328,623 L298,582 Z' },
-        { id: 'MG', name: 'Minas Gerais', d: 'M468,506 L571,514 L588,610 L485,639 L444,570 Z' },
-        { id: 'PA', name: 'Pará', d: 'M316,183 L435,178 L450,230 L400,317 L315,338 Z' },
-        { id: 'PB', name: 'Paraíba', d: 'M611,273 L637,276 L641,299 L612,298 Z' },
-        { id: 'PR', name: 'Paraná', d: 'M355,640 L442,642 L453,695 L368,707 Z' },
-        { id: 'PE', name: 'Pernambuco', d: 'M582,286 L638,299 L635,330 L591,327 Z' },
-        { id: 'PI', name: 'Piauí', d: 'M508,217 L553,227 L542,305 L500,306 L486,252 Z' },
-        { id: 'RJ', name: 'Rio de Janeiro', d: 'M546,606 L584,614 L580,638 L543,635 Z' },
-        { id: 'RN', name: 'Rio Grande do Norte', d: 'M604,244 L639,248 L642,271 L608,270 Z' },
-        { id: 'RS', name: 'Rio Grande do Sul', d: 'M351,743 L440,750 L432,831 L338,819 Z' },
-        { id: 'RO', name: 'Rondônia', d: 'M175,465 L247,445 L252,504 L181,516 Z' },
-        { id: 'RR', name: 'Roraima', d: 'M188,83 L256,80 L273,153 L204,166 Z' },
-        { id: 'SC', name: 'Santa Catarina', d: 'M375,708 L452,709 L458,744 L382,741 Z' },
-        { id: 'SP', name: 'São Paulo', d: 'M408,598 L482,605 L477,661 L403,663 L389,634 Z' },
-        { id: 'SE', name: 'Sergipe', d: 'M616,394 L630,396 L628,413 L614,411 Z' },
-        { id: 'TO', name: 'Tocantins', d: 'M403,322 L451,313 L471,387 L405,378 Z' }
+        { id: 'AC', name: 'Acre', d: 'M57,364 L79,343 L99,353 L106,378 L87,398 L51,391 Z' },
+        { id: 'AL', name: 'Alagoas', d: 'M461,304 L473,303 L477,314 L464,318 Z' },
+        { id: 'AP', name: 'Amapá', d: 'M292,109 L308,103 L329,119 L323,138 L302,142 Z' },
+        { id: 'AM', name: 'Amazonas', d: 'M44,204 L146,183 L208,235 L217,312 L101,374 L75,342 L66,281 Z' },
+        { id: 'BA', name: 'Bahia', d: 'M358,284 L411,281 L451,324 L461,389 L422,442 L356,432 L340,361 Z' },
+        { id: 'CE', name: 'Ceará', d: 'M412,192 L442,190 L457,212 L443,239 L416,236 Z' },
+        { id: 'DF', name: 'Distrito Federal', d: 'M341,392 L353,392 L343,403 L341,403 Z' },
+        { id: 'ES', name: 'Espírito Santo', d: 'M436,447 L450,453 L448,478 L435,475 Z' },
+        { id: 'GO', name: 'Goiás', d: 'M298,342 L354,348 L361,424 L313,433 L295,394 Z' },
+        { id: 'MA', name: 'Maranhão', d: 'M327,153 L379,165 L404,275 L357,280 L333,181 Z' },
+        { id: 'MT', name: 'Mato Grosso', d: 'M175,258 L301,241 L305,340 L240,378 L180,334 Z' },
+        { id: 'MS', name: 'Mato Grosso do Sul', d: 'M221,382 L274,381 L288,446 L230,471 L210,438 Z' },
+        { id: 'MG', name: 'Minas Gerais', d: 'M344,437 L421,444 L434,518 L356,541 L326,487 Z' },
+        { id: 'PA', name: 'Pará', d: 'M222,143 L320,138 L340,178 L302,243 L238,259 Z' },
+        { id: 'PB', name: 'Paraíba', d: 'M452,229 L471,232 L474,249 L453,248 Z' },
+        { id: 'PR', name: 'Paraná', d: 'M252,484 L317,485 L325,526 L262,535 Z' },
+        { id: 'PE', name: 'Pernambuco', d: 'M430,240 L472,249 L470,274 L437,271 Z' },
+        { id: 'PI', name: 'Piauí', d: 'M375,168 L409,176 L400,277 L370,278 Z' },
+        { id: 'RJ', name: 'Rio de Janeiro', d: 'M403,516 L432,523 L429,541 L401,539 Z' },
+        { id: 'RN', name: 'Rio Grande do Norte', d: 'M447,208 L474,211 L476,227 L450,226 Z' },
+        { id: 'RS', name: 'Rio Grande do Sul', d: 'M250,563 L317,568 L311,631 L240,622 Z' },
+        { id: 'RO', name: 'Rondônia', d: 'M117,351 L171,335 L180,381 L127,392 Z' },
+        { id: 'RR', name: 'Roraima', d: 'M126,58 L177,56 L190,113 L138,123 Z' },
+        { id: 'SC', name: 'Santa Catarina', d: 'M267,536 L325,537 L330,564 L273,562 Z' },
+        { id: 'SP', name: 'São Paulo', d: 'M292,453 L347,458 L343,501 L288,502 L278,480 Z' },
+        { id: 'SE', name: 'Sergipe', d: 'M454,289 L465,290 L463,303 L452,302 Z' },
+        { id: 'TO', name: 'Tocantins', d: 'M297,243 L340,240 L354,342 L298,336 Z' }
     ];
 
     const maxHate = Math.max(...Object.values(ufStats).map(s => s.odio || 0), 1);
 
     container.innerHTML = `
-        <svg viewBox="0 0 700 850" class="sentinela-map-svg">
+        <svg viewBox="0 0 550 700" class="sentinela-map-svg">
             <defs>
                 <filter id="glow">
-                    <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+                    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
                     <feMerge>
                         <feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/>
                     </feMerge>
                 </filter>
             </defs>
-            <g transform="translate(0, -20)">
+            <g transform="translate(20, 20)">
                 ${mapPaths.map(uf => {
                     const data = ufStats[uf.id] || { odio: 0, alvos: 0 };
                     const hasHate = data.odio > 0;
                     const intensity = hasHate ? (data.odio / maxHate) : 0;
-                    const fill = hasHate ? `rgba(239, 68, 68, ${0.1 + intensity * 0.9})` : 'rgba(30, 41, 59, 0.4)';
+                    const fill = hasHate ? `rgba(239, 68, 68, ${0.15 + intensity * 0.85})` : 'rgba(148, 163, 184, 0.08)';
                     const isSelected = window.__selectedUF === uf.id;
                     const stroke = isSelected ? '#38bdf8' : (hasHate ? '#ef4444' : 'rgba(255, 255, 255, 0.1)');
-                    const strokeWidth = isSelected ? '4' : '1';
-                    const pulseClass = (intensity > 0.7) ? 'map-pulse' : '';
+                    const strokeWidth = isSelected ? '3' : '1';
+                    const pulseClass = (intensity > 0.75) ? 'map-pulse' : '';
 
                     return `
                     <path d="${uf.d}" 

@@ -1,13 +1,15 @@
-# 🛡️ Sentinela Democrática — Inteligência Situacional v15.6
+# 🛡️ Sentinela Democrática — Inteligência Situacional v18.0
 
-Pipeline profissional para coleta, análise e visualização de discurso de ódio e tendências políticas, baseado no **Protocolo PASA** (Proprietário).
+Pipeline profissional e unificado para coleta escalável, análise linguística forense e visualização de discurso de ódio e tendências políticas, baseado no **Protocolo PASA** (Proprietário).
 
 ---
 
-## 📋 Arquitetura
+## 📋 Arquitetura Atual (Backend)
 
 ```
-API Coleta → Cérebro de Inteligência → Motor PASA v15.6 → Dashboard Stealth → Dossiê Analítico
+Scrapy Crawler (Instagram API) → Supabase (Cloud DB) → NLP/Mineradores (Workers Locais) → Motor de Relatórios (FPDF2)
+                                                                               ↓
+                                                                  Dashboard Frontend (UI/UX)
 ```
 
 ---
@@ -17,43 +19,39 @@ API Coleta → Cérebro de Inteligência → Motor PASA v15.6 → Dashboard Stea
 ### 1. Requisitos do Sistema
 - Python 3.10+
 - Conta Supabase (Banco de Dados Cloud)
-- Groq Cloud API (Motor de Inferência Llama 3.3)
+- Conta ativa no Instagram (Para extração do cookie `sessionid`)
+- *(Opcional)* Groq Cloud API (Para futura classificação de IA)
 
 ### 2. Preparar Ambiente
-
 ```bash
 pip install -r requirements.txt
 python -m spacy download pt_core_news_lg
 ```
 
-### 3. Configurar Credenciais
-
-Configure o arquivo `.env` conforme o `.env.example`:
+### 3. Configurar Credenciais (.env)
 ```bash
-SUPABASE_URL=...
-SUPABASE_KEY=...
-GROQ_API_KEY=...
-SENTINELA_ADMIN_TOTP_SECRET=...
+SUPABASE_URL=https://xxx.supabase.co
+SUPABASE_KEY=eyJhbGciOi...
+INSTAGRAM_SESSIONID=your_session_id_here
+# GROQ_API_KEY=gsk_... (Para o módulo de IA)
 ```
 
 ---
 
-## 🎯 Funcionalidades
+## 🎯 Funcilidades Implementadas
 
-✅ **Coleta Resiliente**: Extração de dados via RapidAPI (Independentemente da sessão local).
-✅ **Motor PASA v15.6**: Protocolo avançado de Linguística Forense proprietário.
-✅ **Dashboard Stealth**: Visualização de alta performance com design de centro de comando.
-✅ **Matriz de Guerra**: Gráfico nativo de impacto vs hostilidade.
-✅ **Geopolítica**: Mapa de risco situacional por estado (UF).
+✅ **Coleta Resiliente via Scrapy**: Extração nativa da API REST do Instagram, independente de terceiros (RapidAPI), com tratamento de paginação.
+✅ **Banlco de Dados Idempotente**: Inserção à prova de falhas e duplicatas usando UPERTS no Supabase.
+✅ **Motor PASA NLP**: Lematização avançada com spaCy, preservação de negações e tratamento forense de emojis.
+✅ **Análise Temporal e Clustering**: Detecção de anomalias (picos de agressividade) e agrupamento semântico via KMeans.
+✅ **Dossiê PDF (UTF-8)**: Geração de relatórios nativos em português sem bugs de codificação.
 
 ---
 
 ## ⚖️ Governança e Ética
 
-1. Esta ferramenta opera em total conformidade com as diretrizes do **TSE 2026** sobre rotulagem de IA.
+1. Ferramenta desenvolvida em conformidade com as diretrizes do **TSE 2026** sobre rotulagem de IA.
 2. Focada em transparência democrática e proteção da integridade pública.
-3. A classificação automatizada utiliza blindagem semântica contra falsos positivos.
+3. A base de dados captura *comentários públicos* de figuras políticas monitoradas.
 
----
-
-> **Aviso**: O sistema Sentinela é uma plataforma independente de monitoramento e análise de dados para gestão estratégica de crises narrativas.
+> **Aviso Legal**: O sistema Sentinela é uma plataforma independente. Os dados processados são de domínio público digital.
