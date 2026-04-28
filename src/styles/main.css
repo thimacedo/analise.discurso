@@ -29,7 +29,7 @@ body {
     color: var(--text-main);
     font-family: 'Plus Jakarta Sans', sans-serif;
     display: flex;
-    overflow: hidden;
+    overflow-y: auto;
 }
 
 aside {
@@ -396,7 +396,7 @@ main {
     margin: 12px 0 10px;
     background: rgba(255, 255, 255, 0.08);
     border-radius: 999px;
-    overflow: hidden;
+    overflow-y: auto;
 }
 
 .progress-bar {
@@ -739,3 +739,6 @@ main {
         align-items: flex-start;
     }
 }
+
+main { overflow-y: auto !important; height: 100vh; }
+
