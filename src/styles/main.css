@@ -411,20 +411,33 @@ main {
     gap: 12px;
 }
 
-.insight-card,
-.alert-card,
-.network-card {
+.insight-card {
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 16px;
     background: rgba(255, 255, 255, 0.03);
     padding: 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-width: 0; /* Impede que o flex child exploda o container */
 }
 
 .insight-card strong {
     display: block;
     margin: 8px 0 6px;
-    font-size: 1.3rem;
+    font-size: 1.1rem; /* Reduzi levemente para caber melhor */
     font-weight: 800;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-main);
+}
+
+.insight-card p {
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--text-soft);
+    margin: 0;
 }
 
 .alert-card {

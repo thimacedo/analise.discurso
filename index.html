@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="/src/styles/main.css?v=17.0.0">
+    <link rel="stylesheet" href="/src/styles/main.css?v=17.2.0">
 </head>
 <body class="custom-scrollbar">
     <aside>
@@ -17,42 +17,29 @@
             </div>
             <div>
                 <h1>Sentinela</h1>
-                <span>Diamond v17.0</span>
+                <span>Diamond v17.2</span>
             </div>
         </div>
 
         <nav class="side-nav">
             <a href="#monitor" class="nav-item active" id="nav-monitor"><i data-lucide="layout-grid" class="w-4 h-4"></i> Panorama Global</a>
-            <a href="#networks" class="nav-item" id="nav-networks"><i data-lucide="share-2" class="w-4 h-4"></i> Inteligencia de Redes</a>
-            <a href="#dossie" class="nav-item" id="nav-dossie"><i data-lucide="fingerprint" class="w-4 h-4"></i> Dossie de Alvos</a>
-            <a href="#map" class="nav-item" id="nav-map"><i data-lucide="globe" class="w-4 h-4"></i> Geopolitica UF</a>
+            <a href="#networks" class="nav-item" id="nav-networks"><i data-lucide="share-2" class="w-4 h-4"></i> Inteligência de Redes</a>
+            <a href="#dossie" class="nav-item" id="nav-dossie"><i data-lucide="fingerprint" class="w-4 h-4"></i> Dossiê de Alvos</a>
+            <a href="#map" class="nav-item" id="nav-map"><i data-lucide="globe" class="w-4 h-4"></i> Geopolítica UF</a>
         </nav>
 
         <div class="sidebar-footer glass-card">
-            <span class="eyebrow">Triagem ativa</span>
-            <p>O feed pode ser refinado por alvo no ranking e por busca no dossie.</p>
-            <button type="button" class="ghost-btn" onclick="window.forceRefresh()">Atualizar agora</button>
+            <span id="status-sync" class="status-copy">Sincronizando...</span>
+            <button type="button" class="ghost-btn" style="width:100%; margin-top:8px" onclick="window.forceRefresh()">Sincronizar Banco</button>
         </div>
     </aside>
 
     <main class="custom-scrollbar">
-        <section class="status-bar glass-card">
-            <div>
-                <div class="status-bar__top">
-                    <span id="status-chip" class="status-chip is-warn">Sincronizando</span>
-                    <span id="status-sync" class="status-copy">Aguardando primeira leitura</span>
-                </div>
-                <h2 id="status-title">Panorama operacional do monitoramento</h2>
-                <p id="status-subtitle" class="status-copy">Atualizando sinais, alertas e agrupamentos.</p>
-            </div>
-            <div class="status-bar__actions">
-                <div id="active-filter"></div>
-                <button type="button" class="primary-btn" onclick="window.forceRefresh()">
-                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                    Reprocessar leitura
-                </button>
-            </div>
-        </section>
+        <!-- ÁREA DE FILTROS E STATUS RÁPIDO -->
+        <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
+             <div id="active-filter"></div>
+             <div class="status-chip is-ok" style="font-size:9px">Sinal Operacional</div>
+        </header>
 
         <header class="kpi-grid">
             <div class="glass-card metric-card">
@@ -68,7 +55,7 @@
                 <div id="kpi-total" class="kpi-value">---</div>
             </div>
             <div class="glass-card metric-card metric-card--success">
-                <span class="kpi-label">Resiliencia</span>
+                <span class="kpi-label">Resiliência</span>
                 <div id="kpi-res" class="kpi-value">---</div>
             </div>
         </header>
@@ -78,10 +65,10 @@
                 <div class="glass-card section-card">
                     <div class="section-heading">
                         <div>
-                            <span class="eyebrow">Priorizacao operacional</span>
-                            <h3>Monitor de hostilidade</h3>
+                            <span class="eyebrow">Análise de Risco</span>
+                            <h3>Prioridade de Triagem</h3>
                         </div>
-                        <span class="section-hint">Selecione um alvo para filtrar o feed ao lado.</span>
+                        <span class="section-hint">Selecione o alvo para isolar as evidências.</span>
                     </div>
                     <div id="chartMain" class="stack-list"></div>
                 </div>
@@ -89,20 +76,14 @@
                 <div class="monitor-side">
                     <div class="glass-card section-card">
                         <div class="section-heading">
-                            <div>
-                                <span class="eyebrow">Contexto rapido</span>
-                                <h3>Insights</h3>
-                            </div>
+                            <div><span class="eyebrow">Insights</span></div>
                         </div>
                         <div id="monitor-insights" class="insight-grid"></div>
                     </div>
 
                     <div class="glass-card section-card">
                         <div class="section-heading">
-                            <div>
-                                <span class="eyebrow">Tempo recente</span>
-                                <h3>Alertas recentes</h3>
-                            </div>
+                            <div><span class="eyebrow">Linha do Tempo</span><h3>Evidências de Ataque</h3></div>
                         </div>
                         <div id="feed-alertas" class="stack-list"></div>
                     </div>
@@ -127,7 +108,7 @@
             <div class="section-heading">
                 <div>
                     <span class="eyebrow">Base de consulta</span>
-                    <h3>Dossie forense de alvos</h3>
+                    <h3>Dossiê forense de alvos</h3>
                 </div>
                 <span id="dossie-result-count" class="section-hint">Carregando</span>
             </div>
@@ -135,14 +116,11 @@
             <div class="glass-card dossie-toolbar">
                 <div id="dossie-controls" class="group-controls">
                     <button class="group-btn active" data-grouping="agressoes" onclick="window.setDossieGrouping('agressoes')">Hostilidade</button>
-                    <button class="group-btn" data-grouping="estado" onclick="window.setDossieGrouping('estado')">Estado</button>
-                    <button class="group-btn" data-grouping="partido" onclick="window.setDossieGrouping('partido')">Partido</button>
-                    <button class="group-btn" data-grouping="sexo" onclick="window.setDossieGrouping('sexo')">Sexo</button>
-                    <button class="group-btn" data-grouping="ideologia" onclick="window.setDossieGrouping('ideologia')">Ideologia</button>
+                    <button class="group-btn" data-grouping="estado" onclick="window.setDossieGrouping('estado')">Geográfico (UF)</button>
                 </div>
                 <label class="search-shell" for="dossie-search">
                     <i data-lucide="search" class="w-4 h-4"></i>
-                    <input id="dossie-search" type="search" placeholder="Buscar alvo, partido, estado..." oninput="window.setDossieSearch(this.value)">
+                    <input id="dossie-search" type="search" placeholder="Filtrar por alvo ou estado..." oninput="window.setDossieSearch(this.value)">
                 </label>
             </div>
 
@@ -154,6 +132,6 @@
         </section>
     </main>
 
-    <script type="module" src="/src/core/app.js?v=17.0.0"></script>
+    <script type="module" src="/src/core/app.js?v=17.2.0"></script>
 </body>
 </html>

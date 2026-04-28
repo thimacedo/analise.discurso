@@ -1,21 +1,26 @@
 # ROADMAP - Sentinela Democrática
 
-## Status: v17.0 (Diamond Edition - UI/UX Overhaul)
-- **UI/UX**: Reestruturação completa da interface em index.html. 
-- **Design**: Novo sistema visual Diamond com modo Dark Nativo e densidade de informação otimizada.
-- **Frontend**: Migração para módulos ESM (src/core/app.js, src/core/ui.js, src/core/state.js).
-- **Segurança**: (PENDENTE) Remoção da service_role do frontend.
-- **Funcionalidades**:
-  - Painel de Status Operacional em tempo real.
-  - KPI Grid com indicadores de resiliência e amostragem.
-  - Monitor de Hostilidade com ranking de alvos priorizado.
-  - Integração com Inteligência de Redes para detecção de bots.
-  - Mapa Geopolítico por UF com filtragem dinâmica.
+## Status: v17.2.0 (Diamond Edition - Final UI Overhaul)
+- **UI/UX**: Reestruturação completa do dashboard com foco em triagem operacional.
+- **Alertas**: Implementação da trilha "Agressor ➔ Alvo" em tempo real.
+- **Métricas**: Novo cálculo de "Taxa de Hostilidade" baseado em amostragem real (PASA %).
+- **Mapa Geopolítico**: Finalizado com SVG de alta definição, heatmap dinâmico e Risk Pulse.
+- **Filtros**: Sistema de isolamento de evidências por alvo funcional via ranking lateral.
+- **Performance**: Otimização de renderização e remoção de restrições de rolagem (Overflow Fix).
+- **Segurança**: 
+  - Limpeza total do histórico Git (Secrets Removal).
+  - (PENDENTE) Migração da `service_role` para Proxy API.
+
+## Persistência Técnica (Contrato de Governança)
+- [x] TOTP em `addalvo.html`.
+- [x] Navegação SPA via hash (#).
+- [x] Nomenclatura PASA (Sentinela) padronizada.
+- [x] Fallback de mídia (onerror) garantido.
 
 ## Próximos Passos
-- [ ] Implementar Proxy API para remover segredos do frontend.
-- [ ] Corrigir ambiente Python local (AttributeError: 'Path').
-- [ ] Restaurar raspagem via Instagrapi com conta bot configurada.
+- [ ] Implementar Proxy API (Node/Python) para ocultar chaves Supabase.
+- [ ] Resolver conflito de Path no ambiente Python local.
+- [ ] Ativar Worker Intel para processamento de backlog via Qwen Local.
 
 ---
 *Atualizado em 28/04/2026*

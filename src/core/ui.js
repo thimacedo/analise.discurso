@@ -53,52 +53,28 @@ function renderKPIs() {
 }
 
 function renderTopbar() {
-    const titleEl = document.getElementById('status-title');
-    const subtitleEl = document.getElementById('status-subtitle');
-    const chipEl = document.getElementById('status-chip');
     const syncEl = document.getElementById('status-sync');
     const filterEl = document.getElementById('active-filter');
 
-    if (titleEl) {
-        titleEl.innerText = state.selectedAlvo
-            ? `Foco atual: @${state.selectedAlvo.username}`
-            : 'Panorama operacional do monitoramento';
-    }
-
-    if (subtitleEl) {
-        if (state.error) {
-            subtitleEl.innerText = state.error;
-        } else if (state.loading) {
-            subtitleEl.innerText = 'Atualizando sinais, alertas e agrupamentos.';
-        } else {
-            subtitleEl.innerText = `${state.alertas.length} alertas recentes prontos para triagem.`;
-        }
-    }
-
-    if (chipEl) {
-        chipEl.className = `status-chip ${state.error ? 'is-danger' : state.loading ? 'is-warn' : 'is-ok'}`;
-        chipEl.innerText = state.error ? 'Dados instaveis' : state.loading ? 'Sincronizando' : 'Sinal operacional';
-    }
-
     if (syncEl) {
         syncEl.innerText = state.lastSyncAt
-            ? `Ultima leitura: ${new Date(state.lastSyncAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
-            : 'Aguardando primeira leitura';
+            ? `Sincronizado: ${new Date(state.lastSyncAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
+            : 'Aguardando leitura...';
     }
 
     if (filterEl) {
         if (state.selectedAlvo) {
             filterEl.innerHTML = `
-                <span class="filter-pill">
+                <div class="filter-pill" style="background: rgba(37, 99, 235, 0.2); padding: 4px 12px; border-radius: 20px; font-size: 11px; display: flex; align-items: center; gap: 8px; border: 1px solid rgba(37, 99, 235, 0.4);">
                     <i data-lucide="crosshair" class="w-3 h-3"></i>
-                    @${state.selectedAlvo.username}
-                    <button type="button" onclick="window.setFiltroAlvo(null)" aria-label="Limpar foco">
+                    Foco: @${state.selectedAlvo.username}
+                    <button type="button" onclick="window.setFiltroAlvo(null)" style="background: none; border: 0; color: white; cursor: pointer;">
                         <i data-lucide="x" class="w-3 h-3"></i>
                     </button>
-                </span>
+                </div>
             `;
         } else {
-            filterEl.innerHTML = '<span class="filter-hint">Sem alvo travado. A selecao no ranking refina o feed.</span>';
+            filterEl.innerHTML = '';
         }
     }
 }
@@ -108,101 +84,39 @@ function renderAlertasFeed() {
     if (!container) return;
 
     if (state.loading) {
-        container.innerHTML = createEmptyState('loader', 'Atualizando alertas', 'Os eventos mais recentes vao aparecer aqui assim que a sincronizacao terminar.');
+        container.innerHTML = createEmptyState('loader', 'Atualizando alertas', 'Sincronizando com o banco...');
         return;
     }
 
     const list = state.selectedAlvo
-        ? state.alertas.filter((alerta) => String(alerta.candidato_id) === String(state.selectedAlvo.id))
+        ? state.alertas.filter((alerta) => String(alerta.candidato_id) === String(state.selectedAlvo.id) || String(alerta.candidatos?.username) === String(state.selectedAlvo.username))
         : state.alertas;
 
     if (!list.length) {
-        container.innerHTML = createEmptyState('shield-check', 'Nenhum alerta ativo', 'Nao ha sinais criticos para o filtro atual.');
+        container.innerHTML = createEmptyState('shield-check', 'Nenhum alerta ativo', 'Sem sinais críticos para este filtro.');
         return;
     }
 
     container.innerHTML = list.map((alerta) => {
-        const severity = Number(alerta.confianca || alerta.confianca_ia || 0.85);
-        const createdAt = alerta.data_coleta || alerta.criado_em;
+        const severity = Number(alerta.confianca || 0.85);
+        const agressor = alerta.autor_username || 'anônimo';
         return `
             <article class="alert-card">
                 <div class="alert-card__header">
                     <div>
-                        <span class="eyebrow">Ataque detectado</span>
-                        <h4>@${alerta.candidatos?.username || 'monitorado'}</h4>
+                        <span class="eyebrow" style="color:var(--danger)">Agressor: @${agressor}</span>
+                        <h4>➔ contra @${alerta.candidatos?.username || 'alvo'}</h4>
                     </div>
-                    <span class="severity-pill">${Math.round(severity * 100)}% confianca</span>
+                    <span class="severity-pill">${Math.round(severity * 100)}% precisão</span>
                 </div>
-                <p>${alerta.texto_bruto || alerta.texto || 'Sem texto disponivel.'}</p>
+                <p>"${alerta.texto_bruto || 'Sem conteúdo'}"</p>
                 <div class="alert-card__meta">
-                    <span>${formatCategory(alerta.categoria_ia || 'odio')}</span>
-                    <span>${createdAt ? new Date(createdAt).toLocaleString('pt-BR') : 'Agora'}</span>
+                    <span>${formatCategory(alerta.categoria_ia || 'ódio')}</span>
+                    <span>${new Date(alerta.data_coleta || Date.now()).toLocaleString('pt-BR')}</span>
                 </div>
             </article>
         `;
     }).join('');
-}
-
-function renderNetworkIntelligence() {
-    const container = document.getElementById('network-analysis-grid');
-    const summary = document.getElementById('network-summary');
-    if (!container) return;
-
-    if (state.loading) {
-        container.innerHTML = createEmptyState('loader', 'Calculando rede', 'Agrupando autores e reincidencias para medir coordenacao.');
-        if (summary) summary.innerText = 'Carregando perfis e conexoes.';
-        return;
-    }
-
-    const networkMap = {};
-    state.alertas.forEach((alerta) => {
-        const user = alerta.autor_username || 'anonimo';
-        if (!networkMap[user]) networkMap[user] = { volume: 0, hate: 0, targets: new Set() };
-        networkMap[user].volume += 1;
-        if (alerta.is_hate) networkMap[user].hate += 1;
-        networkMap[user].targets.add(alerta.candidato_id);
-    });
-
-    const suspectList = Object.entries(networkMap)
-        .map(([username, data]) => ({
-            username,
-            volume: data.volume,
-            hate: data.hate,
-            targets: data.targets.size,
-            risk: Math.round((data.hate / data.volume) * 100)
-        }))
-        .sort((a, b) => b.hate - a.hate);
-
-    if (summary) {
-        summary.innerText = suspectList.length
-            ? `${suspectList.length} perfis com recorrencia suficiente para analise comparativa.`
-            : 'Sem volume minimo para inferir coordenacao.';
-    }
-
-    if (!suspectList.length) {
-        container.innerHTML = createEmptyState('share-2', 'Rede ainda silenciosa', 'A inteligencia de redes precisa de reincidencia para destacar suspeitos.');
-        return;
-    }
-
-    container.innerHTML = suspectList.map((suspeito) => `
-        <article class="network-card ${suspeito.risk > 50 ? 'is-critical' : ''}">
-            <div class="network-card__header">
-                <div class="network-avatar">
-                    <i data-lucide="bot" class="w-4 h-4"></i>
-                </div>
-                <div>
-                    <h4>@${suspeito.username}</h4>
-                    <span>${suspeito.targets} alvos impactados</span>
-                </div>
-                <strong>${suspeito.risk}%</strong>
-            </div>
-            <div class="network-stats">
-                <div><span>Volume</span><strong>${suspeito.volume}</strong></div>
-                <div><span>Ataques</span><strong>${suspeito.hate}</strong></div>
-                <div><span>Risco</span><strong>${suspeito.risk > 50 ? 'Alto' : 'Moderado'}</strong></div>
-            </div>
-        </article>
-    `).join('');
 }
 
 function renderMonitorImpacto() {
@@ -211,8 +125,7 @@ function renderMonitorImpacto() {
     if (!container) return;
 
     if (state.loading) {
-        container.innerHTML = createEmptyState('loader', 'Compilando alvos', 'Montando o ranking proporcional de hostilidade por monitorado.');
-        if (insights) insights.innerHTML = '';
+        container.innerHTML = createEmptyState('loader', 'Compilando...', '');
         return;
     }
 
@@ -225,7 +138,7 @@ function renderMonitorImpacto() {
                 id,
                 username: alerta.candidatos?.username || candidateInfo?.username || 'desconhecido',
                 count: 0,
-                total: candidateInfo?.comentarios_totais_count || 1
+                total_comments: candidateInfo?.comentarios_totais_count || 100 
             };
         }
         rankingMap[id].count += 1;
@@ -233,15 +146,9 @@ function renderMonitorImpacto() {
 
     const hotList = Object.values(rankingMap).sort((a, b) => b.count - a.count);
 
-    if (!hotList.length) {
-        container.innerHTML = createEmptyState('bar-chart-3', 'Sem ranking calculado', 'Ainda nao ha alertas suficientes para priorizacao por alvo.');
-        if (insights) insights.innerHTML = '';
-        return;
-    }
-
     container.innerHTML = hotList.map((alvo, index) => {
-        const perc = Math.min((alvo.count / (alvo.total || 1)) * 100, 100);
-        const isActive = state.selectedAlvo && String(state.selectedAlvo.id) === String(alvo.id);
+        const ratio = ((alvo.count / alvo.total_comments) * 100).toFixed(1);
+        const isActive = state.selectedAlvo && (String(state.selectedAlvo.id) === String(alvo.id) || String(state.selectedAlvo.username) === String(alvo.username));
         return `
             <button type="button" onclick="window.setFiltroAlvo('${alvo.id}')" class="monitor-row ${isActive ? 'is-active' : ''}">
                 <div class="monitor-row__title">
@@ -249,14 +156,14 @@ function renderMonitorImpacto() {
                         <span class="eyebrow">Prioridade ${index + 1}</span>
                         <strong>@${alvo.username}</strong>
                     </div>
-                    <span>${alvo.count} alertas</span>
+                    <span>${alvo.count} ataques</span>
                 </div>
                 <div class="progress-track">
-                    <div class="progress-bar" style="width:${perc.toFixed(1)}%"></div>
+                    <div class="progress-bar" style="width:${Math.min(ratio * 5, 100)}%"></div>
                 </div>
                 <div class="monitor-row__meta">
-                    <span>Pressao proporcional</span>
-                    <span>${perc.toFixed(1)}%</span>
+                    <span>Taxa de Hostilidade</span>
+                    <span>${ratio}% da amostragem</span>
                 </div>
             </button>
         `;
@@ -264,19 +171,17 @@ function renderMonitorImpacto() {
 
     if (insights) {
         const top = hotList[0];
-        const coverage = state.stats.total > 0
-            ? ((state.stats.hate / state.stats.total) * 100).toFixed(2)
-            : '0.00';
+        const coverage = state.stats.total > 0 ? ((state.stats.hate / state.stats.total) * 100).toFixed(2) : '0.00';
         insights.innerHTML = `
             <article class="insight-card">
-                <span class="eyebrow">Maior pressao</span>
-                <strong>@${top.username}</strong>
-                <p>${top.count} ocorrencias recentes capturadas no feed.</p>
+                <span class="eyebrow">Alvo mais visado</span>
+                <strong>@${top?.username || '---'}</strong>
+                <p>${top?.count || 0} ataques capturados.</p>
             </article>
             <article class="insight-card">
-                <span class="eyebrow">Cobertura hostil</span>
+                <span class="eyebrow">Índice Global</span>
                 <strong>${coverage}%</strong>
-                <p>Participacao de alertas sobre o universo coletado.</p>
+                <p>Volume de ódio no universo total.</p>
             </article>
         `;
     }
@@ -292,58 +197,44 @@ function renderDossieGrid() {
     });
 
     if (state.loading) {
-        container.innerHTML = createEmptyState('loader', 'Organizando dossies', 'Aplicando agrupamentos, filtros e score de hostilidade.');
-        if (resultCount) resultCount.innerText = 'Carregando';
+        container.innerHTML = createEmptyState('loader', 'Organizando dossies', 'Aplicando agrupamentos...');
         return;
     }
 
     let data = [...state.data];
     if (state.dossieSearch) {
         data = data.filter((item) => {
-            const haystack = [
-                item.username,
-                item.nome_completo,
-                item.estado,
-                item.partido,
-                item.ideologia,
-                item.sexo
-            ].join(' ').toLowerCase();
+            const haystack = [item.username, item.nome_completo, item.estado].join(' ').toLowerCase();
             return haystack.includes(state.dossieSearch);
         });
     }
 
-    if (resultCount) {
-        resultCount.innerText = `${data.length} registros visiveis`;
-    }
-
-    if (!data.length) {
-        container.innerHTML = createEmptyState('search-x', 'Nenhum alvo encontrado', 'A busca ou o agrupamento atual nao retornou resultados.');
-        return;
-    }
+    if (resultCount) resultCount.innerText = `${data.length} registros visíveis`;
 
     const groups = {};
     if (state.dossieGrouping === 'agressoes') {
-        const withHate = data.filter((item) => (item.comentarios_odio_count || 0) > 0)
-            .sort((a, b) => (b.comentarios_odio_count || 0) - (a.comentarios_odio_count || 0));
+        const withHate = data.filter((item) => (item.comentarios_odio_count || 0) > 0).sort((a, b) => (b.comentarios_odio_count || 0) - (a.comentarios_odio_count || 0));
         const withoutHate = data.filter((item) => (item.comentarios_odio_count || 0) === 0);
-        groups['Sob ataque ativo'] = withHate;
-        groups['Ambiente estavel'] = withoutHate;
+        groups['Sinais Críticos de Ódio'] = withHate;
+        groups['Zonas de Estabilidade'] = withoutHate;
     } else {
         data.forEach((item) => {
-            const key = item[state.dossieGrouping] || 'Nao informado';
+            const key = item.estado || 'Território Nacional';
             if (!groups[key]) groups[key] = [];
             groups[key].push(item);
         });
     }
 
-    container.innerHTML = Object.entries(groups).map(([name, members]) => `
+    container.innerHTML = Object.entries(groups).filter(([_, members]) => members.length > 0).map(([name, members]) => `
         <section class="dossie-group">
-            <header class="dossie-group__header">
-                <div>
-                    <span class="eyebrow">Agrupamento atual</span>
+            <header class="dossie-group__header" style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px; margin-bottom: 24px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span class="status-chip ${name.includes('Críticos') ? 'is-danger' : 'is-ok'}" style="transform: scale(0.8);">
+                        ${name.includes('Críticos') ? 'Risco' : 'Seguro'}
+                    </span>
                     <h4>${name}</h4>
                 </div>
-                <strong>${members.length}</strong>
+                <strong style="color: var(--text-muted); font-size: 0.75rem;">${members.length} ALVOS</strong>
             </header>
             <div class="dossie-card-grid">
                 ${members.map((item) => {
@@ -353,17 +244,15 @@ function renderDossieGrid() {
                     return `
                         <button type="button" onclick="window.inspectTarget('${item.id}')" class="dossie-card ${hate > 0 ? 'is-risk' : ''}">
                             <div class="dossie-card__header">
-                                <div class="network-avatar">
-                                    <i data-lucide="${hate > 0 ? 'shield-alert' : 'shield'}" class="w-4 h-4"></i>
-                                </div>
-                                <span>${item.estado || 'BR'}</span>
+                                <span class="eyebrow" style="color: ${hate > 0 ? 'var(--danger)' : 'var(--accent)'}">${item.estado || 'BR'}</span>
+                                <i data-lucide="${hate > 0 ? 'zap' : 'shield'}" class="w-3 h-3"></i>
                             </div>
-                            <h5>@${item.username}</h5>
-                            <p>${item.nome_completo || item.cargo || 'Monitorado sem nome expandido'}</p>
-                            <div class="dossie-card__stats">
-                                <div><span>Alertas</span><strong>${hate}</strong></div>
-                                <div><span>Amostra</span><strong>${total}</strong></div>
-                                <div><span>Indice</span><strong>${ratio}%</strong></div>
+                            <h5> @${item.username}</h5>
+                            <p style="font-size: 0.8rem; height: 32px; overflow: hidden; opacity: 0.7;">${item.nome_completo || 'Monitorado Ativo'}</p>
+                            <div class="dossie-card__stats" style="background: rgba(0,0,0,0.2); border-radius: 12px; padding: 8px;">
+                                <div><span style="font-size: 0.6rem;">Alertas</span><strong style="color: ${hate > 0 ? 'var(--danger)' : 'inherit'}">${hate}</strong></div>
+                                <div><span style="font-size: 0.6rem;">Amostra</span><strong>${total}</strong></div>
+                                <div><span style="font-size: 0.6rem;">PASA %</span><strong>${ratio}</strong></div>
                             </div>
                         </button>
                     `;
@@ -378,7 +267,7 @@ function renderGeopolitica() {
     if (!container) return;
 
     if (state.loading) {
-        container.innerHTML = createEmptyState('loader', 'Compilando mapa', 'Consolidando alvos e alertas por unidade federativa.');
+        container.innerHTML = createEmptyState('loader', 'Compilando mapa', 'Consolidando dados territoriais...');
         return;
     }
 
@@ -400,7 +289,7 @@ function renderGeopolitica() {
                     <span class="eyebrow">Vigilancia territorial</span>
                     <h3>Mapa federativo</h3>
                 </div>
-                <span class="section-hint">Clique em um estado para atualizar o painel lateral.</span>
+                <span class="section-hint">Clique em um estado para detalhamento.</span>
             </div>
             <div id="svg-map-br" class="map-stage"></div>
         </section>
@@ -418,24 +307,18 @@ function renderGeopolitica() {
             </div>
             <div class="hotspot-list">
                 <span class="eyebrow">Ufs mais tensionadas</span>
-                ${sortedUFs.length ? sortedUFs.map(([uf, info], index) => `
+                ${sortedUFs.map(([uf, info], index) => `
                     <button type="button" class="hotspot-row ${state.selectedUF === uf ? 'is-active' : ''}" onclick="window.selectUF('${uf}')">
                         <span>#${index + 1} ${uf}</span>
                         <strong>${info.odio}</strong>
                     </button>
-                `).join('') : '<p class="muted-copy">Sem alertas territoriais suficientes.</p>'}
+                `).join('')}
             </div>
         </aside>
     `;
 
     renderBrazilMap('svg-map-br', ufStats, (name, data, ufId) => {
         state.selectedUF = ufId;
-        const nameEl = document.getElementById('st-name');
-        const targetsEl = document.getElementById('st-targets');
-        const hateEl = document.getElementById('st-hate');
-        if (nameEl) nameEl.innerText = name;
-        if (targetsEl) targetsEl.innerText = data.alvos || 0;
-        if (hateEl) hateEl.innerText = (data.odio || 0).toLocaleString();
         renderAll();
     });
 }
@@ -458,21 +341,26 @@ window.inspectTarget = (id) => {
     const alvo = state.data.find((item) => String(item.id) === String(id));
     if (alvo) {
         state.selectedAlvo = alvo;
-        setViewState('monitor');
+        state.view = 'monitor';
+        window.location.hash = 'monitor';
+        renderAll();
     }
 };
 
 window.setDossieGrouping = setDossieGrouping;
 window.setDossieSearch = setDossieSearch;
+
 window.setFiltroAlvo = (id) => {
-    state.selectedAlvo = id ? state.data.find((item) => String(item.id) === String(id)) : null;
+    state.selectedAlvo = id ? state.data.find((item) => String(item.id) === String(id) || String(item.username) === String(id)) : null;
     renderAll();
 };
+
 window.selectUF = (uf) => {
     state.selectedUF = uf;
     window.__selectedUF = uf;
     renderAll();
 };
+
 window.clearUFSelection = () => {
     state.selectedUF = null;
     window.__selectedUF = null;
