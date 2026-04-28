@@ -1,0 +1,34 @@
+[
+  {
+    "url": "/",
+    "status": "OK",
+    "code": 200,
+    "ui": true
+  },
+  {
+    "url": "/admin",
+    "status": "OK",
+    "code": 200,
+    "ui": true
+  },
+  {
+    "url": "/docs/metodologia",
+    "status": "BROKEN",
+    "code": 404,
+    "ui": false
+  },
+  {
+    "url": "/docs/analise-violencia",
+    "status": "BROKEN",
+    "code": 404,
+    "ui": false
+  },
+  {
+    "url": "#map",
+    "status": "OK"
+  },
+  {
+    "url": "#dossie",
+    "status": "OK"
+  }
+]

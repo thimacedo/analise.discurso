@@ -1,0 +1,41 @@
+# Sentinela .gitignore v15.16.1
+
+# Credenciais e Ambiente
+.env
+.env.*.local
+session.json
+
+# Vercel e Build
+.vercel
+/public
+/dist
+/.next
+node_modules/
+
+# Python e Cache
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Banco de Dados e Memória Local
+*.db
+execucao_memoria.json
+perfis_monitorados.json
+
+# Arquivos Temporários de IA e Debug
+PREVIEW_*.html
+audit_*.py
+check_*.py
+verify_*.py
+run_*.py
+*.log
+*.txt
+
+# Ativos de Pesquisa (PDFs grandes)
+/bases_pdf/
+
+# Ignorar relatórios de auditoria na raiz
+/deep_audit_report.json
+/final_prod_test_report.json

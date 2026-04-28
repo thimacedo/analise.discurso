@@ -1,0 +1,41 @@
+name: Atualizar Dados ForenseNet
+
+on:
+  schedule:
+    - cron: '0 */12 * * *'   # Roda a cada 12 horas (menos agressivo)
+  workflow_dispatch:         # Permite rodar manualmente pelo GitHub
+
+jobs:
+  coleta-e-atualizacao:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Instalar dependências
+        run: |
+          pip install -r requirements-full.txt
+          python -m spacy download pt_core_news_sm
+
+      - name: Executar pipeline (modo limitado)
+        env:
+          IG_USERNAME: ${{ secrets.IG_USERNAME }}
+          IG_PASSWORD: ${{ secrets.IG_PASSWORD }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          COLETA_LIMITE_PERFIS: 5
+          COLETA_POSTS_POR_PERFIL: 2
+        run: python orquestrador.py
+
+      - name: Commit e push dos resultados
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add api/dados_latest.csv nuvem_*.png
+          git commit -m "auto: atualização de dados [skip ci]" || echo "Sem alterações"
+          git push

@@ -1,0 +1,16 @@
+services:
+  - type: cron
+    name: instagram-scraper
+    runtime: python
+    schedule: "0 8,14,20 * * *"
+    buildCommand: pip install -r requirements.txt
+    startCommand: python raspar.py
+    envVars:
+      - key: monitoramento.discurso
+        sync: false
+      - key: ,F.C6wK89/S)@4V
+        sync: false
+      - key: https://vhamejkldzxbeibqeqpk.supabase.co
+        sync: false
+      - key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoYW1lamtsZHp4YmVpYnFlcXBrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjQ4ODEyNSwiZXhwIjoyMDkyMDY0MTI1fQ.GfvAI7rV8isgdhVeJp4mOUscWpdOqOuBoURGm82VdtY
+        sync: false

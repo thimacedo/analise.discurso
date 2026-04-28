@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENTINELA | Diamond Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="/src/styles/main.css?v=17.0.0">
+</head>
+<body class="custom-scrollbar">
+    <aside>
+        <div class="brand-block">
+            <div class="brand-mark">
+                <img src="/logo_transparente.png" alt="Logo Sentinela">
+            </div>
+            <div>
+                <h1>Sentinela</h1>
+                <span>Diamond v17.0</span>
+            </div>
+        </div>
+
+        <nav class="side-nav">
+            <a href="#monitor" class="nav-item active" id="nav-monitor"><i data-lucide="layout-grid" class="w-4 h-4"></i> Panorama Global</a>
+            <a href="#networks" class="nav-item" id="nav-networks"><i data-lucide="share-2" class="w-4 h-4"></i> Inteligencia de Redes</a>
+            <a href="#dossie" class="nav-item" id="nav-dossie"><i data-lucide="fingerprint" class="w-4 h-4"></i> Dossie de Alvos</a>
+            <a href="#map" class="nav-item" id="nav-map"><i data-lucide="globe" class="w-4 h-4"></i> Geopolitica UF</a>
+        </nav>
+
+        <div class="sidebar-footer glass-card">
+            <span class="eyebrow">Triagem ativa</span>
+            <p>O feed pode ser refinado por alvo no ranking e por busca no dossie.</p>
+            <button type="button" class="ghost-btn" onclick="window.forceRefresh()">Atualizar agora</button>
+        </div>
+    </aside>
+
+    <main class="custom-scrollbar">
+        <section class="status-bar glass-card">
+            <div>
+                <div class="status-bar__top">
+                    <span id="status-chip" class="status-chip is-warn">Sincronizando</span>
+                    <span id="status-sync" class="status-copy">Aguardando primeira leitura</span>
+                </div>
+                <h2 id="status-title">Panorama operacional do monitoramento</h2>
+                <p id="status-subtitle" class="status-copy">Atualizando sinais, alertas e agrupamentos.</p>
+            </div>
+            <div class="status-bar__actions">
+                <div id="active-filter"></div>
+                <button type="button" class="primary-btn" onclick="window.forceRefresh()">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                    Reprocessar leitura
+                </button>
+            </div>
+        </section>
+
+        <header class="kpi-grid">
+            <div class="glass-card metric-card">
+                <span class="kpi-label">Monitorados</span>
+                <div id="kpi-monitorados" class="kpi-value">---</div>
+            </div>
+            <div class="glass-card metric-card metric-card--danger">
+                <span class="kpi-label">Alertas PASA</span>
+                <div id="kpi-hate" class="kpi-value">---</div>
+            </div>
+            <div class="glass-card metric-card">
+                <span class="kpi-label">Amostragem</span>
+                <div id="kpi-total" class="kpi-value">---</div>
+            </div>
+            <div class="glass-card metric-card metric-card--success">
+                <span class="kpi-label">Resiliencia</span>
+                <div id="kpi-res" class="kpi-value">---</div>
+            </div>
+        </header>
+
+        <section id="view-monitor" class="view-content" style="display: flex;">
+            <div class="monitor-grid">
+                <div class="glass-card section-card">
+                    <div class="section-heading">
+                        <div>
+                            <span class="eyebrow">Priorizacao operacional</span>
+                            <h3>Monitor de hostilidade</h3>
+                        </div>
+                        <span class="section-hint">Selecione um alvo para filtrar o feed ao lado.</span>
+                    </div>
+                    <div id="chartMain" class="stack-list"></div>
+                </div>
+
+                <div class="monitor-side">
+                    <div class="glass-card section-card">
+                        <div class="section-heading">
+                            <div>
+                                <span class="eyebrow">Contexto rapido</span>
+                                <h3>Insights</h3>
+                            </div>
+                        </div>
+                        <div id="monitor-insights" class="insight-grid"></div>
+                    </div>
+
+                    <div class="glass-card section-card">
+                        <div class="section-heading">
+                            <div>
+                                <span class="eyebrow">Tempo recente</span>
+                                <h3>Alertas recentes</h3>
+                            </div>
+                        </div>
+                        <div id="feed-alertas" class="stack-list"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-networks" class="view-content">
+            <div class="glass-card section-card">
+                <div class="section-heading">
+                    <div>
+                        <span class="eyebrow">Cruzamento de sinais</span>
+                        <h3>Redes coordenadas</h3>
+                    </div>
+                    <span id="network-summary" class="section-hint">Aguardando primeira consolidacao.</span>
+                </div>
+                <div id="network-analysis-grid" class="network-grid"></div>
+            </div>
+        </section>
+
+        <section id="view-dossie" class="view-content">
+            <div class="section-heading">
+                <div>
+                    <span class="eyebrow">Base de consulta</span>
+                    <h3>Dossie forense de alvos</h3>
+                </div>
+                <span id="dossie-result-count" class="section-hint">Carregando</span>
+            </div>
+
+            <div class="glass-card dossie-toolbar">
+                <div id="dossie-controls" class="group-controls">
+                    <button class="group-btn active" data-grouping="agressoes" onclick="window.setDossieGrouping('agressoes')">Hostilidade</button>
+                    <button class="group-btn" data-grouping="estado" onclick="window.setDossieGrouping('estado')">Estado</button>
+                    <button class="group-btn" data-grouping="partido" onclick="window.setDossieGrouping('partido')">Partido</button>
+                    <button class="group-btn" data-grouping="sexo" onclick="window.setDossieGrouping('sexo')">Sexo</button>
+                    <button class="group-btn" data-grouping="ideologia" onclick="window.setDossieGrouping('ideologia')">Ideologia</button>
+                </div>
+                <label class="search-shell" for="dossie-search">
+                    <i data-lucide="search" class="w-4 h-4"></i>
+                    <input id="dossie-search" type="search" placeholder="Buscar alvo, partido, estado..." oninput="window.setDossieSearch(this.value)">
+                </label>
+            </div>
+
+            <div id="dossie-grid-container" class="dossie-results"></div>
+        </section>
+
+        <section id="view-map" class="view-content">
+            <div id="map-container" class="map-grid"></div>
+        </section>
+    </main>
+
+    <script type="module" src="/src/core/app.js?v=17.0.0"></script>
+</body>
+</html>

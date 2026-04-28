@@ -1,0 +1,2786 @@
+{
+  "candidatos": [
+    {
+      "username": "caduxavier",
+      "nome_completo": "Cadu de Lula",
+      "bio": "Pré-candidato ao Governo do RN pelo PT \n🌟 Cadu de Lula\n🖋️ Ex-secretário da Fazenda do RN\n❤️ Pai\n👷🏻‍♂️ Mestre em Engenharia de Produção",
+      "seguidores": 42543,
+      "atualizado_em": "2026-04-25T14:35:43Z",
+      "status_monitoramento": "ATIVO"
+    },
+    {
+      "username": "ari.do.ovo",
+      "nome_completo": "Ari do Ovo",
+      "bio": "📚 Técnico em Iluminação\n💙 Apaixonado por Parnamirim - RN\n📍 Empresário do Ramo de Ovos\n🏡 Pai 🧑‍🧑‍🧒‍🧒",
+      "seguidores": 5293,
+      "atualizado_em": "2026-04-25T14:36:30Z",
+      "status_monitoramento": "ATIVO"
+    },
+    {
+      "username": "hilton_erika",
+      "nome_completo": "Erika Hilton",
+      "bio": "Deputada do PSOL por São Paulo ☀️. \nPremiada como a Melhor Deputada Federal do Brasil em 2024 e 2025.",
+      "seguidores": 4473298,
+      "atualizado_em": "2026-04-25T14:37:07Z",
+      "status_monitoramento": "ATIVO"
+    },
+    {
+      "username": "gabrielcesarrn",
+      "nome_completo": "Gabriel César",
+      "bio": "I Vereador de Parnamirim/RN\nl Líder do PL na Câmara 🇧🇷\nI Cristão Evangélico\n| Casado com Meika, Pai de Catarina e Estela",
+      "seguidores": 37754,
+      "atualizado_em": "2026-04-25T14:37:43Z",
+      "status_monitoramento": "ATIVO"
+    },
+    {
+      "username": "rodrigocruz_rn",
+      "nome_completo": "Vereador Rodrigo Cruz",
+      "bio": "Cristão\nVereador de Parnamirim/RN, a cidade Trampolim da Vitória. Advogado, Pós-Graduado em Licitações e Contratos Administrativos.\nFilipenses 4.13",
+      "seguidores": 5176,
+      "atualizado_em": "2026-04-25T14:38:23Z",
+      "status_monitoramento": "ATIVO"
+    }
+  ],
+  "comentarios": [
+    {
+      "id_externo": "18135886870500575",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "marleidecunharn",
+      "texto_bruto": "Nosso governador! Para seguir avançando 👏🏽👏🏽",
+      "data_publicacao": "2026-01-31T00:55:05Z",
+      "likes": 24,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17862222123586882",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "gugussb",
+      "texto_bruto": "Verdade Cadu, me lembro bem daquele desastre 👏👏👏👏👏",
+      "data_publicacao": "2026-01-30T21:12:09Z",
+      "likes": 26,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18326059012218110",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "victo_xavier_equipelife4",
+      "texto_bruto": "Trabalho bem planejado e organizado. Parabéns pela competência 👏🏼👏🏼👏🏼",
+      "data_publicacao": "2026-01-31T14:56:40Z",
+      "likes": 11,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18033621122570106",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "janemarialins",
+      "texto_bruto": "Boa lembrança",
+      "data_publicacao": "2026-01-30T23:34:12Z",
+      "likes": 8,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18063439442288142",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "lucasprefeito13",
+      "texto_bruto": "👏👏👏👏👏👏👏👏👏👏👏👏",
+      "data_publicacao": "2026-01-30T21:38:15Z",
+      "likes": 11,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17992203065916101",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "eunice.vitall",
+      "texto_bruto": "Retrospectiva excelente!! Sigamos, Cadu! O RN está no rumo certo com esse timaço 🔥❤️",
+      "data_publicacao": "2026-01-30T21:23:37Z",
+      "likes": 7,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17847427980643358",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "ranvarliel",
+      "texto_bruto": "Como diz nossa futura SENADORA: SIGAMOS!",
+      "data_publicacao": "2026-01-30T22:37:43Z",
+      "likes": 18,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17985453317946561",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "cm.transparente",
+      "texto_bruto": "É preciso deixar isso bem rememorado nas pessoas. Nosso RN é outro, muito melhor.  Parabéns pelo trabalho. Outubro eu agradeço!😍",
+      "data_publicacao": "2026-02-02T16:38:27Z",
+      "likes": 6,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17921326296085364",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "hellentattyanne",
+      "texto_bruto": "Meu time ❤️",
+      "data_publicacao": "2026-02-02T13:31:06Z",
+      "likes": 8,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18092541898974330",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "ro.dri.goj",
+      "texto_bruto": "Fátima salvou o RN, isso precisa ser reconhecido. Cadu vai dar continuidade 🙌",
+      "data_publicacao": "2026-01-30T22:05:36Z",
+      "likes": 67,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18088111505144997",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "joseliapeixotos",
+      "texto_bruto": "Vc é o cara ❤️🙌",
+      "data_publicacao": "2026-02-06T01:26:24Z",
+      "likes": 3,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17989892849762967",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "raquelraizaraiza",
+      "texto_bruto": "Meu governador ❤️",
+      "data_publicacao": "2026-02-04T01:52:43Z",
+      "likes": 5,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17965033761010428",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "jplyra_",
+      "texto_bruto": "Gosto de você, mas você é fraco...",
+      "data_publicacao": "2026-01-30T21:11:43Z",
+      "likes": 6,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17915936901279431",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "crispinheiro77",
+      "texto_bruto": "Meu futuro governador ❤️👏",
+      "data_publicacao": "2026-02-05T22:46:53Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17894227107400549",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "nelsinhofilhooficial",
+      "texto_bruto": "Vamos juntos",
+      "data_publicacao": "2026-01-31T14:18:10Z",
+      "likes": 4,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18065547866261024",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "joaogomes15oficial_",
+      "texto_bruto": "👏👏👏👏",
+      "data_publicacao": "2026-01-30T22:50:15Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18304638640282083",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "kathuiscya_roselly",
+      "texto_bruto": "Tmj companheiro ❤️",
+      "data_publicacao": "2026-01-30T22:20:43Z",
+      "likes": 6,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17934325878159339",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "fortunatoigoor",
+      "texto_bruto": "Bora Cadu!",
+      "data_publicacao": "2026-02-04T14:40:01Z",
+      "likes": 7,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17971052420844810",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "naldinhodopt",
+      "texto_bruto": "Estamos juntos.",
+      "data_publicacao": "2026-02-04T20:34:04Z",
+      "likes": 3,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18144491740413267",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "juliana.araujof",
+      "texto_bruto": "Que time👏👏👏👏❤️❤️❤️",
+      "data_publicacao": "2026-01-30T21:26:03Z",
+      "likes": 3,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18100200914509074",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "gracinha.bato",
+      "texto_bruto": "2026, Lula, Fátima, Cadú, Natália pelo Brasil e pelo RN.",
+      "data_publicacao": "2026-01-30T21:20:24Z",
+      "likes": 36,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18551449399022080",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "joselluisjl",
+      "texto_bruto": "👏👏👏BRAVO 👏👏👏",
+      "data_publicacao": "2026-01-30T21:56:06Z",
+      "likes": 3,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18416911981138738",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "ddilsonmorais",
+      "texto_bruto": "Tô com vc meu querido",
+      "data_publicacao": "2026-02-01T00:42:25Z",
+      "likes": 2,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17926588458199776",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "anygandra",
+      "texto_bruto": "🔥🔥🔥",
+      "data_publicacao": "2026-01-30T21:08:49Z",
+      "likes": 3,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17875498755495662",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "m_bernadino1",
+      "texto_bruto": "Fátima salvou o RN❤️ voto em Lula,, Fátima e Cadu",
+      "data_publicacao": "2026-01-30T23:01:04Z",
+      "likes": 29,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18071205812632372",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "djalma_c_amorim",
+      "texto_bruto": "Verdade 👏👏👏",
+      "data_publicacao": "2026-02-16T12:15:43Z",
+      "likes": 2,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18093080978489821",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "edson.carvalho.rn",
+      "texto_bruto": "Estamos juntos, @caduxavier!",
+      "data_publicacao": "2026-01-30T21:11:48Z",
+      "likes": 12,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18083617007232180",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "silvaneto.27",
+      "texto_bruto": "Pra cima meu governador.",
+      "data_publicacao": "2026-01-30T21:21:20Z",
+      "likes": 7,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18145695937461862",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "igaradias",
+      "texto_bruto": "Simbora, meu Gov ❤️",
+      "data_publicacao": "2026-01-31T00:23:40Z",
+      "likes": 3,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18444802300100545",
+      "candidato_id": "caduxavier",
+      "post_id": 3821741615874156703,
+      "autor_username": "j.o.t.a.a.m.a.r.o",
+      "texto_bruto": "Pura verdade!",
+      "data_publicacao": "2026-02-10T14:04:48Z",
+      "likes": 3,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17886410628425050",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "divaneidebasilio",
+      "texto_bruto": "Vamos junto, Cadu! ❤️✊🏾🔥",
+      "data_publicacao": "2026-01-19T22:02:12Z",
+      "likes": 34,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18034230056557051",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "pluviapt",
+      "texto_bruto": "Sigamos, nosso governador! ✊🏾",
+      "data_publicacao": "2026-01-19T21:52:01Z",
+      "likes": 21,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18178131604383261",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "classificados_pcrn",
+      "texto_bruto": "Cadu, pedimos coragem e sensibilidade para apoiar o nosso pleito: o cumprimento da decisão judicial que determina a nomeação de todos os formados da Turma 3 da POLÍCIA CIVIL. São 185 pessoas — e famílias — que abriram mão de seus empregos e de sua estabilidade para seguir o propósito de servir à sociedade potiguar. Estamos preparados, capacitados e prontos para assumir. Falta apenas a nomeação para que esse compromisso com a segurança pública se torne realidade.",
+      "data_publicacao": "2026-04-16T22:55:16Z",
+      "likes": 78,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17952467097066116",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "danielvalencapt",
+      "texto_bruto": "Coragem que só o time de Lula tem! Seguimos, nosso governador! ✊🏼🚩",
+      "data_publicacao": "2026-01-20T21:55:53Z",
+      "likes": 24,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18308860603271657",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "isoldadantaspt",
+      "texto_bruto": "Simbora Cadu de Lula",
+      "data_publicacao": "2026-01-19T23:38:27Z",
+      "likes": 33,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17932617195171357",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "linaura_02",
+      "texto_bruto": "Simbora, Cadu👏👏👏👏👏",
+      "data_publicacao": "2026-01-19T23:21:08Z",
+      "likes": 9,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18086680399960898",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "nelmabarbosab",
+      "texto_bruto": "Coragem para nomear todos os formandos da T3 da PCRN pois eles largaram seus empregos para se dedicarem exclusivamente ao curso e aguardam a nomeação.  Nomeia ja",
+      "data_publicacao": "2026-03-07T15:46:19Z",
+      "likes": 11,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18074432744420262",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "edipobeserra_personal",
+      "texto_bruto": "Estamos felizes com a nomeação dos 161 policiais civis do último curso de formação que preencheu apenas os cargos vagos dos que morreram, aposentaram ou pediram exoneração, porém sobraram 206 formados sendo 20 delegados, 92 agentes e 92 escrivãs aptos para serem nomeados, mesmo nomeando todos os formados o déficit da PCRN continua grande, contamos com o apoio do governo para que possam nomear o restante e fortalecer ainda mais a segurança pública Potiguar.\n@fatimabezerra13 @coronelaraujorn @caduxavier @delegadaanaclaudiasaraiva @policiacivilrn",
+      "data_publicacao": "2026-02-25T13:04:30Z",
+      "likes": 10,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18338991391241819",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "zenetogab",
+      "texto_bruto": "Que Deus te abençoe vamos juntos",
+      "data_publicacao": "2026-01-20T11:27:41Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18054713642403149",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "mathfelipes",
+      "texto_bruto": "Bora, futuro governador! ❤️",
+      "data_publicacao": "2026-01-19T21:29:06Z",
+      "likes": 6,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18553806181012341",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "cavalcantedrico",
+      "texto_bruto": "Vamos com coragem 👏👏👏👏",
+      "data_publicacao": "2026-01-19T22:36:01Z",
+      "likes": 5,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18502858801072663",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "mfatimaccastro",
+      "texto_bruto": "#CADUfuturoGovernadordeLULA🇧🇷❤️",
+      "data_publicacao": "2026-01-19T23:07:51Z",
+      "likes": 8,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18034941137755823",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "lucianosantosrn",
+      "texto_bruto": "Um governo que herdou 4 folhas atrasadas, segurança pública aterrorizante e um Estado quebrado. Entre 2019-2025 o Gov @fatimabezerra13 reorganizou finanças, pôs salário em dia, retomou a reconstrução das estradas, escolas e melhorou e muito segurança do RN. Há muito por fazer, mas avançou com trabalho sério sim!",
+      "data_publicacao": "2026-01-20T00:59:32Z",
+      "likes": 36,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17937003723119525",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "lfnasim",
+      "texto_bruto": "👏👏👏👏👏👏 nosso governador",
+      "data_publicacao": "2026-01-19T22:11:22Z",
+      "likes": 6,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17892975429261714",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "pedrogorki",
+      "texto_bruto": "Tamo junto! ❤️‍🔥✊🏽",
+      "data_publicacao": "2026-01-19T23:33:40Z",
+      "likes": 3,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18390293956198396",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "cosmosn",
+      "texto_bruto": "Simbora Cadu de Lula, um cabra de coragem! ✊🏾❤️",
+      "data_publicacao": "2026-01-21T17:29:31Z",
+      "likes": 2,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17952888924058411",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "pierrealmeidaba",
+      "texto_bruto": "coragem não ficou pra qualquer um. vamos pra frente, meu governador ❤️",
+      "data_publicacao": "2026-01-19T23:48:07Z",
+      "likes": 5,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17974879193979085",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "dr.edsonlobo",
+      "texto_bruto": "Cadu Futuro governador 👏👏",
+      "data_publicacao": "2026-02-01T23:25:07Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18085905848151818",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "franki_souza",
+      "texto_bruto": "Simbora continuar avançando com @caduxavier",
+      "data_publicacao": "2026-01-20T16:16:39Z",
+      "likes": 2,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17985313796775929",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "soaresl_felipe",
+      "texto_bruto": "👏👏👏👏",
+      "data_publicacao": "2026-01-19T21:34:21Z",
+      "likes": 3,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18105016198688766",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "alinejuliete13",
+      "texto_bruto": "Tô com Cadu!! 😍",
+      "data_publicacao": "2026-01-21T00:02:34Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18554759788042201",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "luziaria",
+      "texto_bruto": "🚀🚀🚀🚀",
+      "data_publicacao": "2026-01-20T16:14:28Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17849092422665649",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "bruno_linharess_",
+      "texto_bruto": "👏👏👏",
+      "data_publicacao": "2026-01-19T23:45:03Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18078289952253998",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "mirandafilho_",
+      "texto_bruto": "Simboraaaa, meu governador 🚀🚀",
+      "data_publicacao": "2026-01-20T02:08:51Z",
+      "likes": 3,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18133692811497945",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "aldemirfreire",
+      "texto_bruto": "Estamos do lado de quem tem coragem 👊👊👊👊",
+      "data_publicacao": "2026-01-19T22:03:35Z",
+      "likes": 9,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18101606776834091",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "alissoncal",
+      "texto_bruto": "Coragem pra ficar do lado certo da história.",
+      "data_publicacao": "2026-01-20T01:06:30Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18080890916213768",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "rivelinomoura13",
+      "texto_bruto": "Tamos juntos meu Governador Cadu Xavier, Cadu de Lula",
+      "data_publicacao": "2026-01-19T22:58:14Z",
+      "likes": 16,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17994221108914192",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "arruda_junior",
+      "texto_bruto": "👏👏👏👏👏",
+      "data_publicacao": "2026-01-20T01:12:20Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18104505622702751",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "herbertricardo.pp",
+      "texto_bruto": "✊🏿🔥",
+      "data_publicacao": "2026-01-20T01:29:30Z",
+      "likes": 2,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18082627331465559",
+      "candidato_id": "caduxavier",
+      "post_id": 3813776097435267146,
+      "autor_username": "costamariajarleneda",
+      "texto_bruto": "Pendências está acreditando na sua coragem @caduxavier assim como acreditamos no presidente lula ⭐",
+      "data_publicacao": "2026-01-20T18:33:51Z",
+      "likes": 5,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18084014227756631",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "edsoncamposof",
+      "texto_bruto": "Conhece o estado, porém o estado não o conhece 😂😂😂😂 Fora Fátima e sua turma de incompetentes!!!",
+      "data_publicacao": "2025-10-11T01:21:18Z",
+      "likes": 31,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17977328636924305",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "sorayavieiraf",
+      "texto_bruto": "👏👏👏👏",
+      "data_publicacao": "2025-10-10T13:24:24Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18430907371097461",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "cacaulins2222",
+      "texto_bruto": "Deus livre o RN. Bastam 8 anos dessa gestao! So atraso e falta de ação",
+      "data_publicacao": "2025-10-19T04:06:11Z",
+      "likes": 13,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18079196897033483",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "drbernardorn",
+      "texto_bruto": "Ninguém conhece com Kadu os problemas do estado é mais que isso sabe bem e tem coragem de trilhar o caminho que precisa ser trilhado.",
+      "data_publicacao": "2025-10-10T22:37:36Z",
+      "likes": 5,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17946442332046269",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "leidianequeiroz__",
+      "texto_bruto": "Temos certeza que será um ótimo governador ❤️",
+      "data_publicacao": "2025-10-10T11:31:18Z",
+      "likes": 21,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17881963455402511",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "eteimosa_",
+      "texto_bruto": "Penso exatamente assim ... hoje no Rio Grande do Norte não existe ninguém que saiba mais da realidade,  as necessidades,  a situação e  o potencial.  Você vem de uma grande caminhada,  ajudou a colocar as folhas de pagamento em dia, vem buscando melhorias para tributação,... e desde sempre vem colocando a cara para responder,  informar e até se desculpar,  mostrando que enfrenta desafios e não foge do compromisso.  O senhor é um nome novo no cenário do nosso Estado,  mas tem muito a oferecer. Torço para que muitos o vejam como eu. Te desejo uma caminhada vitoriosa.",
+      "data_publicacao": "2025-10-14T12:01:01Z",
+      "likes": 9,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18310983772222897",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "tamyrisoliveira_",
+      "texto_bruto": "👏👏👏👏 Com toda certeza",
+      "data_publicacao": "2025-10-10T11:24:47Z",
+      "likes": 2,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18531460825040600",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "nanidjaxavier",
+      "texto_bruto": "Competente , preparado e determinado! 👏👏👏 Estamos juntos!!",
+      "data_publicacao": "2025-10-10T12:39:21Z",
+      "likes": 6,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18082382462511986",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "laerciojr.com.br",
+      "texto_bruto": "👏🏽👏🏽👏🏽🔥 pra cima, é 13 e confirma!",
+      "data_publicacao": "2025-10-10T14:21:31Z",
+      "likes": 5,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18533239246060105",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "mariapaivalemos",
+      "texto_bruto": "Estamos juntos espero que o senhor seja um ótimo gonvernadora para nós nordestino que Deus te abençoe na sua caminhada com uma abençoada vitória 👏👏👏❤️❤️",
+      "data_publicacao": "2025-10-10T12:40:28Z",
+      "likes": 5,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18126769519434409",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "maryliane2018",
+      "texto_bruto": "Tamo junto👏👏",
+      "data_publicacao": "2025-10-10T14:24:14Z",
+      "likes": 4,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18062224988109848",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "babi15azevedo",
+      "texto_bruto": "Meu governador! Conheci pessoalmente, super simpático e educado!!",
+      "data_publicacao": "2025-10-10T14:34:52Z",
+      "likes": 7,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17976258830775665",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "joaocorcino.sm",
+      "texto_bruto": "Cadú é preparado e competente para ser nosso Governador.",
+      "data_publicacao": "2025-10-10T11:52:53Z",
+      "likes": 8,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18078932348008688",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "roberto.edy",
+      "texto_bruto": "Cadu Futuro governador do Rio Grande do Norte 🇧🇷 🇧🇷 🇧🇷 🇧🇷 🇧🇷 🇧🇷 🇧🇷 🇧🇷 🇧🇷 🇧🇷 🇧🇷 🇧🇷 🇧🇷 🇧🇷 🇧🇷 🇧🇷 🇧🇷 🇧🇷 🇧🇷 🇧🇷",
+      "data_publicacao": "2025-10-10T13:43:11Z",
+      "likes": 15,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18023190878775568",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "lindalva_espacoplantas",
+      "texto_bruto": "Gosto da sua postura 👏👏👏👏",
+      "data_publicacao": "2025-10-10T16:34:46Z",
+      "likes": 4,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17958929889042722",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "leonildapascoal",
+      "texto_bruto": "👏👏👏👏👏👏👏👏👏",
+      "data_publicacao": "2026-01-27T02:15:08Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18027760874739138",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "wesss.l",
+      "texto_bruto": "Estamos juntos",
+      "data_publicacao": "2025-10-10T11:22:53Z",
+      "likes": 5,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18104726860527632",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "adailtontorresfilho",
+      "texto_bruto": "Estamos juntos nessa batalha pra fazer acontecer",
+      "data_publicacao": "2025-10-13T21:34:45Z",
+      "likes": 2,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18177217546360980",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "vitordaniel_xx",
+      "texto_bruto": "Estamos contigo ❤️",
+      "data_publicacao": "2025-10-10T12:14:41Z",
+      "likes": 4,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18134767738407806",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "ivan_nogueira_morais",
+      "texto_bruto": "#TamosJuntos. Agora é #CaduGovernador",
+      "data_publicacao": "2025-10-10T11:30:01Z",
+      "likes": 8,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18532345438060807",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "mariadefatima.lima.1232",
+      "texto_bruto": "Nosso futuro governador! Sigamos.",
+      "data_publicacao": "2025-10-10T15:29:25Z",
+      "likes": 6,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17987870345886874",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "arthurfreitas.adv",
+      "texto_bruto": "Simbora meu governador, com você o RN continua a avançar ✊🏾",
+      "data_publicacao": "2025-10-10T12:08:33Z",
+      "likes": 8,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18100228486725017",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "ocivajose",
+      "texto_bruto": "Cadu, meu Governador!!!\n👏👏👏👏👏👏👏👏👏👏",
+      "data_publicacao": "2025-10-10T11:28:53Z",
+      "likes": 8,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17959214306996060",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "adailtontorresfilho",
+      "texto_bruto": "Voto e confirmo minha luta pela candidatura de Kadu, ele realmente tem clareza e sabe como fazer prevalecer uma administração voltada para todos",
+      "data_publicacao": "2025-10-13T21:33:51Z",
+      "likes": 3,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18044932958392995",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "joselluisjl",
+      "texto_bruto": "👏👏👏👏Bravo 👏 👏 👏 Nosso Governador👏👏👏",
+      "data_publicacao": "2025-10-10T11:15:14Z",
+      "likes": 4,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17897472990317954",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "neto_vale_vale",
+      "texto_bruto": "O homem é preparado, nosso futuro governador @caduxavier é o candidato de @lulaoficial",
+      "data_publicacao": "2025-10-10T15:22:20Z",
+      "likes": 8,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18298984030302038",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "lucianosantosrn",
+      "texto_bruto": "Cadu tem o melhor perfil dentre todos os demais postulantes ao cargo de governador.",
+      "data_publicacao": "2025-10-10T11:52:22Z",
+      "likes": 16,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18071839493193858",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "gilber_cunha",
+      "texto_bruto": "Meu governador Cadu Xavier 👍",
+      "data_publicacao": "2025-10-10T11:40:14Z",
+      "likes": 5,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17972068965038241",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "maximianogomes",
+      "texto_bruto": "Nosso próximo governador.",
+      "data_publicacao": "2026-03-26T09:39:01Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17864472480417861",
+      "candidato_id": "caduxavier",
+      "post_id": 3740267010778382458,
+      "autor_username": "ivaneteosantos",
+      "texto_bruto": "Cadu sera o nosso Governador!",
+      "data_publicacao": "2025-10-13T17:58:57Z",
+      "likes": 3,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18083623361361695",
+      "candidato_id": "ari.do.ovo",
+      "post_id": 3867113022728204738,
+      "autor_username": "francisca.leonez.5",
+      "texto_bruto": "👏👏👏👏👏",
+      "data_publicacao": "2026-04-03T15:25:22Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18091440227177497",
+      "candidato_id": "ari.do.ovo",
+      "post_id": 3861666579993390162,
+      "autor_username": "limarildolima04",
+      "texto_bruto": "Quem vai ser nosso deputado ari..,",
+      "data_publicacao": "2026-03-30T15:38:10Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18059102789414373",
+      "candidato_id": "ari.do.ovo",
+      "post_id": 3861666579993390162,
+      "autor_username": "francisca.leonez.5",
+      "texto_bruto": "👏👏👏👏👏",
+      "data_publicacao": "2026-03-27T02:26:15Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17902562046401450",
+      "candidato_id": "ari.do.ovo",
+      "post_id": 3861666579993390162,
+      "autor_username": "s_viviandossantos",
+      "texto_bruto": "Parabéns meu amigo",
+      "data_publicacao": "2026-03-26T23:52:47Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17887290591448636",
+      "candidato_id": "ari.do.ovo",
+      "post_id": 3848321369188099683,
+      "autor_username": "fabiolamarques_",
+      "texto_bruto": "👏👏👏",
+      "data_publicacao": "2026-03-08T16:07:27Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18082431206614042",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "natanandra",
+      "texto_bruto": "PROJETO POPULISTA !!! PORQUE NÃO COPIA O QUE REALMENTE DAR CERTO ??? NOS ESTADOS UNIDOS TRABALHA POR HORA, RECEBE POR HORA, QUEM QUISER TRABALHAR POUCO, GANHA POUCO... QUEM QUISER TRABALHAR MUITO, GANHA MUITO... SIMPLES ASSIM !!! NÃO TEM NENHUM ESTUDO QUE COMPROVE A EFICÁCIA DESSE PROJETO....",
+      "data_publicacao": "2026-04-23T18:29:58Z",
+      "likes": 221,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18044343641775425",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "allandiax",
+      "texto_bruto": "erika hilton nos livros de história!!!!!!!",
+      "data_publicacao": "2026-04-22T22:54:40Z",
+      "likes": 14589,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18101719813978882",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "tarotbrenda",
+      "texto_bruto": "Sou muito emocionada em sonhar com ela como nossa presidenta? ❤️",
+      "data_publicacao": "2026-04-22T23:15:55Z",
+      "likes": 6000,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18066668108338394",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "agoravictor",
+      "texto_bruto": "😍😍😍😍",
+      "data_publicacao": "2026-04-23T10:49:14Z",
+      "likes": 27,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17949673944134012",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "victorrmeyniel",
+      "texto_bruto": "maravilhosos!!!! ❤️❤️❤️🇧🇷",
+      "data_publicacao": "2026-04-23T20:40:03Z",
+      "likes": 48,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17951870022126715",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "sergioguize",
+      "texto_bruto": "🙌",
+      "data_publicacao": "2026-04-23T09:50:58Z",
+      "likes": 97,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17865417156617729",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "vitorthire",
+      "texto_bruto": "👏👏👏👏👏👏👏👏❤️❤️❤️",
+      "data_publicacao": "2026-04-23T22:21:33Z",
+      "likes": 24,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17869300359609903",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "yurigabe",
+      "texto_bruto": "❤️",
+      "data_publicacao": "2026-04-23T18:34:13Z",
+      "likes": 2,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18101989975781958",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "alomarilu",
+      "texto_bruto": "Um marco na história desse país! Vem 5x2 ✨✨✨🍃",
+      "data_publicacao": "2026-04-22T23:11:57Z",
+      "likes": 857,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17894775786306860",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "raphaoliveeira_",
+      "texto_bruto": "Erika Hilton entenda, você é A MAIOOOOR!!!! Ainda vai ser nossa presidenta!!! 🙏💛✨",
+      "data_publicacao": "2026-04-23T16:58:13Z",
+      "likes": 61,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18101309393075005",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "gleidedavis",
+      "texto_bruto": "O Brasil está, aos poucos, assinando a abolição. Pelas mãos dos revolucionários ✊🏾",
+      "data_publicacao": "2026-04-23T10:51:09Z",
+      "likes": 574,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17915274570162821",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "movimento_vat",
+      "texto_bruto": "Vamos pra cima, Deputada! Hoje tivemos mais um avanço histórico, mas ainda temos muita luta pela frente! Os inimigos do povo farão de tudo pra desmantelar nosso projeto, e por isso precisamos nos mobilizar nas redes e nas ruas no 1º de maio!",
+      "data_publicacao": "2026-04-22T23:16:12Z",
+      "likes": 2352,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18107476232504183",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "lilianfarrish",
+      "texto_bruto": "A MAIOR QUE TEMOS! ❤️",
+      "data_publicacao": "2026-04-23T08:22:07Z",
+      "likes": 167,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18085645526579365",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "rickazzevedo",
+      "texto_bruto": "Mais um dia histórico para o trabalhador, minha querida amiga! E novamente os inimigos do povo se articularam para atrapalhar o fim da exploração, mas não conseguiram graças à pressão do povo! Estamos fazendo uma luta linda, que fará uma revolução na vida do trabalhador como não era vista desde 1988! Vamos juntos com força e coragem para essa próxima etapa!",
+      "data_publicacao": "2026-04-22T23:22:02Z",
+      "likes": 2775,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18004866113858443",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "viniandss",
+      "texto_bruto": "vai ser lindo te ver presidenta! 🤍🏳️‍⚧️",
+      "data_publicacao": "2026-04-22T22:49:33Z",
+      "likes": 7724,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18059349425469064",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "vascon_on",
+      "texto_bruto": "Cobrem os deputados 🔥🔥🔥",
+      "data_publicacao": "2026-04-23T03:05:30Z",
+      "likes": 623,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17867555499525032",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "sr_emersn",
+      "texto_bruto": "uma TRAVESTI à frente da causa mais importante para a classe trabalhadora brasileira! ORGULHO! ✊🏽✨",
+      "data_publicacao": "2026-04-22T23:10:48Z",
+      "likes": 1205,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18371154739165636",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "thaynarinhha",
+      "texto_bruto": "Não aguento mais trabalhar 6 dias na semana e receber uma miséria de salário 😢",
+      "data_publicacao": "2026-04-22T23:03:35Z",
+      "likes": 4738,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17990882351787111",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "_eitagil",
+      "texto_bruto": "Pra cima deles mãe 🏳️‍⚧️😍💪🏽",
+      "data_publicacao": "2026-04-22T22:47:54Z",
+      "likes": 1191,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17954095406960265",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "costureiraventureira",
+      "texto_bruto": "Ericaaaaa… ajuda a impedir a venda das nossas terras raras, estão entregando de bandeja pros Estados Unidos! Isso é um absurdo 😭😭😭😭😭",
+      "data_publicacao": "2026-04-23T12:37:42Z",
+      "likes": 125,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17989967468959669",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "carolsouza4199",
+      "texto_bruto": "Próximo passo vai ser diminuir em 30% o salário dos deputados , a ponto de termos um salário justo ao suor que vem escorrendo há anos em nossas costas.",
+      "data_publicacao": "2026-04-22T22:50:27Z",
+      "likes": 2606,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17909052774392679",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "mctaya",
+      "texto_bruto": "VAIIIIIII MINHA FUTURA PRESIDENTA!!!!!🔥",
+      "data_publicacao": "2026-04-23T15:46:40Z",
+      "likes": 160,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17895668235442830",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "marcelo_.henriquep",
+      "texto_bruto": "Em Outubro, temos a obrigação de votar na maioria do PT, colocar lá dentro os que trabalham por nós.",
+      "data_publicacao": "2026-04-22T22:48:08Z",
+      "likes": 1064,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18579951079014219",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "isaquexx_",
+      "texto_bruto": "Se ela se candidatar a presidenta, tem meu voto garantido 👏👏👏",
+      "data_publicacao": "2026-04-22T23:07:01Z",
+      "likes": 2311,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18577486318002558",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "manfredhair",
+      "texto_bruto": "Irá ficar marcada na história, já  outro kkkkkkkkk fez uma caminhada, que não deu em NADA.",
+      "data_publicacao": "2026-04-22T22:52:54Z",
+      "likes": 5161,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18049067021510611",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "alexfkegler",
+      "texto_bruto": "E não se esqueçam de quem votou contra, eleições estão aí!!!! 👀👀👀👀👀👀",
+      "data_publicacao": "2026-04-22T22:49:05Z",
+      "likes": 3136,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18336367414218950",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "euuh.pedroperes",
+      "texto_bruto": "MINHA FUTURA PRESIDENTA!!! ❤️❤️",
+      "data_publicacao": "2026-04-22T22:49:40Z",
+      "likes": 424,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18581073394029016",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "nutrijeanferreira",
+      "texto_bruto": "ELA NÃO CANSA DE SERVIR, E A GENTE NÃO CANSA DE APLAUDIR!!! 👏🏽🔥",
+      "data_publicacao": "2026-04-22T23:06:37Z",
+      "likes": 2277,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17964867669061946",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "jocavalcanti50",
+      "texto_bruto": "Gigante! Dia histórico para a classe trabalhadora e vamos continuar 🔥",
+      "data_publicacao": "2026-04-23T17:08:02Z",
+      "likes": 124,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18344883037243567",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881223449981274000,
+      "autor_username": "marialuza__",
+      "texto_bruto": "um dia vc ainda vai ser presidente e isso vai ser incrível! 🇧🇷",
+      "data_publicacao": "2026-04-23T19:16:34Z",
+      "likes": 3,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18389346220094594",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "rafaplayff",
+      "texto_bruto": "Fim da corrupção ninguém quer",
+      "data_publicacao": "2026-04-22T20:43:41Z",
+      "likes": 557,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18103509773482547",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "guu.sfc",
+      "texto_bruto": "Se anularem na câmera é papo de greve geral no país inteiro.",
+      "data_publicacao": "2026-04-22T20:24:52Z",
+      "likes": 6200,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18137878789517509",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "euericksousa__",
+      "texto_bruto": "Eu que sou CLT de shopping estou emocionado. Obrigado",
+      "data_publicacao": "2026-04-22T20:35:57Z",
+      "likes": 4496,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18312384211278239",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "anaelisast",
+      "texto_bruto": "FINALMENTE, VAMOS FAZER O MAIOR PRIMEIRO DE MAIO DA HISTORIA!!!!!🔥🔥🔥🔥",
+      "data_publicacao": "2026-04-22T20:33:37Z",
+      "likes": 2870,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18157842577452132",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "06dieeego",
+      "texto_bruto": "São Paulo só tem um favor agora: reeleger Erika com o maior número de votação da história!!! 🇧🇷",
+      "data_publicacao": "2026-04-22T20:09:56Z",
+      "likes": 3295,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18350388235240275",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "rainhamatos",
+      "texto_bruto": "👏❤️",
+      "data_publicacao": "2026-04-22T20:10:39Z",
+      "likes": 95,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18140815339505660",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "ramonmiraanda",
+      "texto_bruto": "Uma notícia boa para a classe trabalhadora avante Brasil 🙌🙌🔥🔥",
+      "data_publicacao": "2026-04-22T20:12:18Z",
+      "likes": 444,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17993338355780102",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "renatasouzario",
+      "texto_bruto": "❤️",
+      "data_publicacao": "2026-04-22T20:13:12Z",
+      "likes": 20,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17946619863159398",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "rosianepinheiro",
+      "texto_bruto": "INCRÍVELLLLLLLLLL 👏🏽👏🏽👏🏽👏🏽👏🏽👏🏽👏🏽✊🏾✊🏾✊🏾",
+      "data_publicacao": "2026-04-23T01:24:49Z",
+      "likes": 3,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18441801373119023",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "doutorashimano",
+      "texto_bruto": "VAMBORAAAAAAA🔥🔥🔥",
+      "data_publicacao": "2026-04-22T21:02:36Z",
+      "likes": 133,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18389147032089491",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "mrmarcoslacerda",
+      "texto_bruto": "Faça isso por todos nós, Erika.\nA sua vida, com cada dor, cada travessia, que você passou, ergueu-a à altura do que agora lhe é pedido pelo posto que ocupa.\n\nHá em você algo da chama indomável de Joana d’Arc. Não pela guerra, mas pela coragem de sustentar a verdade quando tantos recuam.\n\nSiga. Não apenas por nós, mas por aquilo em você que nunca aceitou silenciar.",
+      "data_publicacao": "2026-04-22T21:00:34Z",
+      "likes": 165,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18128380654504024",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "lotaviomedeiros",
+      "texto_bruto": "Um homem preto e gay e uma mulher trans preta, pessoas que nunca tiveram espaço e são marginalizadas até hoje a frente de um projeto que vai mudar para melhor a vida de milhões de brasileiros, muitos que tem preconceito. O mundo não gira, ele capota! Parabéns a todos envolvidos no projeto 👏🏻👏🏻👏🏻",
+      "data_publicacao": "2026-04-22T20:19:55Z",
+      "likes": 1453,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18023113553815153",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "donyyrama27",
+      "texto_bruto": "Tudo pro pobre trabalhador é um parto. Se fosse algo que fosse beneficiar empresários já tava aprovado. Mas tenho fé 🥹",
+      "data_publicacao": "2026-04-22T20:20:41Z",
+      "likes": 1680,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18119796364643020",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "rickazzevedo",
+      "texto_bruto": "HISTÓRICO, minha Deputada. O que diziam ser impossível começou a ruir hoje. A escala 6x1 entrou na CCJ e avançou porque teve gente que se recusou a aceitar viver só pra trabalhar. E agora começa outra fase…vão tentar desidratar, negociar por baixo, empurrar com a barriga. Não vão. A gente vai pra cima, com mais força, mais gente e mais barulho. 1º de Maio é nas ruas. Porque quando o povo se move, até o impossível anda. 🔥",
+      "data_publicacao": "2026-04-22T20:15:30Z",
+      "likes": 1401,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18584074342063665",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "ofix_lacuort",
+      "texto_bruto": "EU TENHO MAIOR ORGULHO EM VIVER NO MESMO PAÍS QUE VOCÊS! ❤️",
+      "data_publicacao": "2026-04-22T22:21:29Z",
+      "likes": 15,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18580229821047256",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "movimento_vat",
+      "texto_bruto": "Vencemos mais uma etapa, Deputada! Ainda temos muita luta pela frente, mas com o povo do nosso lado iremos conquistar o fim dessa escala de exploração! 🔥❤️",
+      "data_publicacao": "2026-04-22T22:42:53Z",
+      "likes": 151,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18084830708375515",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "alexiadiniz",
+      "texto_bruto": "Meus heróis ❤️❤️❤️",
+      "data_publicacao": "2026-04-24T14:43:43Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18131801608560546",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "munyemonike",
+      "texto_bruto": "COMO ASSIM ?????????? É isso mesmo ? Foi aprovada ? 😭😭😭😭😭",
+      "data_publicacao": "2026-04-22T20:22:14Z",
+      "likes": 151,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18156776869449753",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "pastoralanbatista",
+      "texto_bruto": "Sou pastor e me identifico com a esquerda.\nNada contra aos irmãos que pensam ao contrário. “O que aprendi na Bíblia fez eu me identificar com a esquerda”,\nDeus abençoe a todos! \n\nPr Alan Batista ✍🏾",
+      "data_publicacao": "2026-04-22T23:13:08Z",
+      "likes": 20,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18095963462038977",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "_jaquesvileneve",
+      "texto_bruto": "HISTÓRICO, vai ser a Deputada mais votada em São Paulo!🔥",
+      "data_publicacao": "2026-04-22T20:24:43Z",
+      "likes": 258,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17979327464843917",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "tomazinethiago",
+      "texto_bruto": "Quando eu era garçom, só tinha folga nas terças feiras. Mas como todo patrão faz, me botava pra sair bem tarde na segunda, afinal, eu ia descansar no dia seguinte.\nEu só tinha 1 dia na semana pra ficar com minha filha, então bebê. Perdi fases importantes do crescimento dela pois só podia vê-la às terças, depois da creche. Ficava com ela de 15:30 até aproximadamente 20:30 pois ainda tinha que fazer compras e cuidar da casa. \nGraças a essa escala eu tinha, por mês, menos de 24h com minha filha. As vezes pouco mais. Triste demais!!!!",
+      "data_publicacao": "2026-04-22T22:25:52Z",
+      "likes": 282,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18098130917009867",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "deborahdosfalsetes",
+      "texto_bruto": "O nosso Brasil ta mudando🙏🏻🙏🏻💗💗💗 Te amo Barbie",
+      "data_publicacao": "2026-04-22T20:30:58Z",
+      "likes": 82,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17877685689572343",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "janaafraga",
+      "texto_bruto": "Tenho 39 anos sempre trabalhei 6x1 não vejo a hora de começar a escala 5x2 🙏🏻🙌❤",
+      "data_publicacao": "2026-04-22T20:14:17Z",
+      "likes": 980,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18109149775891332",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "httpabllo",
+      "texto_bruto": "Seria lindo se fosse aprovado ainda nesse semestre do ano",
+      "data_publicacao": "2026-04-22T20:13:12Z",
+      "likes": 1688,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18102322021760143",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "mathheussales",
+      "texto_bruto": "Na época do abaixo assinado, eu fui um dos primeiros a assinar, e hoje estou aque vendo essa vitória, nem parece real, mais gracas a Deus eu votei nas pessoas certezas 👏👏",
+      "data_publicacao": "2026-04-22T20:51:06Z",
+      "likes": 31,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18078748928397596",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "_apenasbigo",
+      "texto_bruto": "A próxima é 5x2! Tem que cair 🔥",
+      "data_publicacao": "2026-04-22T20:14:14Z",
+      "likes": 298,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18144989800493301",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "alessa_kaoma",
+      "texto_bruto": "Seria justo também além da escala 6x1 o dia de trabalho ser de 6 horas corridas, muitas empresas não tem espaço nem lugar para os funcionários ficarem durante o descanso. Eu mesma já trabalhei em lugares que a comida azedava pq não tinha lugar pra guardar, ficar jogado em papelão porque não tinha lugar nem pra sentar e descansar direito 😢",
+      "data_publicacao": "2026-04-22T20:25:41Z",
+      "likes": 31,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17974871369858760",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "edianemariamtst",
+      "texto_bruto": "GIGANTE!! derrubar a escala 6x1 é garantir dignidade, descanso não pode ser pra poucos precisa ser pra todos!! Simboraaaa @hilton_erika  @rickazzevedo ❤️❤️🙌",
+      "data_publicacao": "2026-04-22T20:11:27Z",
+      "likes": 192,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18036991841629989",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "palosart3",
+      "texto_bruto": "@islaele_qwq @bestiarismo @about.alvin bora tacar uns lambe 🔥",
+      "data_publicacao": "2026-04-24T10:42:31Z",
+      "likes": 3,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18115834090709182",
+      "candidato_id": "hilton_erika",
+      "post_id": 3881144113371029164,
+      "autor_username": "imatheusalves",
+      "texto_bruto": "GIGANTES!!! Vamos continuar a pressionar! 🤎",
+      "data_publicacao": "2026-04-22T20:08:20Z",
+      "likes": 70,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18037406018669305",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "sargentogoncalves22",
+      "texto_bruto": "👏👏👏🇧🇷🫡🙌🏻Vamos que vamos!",
+      "data_publicacao": "2026-03-29T16:16:22Z",
+      "likes": 28,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18005230388717968",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "rodrigocruz_rn",
+      "texto_bruto": "Boa sorte, amigo! 👏👏",
+      "data_publicacao": "2026-03-30T21:08:46Z",
+      "likes": 2,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18114169339662516",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "drcesarmaia",
+      "texto_bruto": "Boa sorte meu amigo. 👏👏👏👏",
+      "data_publicacao": "2026-03-29T16:54:13Z",
+      "likes": 6,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18156323476449889",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "thiagofernandesrn",
+      "texto_bruto": "👏🏽👏🏽👏🏽👏🏽👏🏽👏🏽\nQue Deus abençoe mais esta missão, meu amigo!",
+      "data_publicacao": "2026-03-29T16:07:10Z",
+      "likes": 13,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17910134478184313",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "depgetuliorego",
+      "texto_bruto": "👏👏👏👏👏",
+      "data_publicacao": "2026-03-29T20:35:54Z",
+      "likes": 3,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18074396642406746",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "dra.roberta.infecto.rn",
+      "texto_bruto": "🔥🔥🇧🇷🇧🇷👏🏻👏🏻👏🏻📚🙏🏻💐 Apoiadíssimo",
+      "data_publicacao": "2026-03-29T21:19:34Z",
+      "likes": 4,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18022576655811893",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "emylyanno_toscano",
+      "texto_bruto": "Vamos que vamos meu amigo!👏👏👏",
+      "data_publicacao": "2026-03-29T19:17:39Z",
+      "likes": 2,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18077622035396562",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "morais.bacurau",
+      "texto_bruto": "Boa sorte, amigo 👏👏👏✅",
+      "data_publicacao": "2026-03-30T16:12:20Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18080666681096787",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "marciadtsz",
+      "texto_bruto": "🔥🔥🔥",
+      "data_publicacao": "2026-03-31T22:34:18Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18140747794498239",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "roserochaimoveisrn",
+      "texto_bruto": "👏👏👏",
+      "data_publicacao": "2026-03-29T23:11:30Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18092297183135647",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "josecarlosbatistap",
+      "texto_bruto": "👏👏👏👏",
+      "data_publicacao": "2026-03-29T20:06:52Z",
+      "likes": 2,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18068494982309515",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "raioliveiiraa",
+      "texto_bruto": "👏👏👏👏",
+      "data_publicacao": "2026-03-30T00:15:05Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18322049080250958",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "ayanneferreira_",
+      "texto_bruto": "👏👏👏",
+      "data_publicacao": "2026-03-29T19:08:26Z",
+      "likes": 2,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18154928059453394",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "gustavoclaudinoo",
+      "texto_bruto": "O Senhor é contigo, avante!🔥🔥🔥",
+      "data_publicacao": "2026-03-29T19:15:18Z",
+      "likes": 2,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18109139575879199",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "suelyjodnaldo",
+      "texto_bruto": "Você é top👏👏🇧🇷🇧🇷",
+      "data_publicacao": "2026-03-29T20:31:22Z",
+      "likes": 2,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17888853462454997",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "jotapefotografo",
+      "texto_bruto": "👏👏👏👏👏",
+      "data_publicacao": "2026-03-29T18:23:38Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17982296891813903",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "oziel_milico",
+      "texto_bruto": "Benção meu amigo! Deus é contigo!!👏👏👏🫡🫡🫡🇧🇷🇧🇷🇧🇷",
+      "data_publicacao": "2026-03-29T18:27:51Z",
+      "likes": 3,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18318210973249706",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "maytanejs",
+      "texto_bruto": "👏👏👏👏👏",
+      "data_publicacao": "2026-03-29T19:31:41Z",
+      "likes": 2,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18077295203411240",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "mariaaldecicarvalhosantos",
+      "texto_bruto": "Tamos juntos sempre com todo prazer tem o meu voto é dos meu filho que Deus te abençoe sempre nessa nova etapa da vida,Deus acima de tudo aquilo que os nossos olhos ainda não estão vendo Deus é fiel para cumprir com todas as promessas na sua vida 🙌🙏🏻🇧🇷🇧🇷🇧🇷🇧🇷",
+      "data_publicacao": "2026-03-29T19:20:58Z",
+      "likes": 3,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17922293373273557",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "pvsousa_",
+      "texto_bruto": "Que Deus te abençoe, @gabrielcesarrn 🙌🏽🙌🏽",
+      "data_publicacao": "2026-03-29T19:56:39Z",
+      "likes": 2,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18117192997634661",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "laryssalopes83",
+      "texto_bruto": "Que Deus abençoe grandemente nessa nova  missão, conte com meu apoio 🙌🙌",
+      "data_publicacao": "2026-03-29T21:14:06Z",
+      "likes": 2,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18026441414804082",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "vitoriasamu",
+      "texto_bruto": "Parabéns @gabrielcesarrn Deus abençoe vc nesse nessa missão 🙌🏻🙏🏻",
+      "data_publicacao": "2026-03-29T21:13:05Z",
+      "likes": 2,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18006413447855479",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "micaeleamaral",
+      "texto_bruto": "Terá meu voto🇧🇷👏👏👏",
+      "data_publicacao": "2026-03-29T19:10:25Z",
+      "likes": 2,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18102880054737824",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "vitor0liveira0ficial",
+      "texto_bruto": "Do Senhor provem a tua honra 🇧🇷🙌",
+      "data_publicacao": "2026-03-29T19:25:31Z",
+      "likes": 2,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17896135686280481",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "osenir2021",
+      "texto_bruto": "Já tem meu voto ✅🇧🇷👏👏",
+      "data_publicacao": "2026-03-30T00:03:11Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17906242329387048",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "diogoalvesparnamirim",
+      "texto_bruto": "Boa sorte @gabrielcesarrn pode contar com meu voto e apoio!",
+      "data_publicacao": "2026-03-29T18:24:47Z",
+      "likes": 3,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18085262210521257",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "andreson.souza.75098",
+      "texto_bruto": "Tamos junto Gabriel César, bora pra cima!!!🚀🚀🚀",
+      "data_publicacao": "2026-03-29T21:04:55Z",
+      "likes": 2,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18058574903697794",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "josy_teixeiraq",
+      "texto_bruto": "Eita já considero meu deputado forte 🔥👏",
+      "data_publicacao": "2026-03-29T19:21:15Z",
+      "likes": 3,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18172421740403755",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "wirley.gutemberg",
+      "texto_bruto": "Conte conosco 🚀",
+      "data_publicacao": "2026-03-29T23:40:22Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18074271737194958",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3863619149537318585,
+      "autor_username": "ana35_mary",
+      "texto_bruto": "Se depender de mim e da minha família a cadeira Será  ocupada com SUCESSO 🚀👏🙌🇧🇷",
+      "data_publicacao": "2026-03-29T22:52:26Z",
+      "likes": 2,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17895870156422315",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "gabrielcesarrn",
+      "texto_bruto": "Como vereador, não fiquei só no discurso. Consegui, junto ao deputado @sargentogoncalves22 , R$ 600 mil para pavimentação de ruas desde dezembro de 2024, mas a prefeita ainda não conseguiu realizar a licitação.\n\nTambém solicitei ao deputado R$ 3 milhões para construir uma nova UPA ou ampliar a existente. O recurso entrou em novembro, embora a gestão já soubesse desde maio que ele seria encaminhado. Iniciaram o projeto, mas não saiu do papel.",
+      "data_publicacao": "2026-03-20T13:50:08Z",
+      "likes": 260,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18064960445673858",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "gabrielcesarrn",
+      "texto_bruto": "Na sua cidade é assim?",
+      "data_publicacao": "2026-03-19T21:22:19Z",
+      "likes": 334,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18023697851804397",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "zil_sbatista",
+      "texto_bruto": "Fiscalizar é papel do vereador, mas viver apenas de críticas mostra mais frustração do que compromisso. Interessante como a cidade perfeita só aparece agora no discurso… porque quando tiveram a chance, não fizeram nem o básico. Era essa cidade que vocês deveriam ter deixado — quem não fez, deveria ter mais cautela ao cobrar.\nParabéns à nossa prefeita @professora.nilda de Parnamirim por ir além do que muitos acreditavam ser possível. \nAceita que dói menos @gabrielcesarrn 🤣👏🏻👏🏻👏🏻",
+      "data_publicacao": "2026-03-20T03:01:21Z",
+      "likes": 21,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18019241582819718",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "cavalcantedelkidsalves",
+      "texto_bruto": "Parabéns",
+      "data_publicacao": "2026-03-20T14:17:05Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18128215759485455",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "_giselyalves",
+      "texto_bruto": "😂😂😂😂",
+      "data_publicacao": "2026-03-20T02:44:06Z",
+      "likes": 2,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17941980288157987",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "eijoseane",
+      "texto_bruto": "😂😂",
+      "data_publicacao": "2026-03-20T15:11:58Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18189569302318993",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "milongeek",
+      "texto_bruto": "Boa noite Gabriel Cesar, peço mais uma vez pra fazer um vídeo pedindo para a melhora do centro de Parnamirim que está jogado as baratas, sem melhoria de nada para o centro, ajuda a gente por favor !",
+      "data_publicacao": "2026-03-19T22:02:25Z",
+      "likes": 11,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18087127940256800",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "sun__tio",
+      "texto_bruto": "Coloca a opção para baixar",
+      "data_publicacao": "2026-03-20T14:04:19Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18367494289204374",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "cassyodias01",
+      "texto_bruto": "A planta já tem é só executar 👏👏👏",
+      "data_publicacao": "2026-03-20T12:59:30Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17879194767517601",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "elenildeosorio",
+      "texto_bruto": "@gabrielcesarrn Só sabe falar fazer que é bom, moro na mesma rua que a mãe dele mora, minha casa é vizinha a uma casa abandonada há 10 anos, é mato correndo solto, lixo que os próprios moradores jogam em frente a essa casa, insetos de todo tipo que vai pra minha casa, por mais que eu limpe a minha casa não tem jeito, há uns 4 meses os ratos acabaram com a parte elétrica da minha máquina de lavar, prejuízo pra mim, sem falar em escorpiões e baratas, não consegue limpar a rua que morou até um tempo atrás, imagina fazer algo pela cidade 😂😂😂😂",
+      "data_publicacao": "2026-03-21T07:53:45Z",
+      "likes": 4,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17851658580647412",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "emerson.bezerra.334",
+      "texto_bruto": "Tem um buraco na frente da minha casa, o IPTU chegou e já paguei, porém o buraco continua kkkk Parnamirim cada vez melhor pra quem gosta de buraqueiras",
+      "data_publicacao": "2026-03-20T03:17:27Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17890141416442025",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "paulorafaelbarreto",
+      "texto_bruto": "😂😂😂😂😂",
+      "data_publicacao": "2026-03-20T02:14:47Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18164747134421472",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "rennanunes",
+      "texto_bruto": "😂😂😂😂",
+      "data_publicacao": "2026-03-19T22:12:45Z",
+      "likes": 2,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18106650370676272",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "raffalluiz",
+      "texto_bruto": "A fala da prefeitura era descer o cacete na gestão passada e hoje tá fazendo pior antes de falar alguma coisa fassa demostra os erros é fácil o difícil é fazer a diferença",
+      "data_publicacao": "2026-03-20T01:48:03Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18012190586681908",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "pedrohenriqueab",
+      "texto_bruto": "Esqueceu da Olavo Montenegro (É uma rodovia estadual - dizem eles) 😂",
+      "data_publicacao": "2026-03-20T03:33:40Z",
+      "likes": 6,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17923192446097099",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "studyserio",
+      "texto_bruto": "E o trânsito da Maria Lacerda e Abel Cabral ?",
+      "data_publicacao": "2026-03-20T09:53:43Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18119944969618542",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "thiagao.of",
+      "texto_bruto": "E eu que ia postar marcando a infeliz 😂 e vi que o vídeo é daqui da cidade kkkkkkk 😂",
+      "data_publicacao": "2026-03-20T04:46:13Z",
+      "likes": 3,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18097773760988016",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "vitor0liveira0ficial",
+      "texto_bruto": "Aaah se fosse verdade",
+      "data_publicacao": "2026-03-20T08:58:09Z",
+      "likes": 2,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18071787575228272",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "fabioalves__honda",
+      "texto_bruto": "E ficou assim em um ano? Alguém teria condições de mudar parnamirim em um ano?",
+      "data_publicacao": "2026-03-20T09:50:48Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17864475690527869",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "jefersonfilho.tabeliao",
+      "texto_bruto": "Pior que nada mostrado na edição é uma coisa irreal nem de outro mundo. Só falta vontade mesmo da gestão pública em organizar a cidade .",
+      "data_publicacao": "2026-03-20T03:15:49Z",
+      "likes": 7,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17948631918118308",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "fran.sousa04",
+      "texto_bruto": "Rapaz não diga isso da minha cidade estamos nas cidades dos sonhos é exatamente assim como mostra o vídeo",
+      "data_publicacao": "2026-03-20T01:13:12Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18099454531760069",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "guilherme_biel2",
+      "texto_bruto": "Nunca pensei que alguém ia vir gravar aqui em parnamirim",
+      "data_publicacao": "2026-03-20T03:57:23Z",
+      "likes": 2,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17897954652410665",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "janpierre_martins",
+      "texto_bruto": "Gabriel, vamos repensar a tecnologia que estamos usando para a pavimentação das ruas. Asfalto, em tempos de emergência climática, não é mais uma tecnologia inteligente. Sistemas auto drenantes precisam virar pauta.",
+      "data_publicacao": "2026-03-20T07:34:57Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17872999593460519",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "raymyshisnayder",
+      "texto_bruto": "Se não roubasse era assim ou até melhor!",
+      "data_publicacao": "2026-03-20T07:05:27Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18049242266710895",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "lyanesouzaa",
+      "texto_bruto": "Não dê ideia a rainha do marketing não @gabrielcesarrn daqui a pouco a perfeita vai querer reformar a cidade de Parnamirim só com IA 🤣🤣🤣",
+      "data_publicacao": "2026-03-20T13:22:48Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18097656188292981",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "aparecido_spp",
+      "texto_bruto": "Profetiza, amigo. Um dia dará certo 🙏🏽🙏🏽🙏🏽😁😁😁",
+      "data_publicacao": "2026-03-20T02:27:46Z",
+      "likes": 3,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17991660836944702",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "rodrigo_donordeste",
+      "texto_bruto": "@gabrielcesarrn uma observação os canteiros das ruas a muitos anos não são limpos, limpeza e o básico e não fazem.",
+      "data_publicacao": "2026-03-19T22:01:26Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18126721843603967",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "shirley.maia",
+      "texto_bruto": "Entra e sai de prefeito e continua do mesmo jeito ...",
+      "data_publicacao": "2026-03-20T08:28:43Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17927874279249743",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "_kath3r",
+      "texto_bruto": "Faltou as rua de Cajupiranga e a rua estrada de japecanga",
+      "data_publicacao": "2026-03-20T15:19:20Z",
+      "likes": 2,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17924441943090661",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3856537662673473390,
+      "autor_username": "jaciaratais_",
+      "texto_bruto": "O q vc no papel de parlamentar está fazendo para que isso se torne realidade?  Existe pressão p criação do projeto de revitalização? Ou está fazendo esse vídeo apenas p na próxima eleição se candidatar a prefeito ganhar e fazer o mais do mesmo? O q a câmara está fazendo p mudar a realidade da cidade? Quais são as movimentações?",
+      "data_publicacao": "2026-03-21T11:23:50Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18088482518140180",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "portalspn1",
+      "texto_bruto": "E o carro OFICIAL da câmara usado de forma irregular no evento político de domingo , vai falar algo ou continuará se fazendo de doido ?",
+      "data_publicacao": "2026-03-03T23:14:29Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17982360683957499",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "1bertopaiva",
+      "texto_bruto": "👏👏👏👏",
+      "data_publicacao": "2026-02-18T20:07:43Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17943137184091739",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "gurizaode",
+      "texto_bruto": "PARALELEPÍPEDOS SOLTOS NA RUA JOSÉ NASCIMENTO FILHO 566.",
+      "data_publicacao": "2025-12-19T16:31:51Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17854119039545998",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "gurizaode",
+      "texto_bruto": "MUITOS PARALELEPÍPEDOS SOLTOS NA RUA ULISSES RAMALHO FARACHE EM TODA SUA EXTENSÃO.",
+      "data_publicacao": "2025-12-19T16:12:52Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17857299972524294",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "gurizaode",
+      "texto_bruto": "ESGOTO A CÉU ABERTO NA RUA ULISSES RAMALHO FARACHE NO BAIRRO NOVA ESPERANÇA PRÓXIMO A LAGOA DE CONTENÇÃO DE CHUVAS.",
+      "data_publicacao": "2025-12-19T16:10:23Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17879110344419882",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "victor_de_mulamboo",
+      "texto_bruto": "Que Maria mulambo te abençoe sempre viu amigo e meu preto venho te dê muita saúde",
+      "data_publicacao": "2025-10-22T18:24:40Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18069908879092604",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "fontes_sillvana",
+      "texto_bruto": "😂😂😂😂 rindo muito",
+      "data_publicacao": "2025-07-29T18:30:47Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18028437890451880",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "gabrielmedeirostorres",
+      "texto_bruto": "👏👏👏👏👏👏",
+      "data_publicacao": "2025-05-06T01:07:09Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18042012551431140",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "gabrielmedeirostorres",
+      "texto_bruto": "👏👏👏👏👏👏👏",
+      "data_publicacao": "2025-04-27T17:49:31Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18079577734733836",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "brunosfmiranda",
+      "texto_bruto": "👏👏👏👏👏",
+      "data_publicacao": "2025-04-12T01:58:24Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18126850483422481",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "isabela_souza_aa",
+      "texto_bruto": "👏👏👏",
+      "data_publicacao": "2025-04-11T16:29:18Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17854447668369295",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "isabela_souza_aa",
+      "texto_bruto": "👏👏👏",
+      "data_publicacao": "2025-04-11T16:29:15Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18052734125471225",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "_terezi_nha",
+      "texto_bruto": "E benção 🙌",
+      "data_publicacao": "2025-03-31T14:33:07Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17928346721917664",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "boatardemulher",
+      "texto_bruto": "Saiba que vc tem meu apoio 🙌 por fazer justiça pelas mulheres que precisam dela atendimento minha filha estar grávida foi na consulta e foi desmerecida estar com medo mi  ajude",
+      "data_publicacao": "2025-03-29T17:27:28Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17980501292810279",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "mrosenascimento",
+      "texto_bruto": "Boa tarde Gabriel! Não sei se você pode ajudar o pessoal do programa do Glaucoma, pois o prefeito deixou dois meses atrasado, e até agora a prefeita não atualizou o projeto, quem tem Glaucoma, é muito sério e nem todos podem comprar os colírios, veja o que você pode fazer pelas pessoas.",
+      "data_publicacao": "2025-03-27T17:35:46Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18180851902312805",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "airton.baracho",
+      "texto_bruto": "@gabrielcesarrn precisamos de sua ajuda e influência política para ajudar a derrubar a cláusula de barreira do concurso da SEEC/RN. Por favor nos ajude nessa causa. E ajudar a cumprir a Lei 11.888 de 2024",
+      "data_publicacao": "2025-02-22T12:38:32Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18038852831172989",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "gabrielcesarrn",
+      "texto_bruto": "Muito obrigado! Pode contar comigo nessa luta 🤝",
+      "data_publicacao": "2024-10-10T15:38:59Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18005155289664548",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "regina_13789",
+      "texto_bruto": "Parabéns Gabriel  por mais uma conquista que Deus te abençoe",
+      "data_publicacao": "2024-10-10T14:34:36Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18022548092212540",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "oficial.marialice",
+      "texto_bruto": "Parabéns tio ❤️",
+      "data_publicacao": "2024-10-09T00:42:39Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17918965307891986",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "mariaisabelle.dantas",
+      "texto_bruto": "❤️❤️❤️🥰🥰😍😍🙌🙌🙏🙏",
+      "data_publicacao": "2024-10-08T15:57:45Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18335543005180309",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "mariaisabelle.dantas",
+      "texto_bruto": "👏👏👏🙌🙌🙏🙏🙏🙏",
+      "data_publicacao": "2024-10-08T15:57:33Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18059705038690772",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "antoniamaria.bezerra.94",
+      "texto_bruto": "Parabéns Gabriel pela sua linda Bebê e pela sua vitória sou sincera não voltei em vc mais fiquei feliz pela sua vitória 👏",
+      "data_publicacao": "2024-10-08T15:57:00Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18069576079528646",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "lilianeh_l",
+      "texto_bruto": "👏👏",
+      "data_publicacao": "2024-10-08T01:43:10Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17912208974915124",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "joselia_neto",
+      "texto_bruto": "Parabéns vc merece 👏🏻👏🏻",
+      "data_publicacao": "2024-10-08T00:38:40Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17912206886924966",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "veronicaangela.medeiros",
+      "texto_bruto": "Deus é  contigo!!! 🙌🙌🙌🙌🙌🙌🙌🙌",
+      "data_publicacao": "2024-10-07T22:36:46Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18044531516307576",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "veronicaangela.medeiros",
+      "texto_bruto": "Bênçãos dobradas por merecimento. Parabéns!!! Deus continue te abençoando poderosamente.❤️",
+      "data_publicacao": "2024-10-07T22:35:58Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17923839785968329",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "veronicaangela.medeiros",
+      "texto_bruto": "Parabéns meu querido irmão/vereador e agora PAI !!!!",
+      "data_publicacao": "2024-10-07T22:33:39Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18022310852610761",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "rodolfooliveirarn",
+      "texto_bruto": "👏👏👏👏",
+      "data_publicacao": "2024-10-07T20:25:15Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18145486519340801",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "quessidadumaresq",
+      "texto_bruto": "Que venha com saúde esse novo patriota🙌🇧🇷",
+      "data_publicacao": "2024-10-07T20:10:15Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17919399395988599",
+      "candidato_id": "gabrielcesarrn",
+      "post_id": 3473209435335692696,
+      "autor_username": "fernandafilgueiranatal",
+      "texto_bruto": "👏👏👏👏👏👏👏",
+      "data_publicacao": "2024-10-07T19:31:28Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18413324485125709",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851284169237751962,
+      "autor_username": "janiellypereiraaaa",
+      "texto_bruto": "👏👏👏",
+      "data_publicacao": "2026-03-12T18:14:28Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18427518349141769",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851284169237751962,
+      "autor_username": "rozilene_oliveira_lena",
+      "texto_bruto": "👏👏👏👏😍",
+      "data_publicacao": "2026-03-12T18:35:03Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18072340745444966",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851284169237751962,
+      "autor_username": "marcio__santiago.oficial",
+      "texto_bruto": "💥💥👏🏼👏🏼👏🏼🚀",
+      "data_publicacao": "2026-03-12T20:18:26Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18109757416773046",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851284169237751962,
+      "autor_username": "vitoria_silvaandrade",
+      "texto_bruto": "👏👏👏👏👏👏",
+      "data_publicacao": "2026-03-12T17:13:57Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17875066539544458",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851284169237751962,
+      "autor_username": "lourdesalves753",
+      "texto_bruto": "👏👏👏👏👏",
+      "data_publicacao": "2026-03-13T11:43:45Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17946813369119325",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851283217852161935,
+      "autor_username": "gill_cruzz",
+      "texto_bruto": "Deus guie seus passos e te livre de todo mau! Ele é tua força e fortaleza.🙌🏼🙌🏼🙌🏼",
+      "data_publicacao": "2026-03-12T17:04:46Z",
+      "likes": 2,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17943811404136267",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851283217852161935,
+      "autor_username": "marcio__santiago.oficial",
+      "texto_bruto": "👏👏👏👏🤝",
+      "data_publicacao": "2026-03-12T20:25:31Z",
+      "likes": 1,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17908429668185992",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851283217852161935,
+      "autor_username": "ewelynvitalino",
+      "texto_bruto": "👏🏻👏🏻",
+      "data_publicacao": "2026-03-12T16:01:09Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17852528106635789",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851283217852161935,
+      "autor_username": "janiellypereiraaaa",
+      "texto_bruto": "👏👏👏",
+      "data_publicacao": "2026-03-12T18:14:51Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18100851340938022",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851283217852161935,
+      "autor_username": "alynesaraiva_",
+      "texto_bruto": "🙌👏",
+      "data_publicacao": "2026-03-12T17:29:54Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18108570121766172",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851283217852161935,
+      "autor_username": "cristinamara_2001",
+      "texto_bruto": "👏👏👏👏",
+      "data_publicacao": "2026-03-14T00:17:34Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18070913474635016",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851283217852161935,
+      "autor_username": "vitoria_silvaandrade",
+      "texto_bruto": "👏👏👏 vamos 🤝",
+      "data_publicacao": "2026-03-12T17:13:46Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18080795744524488",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851283217852161935,
+      "autor_username": "robertariveracruz",
+      "texto_bruto": "👏👏👏👏👏 🔝 Vamos que vamos !! 🚀",
+      "data_publicacao": "2026-03-12T17:58:31Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18104143994508382",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851283217852161935,
+      "autor_username": "aldelivia",
+      "texto_bruto": "👏👏👏👏",
+      "data_publicacao": "2026-03-13T12:25:33Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18075990674434117",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851283217852161935,
+      "autor_username": "emillyteiixeira",
+      "texto_bruto": "👏🏼👏🏼👏🏼",
+      "data_publicacao": "2026-03-12T18:02:35Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18172992580390154",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851283217852161935,
+      "autor_username": "rozilene_oliveira_lena",
+      "texto_bruto": "👏👏👏👏👏👏👏",
+      "data_publicacao": "2026-03-12T18:30:31Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18072693956563174",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851283217852161935,
+      "autor_username": "taayycosta",
+      "texto_bruto": "👏👏👏",
+      "data_publicacao": "2026-03-12T17:26:46Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18095894594067105",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851283217852161935,
+      "autor_username": "samaraa.paiva",
+      "texto_bruto": "👏🏻👏🏻👏🏻",
+      "data_publicacao": "2026-03-12T21:07:53Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18570028237047275",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851283217852161935,
+      "autor_username": "simonesm02",
+      "texto_bruto": "👏👏👏👏👏",
+      "data_publicacao": "2026-03-12T16:15:23Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18099942580763740",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851283217852161935,
+      "autor_username": "erinaldo_oliveirabass",
+      "texto_bruto": "Tmj 🔥🔥🔥🔥🔥",
+      "data_publicacao": "2026-03-25T01:03:50Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18099426082743789",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851283217852161935,
+      "autor_username": "cinthyamartins2015",
+      "texto_bruto": "👏👏👏👏👏👏",
+      "data_publicacao": "2026-03-12T15:46:05Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18058682123698170",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851283217852161935,
+      "autor_username": "ivonetemits",
+      "texto_bruto": "❤️👏🤍",
+      "data_publicacao": "2026-03-13T11:06:50Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17873597175556943",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851283217852161935,
+      "autor_username": "isaque_burgs",
+      "texto_bruto": "Estamos juntos @vereadorRodrigocruz parabéns pelo seu desempenho na câmara municipal de Parnamirim, e  principalmente esse relacionamento interpessoal com a população nas ruas com o povo , é assim que se faz política visitando, conversando,vendo, as necessidades dos cidadãos Parnamirinense, você  está provando que é diferente dos demais vereadores que só procuram o povo em época de eleições, conte com o nosso apoio. ISAQUE OLIVEIRA.",
+      "data_publicacao": "2026-03-13T14:04:03Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18074732951550538",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851281917802489236,
+      "autor_username": "marcio__santiago.oficial",
+      "texto_bruto": "👏👏👏",
+      "data_publicacao": "2026-03-12T20:33:17Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18099391070310592",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851281917802489236,
+      "autor_username": "janiellypereiraaaa",
+      "texto_bruto": "😍👏👏",
+      "data_publicacao": "2026-03-12T18:14:58Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18079705874579920",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851281917802489236,
+      "autor_username": "rozilene_oliveira_lena",
+      "texto_bruto": "👏👏👏👏",
+      "data_publicacao": "2026-03-12T18:37:40Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18065767139310765",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851281917802489236,
+      "autor_username": "vitoria_silvaandrade",
+      "texto_bruto": "👏👏👏👏👏",
+      "data_publicacao": "2026-03-12T17:12:05Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "17938718943015229",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851281917802489236,
+      "autor_username": "alynesaraiva_",
+      "texto_bruto": "👏👏",
+      "data_publicacao": "2026-03-12T17:29:37Z",
+      "likes": 0,
+      "processado_ia": false
+    },
+    {
+      "id_externo": "18094844444023005",
+      "candidato_id": "rodrigocruz_rn",
+      "post_id": 3851281917802489236,
+      "autor_username": "erinaldo_oliveirabass",
+      "texto_bruto": "Show de bola! 👏👏👏👏👏",
+      "data_publicacao": "2026-03-25T12:53:51Z",
+      "likes": 0,
+      "processado_ia": false
+    }
+  ]
+}

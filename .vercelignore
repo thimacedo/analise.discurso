@@ -1,0 +1,10 @@
+.venv/
+bases_pdf/
+data/
+ollama_bin/
+*.db
+*.gguf
+*.exe
+__pycache__/
+node_modules/
+repomix-output.xml
