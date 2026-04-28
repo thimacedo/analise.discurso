@@ -1,30 +1,21 @@
 # ROADMAP - Sentinela Democr√°tica
 
-## Status: v16.3.2 (Auth Secured)
-- **SeguranÁa**: AutenticaÁ„o TOTP (Google Authenticator) implementada em `addalvo.html`.
-- **Sess„o**: Tokens HMAC com expiraÁ„o de 2 horas.
-- **IA**: Ollama (Qwen 2.5 Coder) local com suporte a categorias PASA detalhadas.
-- **Trilha de Evid√™ncias**: Cards de alerta agora mapeiam Autor -> Alvo -> Postagem Original.
-- **UX**: Design t√°tico com badges de risco e badges de categoria (ex: INSULTO AD HOMINEM).
-- **Dados**: Malha de 242 alvos monitorados com sincroniza√ß√£o real-time de vereditos.
+## Status: v17.0 (Diamond Edition - UI/UX Overhaul)
+- **UI/UX**: Reestrutura√ß√£o completa da interface em index.html. 
+- **Design**: Novo sistema visual Diamond com modo Dark Nativo e densidade de informa√ß√£o otimizada.
+- **Frontend**: Migra√ß√£o para m√≥dulos ESM (src/core/app.js, src/core/ui.js, src/core/state.js).
+- **Seguran√ßa**: (PENDENTE) Remo√ß√£o da service_role do frontend.
+- **Funcionalidades**:
+  - Painel de Status Operacional em tempo real.
+  - KPI Grid com indicadores de resili√™ncia e amostragem.
+  - Monitor de Hostilidade com ranking de alvos priorizado.
+  - Integra√ß√£o com Intelig√™ncia de Redes para detec√ß√£o de bots.
+  - Mapa Geopol√≠tico por UF com filtragem din√¢mica.
 
-## Hist√≥rico de Vers√µes
-- **v16.3.0**: Implementa√ß√£o de Forensic Cards e Mapeamento de Autor/Alvo.
-- **v16.2.0**: Real-time Sync (60s) e Dashboard Diamond Premium.
-- **v16.0.0**: Migra√ß√£o para Arquitetura H√≠brida (Ollama Port√°til).
+## Pr√≥ximos Passos
+- [ ] Implementar Proxy API para remover segredos do frontend.
+- [ ] Corrigir ambiente Python local (AttributeError: 'Path').
+- [ ] Restaurar raspagem via Instagrapi com conta bot configurada.
 
-## Infraestrutura Atual
-- **Local Host**: E:\projetos\ollama_bin\ollama.exe
-- **Cloud Sync**: Supabase (Tabela: comentarios, is_hate=true).
-- **Dashboard**: https://sentinela-democratica-ruby.vercel.app
-
-- [x] Conclus„o da PadronizaÁ„o LinguÌstica Forense (Manual TÈcnico + Adendo Profundo).
-
-- [x] IntegraÁ„o da Metodologia Vichi (N-Gramas) para detecÁ„o de coordenaÁ„o.
-
-- [x] AtivaÁ„o dos Servidores (Ollama, FastAPI) e Workers (Elite, Intel).
-
-
-## [2026-04-28] - ManutenÁ„o de Rotina
-- ValidaÁ„o de integridade do ambiente v16.3.2.
-- SincronizaÁ„o de evidÍncias confirmada.
+---
+*Atualizado em 28/04/2026*
