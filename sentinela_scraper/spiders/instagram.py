@@ -1,7 +1,11 @@
 import scrapy
 import json
 import os
-from datetime import datetime
+import httpx
+from datetime import datetime, timedelta
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class InstagramSpider(scrapy.Spider):
     name = "instagram"
@@ -9,8 +13,14 @@ class InstagramSpider(scrapy.Spider):
     def __init__(self, *args, **kwargs):
         super(InstagramSpider, self).__init__(*args, **kwargs)
         self.session_id = os.getenv("INSTAGRAM_SESSIONID")
-        # App ID estático exigido pela API v1 do Instagram Web
         self.app_id = "936619743392459" 
+        
+        self.supabase_url = os.getenv("SUPABASE_URL")
+        self.supabase_key = os.getenv("SUPABASE_KEY")
+        self.headers_supa = {
+            "apikey": self.supabase_key,
+            "Authorization": f"Bearer {self.supabase_key}"
+        }
         
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -21,14 +31,33 @@ class InstagramSpider(scrapy.Spider):
             "Cookie": f"sessionid={self.session_id}"
         }
         
-        # Carrega alvos de monitoramento
+        # Carrega alvos de monitoramento DINAMICAMENTE do Supabase
+        self.targets = self._fetch_dynamic_targets()
+
+    def _fetch_dynamic_targets(self):
+        print("🕷️ [Scrapy] Buscando fila dinâmica de perfis no Supabase...")
         try:
-            # Tenta ler o arquivo de prioridade
-            with open('E:/projetos/sentinela-democratica/data/priority_queue.json', 'r') as f:
-                self.targets = json.load(f)
-        except:
-            # Fallback para alvos críticos se o arquivo falhar
-            self.targets = ["lulaoficial", "flaviobolsonaro", "nikolasferreirainfo", "erikahiltonoficial"]
+            # 1. Busca perfis que AINDA NÃO foram raspados (prioridade total)
+            url = f"{self.supabase_url}/rest/v1/candidatos?select=username&last_scraped_at=is.null&limit=15"
+            resp = httpx.get(url, headers=self.headers_supa)
+            targets = [item['username'] for item in resp.json()]
+            
+            # 2. Fallback: Se todos já foram raspados uma vez, busca os mais antigos (> 48h)
+            if not targets:
+                cutoff = (datetime.utcnow() - timedelta(hours=48)).isoformat()
+                url = f"{self.supabase_url}/rest/v1/candidatos?select=username&last_scraped_at=lt.{cutoff}&limit=15&order=last_scraped_at.asc"
+                resp = httpx.get(url, headers=self.headers_supa)
+                targets = [item['username'] for item in resp.json()]
+
+            if not targets:
+                print("✅ [Scrapy] Nenhum perfil novo ou desatualizado.")
+                return ["lulaoficial", "flaviobolsonaro"] # Fallback de emergência
+
+            print(f"🎯 [Scrapy] Alvos desta rodada: {len(targets)} perfis.")
+            return targets
+        except Exception as e:
+            print(f"⚠️ [Scrapy] Erro ao buscar fila dinâmica: {e}")
+            return ["lulaoficial", "flaviobolsonaro"]
 
     def start_requests(self):
         for username in self.targets:
