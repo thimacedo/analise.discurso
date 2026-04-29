@@ -102,14 +102,20 @@ class InstagramSpider(scrapy.Spider):
             data = json.loads(response.text)
             comments = data.get('comments', [])
             for comment in comments[:50]:
-                yield {
+                item = {
                     'type': 'comment',
                     'id': comment['pk'],
-                    'text': comment['text'],
-                    'owner_username': comment['user']['username'],
-                    'timestamp': comment['created_at'],
+                    'text': comment.get('text', ''),
+                    'owner_username': comment.get('user', {}).get('username', 'desconhecido'),
+                    'timestamp': comment.get('created_at'),
+                    'likes_count': comment.get('comment_like_count', 0),
                     'post_shortcode': response.meta['post_shortcode'],
                     'candidato_username': response.meta['candidato_username']
                 }
+                
+                if not item['text'] or item['owner_username'] == 'desconhecido':
+                    self.logger.warning(f"⚠️ Dados incompletos no comentário {item['id']} de {item['candidato_username']}")
+                
+                yield item
         except Exception as e:
             self.logger.error(f"Erro no parse de comentários: {e}")

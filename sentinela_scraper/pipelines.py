@@ -38,12 +38,18 @@ class SupabasePipeline:
             }
         elif item_type == 'comment':
             table = "comentarios"
+            # Conversão de timestamp Unix para ISO
+            timestamp = item.get('timestamp')
+            data_coleta = datetime.fromtimestamp(timestamp).isoformat() if timestamp else datetime.now().isoformat()
+
             payload = {
                 "id_externo": str(item['id']),
-                "candidato_id": item['candidato_username'], # FK é para candidatos.username
+                "candidato_id": item['candidato_username'],
                 "post_id": str(item['post_shortcode']),
                 "autor_username": item['owner_username'],
                 "texto_bruto": item['text'],
+                "likes": item.get('likes_count', 0),
+                "data_coleta": data_coleta,
                 "processado_ia": False
             }
         else:
