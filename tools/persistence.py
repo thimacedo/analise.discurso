@@ -21,49 +21,62 @@ class PersistenceManager:
     def update_forensic_data(self, df: pd.DataFrame):
         """
         Persiste os dados do PASA e Clusters no Supabase.
-        Assume que o DataFrame possui a coluna 'comment_id' (ou 'id') e os campos de inteligência.
+        Garante que metadados (autor, post) e inteligência IA sejam salvos.
         """
-        if self.supabase is None:
+        if not self.supabase:
+            print("⚠️ [Persistence] Sem conexão com banco. Dados não persistidos.")
             return
 
-        # Colunas de inteligência esperadas
-        # 'is_hate_speech', 'category', 'confianca', 'cluster'
+        # Mapeamento de colunas do DataFrame para o Schema do Supabase (comentarios)
+        # DF Col: 'id', 'owner_username', 'post_shortcode', 'is_hate_speech', 'category', 'confianca', 'cluster'
+        # DB Col: 'id', 'autor_username', 'post_id',         'is_hate',         'categoria_ia', 'confianza_ia', 'cluster_id'
         
-        # Mapeamento para o schema do Supabase (tabela comments)
-        # Campos no DB: is_hate, categoria_ia, confianca, cluster_id
-        
+        mapping = {
+            'owner_username': 'autor_username',
+            'post_shortcode': 'post_id',
+            'is_hate_speech': 'is_hate',
+            'category': 'categoria_ia',
+            'categoria_ia': 'categoria_ia', # Fallback
+            'confianca': 'confianza_ia',
+            'cluster': 'cluster_id'
+        }
+
         records_updated = 0
         
-        # Usamos iterrows para update individual (Supabase API REST via patch)
-        for _, row in df.iterrows():
-            comment_id = row.get('comment_id') or row.get('id')
+        # Filtra apenas colunas que pretendemos atualizar (além do ID)
+        df_update = df.copy()
+        for df_col, db_col in mapping.items():
+            if df_col in df_update.columns and df_col != db_col:
+                df_update[db_col] = df_update[df_col]
+
+        # Colunas finais para o payload do banco
+        db_columns = ['id', 'autor_username', 'post_id', 'is_hate', 'categoria_ia', 'confianza_ia', 'processado_ia']
+        
+        for _, row in df_update.iterrows():
+            comment_id = row.get('id')
             if not comment_id: continue
 
-            # Prepara payload de inteligência
-            payload = {
-                "is_hate": bool(row.get('is_hate_speech', False)),
-                "categoria_ia": row.get('category') or row.get('categoria_ia'),
-                "processado_ia": True
-            }
-            
-            if 'cluster' in row:
-                payload["cluster_id"] = int(row['cluster'])
-            
-            # Limpa valores nulos
-            payload = {k: v for k, v in payload.items() if v is not None and v == v}
+            # Prepara payload
+            payload = {"processado_ia": True}
+            for col in db_columns:
+                if col in row and col != 'id':
+                    val = row[col]
+                    # Remove NaNs e nulos para o Postgres
+                    if pd.notna(val):
+                        payload[col] = val
+
+            # Não tentar atualizar se só tiver processado_ia
+            if len(payload) <= 1:
+                continue
 
             try:
-                # Realiza o update no Supabase usando o comment_id como filtro
-                # O ID no Supabase é a PRIMARY KEY
                 self.supabase.table('comentarios').update(payload).eq('id', comment_id).execute()
                 records_updated += 1
             except Exception as e:
                 print(f"❌ [Persistence] Erro ao atualizar comentário {comment_id}: {e}")
 
-        print(f"✅ [Persistence] {records_updated} comentários atualizados com inteligência PASA/Diamond.")
+        print(f"✅ [Persistence] {records_updated} comentários atualizados com inteligência PASA/Diamond no Supabase.")
 
 if __name__ == "__main__":
-    # Teste rápido de carga
-    print("Iniciando Persistence Manager...")
     pm = PersistenceManager()
-    print("Pronto para persistência técnica.")
+    print("Persistence Manager pronto.")

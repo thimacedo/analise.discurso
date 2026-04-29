@@ -56,6 +56,10 @@ class Orchestrator:
             # Normalização para motores v18.0
             if 'texto_bruto' in df.columns:
                 df = df.rename(columns={'texto_bruto': 'text'})
+            if 'autor_username' in df.columns:
+                df['owner_username'] = df['autor_username']
+            if 'post_id' in df.columns:
+                df['post_shortcode'] = df['post_id']
             if 'is_hate' in df.columns:
                 df['is_hate_speech'] = df['is_hate']
             if 'categoria_ia' in df.columns:

@@ -47,8 +47,8 @@ class ReportGenerator(FPDF):
         self.set_fill_color(245, 245, 250)
         self.rect(10, self.get_y(), 190, 35, 'F')
         
-        autor = self.clean_text(item.get('owner_username', 'Desconhecido'))
-        post_ref = self.clean_text(item.get('post_shortcode', 'N/A'))
+        autor = self.clean_text(item.get('owner_username') or item.get('autor_username') or 'Desconhecido')
+        post_ref = self.clean_text(item.get('post_shortcode') or item.get('post_id') or 'N/A')
         
         self.set_font(self.font_family_main, 'B', 9)
         self.set_text_color(0, 0, 0)
