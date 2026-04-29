@@ -16,6 +16,10 @@
 - **[DESCARTADO] Classificação PASA em tempo real no Dashboard:** Inviável.
 - **[DESCARTADO] Chaves de API no Frontend:** Inseguro.
 
-## 🐛 Bugs Atuais / Bloqueios
-- **Identificação de Usuário:** Sistema ainda usa mock `SENTINELA_USER` para o gating. Necessário migrar para `@supabase/supabase-js`.
+## 🔗 Referências de Sessão
+- **Z.ai Chat (Estratégia & UX):** [Sessão 4965474e](https://chat.z.ai/s/4965474e-3f5d-4be6-820c-bbbe5fe30762)
+- **Gemini CLI (Engenharia):** Sessão atual em `E:\projetos\sentinela-democratica` (29/04/2026).
+
+## 🚀 Próximo Passo
+- Iniciar v19.6.0: Integração real de Checkout (Stripe) e substituição final do Mock Identity.
 
