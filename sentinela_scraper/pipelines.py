@@ -35,7 +35,8 @@ class SupabasePipeline:
                 "nome_completo": item.get('full_name', ''),
                 "bio": item.get('bio', ''),
                 "seguidores": item.get('seguidores', 0),
-                "status_monitoramento": "ATIVO"
+                "status_monitoramento": "ATIVO",
+                "last_scraped_at": datetime.now().isoformat()
             }
         elif item_type == 'comment':
             table = "comentarios"

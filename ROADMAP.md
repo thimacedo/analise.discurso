@@ -1,7 +1,8 @@
 # ROADMAP - Sentinela Democrática
 
-## Status Atual: v19.7.0 (Persistence & Alerting Ready) ✅
+## Status Atual: v19.7.1 (Intelligent Monitoring Locked) ✅
 
+- **Monitoramento Inteligente (TargetManager)**: Implementado filtro de deduplicação e raspagem recente (48h), otimizando recursos de rede e API.
 - **Persistência Forense Ativa**: O Orquestrador grava os resultados da IA (Categoria e Confiança Float) diretamente no Supabase em tempo real.
 - **Calibração PASA v16.4**: Blindagem contra falsos positivos implementada.
 - **Monetização (STN)**: Stripe integrado. Sistema de créditos via RPC atômica funcional.

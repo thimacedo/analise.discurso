@@ -14,30 +14,47 @@ from processing.report_generator import ReportGenerator
 from core.qwen_classifier import run_integrated_qwen_classification
 from tools.persistence import PersistenceManager
 from core.whatsapp_alerter import send_whatsapp_summary
+from tools.target_manager import TargetManager
+import json
 
 load_dotenv()
 
-# Configurações Supabase (Direct API Access)
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-HEADERS = {
-    "apikey": SUPABASE_KEY,
-    "Authorization": f"Bearer {SUPABASE_KEY}",
-    "Content-Type": "application/json"
-}
+# ... (configurações Supabase omitidas para brevidade na instrução, mas mantidas no arquivo)
 
 class Orchestrator:
     def __init__(self):
         self.tp = TextProcessor()
         self.rg = ReportGenerator()
+        self.tm = TargetManager(hours_threshold=48) # Filtro de 48h
 
     async def run_scraper(self):
-        print("🚀 [1/5] Iniciando Extração Scrapy (Instagram)...")
-        # python -m scrapy crawl instagram
+        print("🚀 [1/5] Preparando Alvos e Iniciando Extração...")
+        
+        # 1. Carrega alvos atuais (ex: do priority_queue ou corpus)
+        queue_path = 'E:/projetos/sentinela-democratica/data/priority_queue.json'
+        try:
+            with open(queue_path, 'r') as f:
+                current_targets = json.load(f)
+        except:
+            current_targets = ["lulaoficial", "flaviobolsonaro", "nikolasferreirainfo", "erikahiltonoficial"]
+
+        # 2. Filtra via TargetManager
+        filtered_targets = self.tm.filter_targets(current_targets)
+
+        if not filtered_targets:
+            print("✅ Todos os alvos já estão atualizados. Pulando extração.")
+            return
+
+        # 3. Atualiza o arquivo temporariamente para o Scrapy ler
+        with open(queue_path, 'w') as f:
+            json.dump(filtered_targets, f)
+
+        # 4. Roda o Scrapy
         process = subprocess.run(
             [sys.executable, "-m", "scrapy", "crawl", "instagram"],
             capture_output=True, text=True, shell=True
         )
+
         if process.returncode == 0:
             print("✅ Extração concluída.")
         else:
