@@ -8,7 +8,7 @@ import nltk
 nltk.download('stopwords', quiet=True)
 
 class TextProcessor:
-    def __init__(self, modelo_spacy="pt_core_news_lg"):
+    def __init__(self, modelo_spacy="pt_core_news_sm"):
         try:
             self.nlp = spacy.load(modelo_spacy)
         except OSError:

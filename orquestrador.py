@@ -184,6 +184,11 @@ class Orchestrator:
             print("🛑 Pipeline interrompida: Sem dados novos.")
             return
 
+        # Salva para acesso via API (v19.2 Resilience)
+        os.makedirs("api", exist_ok=True)
+        df.to_csv("api/dados_latest.csv", index=False)
+        print(f"📊 Dados exportados para api/dados_latest.csv")
+
         # 4. NLP & Mining
         df_final = self.process_and_mine(df)
         

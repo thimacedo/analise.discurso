@@ -25,9 +25,10 @@ jobs:
 
       - name: Executar pipeline (modo limitado)
         env:
-          IG_USERNAME: ${{ secrets.IG_USERNAME }}
-          IG_PASSWORD: ${{ secrets.IG_PASSWORD }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          INSTAGRAM_SESSIONID: ${{ secrets.INSTAGRAM_SESSIONID }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           COLETA_LIMITE_PERFIS: 5
           COLETA_POSTS_POR_PERFIL: 2
         run: python orquestrador.py
@@ -36,6 +37,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add api/dados_latest.csv nuvem_*.png
-          git commit -m "auto: atualização de dados [skip ci]" || echo "Sem alterações"
+          git add api/dados_latest.csv visualizacoes/nuvem_*.png data/reports/*.pdf
+          git commit -m "auto: atualização de dados e relatórios [skip ci]" || echo "Sem alterações"
           git push
