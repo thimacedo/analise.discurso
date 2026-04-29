@@ -12,6 +12,7 @@ from processing.text_processor import TextProcessor
 from processing.data_miner import DataMiner
 from processing.report_generator import ReportGenerator
 from core.qwen_classifier import run_integrated_qwen_classification
+from tools.persistence import PersistenceManager
 
 load_dotenv()
 
@@ -73,6 +74,10 @@ class Orchestrator:
         df_clustered, topics, clusters = miner.thematic_clustering()
         
         # Persistência Diamond Edition
+        print("💾 [4.5/5] Persistindo Inteligência Forense no Supabase...")
+        pm = PersistenceManager()
+        pm.update_forensic_data(df_clustered)
+        
         self.persist_daily_metrics(df_proc)
         self.persist_networks(clusters, df_proc)
         self.check_and_create_alerts(temporal_results, df_proc)
@@ -160,7 +165,7 @@ class Orchestrator:
         return output_path
 
     async def run_full_pipeline(self):
-        print(f"\n🛡️  SENTINELA DEMOCRÁTICA - PIPELINE ATUALIZAÇÃO v18.5")
+        print(f"\n🛡️  SENTINELA DEMOCRÁTICA - PIPELINE ATUALIZAÇÃO v19.2")
         print(f"📅 Data: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n" + "="*50)
         
         # 1. Scraper

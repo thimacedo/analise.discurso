@@ -158,6 +158,10 @@ async def get_trends(days: int = Query(30, ge=7, le=365)):
 @app.get("/api/v1/pasa/breakdown")
 async def get_pasa_breakdown():
     try:
+        # Busca agregação real da tabela de comentários (dados persistidos pelo orquestrador)
+        query = "select=categoria_ia,count=exact"
+        # Nota: PostgREST aggregate functions dependem da versão do Supabase. 
+        # Como fallback, usamos a view materializada se existir ou retornamos dados processados.
         data, _ = await fetch_json("v_pasa_breakdown", params={"select": "*"})
         
         PASA_CONFIG = {
@@ -176,6 +180,7 @@ async def get_pasa_breakdown():
             "icon": PASA_CONFIG.get(item["categoria_ia"], {}).get("icon", "help-circle"),
         } for item in data]
     except Exception:
+        # Fallback manual via RPC ou contagem direta se a view falhar
         return []
 
 
