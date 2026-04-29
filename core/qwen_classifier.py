@@ -111,15 +111,17 @@ def run_integrated_qwen_classification():
     print("🧠 Groq Cloud Intelligence: Iniciando Perícia PASA v16.4 (Blindagem Diamond)...")
     
     try:
-        # Busca comentários não processados
-        # Priorizamos texto_bruto para evitar falhas com texto_limpo vazio
-        url = f"{SUPABASE_URL}/rest/v1/comentarios?processado_ia=eq.false&limit=50"
+        # Lote de segurança (Capping) para desengasgar a pipeline
+        BATCH_SIZE = 100
+        url = f"{SUPABASE_URL}/rest/v1/comentarios?processado_ia=eq.false&limit={BATCH_SIZE}"
         resp = httpx.get(url, headers=HEADERS)
         comentarios = resp.json()
 
         if not comentarios:
             print("✅ Tudo processado.")
             return
+
+        print(f"📦 [IA] Processando lote de segurança: {len(comentarios)} comentários pendentes.")
 
         for c in comentarios:
             # Usar texto_bruto obrigatoriamente

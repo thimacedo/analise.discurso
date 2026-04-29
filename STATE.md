@@ -1,11 +1,14 @@
 # Estado Atual do Sistema - SENTINELA | Diamond Edition
 
-## 💎 Versão: 19.7.0 (Persistence, Stripe & Alerting Locked)
+## 💎 Versão: 19.7.2 (Dynamic Queue & Batching Locked)
 
 - **Data da última atualização:** 29/04/2026
-- **Status:** Pipeline persistida, IA calibrada, Monetização integrada e Alertas configurados.
+- **Status:** Scrapy desacoplado da IA, Fila Dinâmica ativa, Lote Seguro (Capping) operacional.
 
 ## ✅ O que está funcionando
+
+- **Fila Dinâmica (Scrapy):** O spider busca alvos diretamente do Supabase, priorizando novos perfis (last_scraped_at NULL).
+- **Lote Seguro (IA Capping):** Classificação processa apenas 100 comentários por ciclo, evitando gargalos temporais.
 
 - **API Proxy (FastAPI):** Centraliza requisições com segurança. Sem exposição de chaves no Frontend.
 - **Persistência Forense (PASA):** Orquestrador grava `is_hate`, `categoria_ia` (Float) e metadados diretamente no Supabase.
