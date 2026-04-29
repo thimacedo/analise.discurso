@@ -2,7 +2,7 @@
 
 const PAYPAL_EMAIL = 'thi.macedo@gmail.com';
 const CURRENCY = 'BRL';
-const PRECO_PLANO = 49.90;
+const PRECO_PLANO = 279.90; // Valor atualizado para R$ 279,90
 
 export async function initiatePayment(method) {
     const modalContent = document.querySelector('.modal-content');
@@ -19,7 +19,7 @@ export async function initiatePayment(method) {
         return;
     } 
     else if (method === 'paypal') {
-        // Redireciona direto para o PayPal com valor e moeda travados
+        // Redireciona direto para o PayPal com o novo valor travado
         const paypalUrl = `https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=${encodeURIComponent(PAYPAL_EMAIL)}&item_name=Sentinela Pro - ${userEmail}&amount=${PRECO_PLANO}&currency_code=${CURRENCY}&no_shipping=1`;
         
         window.open(paypalUrl, '_blank');
@@ -56,21 +56,16 @@ function renderPaypalInstructions(container, email) {
     `;
 }
 
-// Exposição global para chamadas via HTML onclick
-window.initiatePayment = initiatePayment;
-
 /*
 // ==========================================
 // CÓDIGO DO PIX GUARDADO PARA O FUTURO
 // ==========================================
-// Quando for ativar, basta descomentar isso e add o botão no HTML
-
 function renderPixModal(container, pixCode, email) {
     container.innerHTML = `
         <div style="text-align: center; padding: 10px;">
             <h2 style="color:white; font-size: 20px; margin-bottom: 10px;">Pagamento via PIX</h2>
             <p style="color: rgba(255,255,255,0.6); font-size: 13px; margin-bottom: 15px;">
-                Valor: <strong style="color:#10b981; font-size:18px;">R$ 49.90</strong>
+                Valor: <strong style="color:#10b981; font-size:18px;">R$ ${PRECO_PLANO.toFixed(2)}</strong>
             </p>
             <div style="background: white; padding: 15px; border-radius: 12px; margin: 0 auto 15px; display:inline-block;">
                 <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(pixCode)}" alt="QR Code PIX">
@@ -85,3 +80,6 @@ function renderPixModal(container, pixCode, email) {
     `;
 }
 */
+
+// Exposição global para chamadas via HTML onclick
+window.initiatePayment = initiatePayment;
