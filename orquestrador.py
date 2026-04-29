@@ -13,6 +13,7 @@ from processing.data_miner import DataMiner
 from processing.report_generator import ReportGenerator
 from core.qwen_classifier import run_integrated_qwen_classification
 from tools.persistence import PersistenceManager
+from core.discord_alerter import send_alert
 
 load_dotenv()
 
@@ -157,7 +158,26 @@ class Orchestrator:
             }
             try:
                 httpx.post(f"{SUPABASE_URL}/rest/v1/alertas_ativos", json=payload, headers=HEADERS)
+                
+                # Push Notification via Discord
+                if peak['z_score'] > 3.0:
+                    title = "🚨 Pico de Hostilidade Detectado!"
+                    msg = (
+                        f"**Data:** `{peak['data']}`\n"
+                        f"**Z-Score:** `{peak['z_score']:.2f}`\n"
+                        f"**Eventos:** {peak['event_count']}"
+                    )
+                    send_alert(title, msg, color=16711680) # Vermelho
             except Exception: pass
+
+        # Verificação de Ameaças Físicas (Push Direto)
+        if 'category' in df.columns:
+            ameacas = df[df['category'] == 'AMEACA']
+            for _, row in ameacas.iterrows():
+                title = "⚠️ Ameaça Física Detectada!"
+                autor = row.get('owner_username') or row.get('autor_username') or 'desconhecido'
+                msg = f"**Alvo:** `{row.get('candidato_username', 'N/A')}`\n**Autor:** @{autor}\n**Texto:** {row['text'][:200]}..."
+                send_alert(title, msg, color=16753920) # Laranja
 
     def generate_final_report(self, df_final):
         print("📄 [5/5] Gerando Dossiê PDF Final...")

@@ -14,6 +14,7 @@
 - **Autenticação Real (Locked):** Fluxo de Login/Signup via Supabase Auth totalmente integrado aos créditos.
 - **Integridade de Dados (Locked):** Pipeline Scrapy -> Supabase agora envia payload completo (timestamp e engajamento).
 - **Automação (v19.6.1):** Pipeline GitHub Actions corrigida (requirements, segredos e caminhos de assets). Geração de CSV para API integrada ao orquestrador.
+- **Alertas (Push):** Integração com Discord Webhooks concluída. Notificações automáticas para picos críticos de hostilidade (Z-Score > 3.0) e ameaças físicas diretas.
 
 ## 🚫 Abordagens Descartadas
 
