@@ -24,13 +24,18 @@ class TargetManager:
                 .select('username') \
                 .gte('last_scraped_at', cutoff_time) \
                 .execute()
-                
+            
+            # Se chegamos aqui, a coluna existe
             self.recently_scraped = {item['username'] for item in response.data}
             print(f"📊 [TargetManager] {len(self.recently_scraped)} perfis já atualizados nas últimas {self.threshold}h. Serão ignorados.")
-
             
         except Exception as e:
-            print(f"⚠️ [TargetManager] Erro ao buscar perfis recentes: {e}")
+            # Se a coluna não existe, apenas avisamos e não filtramos
+            if "column" in str(e) and "does not exist" in str(e):
+                print(f"⚠️ [TargetManager] Coluna 'last_scraped_at' não encontrada. Filtro desativado até a migração SQL.")
+            else:
+                print(f"⚠️ [TargetManager] Erro ao buscar perfis recentes: {e}")
+            self.recently_scraped = set()
 
     def filter_targets(self, target_list):
         """

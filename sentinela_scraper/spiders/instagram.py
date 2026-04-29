@@ -40,6 +40,11 @@ class InstagramSpider(scrapy.Spider):
             # 1. Busca perfis que AINDA NÃO foram raspados (prioridade total)
             url = f"{self.supabase_url}/rest/v1/candidatos?select=username&last_scraped_at=is.null&limit=15"
             resp = httpx.get(url, headers=self.headers_supa)
+            
+            if resp.status_code != 200 and "column" in resp.text:
+                print("⚠️ [Scrapy] Coluna 'last_scraped_at' não encontrada. Usando alvos estáticos como fallback.")
+                return ["lulaoficial", "flaviobolsonaro", "nikolasferreirainfo", "erikahiltonoficial"]
+
             targets = [item['username'] for item in resp.json()]
             
             # 2. Fallback: Se todos já foram raspados uma vez, busca os mais antigos (> 48h)
