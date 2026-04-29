@@ -13,7 +13,7 @@ from api.common import (
     sanitize_username,
 )
 
-app = FastAPI(title="Sentinela API", version="19.1.1")
+app = FastAPI(title="Sentinela API", version="19.6.1")
 
 allow_origins = safe_origin_list()
 app.add_middleware(
