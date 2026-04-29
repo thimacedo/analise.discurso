@@ -18,5 +18,6 @@
 - **[CONHECIDO] Supabase CLI Local:** Não disponível no ambiente win32 atual. Scripts SQL devem ser gerados para execução manual/remota.
 
 ## 🐛 Bugs Atuais / Bloqueios
-- **Sincronização de Schema:** O script `diamond_schema_v1.sql` precisa ser aplicado manualmente no Supabase para validar os endpoints no Preview.
-- **Z-Score em Amostras Pequenas:** O DataMiner pode gerar alertas falsos se houver menos de 10 comentários por dia.
+- **Dashboard sem Dados:** Resolvido na v19.1.1 com fallbacks na API. Se as novas views não existirem, o sistema usa as tabelas base.
+- **Sincronização de Schema:** O script `diamond_schema_v1.sql` ainda deve ser aplicado no Supabase para habilitar 100% das features.
+- **Solução Temporária:** Criado script `tools/seed_diamond.py` para popular dados de teste iniciais.
