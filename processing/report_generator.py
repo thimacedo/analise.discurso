@@ -35,7 +35,6 @@ class ReportGenerator(FPDF):
 
     def footer(self):
         self.set_y(-15)
-        # Removido 'I' (Itálico) para evitar erro de fonte não carregada
         self.set_font(self.font_family_main, '', 8)
         self.set_text_color(128, 128, 128)
         self.cell(0, 10, f'Página {self.page_no()} | Gerado em {datetime.now().strftime("%d/%m/%Y %H:%M")}', align='C')
@@ -61,9 +60,16 @@ class ReportGenerator(FPDF):
         self.set_text_color(50, 50, 50)
         self.multi_cell(0, 5, f"Conteúdo: {texto}")
 
-        is_hate = item.get('is_hate_speech', False)
-        status = "AGRESSIVO / DISCURSO DE ÓDIO" if is_hate else "NEUTRO / MONITORADO"
-        cor = (220, 38, 38) if is_hate else (37, 99, 235)
+        # LÓGICA PASA BASEADA NA IA (Diamond v19.2.8)
+        is_hate = bool(item.get('is_hate_speech') or item.get('is_hate', False))
+        categoria = item.get('category') or item.get('categoria_ia') or 'NEUTRO'
+        
+        if is_hate:
+            status = f"HOSTIL / {categoria.upper()}"
+            cor = (220, 38, 38) # Vermelho
+        else:
+            status = "NEUTRO / NÃO HOSTIL"
+            cor = (37, 99, 235) # Azul
         
         self.set_font(self.font_family_main, 'B', 8)
         self.set_text_color(*cor)
@@ -81,10 +87,10 @@ class ReportGenerator(FPDF):
         self.multi_cell(0, 8, self.clean_text(f"Análise situacional contendo {len(df_final)} interações mapeadas."))
         self.ln(5)
 
-        # Filtra apenas o que for relevante para o relatório
+        # Prioriza ódio para o relatório, mas mantém fallback se vazio
         df_report = df_final[df_final['is_hate_speech'] == True].head(50)
         if df_report.empty:
-            df_report = df_final.head(10) # Fallback
+            df_report = df_final.head(10)
 
         for _, row in df_report.iterrows():
             self.render_item(row.to_dict())

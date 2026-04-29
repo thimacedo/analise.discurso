@@ -1,15 +1,16 @@
 # Estado Atual do Sistema - SENTINELA | Diamond Edition
 
-## 💎 Versão: 19.5.0 (Auth Integration Started)
+## 💎 Versão: 19.5.0 (IA Precision & Auth Started)
 - **Data da última atualização:** 29/04/2026
-- **Status:** Persistência forense validada e operacional. Metadados (@Autor e Post) preservados em todo o pipeline.
+- **Status:** Motor de IA recalibrado com Blindagem PASA v16.4. Persistência de confiança calibrada (Float) operacional.
 
 ## ✅ O que está funcionando
-- **Persistência Forense (Locked):** Resultados PASA (`is_hate`, `categoria_ia`) gravados e lidos com sucesso do Supabase.
-- **Mapeamento de Metadados:** Colunas `owner_username` e `post_shortcode` normalizadas entre Worker e DB.
-- **API Proxy (FastAPI):** Endpoints otimizados consumindo inteligência persistida.
-- **Pipeline (Orquestrador):** Fluxo de leitura-escrita completo (v19.2.7).
-- **Checkout Manual:** Fluxo PayPal (R$ 279,90) funcional com instruções.
+- **Inteligência IA (Locked):** Motor Groq recalibrado. Blindagem contra falsos positivos ativa. Confiança e Categorias EXATAS.
+- **Persistência Forense (Locked):** Resultados PASA (`is_hate`, `categoria_ia`, `confianza_ia`) gravados e lidos com sucesso como Float.
+- **Mapeamento de Metadados:** Colunas `owner_username` e `post_shortcode` normalizadas.
+- **API Proxy (FastAPI):** Endpoints otimizados.
+- **Pipeline (Orquestrador):** Fluxo de leitura-escrita completo (v19.2.8).
+- **Checkout Manual:** Fluxo PayPal (R$ 279,90) funcional.
 
 ## 🚫 Abordagens Descartadas
 - **[DESCARTADO] Classificação PASA em tempo real no Dashboard:** Inviável.

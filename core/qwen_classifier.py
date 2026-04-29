@@ -18,30 +18,62 @@ HEADERS = {
 # CONFIGURAÇÃO GROQ (CLOUD FALLBACK)
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
+# 1. Prompt RÍGIDO com categorias exatas (PASA v16.4)
 SYSTEM_PROMPT_PASA = """
-Você é um analista forense do sistema Sentinela Democrática. Sua tarefa é classificar comentários de redes sociais segundo o Protocolo PASA v16.4.
+Você é um analista forense do sistema Sentinela Democrática. Classifique o texto segundo o Protocolo PASA v16.4.
 
-CATEGORIAS DE HOSTILIDADE:
-- ODIO_IDENTITARIO: Ataques baseados em raça, religião, orientação sexual, misoginia ou XENOFOBIA/REGIONALISMO (ex: sotaque, preguiça regional).
-- VIOLENCIA_GENERO: Ofensas focadas na condição feminina.
-- AMEACA: Incitação a dano físico ou morte.
-- INSULTO_AD_HOMINEM: Desumanização e baixo calão (ex: lixo, verme, rato, escória).
-- ATAQUE_INSTITUCIONAL: Deslegitimação de órgãos de Estado (ex: ditadura da toga, STF comprado).
-- RIGOR_CRIMINAL: Imputação de crime sem prova (ex: ladrão, corrupto, bandido).
+CATEGORIAS EXATAS (Não invente outras):
+- NEUTRO (Críticas políticas, protestos, apoios agressivos, debates ideológicos NÃO são ódio).
+- ODIO_IDENTITARIO (Xenofobia, racismo, regionalismo pejorativo).
+- VIOLENCIA_GENERO (Misoginia, ofensas à condição feminina).
+- AMEACA (Incitação a dano físico ou morte).
+- INSULTO_AD_HOMINEM (Desumanização: lixo, rato, verme, escória).
+- ATAQUE_INSTITUCIONAL (Deslegitimação de órgãos como STF/TSE).
+- RIGOR_CRIMINAL (Imputação de crime sem prova: ladrão, corrupto, bandido).
 
-⚠️ BLINDAGEM CONTRA FALSOS POSITIVOS (CRÍTICO):
-- CRÍTICA POLÍTICA ou INSATISFAÇÃO com gestão pública NÃO são ódio. Classifique como NEUTRO.
-- PROTESTOS como "Fora Fulano" ou "Fora Governo X" são liberdade de expressão. Classifique como NEUTRO.
-- TERMOS DE BAIXO CALÃO ou GÍRIAS em contexto de exaltação (ex: "porra", "o brabo") são NEUTRO.
-- DEFESA DE MANDATO NÃO é ataque institucional.
+⚠️ CUIDADO: Cartas abertas, posicionamentos políticos e reclamações de gestão devem ser classificados como NEUTRO.
 
-Responda APENAS com um JSON no formato: {"is_hate": true/false, "category": "CATEGORIA_AQUI", "confianca": 0.9, "justificativa": "breve motivo"}
-Se não houver hostilidade forense, use: {"is_hate": false, "category": "NEUTRO", "confianca": 1.0, "justificativa": "critica politica legitima"}
+REGRAS DE SAÍDA:
+1. Analise o texto rigorosamente pela Seção 5 (Blindagem de Falsos Positivos).
+2. Responda APENAS com um JSON válido. Nada de texto antes ou depois.
+3. Formato EXATO: {"categoria": "CATEGORIA_AQUI", "confianza": 0.95, "is_hate": true/false, "justificativa": "breve motivo"}
 """
+
+def parse_pasa_response(response_text):
+    """Parser robusto para garantir tipos e evitar alucinações."""
+    try:
+        # Limpa marcadores de markdown caso a IA insista em colocá-los
+        clean_text = response_text.strip().replace('```json', '').replace('```', '')
+        result = json.loads(clean_text)
+        
+        # Força a categoria exata e garante que confianza é float
+        categoria = str(result.get("categoria") or result.get("category") or "FALHA_IA").upper().strip()
+        # Tratamento de erro de digitação comum da IA
+        if categoria == "ODEIO_IDENTITARIO": categoria = "ODIO_IDENTITARIO"
+        
+        confianza = float(result.get("confianza") or result.get("confianca") or 0.0)
+        is_hate = bool(result.get("is_hate", False))
+        
+        # Proteção contra alucinação de categoria
+        categorias_validas = ["NEUTRO", "ODIO_IDENTITARIO", "VIOLENCIA_GENERO", "AMEACA", "INSULTO_AD_HOMINEM", "ATAQUE_INSTITUCIONAL", "RIGOR_CRIMINAL"]
+        
+        if categoria not in categorias_validas:
+            categoria = "FALHA_IA"
+            confianza = 0.0
+            is_hate = False
+            
+        return {"is_hate": is_hate, "category": categoria, "confianca": confianza, "justificativa": result.get("justificativa", "")}
+        
+    except Exception as e:
+        print(f"⚠️ Erro Parser: {e}")
+        return {"is_hate": False, "category": "FALHA_IA", "confianca": 0.0}
 
 def classify_text_groq(text):
     if not GROQ_API_KEY:
-        return {"is_hate": False, "category": "ERRO_CONFIG"}
+        return {"is_hate": False, "category": "ERRO_CONFIG", "confianca": 0.0}
+    
+    if not text or not text.strip():
+        return {"is_hate": False, "category": "NEUTRO", "confianca": 1.0}
     
     url = "https://api.groq.com/openai/v1/chat/completions"
     headers = {
@@ -58,19 +90,23 @@ def classify_text_groq(text):
             ],
             "response_format": {"type": "json_object"}
         }
-        resp = httpx.post(url, headers=headers, json=payload, timeout=20.0)
+        resp = httpx.post(url, headers=headers, json=payload, timeout=25.0)
         if resp.status_code == 200:
-            return json.loads(resp.json()['choices'][0]['message']['content'])
+            content = resp.json()['choices'][0]['message']['content']
+            return parse_pasa_response(content)
+        else:
+            print(f"⚠️ Erro API Groq ({resp.status_code}): {resp.text}")
     except Exception as e:
-        print(f"⚠️ Erro Groq: {e}")
+        print(f"⚠️ Exceção Groq: {e}")
     
-    return {"is_hate": False, "category": "FALHA_IA"}
+    return {"is_hate": False, "category": "FALHA_IA", "confianca": 0.0}
 
 def run_integrated_qwen_classification():
-    print("🧠 Groq Cloud Intelligence: Iniciando Perícia PASA v16.4 (Blindada)...")
+    print("🧠 Groq Cloud Intelligence: Iniciando Perícia PASA v16.4 (Blindagem Diamond)...")
     
     try:
         # Busca comentários não processados
+        # Priorizamos texto_bruto para evitar falhas com texto_limpo vazio
         url = f"{SUPABASE_URL}/rest/v1/comentarios?processado_ia=eq.false&limit=50"
         resp = httpx.get(url, headers=HEADERS)
         comentarios = resp.json()
@@ -80,6 +116,7 @@ def run_integrated_qwen_classification():
             return
 
         for c in comentarios:
+            # Usar texto_bruto obrigatoriamente
             text = c.get('texto_bruto', '')
             result = classify_text_groq(text)
             
@@ -87,16 +124,18 @@ def run_integrated_qwen_classification():
             update_url = f"{SUPABASE_URL}/rest/v1/comentarios?id=eq.{c['id']}"
             patch_data = {
                 "is_hate": result.get('is_hate', False),
-                "categoria_ia": result.get('category') or result.get('categoria') or 'NEUTRO',
+                "categoria_ia": result.get('category', 'NEUTRO'),
+                "confianza_ia": float(result.get('confianca', 0.0)),
                 "processado_ia": True
             }
+            
             httpx.patch(update_url, headers=HEADERS, json=patch_data)
             
             status_icon = "🔥" if patch_data["is_hate"] else "✅"
-            print(f"   {status_icon} @{c.get('autor_username')}: [{patch_data['categoria_ia']}]")
+            print(f"   {status_icon} @{c.get('autor_username')}: [{patch_data['categoria_ia']}] conf:{patch_data['confianza_ia']}")
 
     except Exception as e:
-        print(f"❌ Erro: {e}")
+        print(f"❌ Erro Crítico: {e}")
 
 if __name__ == "__main__":
     run_integrated_qwen_classification()

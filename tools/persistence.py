@@ -21,23 +21,22 @@ class PersistenceManager:
     def update_forensic_data(self, df: pd.DataFrame):
         """
         Persiste os dados do PASA e Clusters no Supabase.
-        Garante que metadados (autor, post) e inteligência IA sejam salvos.
+        Foca apenas em colunas de inteligência para não conflitar com constraints de UUID.
         """
         if not self.supabase:
             print("⚠️ [Persistence] Sem conexão com banco. Dados não persistidos.")
             return
 
         # Mapeamento de colunas do DataFrame para o Schema do Supabase (comentarios)
-        # DF Col: 'id', 'owner_username', 'post_shortcode', 'is_hate_speech', 'category', 'confianca', 'cluster'
-        # DB Col: 'id', 'autor_username', 'post_id',         'is_hate',         'categoria_ia', 'confianza_ia', 'cluster_id'
+        # DF Col: 'id', 'is_hate_speech', 'category', 'confianca', 'cluster'
+        # DB Col: 'id', 'is_hate',         'categoria_ia', 'confianza_ia', 'cluster_id'
         
         mapping = {
-            'owner_username': 'autor_username',
-            'post_shortcode': 'post_id',
             'is_hate_speech': 'is_hate',
             'category': 'categoria_ia',
             'categoria_ia': 'categoria_ia', # Fallback
             'confianca': 'confianza_ia',
+            'confianza_ia': 'confianza_ia', # Fallback
             'cluster': 'cluster_id'
         }
 
@@ -49,8 +48,8 @@ class PersistenceManager:
             if df_col in df_update.columns and df_col != db_col:
                 df_update[db_col] = df_update[df_col]
 
-        # Colunas finais para o payload do banco
-        db_columns = ['id', 'autor_username', 'post_id', 'is_hate', 'categoria_ia', 'confianza_ia', 'processado_ia']
+        # Colunas finais para o payload do banco (Removido autor_username/user_id para evitar erros de tipo)
+        db_columns = ['id', 'is_hate', 'categoria_ia', 'confianza_ia', 'processado_ia']
         
         for _, row in df_update.iterrows():
             comment_id = row.get('id')
@@ -63,6 +62,9 @@ class PersistenceManager:
                     val = row[col]
                     # Remove NaNs e nulos para o Postgres
                     if pd.notna(val):
+                        # Garante tipos corretos
+                        if col == 'is_hate': val = bool(val)
+                        if col == 'confianza_ia': val = float(val)
                         payload[col] = val
 
             # Não tentar atualizar se só tiver processado_ia
