@@ -19,7 +19,14 @@ import json
 
 load_dotenv()
 
-# ... (configurações Supabase omitidas para brevidade na instrução, mas mantidas no arquivo)
+# Configurações Supabase (Direct API Access)
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+HEADERS = {
+    "apikey": SUPABASE_KEY,
+    "Authorization": f"Bearer {SUPABASE_KEY}",
+    "Content-Type": "application/json"
+}
 
 class Orchestrator:
     def __init__(self):

@@ -1,8 +1,10 @@
 import os
 import httpx
 import json
+import time
 from datetime import datetime
 from dotenv import load_dotenv
+from core.ollama_classifier import classify_pasa_ollama
 
 load_dotenv()
 
@@ -38,6 +40,11 @@ REGRAS DE SAÍDA:
 2. Responda APENAS com um JSON válido. Nada de texto antes ou depois.
 3. Formato EXATO: {"categoria": "CATEGORIA_AQUI", "confianza": 0.95, "is_hate": true/false, "justificativa": "breve motivo"}
 """
+
+# Estado global para fallback
+consecutive_failures = 0
+MAX_FAILURES_BEFORE_SWITCH = 3
+current_engine = "groq"
 
 def parse_pasa_response(response_text):
     """Parser robusto para garantir tipos e evitar alucinações."""
@@ -107,8 +114,29 @@ def classify_text_groq(text):
     
     return {"is_hate": False, "category": "FALHA_IA", "confianca": 0.0}
 
+def classify_with_smart_fallback(text: str):
+    global consecutive_failures, current_engine
+    
+    if current_engine == "ollama":
+        return classify_pasa_ollama(text)
+    
+    # Tenta Groq (Primário)
+    result = classify_text_groq(text)
+    
+    if result.get("category") == "FALHA_IA":
+        consecutive_failures += 1
+    else:
+        consecutive_failures = 0 # Reseta se der certo
+        
+    if consecutive_failures >= MAX_FAILURES_BEFORE_SWITCH:
+        print("🔄 [Fallback Dinâmico] Groq instável ou com Rate Limit. Alternando para Ollama Local...")
+        current_engine = "ollama"
+        return classify_pasa_ollama(text)
+        
+    return result
+
 def run_integrated_qwen_classification():
-    print("🧠 Groq Cloud Intelligence: Iniciando Perícia PASA v16.4 (Blindagem Diamond)...")
+    print(f"🧠 Intelligence Engine: Iniciando Perícia PASA v16.4 (Motor: {current_engine})...")
     
     try:
         # Lote de segurança (Capping) para desengasgar a pipeline
@@ -126,7 +154,7 @@ def run_integrated_qwen_classification():
         for c in comentarios:
             # Usar texto_bruto obrigatoriamente
             text = c.get('texto_bruto', '')
-            result = classify_text_groq(text)
+            result = classify_with_smart_fallback(text)
             
             # Atualiza no Supabase
             update_url = f"{SUPABASE_URL}/rest/v1/comentarios?id=eq.{c['id']}"
@@ -140,10 +168,11 @@ def run_integrated_qwen_classification():
             httpx.patch(update_url, headers=HEADERS, json=patch_data)
             
             status_icon = "🔥" if patch_data["is_hate"] else "✅"
-            print(f"   {status_icon} @{c.get('autor_username')}: [{patch_data['categoria_ia']}] conf:{patch_data['confianza_ia']}")
+            engine_tag = "[Ollama]" if current_engine == "ollama" else "[Groq]"
+            print(f"   {status_icon} {engine_tag} @{c.get('autor_username')}: {patch_data['categoria_ia']}")
 
     except Exception as e:
-        print(f"❌ Erro Crítico: {e}")
+        print(f"❌ Erro Crítico na Classificação: {e}")
 
 if __name__ == "__main__":
     run_integrated_qwen_classification()
