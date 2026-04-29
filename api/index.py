@@ -386,3 +386,75 @@ async def update_target(
         prefer="return=representation",
     )
     return {"status": "updated", "username": clean_username}
+
+# ==========================================
+# MÓDULO DE PAGAMENTO: STRIPE (v19.6.0)
+# ==========================================
+import stripe
+import os
+from fastapi import Request, Header
+
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://sentinela-democratica.vercel.app")
+
+PACKAGE_CONFIG = {
+    "stn_starter": {"tokens": 1, "amount": 24900},
+    "stn_squad":   {"tokens": 4, "amount": 59700},
+    "stn_warroom": {"tokens": 15, "amount": 149700},
+}
+
+@app.post("/api/v1/checkout/create-session")
+async def create_checkout_session(payload: dict = Body(...)):
+    user_id = payload.get("user_id")
+    package_slug = payload.get("package_slug")
+    
+    if package_slug not in PACKAGE_CONFIG:
+        raise HTTPException(status_code=400, detail="Pacote invalido")
+
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card', 'pix'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'brl',
+                    'product_data': {'name': f'Munição Forense STN - {package_slug}'},
+                    'unit_amount': PACKAGE_CONFIG[package_slug]['amount'],
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=f"{FRONTEND_URL}/#monitor?session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{FRONTEND_URL}/pricing.html",
+            metadata={"user_id": user_id, "package_slug": package_slug}
+        )
+        return {"url": session.url}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v1/webhooks/stripe")
+async def stripe_webhook(request: Request, stripe_signature: str = Header(None)):
+    payload = await request.body()
+    try:
+        event = stripe.Webhook.construct_event(payload, stripe_signature, STRIPE_WEBHOOK_SECRET)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Webhook Error: {str(e)}")
+
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        user_id = session['metadata']['user_id']
+        pkg = session['metadata']['package_slug']
+        
+        # Dispara crédito atômico no Supabase
+        await fetch_json(
+            "rpc/process_stn_transaction",
+            method="POST",
+            json={
+                "p_user_id": user_id,
+                "p_amount": PACKAGE_CONFIG[pkg]['tokens'],
+                "p_type": "PURCHASE",
+                "p_session_id": session['id']
+            }
+        )
+    return {"status": "success"}
+
