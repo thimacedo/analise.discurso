@@ -1,6 +1,6 @@
 # Estado Atual do Sistema - SENTINELA | Diamond Edition
 
-## 💎 Versão: 19.6.0 (Munição Forense)
+## 💎 Versão: 19.6.1 (Munição Forense)
 
 - **Data da última atualização:** 29/04/2026
 - **Status:** Sistema de Créditos de Inteligência (Tokens STN) operacional. Integração Stripe (Checkout/Webhook) concluída e funcional.
