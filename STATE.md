@@ -1,20 +1,17 @@
 # Estado Atual do Sistema - SENTINELA | Diamond Edition
 
-## 💎 Versão: 19.6.1 (Munição Forense)
+## 💎 Versão: 19.7.0 (Munição Forense - Push Multi-Channel)
 
 - **Data da última atualização:** 29/04/2026
-- **Status:** Sistema de Créditos de Inteligência (Tokens STN) operacional. Integração Stripe (Checkout/Webhook) concluída e funcional.
+- **Status:** Sistema de Créditos de Inteligência (Tokens STN) operacional. Integração Stripe concluída. Notificações Push dual (Discord + WhatsApp) ativas.
 
 ## ✅ O que está funcionando
 
 - **Munição Forense (STN):** Sistema de créditos para ações forenses profundas. Saldo persistente no Supabase.
-- **Integração Stripe (Locked):** Geração de sessões de checkout e processamento de webhooks para compra de tokens (Starter, Squad, War Room).
+- **Integração Stripe (Locked):** Geração de sessões de checkout e processamento de webhooks para compra de tokens.
 - **Consumo Atômico:** RPC `process_stn_transaction` garante integridade de saldo e histórico de auditoria.
-- **Interface Gamificada:** Contador de tokens no header e gating de "Gerar Dossiê" nos cards.
-- **Autenticação Real (Locked):** Fluxo de Login/Signup via Supabase Auth totalmente integrado aos créditos.
-- **Integridade de Dados (Locked):** Pipeline Scrapy -> Supabase agora envia payload completo (timestamp e engajamento).
-- **Automação (v19.6.1):** Pipeline GitHub Actions corrigida (requirements, segredos e caminhos de assets). Geração de CSV para API integrada ao orquestrador.
-- **Alertas (Push):** Integração com Discord Webhooks concluída. Notificações automáticas para picos críticos de hostilidade (Z-Score > 3.0) e ameaças físicas diretas.
+- **Automação (v19.6.1):** Pipeline GitHub Actions corrigida e geração de CSV integrada.
+- **Alertas (Push v19.7.0):** Notificações em tempo real via **Discord** e **WhatsApp** (CallMeBot) para picos críticos de ódio e ameaças físicas.
 
 ## 🚫 Abordagens Descartadas
 

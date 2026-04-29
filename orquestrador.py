@@ -14,6 +14,7 @@ from processing.report_generator import ReportGenerator
 from core.qwen_classifier import run_integrated_qwen_classification
 from tools.persistence import PersistenceManager
 from core.discord_alerter import send_alert
+from core.whatsapp_alerter import send_whatsapp_alert
 
 load_dotenv()
 
@@ -168,6 +169,7 @@ class Orchestrator:
                         f"**Eventos:** {peak['event_count']}"
                     )
                     send_alert(title, msg, color=16711680) # Vermelho
+                    send_whatsapp_alert(f"🛡️ *SENTINELA* 🛡️\n\n{title}\n\n{msg}")
             except Exception: pass
 
         # Verificação de Ameaças Físicas (Push Direto)
@@ -178,6 +180,7 @@ class Orchestrator:
                 autor = row.get('owner_username') or row.get('autor_username') or 'desconhecido'
                 msg = f"**Alvo:** `{row.get('candidato_username', 'N/A')}`\n**Autor:** @{autor}\n**Texto:** {row['text'][:200]}..."
                 send_alert(title, msg, color=16753920) # Laranja
+                send_whatsapp_alert(f"🛡️ *SENTINELA* 🛡️\n\n{title}\n\n{msg}")
 
     def generate_final_report(self, df_final):
         print("📄 [5/5] Gerando Dossiê PDF Final...")
