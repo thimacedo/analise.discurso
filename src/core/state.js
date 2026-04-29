@@ -2,10 +2,16 @@ export const state = {
     view: 'monitor',
     data: [],
     alertas: [],
+    networks: [],
     stats: {
         total: 0,
-        hate: 0
+        hate: 0,
+        resiliencia: 100.0
     },
+    summary: null,
+    trends: [],
+    pasa: [],
+    geo: [],
     selectedUF: null,
     selectedAlvo: null,
     dossieGrouping: 'agressoes',

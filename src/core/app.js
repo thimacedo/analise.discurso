@@ -20,6 +20,7 @@ async function init() {
     renderAll();
 
     await refreshData();
+    // Atualiza a cada 60 segundos
     setInterval(refreshData, window.SENTINELA_CONFIG?.refreshInterval || 60000);
 
     if (window.lucide) lucide.createIcons();
@@ -51,12 +52,24 @@ async function refreshData() {
         };
         
         // Carregar alvos para triagem/dossie
-        state.data = await dataService.getTargets();
-        state.alertas = await dataService.getAlerts(20);
+        const [targets, alerts, networks] = await Promise.all([
+            dataService.getTargets(),
+            dataService.getAlerts(20),
+            dataService.getNetworks()
+        ]);
+
+        state.data = targets;
+        state.alertas = alerts;
+        state.networks = networks;
 
         state.lastSyncAt = new Date().toISOString();
         state.loading = false;
         state.error = null;
+        
+        // Atualiza texto de sincronização na UI
+        const syncEl = document.getElementById('status-sync');
+        if (syncEl) syncEl.innerText = `Sincronizado: ${new Date().toLocaleTimeString('pt-BR')}`;
+
     } catch (e) {
         state.error = 'Não foi possível carregar os dados de inteligência.';
         state.loading = false;
@@ -66,11 +79,7 @@ async function refreshData() {
     renderAll();
 }
 
-window.debouncedRender = renderAll;
-window.forceRefresh = refreshData;
-
-document.addEventListener('DOMContentLoaded', init);
-
+// Global exposure for UI interactions
 window.debouncedRender = renderAll;
 window.forceRefresh = refreshData;
 
