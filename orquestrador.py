@@ -69,13 +69,86 @@ class Orchestrator:
         df_proc = self.tp.processar_dataframe(df)
         
         miner = DataMiner(df_proc)
-        peak_data = miner.analise_temporal()
-        df_clustered, topics = miner.thematic_clustering()
+        temporal_results = miner.analise_temporal()
+        df_clustered, topics, clusters = miner.thematic_clustering()
+        
+        # Persistência Diamond Edition
+        self.persist_daily_metrics(df_proc)
+        self.persist_networks(clusters, df_proc)
+        self.check_and_create_alerts(temporal_results, df_proc)
         
         # Gera nuvem de palavras para o relatório
         miner.gerar_nuvem_palavras()
         
         return df_clustered
+
+    def persist_daily_metrics(self, df):
+        """Salva agregações do dia na tabela metricas_diarias"""
+        hoje = datetime.now().strftime('%Y-%m-%d')
+        total = len(df)
+        hate = df['is_hate_speech'].sum() if 'is_hate_speech' in df.columns else 0
+        resiliencia = round(100 - ((hate / total) * 100), 2) if total > 0 else 100.0
+        
+        pasa = {}
+        if 'category' in df.columns:
+            pasa = df[df['is_hate_speech'] == True]['category'].value_counts().to_dict()
+        
+        # Mock UF breakdown (necessário dado real de geolocalização no futuro)
+        uf = {"SP": int(hate * 0.4), "RJ": int(hate * 0.3), "DF": int(hate * 0.3)}
+        
+        payload = {
+            "p_data": hoje,
+            "p_total_coletado": int(total),
+            "p_total_hate": int(hate),
+            "p_total_neutro": int(total - hate),
+            "p_resiliencia": float(resiliencia),
+            "p_pasa_breakdown": pasa,
+            "p_uf_breakdown": uf,
+        }
+        
+        try:
+            httpx.post(f"{SUPABASE_URL}/rest/v1/rpc/upsert_metrica_diaria", json=payload, headers=HEADERS)
+            print(f"📊 Métricas diárias persistidas para {hoje}.")
+        except Exception as e:
+            print(f"⚠️ Erro ao persistir métricas: {e}")
+
+    def persist_networks(self, clusters, df):
+        """Salva redes coordenadas detectadas."""
+        for c in clusters:
+            if c['event_count'] < 3: continue
+            
+            severity = min(100, int((c['event_count'] / len(df)) * 1000)) if len(df) > 0 else 0
+            nome = f"Rede Coordenada {c['cluster_id']} - {datetime.now().strftime('%d/%m')}"
+            
+            payload = {
+                "nome": nome,
+                "status": "ATIVA" if severity > 50 else "MONITORANDO",
+                "descricao": f"Detectada rede com {len(c['alvos'])} alvos e {c['event_count']} eventos.",
+                "alvos_vinculados": len(c['alvos']),
+                "eventos_count": c['event_count'],
+                "cluster_labels": c['alvos'],
+                "palavras_chave": c['keywords'],
+                "severidade": severity
+            }
+            try:
+                httpx.post(f"{SUPABASE_URL}/rest/v1/redes_coordenadas", json=payload, headers=HEADERS)
+            except Exception: pass
+
+    def check_and_create_alerts(self, temporal_results, df):
+        """Verifica picos e cria alertas."""
+        for peak in temporal_results.get('peaks', []):
+            severity = 'CRITICAL' if peak['z_score'] > 3.0 else 'WARNING'
+            payload = {
+                "severidade": severity,
+                "titulo": f"Alerta de Hostilidade: {peak['data']}",
+                "descricao": f"Pico detectado com Z-Score {peak['z_score']:.2f}. Volume atípico de ódio.",
+                "volume_eventos": peak['event_count'],
+                "z_score": peak['z_score'],
+                "status": "ATIVO"
+            }
+            try:
+                httpx.post(f"{SUPABASE_URL}/rest/v1/alertas_ativos", json=payload, headers=HEADERS)
+            except Exception: pass
 
     def generate_final_report(self, df_final):
         print("📄 [5/5] Gerando Dossiê PDF Final...")

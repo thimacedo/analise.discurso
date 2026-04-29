@@ -8,6 +8,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="/src/styles/main.css?v=17.2.0">
+    <script>
+        window.SENTINELA_CONFIG = {
+            apiUrl: '/api/v1',
+            refreshInterval: 60000
+        };
+        // Mock do usuário logado (Plano Pro habilitado por padrão em dev)
+        window.SENTINELA_USER = {
+            plan: 'pro'
+        };
+    </script>
 </head>
 <body class="custom-scrollbar">
     <aside>
@@ -62,6 +72,23 @@
 
         <section id="view-monitor" class="view-content" style="display: flex;">
             <div class="monitor-grid">
+                <div class="monitor-side" style="display: flex; flex-direction: column; gap: 16px;">
+                    <div class="glass-card section-card">
+                        <div class="section-heading">
+                            <div><span class="eyebrow">Linha do Tempo</span><h3>Evidências de Ataque</h3></div>
+                            <span class="section-hint">Monitoramento em tempo real dos sinais de hostilidade.</span>
+                        </div>
+                        <div id="feed-alertas" class="stack-list" style="max-height: 800px; overflow-y: auto;"></div>
+                    </div>
+
+                    <div class="glass-card section-card">
+                        <div class="section-heading">
+                            <div><span class="eyebrow">Insights Rápidos</span></div>
+                        </div>
+                        <div id="monitor-insights" class="insight-grid"></div>
+                    </div>
+                </div>
+
                 <div class="glass-card section-card">
                     <div class="section-heading">
                         <div>
@@ -71,22 +98,6 @@
                         <span class="section-hint">Selecione o alvo para isolar as evidências.</span>
                     </div>
                     <div id="chartMain" class="stack-list"></div>
-                </div>
-
-                <div class="monitor-side">
-                    <div class="glass-card section-card">
-                        <div class="section-heading">
-                            <div><span class="eyebrow">Insights</span></div>
-                        </div>
-                        <div id="monitor-insights" class="insight-grid"></div>
-                    </div>
-
-                    <div class="glass-card section-card">
-                        <div class="section-heading">
-                            <div><span class="eyebrow">Linha do Tempo</span><h3>Evidências de Ataque</h3></div>
-                        </div>
-                        <div id="feed-alertas" class="stack-list"></div>
-                    </div>
                 </div>
             </div>
         </section>

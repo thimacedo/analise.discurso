@@ -29,7 +29,7 @@ class DataMiner:
         return Counter(all_grams_str).most_common(top_k)
 
     def analise_temporal(self):
-        if 'timestamp' not in self.df.columns: return None
+        if 'timestamp' not in self.df.columns: return {"peaks": []}
         # Converte timestamp Unix para DateTime
         self.df['date'] = pd.to_datetime(self.df['timestamp'], unit='s').dt.date
         daily = self.df.groupby('date').agg(
@@ -39,16 +39,27 @@ class DataMiner:
         daily['hate_rate'] = (daily['hate_count'] / daily['total'] * 100).fillna(0)
         
         # Detecta picos estatísticos (Z-Score > 2)
+        peaks = []
         if len(daily) > 2:
-            daily['is_peak'] = (daily['hate_rate'] - daily['hate_rate'].mean()) > (2 * daily['hate_rate'].std())
-        return daily
+            daily['z_score'] = (daily['hate_rate'] - daily['hate_rate'].mean()) / daily['hate_rate'].std()
+            daily['is_peak'] = daily['z_score'] > 2
+            
+            for date, row in daily[daily['is_peak']].iterrows():
+                peaks.append({
+                    "data": date.isoformat(),
+                    "event_count": int(row['hate_count']),
+                    "total_count": int(row['total']),
+                    "z_score": float(row['z_score']),
+                    "time_window": "diaria"
+                })
+        return {"daily": daily, "peaks": peaks}
 
     def thematic_clustering(self):
         """Agrupamento temático usando TF-IDF e KMeans robusto."""
         textos = self.hate_df['texto_limpo'].fillna('')
         if len(textos) < 15: # Mínimo de amostras para clusterizar
             print("⚠️ Poucos dados de ódio para clusterização.")
-            return self.hate_df, {}
+            return self.hate_df, {}, []
 
         vectorizer = TfidfVectorizer(max_features=100)
         X = vectorizer.fit_transform(textos)
@@ -62,12 +73,24 @@ class DataMiner:
         
         terms = vectorizer.get_feature_names_out()
         topics = {}
+        cluster_metadata = []
+        
         for i in range(n_clusters):
             center = kmeans.cluster_centers_[i]
             top_indices = center.argsort()[-10:][::-1]
-            topics[f'Cluster_{i}'] = [terms[idx] for idx in top_indices]
+            keywords = [terms[idx] for idx in top_indices]
+            topics[f'Cluster_{i}'] = keywords
             
-        return self.hate_df, topics
+            # Metadata para persistência
+            group = self.hate_df[self.hate_df['cluster'] == i]
+            cluster_metadata.append({
+                "cluster_id": i,
+                "keywords": keywords,
+                "alvos": group['candidato_id'].unique().tolist() if 'candidato_id' in group.columns else [],
+                "event_count": len(group)
+            })
+            
+        return self.hate_df, topics, cluster_metadata
 
     def gerar_nuvem_palavras(self, categoria=None):
         """Gera nuvem de palavras (fpdf2 não suporta imagens diretas, então salvamos em PNG)."""

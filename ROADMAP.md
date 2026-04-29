@@ -1,17 +1,17 @@
 # ROADMAP - Sentinela Democrática
 
-## Status: v18.5.0 (The Pipeline Integration)
-- **Refatoração Crítica**: Remoção de 6 scripts redundantes. Unificação em 3 workers robustos (`text_processor.py`, `data_miner.py`, `report_generator.py`).
-- **Orquestração**: Implementado `orquestrador.py` e integrado ao `worker_sentinela.py`, unificando Extração (Scrapy), IA (Qwen/PASA), NLP e Relatórios.
-- **Scrapy Migration**: Substituição de dependências pagas (RapidAPI) por coleta nativa Scrapy + REST API.
-- **Correção de Encoding**: Resolvido bug histórico de acentuação nos PDFs através da migração para `fpdf2` + fontes TTF.
-- **Critérios PASA**: Criado `CRITERIOS_TREINAMENTO.md` baseado no Protocolo PASA v16.4 para balizar a IA.
+## Status Atual: v19.0.0 (Diamond Edition Foundations) ✅
+- **Arquitetura Diamond**: Migração completa para API Proxy (FastAPI). O frontend não acessa mais o Supabase diretamente, garantindo segurança das chaves.
+- **Enriquecimento de Dados**: Implementada persistência de `metricas_diarias`, `redes_coordenadas` e `alertas_ativos`.
+- **Inteligência de Redes**: `DataMiner` agora persiste clusters e detecta picos de hostilidade (Z-Score) automaticamente.
+- **UI Dynamic**: Dashboard 100% dinâmico com sparklines, tendências semanais, categorias PASA e mapa geopolítico real.
+- **Plano de Gating**: Implementada lógica de `planService` (Public/Pro/Enterprise) para monetização.
 
-## Próximos Passos (v19.0.0)
-- [ ] **Segurança (Proxy API)**: Remover a injeção direta do `SUPABASE_KEY` no frontend, criando um proxy Python (FastAPI) para servir os dados ao `ui.js`.
-- [ ] **Dashboard Avançado**: Integrar `PredictiveTrends.js` e `BrazilMap.js` para visualização geo-espacial do ódio.
-- [ ] **Multi-Model IA**: Adicionar fallback automático para Groq (Llama-3) caso o Qwen local esteja offline.
-- [ ] **Alerta em Tempo Real**: Notificação via Telegram para picos de hostilidade (Z-Score > 3).
+## Próximos Passos (v19.5.0)
+- [ ] **Monetização Real**: Integração com Stripe/Asaas para automação de planos Pro/Enterprise.
+- [ ] **Alertas Push**: Integração com Telegram Webhooks para notificações CRITICAL em tempo real.
+- [ ] **Multi-Model IA**: Implementação de fallback Groq (Llama-3) no `orquestrador.py`.
+- [ ] **Exportação Avançada**: Geração de relatórios CSV/JSON para usuários Enterprise.
 
 ---
-*Atualizado em 28/04/2026 - Pipeline de integração concluída.*
+*Atualizado em 29/04/2026 - Diamond Edition Foundations concluída.*

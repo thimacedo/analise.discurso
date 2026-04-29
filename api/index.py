@@ -33,8 +33,8 @@ def status():
 @app.get("/api/v1/candidatos")
 async def get_candidatos(status_monitoramento: str = Query("Ativo")):
     data, _ = await fetch_json(
-        "candidatos",
-        params={"status_monitoramento": f"eq.{status_monitoramento}", "select": "*", "order": "comentarios_totais_count.desc.nullslast"},
+        "v_candidato_score",
+        params={"status_monitoramento": f"eq.{status_monitoramento}", "select": "*", "order": "score_risco.desc"},
     )
     return data
 
@@ -55,15 +55,161 @@ async def get_alertas(limit: int = Query(10, ge=1, le=100)):
 
 @app.get("/api/v1/summary")
 async def get_summary():
-    data, _ = await fetch_json("candidatos", params={"select": "comentarios_totais_count,comentarios_odio_count"})
-    total_amostra = sum(item.get("comentarios_totais_count", 0) or 0 for item in data)
+    # Dados atuais
+    data, _ = await fetch_json("candidatos", params={"select": "comentarios_totales_count,comentarios_odio_count,estado"})
+    total_amostra = sum(item.get("comentarios_totales_count", 0) or 0 for item in data)
     total_alertas = sum(item.get("comentarios_odio_count", 0) or 0 for item in data)
+    uf_count = len(set(item.get("estado") for item in data if item.get("estado")))
+    
+    # Dados de tendência (últimos 30 dias)
+    trends, _ = await fetch_json(
+        "metricas_diarias",
+        params={"select": "total_coletado,total_hate,resiliencia", "order": "data.desc", "limit": "30"}
+    )
+    
+    sparklines = {
+        "monitorados": [d["total_coletado"] for d in reversed(trends[:12])] if len(trends) >= 12 else [],
+        "hate": [d["total_hate"] for d in reversed(trends[:12])] if len(trends) >= 12 else [],
+        "total": [d["total_coletado"] for d in reversed(trends[:12])] if len(trends) >= 12 else [],
+        "resiliencia": [d["resiliencia"] for d in reversed(trends[:12])] if len(trends) >= 12 else [],
+    }
+    
+    # Cálculo de tendência
+    hate_trend = 0
+    res_trend = 0
+    if len(trends) >= 14:
+        recent_hate = sum(d["total_hate"] for d in trends[:7]) / 7
+        prev_hate = sum(d["total_hate"] for d in trends[7:14]) / 7
+        hate_trend = round(((recent_hate - prev_hate) / prev_hate) * 100, 1) if prev_hate > 0 else 0
+        
+        recent_res = sum(d["resiliencia"] for d in trends[:7]) / 7
+        prev_res = sum(d["resiliencia"] for d in trends[7:14]) / 7
+        res_trend = round(recent_res - prev_res, 1)
+    
+    # PASA breakdown rápido
+    pasa, _ = await fetch_json("v_pasa_breakdown", params={"select": "categoria_ia,total", "limit": "6"})
+    pasa_dict = {item["categoria_ia"]: item["total"] for item in pasa}
+    
     return {
         "total_monitorados": len(data),
         "total_amostra": total_amostra,
         "total_alertas": total_alertas,
         "resiliencia": round(100 - ((total_alertas / total_amostra) * 100), 1) if total_amostra else 100.0,
+        "uf_cobertos": uf_count,
+        "pasa_breakdown": pasa_dict,
+        "trends": {
+            "hate_trend_pct": hate_trend,
+            "resiliencia_trend_pct": res_trend,
+        },
+        "sparklines": sparklines,
     }
+
+
+@app.get("/api/v1/trends")
+async def get_trends(days: int = Query(30, ge=7, le=365)):
+    data, _ = await fetch_json(
+        "metricas_diarias",
+        params={
+            "select": "data,total_coletado,total_hate,total_neutro,resiliencia,pasa_breakdown,uf_breakdown",
+            "order": "data.asc",
+            "limit": days
+        }
+    )
+    return data
+
+
+@app.get("/api/v1/pasa/breakdown")
+async def get_pasa_breakdown():
+    data, _ = await fetch_json("v_pasa_breakdown", params={"select": "*"})
+    
+    PASA_CONFIG = {
+        "ODIO_IDENTITARIO":    {"label": "Ódio Identitário",   "color": "#ef4444", "icon": "users"},
+        "VIOLENCIA_GENERO":    {"label": "Violência de Gênero","color": "#ec4899", "icon": "shield-alert"},
+        "AMEACA":              {"label": "Ameaça",             "color": "#f97316", "icon": "alert-octagon"},
+        "INSULTO_AD_HOMINEM":  {"label": "Insulto Ad Hominem", "color": "#f59e0b", "icon": "swords"},
+        "ATAQUE_INSTITUCIONAL":{"label": "Ataque Institucional","color": "#8b5cf6", "icon": "landmark"},
+        "RIGOR_CRIMINAL":      {"label": "Rigor Criminal",     "color": "#06b6d4", "icon": "scale"},
+    }
+    
+    return [{
+        **item,
+        "label": PASA_CONFIG.get(item["categoria_ia"], {}).get("label", item["categoria_ia"]),
+        "color": PASA_CONFIG.get(item["categoria_ia"], {}).get("color", "#64748b"),
+        "icon": PASA_CONFIG.get(item["categoria_ia"], {}).get("icon", "help-circle"),
+    } for item in data]
+
+
+@app.get("/api/v1/geo/uf")
+async def get_geo_uf():
+    data, _ = await fetch_json("mv_agregacao_uf", params={"select": "*", "order": "total_hate.desc"})
+    
+    RISK_COLORS = {
+        "CRITICO": "#ef4444",
+        "ELEVADO": "#f59e0b",
+        "MONITORANDO": "#06b6d4",
+        "CONTROLADO": "#10b981",
+    }
+    
+    return [{
+        **item,
+        "color": RISK_COLORS.get(item["nivel_risco"], "#64748b"),
+    } for item in data]
+
+
+@app.get("/api/v1/networks")
+async def get_networks():
+    data, _ = await fetch_json(
+        "redes_coordenadas",
+        params={
+            "select": "*",
+            "order": "severidade.desc",
+            "status": "neq.DESATIVADA",
+        }
+    )
+    return data
+
+
+@app.get("/api/v1/alerts/active")
+async def get_active_alerts(limit: int = Query(20, ge=1, le=100)):
+    data, _ = await fetch_json(
+        "alertas_ativos",
+        params={
+            "select": "*",
+            "status": "eq.ATIVO",
+            "order": "created_at.desc",
+            "limit": limit,
+        }
+    )
+    return data
+
+
+@app.get("/api/v1/targets")
+async def get_targets(
+    search: str = Query(None),
+    group_by: str = Query("score"),
+    limit: int = Query(50, ge=1, le=200),
+):
+    params = {
+        "select": "*",
+        "order": "score_risco.desc" if group_by == "score" else "estado.asc,nome_completo.asc",
+        "limit": limit,
+    }
+    if search:
+        params["or"] = f"(username.ilike.*{search}*,nome_completo.ilike.*{search}*,estado.ilike.*{search}*)"
+    
+    data, _ = await fetch_json("v_candidato_score", params=params)
+    
+    RISK_COLORS = {
+        "CRITICO": "#ef4444",
+        "ELEVADO": "#f59e0b",
+        "MONITORANDO": "#06b6d4",
+        "CONTROLADO": "#10b981",
+    }
+    
+    return [{
+        **item,
+        "color": RISK_COLORS.get(item.get("nivel_risco", ""), "#64748b"),
+    } for item in data]
 
 
 @app.post("/api/v1/admin/login")

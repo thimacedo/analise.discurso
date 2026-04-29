@@ -1,11 +1,11 @@
 import { state, setViewState } from './state.js';
-import { fetchCandidatos, fetchAlertas, fetchGlobalStats, fetchSyncToken } from '../services/apiService.js';
+import { dataService } from '../services/dataService.js';
 import { renderAll } from './ui.js';
 
 let lastSyncToken = null;
 
 async function init() {
-    console.log('Sentinela Diamond v16.4.0 initializing...');
+    console.log('SENTINELA | Diamond Edition v1.0 initializing...');
 
     window.addEventListener('hashchange', () => {
         setViewState(window.location.hash.substring(1) || 'monitor');
@@ -19,30 +19,10 @@ async function init() {
     setViewState(window.location.hash.substring(1) || 'monitor');
     renderAll();
 
-    await checkAndRefresh();
-    setInterval(checkAndRefresh, 15000);
+    await refreshData();
+    setInterval(refreshData, window.SENTINELA_CONFIG?.refreshInterval || 60000);
 
     if (window.lucide) lucide.createIcons();
-}
-
-async function checkAndRefresh() {
-    try {
-        const currentToken = await fetchSyncToken();
-
-        if (currentToken !== lastSyncToken) {
-            lastSyncToken = currentToken;
-            await refreshData();
-            return;
-        }
-
-        state.lastSyncAt = new Date().toISOString();
-        renderAll();
-    } catch (e) {
-        state.error = 'Falha ao verificar novas entradas.';
-        state.loading = false;
-        renderAll();
-        console.error('Sync check failure:', e);
-    }
 }
 
 async function refreshData() {
@@ -51,29 +31,45 @@ async function refreshData() {
     renderAll();
 
     try {
-        const [candidatos, alertas, stats] = await Promise.all([
-            fetchCandidatos(),
-            fetchAlertas(15),
-            fetchGlobalStats()
+        const [summary, trends, pasa, geo] = await Promise.all([
+            dataService.getSummary(),
+            dataService.getTrends(30),
+            dataService.getPasaBreakdown(),
+            dataService.getGeoUF()
         ]);
 
-        state.data = candidatos || [];
-        state.alertas = alertas || [];
+        state.summary = summary;
+        state.trends = trends;
+        state.pasa = pasa;
+        state.geo = geo;
+        
+        // Compatibilidade com UI atual (migração gradual)
         state.stats = {
-            total: Number(stats?.total || 0),
-            hate: Number(stats?.hate || 0)
+            total: summary.total_amostra,
+            hate: summary.total_alertas,
+            resiliencia: summary.resiliencia
         };
+        
+        // Carregar alvos para triagem/dossie
+        state.data = await dataService.getTargets();
+        state.alertas = await dataService.getAlerts(20);
+
         state.lastSyncAt = new Date().toISOString();
         state.loading = false;
         state.error = null;
     } catch (e) {
-        state.error = 'Nao foi possivel carregar os dados do monitoramento.';
+        state.error = 'Não foi possível carregar os dados de inteligência.';
         state.loading = false;
         console.error('Refresh failure:', e);
     }
 
     renderAll();
 }
+
+window.debouncedRender = renderAll;
+window.forceRefresh = refreshData;
+
+document.addEventListener('DOMContentLoaded', init);
 
 window.debouncedRender = renderAll;
 window.forceRefresh = refreshData;
