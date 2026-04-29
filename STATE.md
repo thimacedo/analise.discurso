@@ -10,6 +10,7 @@
 - **Pipeline (Orquestrador):** Persistência de métricas e redes coordenadas integrada ao final do ciclo.
 - **Frontend (Diamond UI):** Dashboard dinâmico consumindo `dataService.js`, com suporte a sparklines e mapa geo-espacial.
 - **Gating de Planos & UI:** Lógica de `planService` funcionando com modal de bloqueio injetado no HTML.
+- **Integração de Pagamento:** Módulo `payments.js` implementado com suporte a checkout manual via PayPal (R$ 49,90). PIX desativado temporariamente por instrução.
 - **Estratégia de Aquisição:** Página de Pricing implementada e versão de mapa embeddável (`embed/map.html`) criada para jornalismo de dados.
 
 ## 🚫 Abordagens Descartadas / Erros Conhecidos
