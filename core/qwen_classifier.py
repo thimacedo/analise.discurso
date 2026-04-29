@@ -18,6 +18,27 @@ HEADERS = {
 # CONFIGURAÇÃO GROQ (CLOUD FALLBACK)
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
+SYSTEM_PROMPT_PASA = """
+Você é um analista forense do sistema Sentinela Democrática. Sua tarefa é classificar comentários de redes sociais segundo o Protocolo PASA v16.4.
+
+CATEGORIAS DE HOSTILIDADE:
+- ODIO_IDENTITARIO: Ataques baseados em raça, religião, orientação sexual, misoginia ou XENOFOBIA/REGIONALISMO (ex: sotaque, preguiça regional).
+- VIOLENCIA_GENERO: Ofensas focadas na condição feminina.
+- AMEACA: Incitação a dano físico ou morte.
+- INSULTO_AD_HOMINEM: Desumanização e baixo calão (ex: lixo, verme, rato, escória).
+- ATAQUE_INSTITUCIONAL: Deslegitimação de órgãos de Estado (ex: ditadura da toga, STF comprado).
+- RIGOR_CRIMINAL: Imputação de crime sem prova (ex: ladrão, corrupto, bandido).
+
+⚠️ BLINDAGEM CONTRA FALSOS POSITIVOS (CRÍTICO):
+- CRÍTICA POLÍTICA ou INSATISFAÇÃO com gestão pública NÃO são ódio. Classifique como NEUTRO.
+- PROTESTOS como "Fora Fulano" ou "Fora Governo X" são liberdade de expressão. Classifique como NEUTRO.
+- TERMOS DE BAIXO CALÃO ou GÍRIAS em contexto de exaltação (ex: "porra", "o brabo") são NEUTRO.
+- DEFESA DE MANDATO NÃO é ataque institucional.
+
+Responda APENAS com um JSON no formato: {"is_hate": true/false, "category": "CATEGORIA_AQUI", "confianca": 0.9, "justificativa": "breve motivo"}
+Se não houver hostilidade forense, use: {"is_hate": false, "category": "NEUTRO", "confianca": 1.0, "justificativa": "critica politica legitima"}
+"""
+
 def classify_text_groq(text):
     if not GROQ_API_KEY:
         return {"is_hate": False, "category": "ERRO_CONFIG"}
@@ -28,32 +49,13 @@ def classify_text_groq(text):
         "Content-Type": "application/json"
     }
     
-    prompt = f"""Analise o comentário sob o Protocolo PASA v16.4 de Linguística Forense.
-Diferencie CRÍTICA/APOIO POLÍTICO de HOSTILIDADE FORENSE.
-
-TEXTO: "{text}"
-
-DIRETRIZES DE BLINDAGEM:
-1. APOIO ENFÁTICO/AGRESSIVO: Frases com gírias ("o brabo", "mito") ou palavrões de exaltação ("porra!", "caralho!") direcionados AO CANDIDATO monitorado são NEUTRO.
-2. DEFESA DE MANDATO: Reclamações de perseguição contra o candidato monitorado são NEUTRO.
-3. MOBILIZAÇÃO: Convocar para ruas ou citar "inimigos do povo" em contexto de disputa ideológica NÃO é ameaça.
-
-CATEGORIAS: ODIO_IDENTITARIO, VIOLENCIA_GENERO, AMEACA, INSULTO_AD_HOMINEM, ATAQUE_INSTITUCIONAL, RIGOR_CRIMINAL, NEUTRO.
-
-EXEMPLOS DE "NEUTRO":
-- "O brabo tem nome porra! @tarcisiogdf" -> Motivo: Exaltação com gíria.
-- "@brisabracchi13 na Câmara vai ser um presente!" -> Motivo: Elogio.
-- "A ousadia vai ocupar o congresso!" -> Motivo: Vitória eleitoral.
-- "Perseguição escancarada contra mandato sério!" -> Motivo: Opinião política.
-- "Mobilizar nas ruas no 1º de maio!" -> Motivo: Exercício democrático.
-
-Responda APENAS em JSON:
-{{"is_hate": true/false, "category": "CATEGORIA", "justificativa": "breve motivo", "confianca": 0.0-1.0}}"""
-
     try:
         payload = {
             "model": "llama-3.3-70b-versatile",
-            "messages": [{"role": "user", "content": prompt}],
+            "messages": [
+                {"role": "system", "content": SYSTEM_PROMPT_PASA},
+                {"role": "user", "content": f"TEXTO: \"{text}\""}
+            ],
             "response_format": {"type": "json_object"}
         }
         resp = httpx.post(url, headers=headers, json=payload, timeout=20.0)
@@ -65,7 +67,7 @@ Responda APENAS em JSON:
     return {"is_hate": False, "category": "FALHA_IA"}
 
 def run_integrated_qwen_classification():
-    print("🧠 Groq Cloud Intelligence: Iniciando Perícia PASA v16.4...")
+    print("🧠 Groq Cloud Intelligence: Iniciando Perícia PASA v16.4 (Blindada)...")
     
     try:
         # Busca comentários não processados
@@ -85,7 +87,7 @@ def run_integrated_qwen_classification():
             update_url = f"{SUPABASE_URL}/rest/v1/comentarios?id=eq.{c['id']}"
             patch_data = {
                 "is_hate": result.get('is_hate', False),
-                "categoria_ia": result.get('category', 'NEUTRO'),
+                "categoria_ia": result.get('category') or result.get('categoria') or 'NEUTRO',
                 "processado_ia": True
             }
             httpx.patch(update_url, headers=HEADERS, json=patch_data)
