@@ -9,7 +9,8 @@
 - **Banco de Dados (Supabase):** Tabelas `metricas_diarias`, `redes_coordenadas`, `alertas_ativos` e views de score prontas no script SQL.
 - **Pipeline (Orquestrador):** Persistência de métricas e redes coordenadas integrada ao final do ciclo.
 - **Frontend (Diamond UI):** Dashboard dinâmico consumindo `dataService.js`, com suporte a sparklines e mapa geo-espacial.
-- **Gating de Planos:** Lógica de `planService` funcionando para mascaramento e bloqueio de features.
+- **Gating de Planos & UI:** Lógica de `planService` funcionando com modal de bloqueio injetado no HTML.
+- **Estratégia de Aquisição:** Página de Pricing implementada e versão de mapa embeddável (`embed/map.html`) criada para jornalismo de dados.
 
 ## 🚫 Abordagens Descartadas / Erros Conhecidos
 - **[DESCARTADO] Conexão Direta Supabase no Frontend:** Inseguro (expõe chaves). Substituído por API Proxy.

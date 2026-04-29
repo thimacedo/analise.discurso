@@ -144,5 +144,25 @@
     </main>
 
     <script type="module" src="/src/core/app.js?v=17.2.0"></script>
+
+    <!-- MODAL DE UPGRADE (GATING) -->
+    <div id="upgrade-modal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
+        <div class="modal-content glass-card" style="max-width:480px; padding:32px; text-align:center; position:relative;">
+            <div style="width:56px; height:56px; border-radius:14px; background:rgba(16,185,129,0.1); display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
+                <i data-lucide="lock" style="width:24px; height:24px; color:#10b981;"></i>
+            </div>
+            <h2 style="font-family:'Space Grotesk', sans-serif; font-size:22px; font-weight:700; margin-bottom:8px; color:white;">Funcionalidade Premium</h2>
+            <p style="color:rgba(255,255,255,0.7); font-size:14px; margin-bottom:24px; line-height:1.6;">
+                O Dossiê Forense de Alvos e as Análises de Redes estão disponíveis a partir do plano <strong style="color:#10b981;">Pro</strong>. 
+                Tenha acesso à identificação completa, histórico de agressões e exportação de relatórios forenses.
+            </p>
+            <button class="cta-upgrade" onclick="window.location.href='/pricing.html'" style="width:100%; padding:12px; background:#10b981; color:black; font-weight:bold; border-radius:8px; border:none; cursor:pointer; margin-bottom:12px;">
+                Conhecer Plano Pro →
+            </button>
+            <button class="ghost-close" onclick="document.getElementById('upgrade-modal').style.display='none'" style="background:transparent; border:none; color:rgba(255,255,255,0.5); cursor:pointer; font-size:14px;">
+                Continuar na versão pública
+            </button>
+        </div>
+    </div>
 </body>
 </html>
