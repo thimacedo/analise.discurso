@@ -81,23 +81,29 @@ def classify_text_groq(text):
         "Content-Type": "application/json"
     }
     
-    try:
-        payload = {
-            "model": "llama-3.3-70b-versatile",
-            "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT_PASA},
-                {"role": "user", "content": f"TEXTO: \"{text}\""}
-            ],
-            "response_format": {"type": "json_object"}
-        }
-        resp = httpx.post(url, headers=headers, json=payload, timeout=25.0)
-        if resp.status_code == 200:
-            content = resp.json()['choices'][0]['message']['content']
-            return parse_pasa_response(content)
-        else:
-            print(f"⚠️ Erro API Groq ({resp.status_code}): {resp.text}")
-    except Exception as e:
-        print(f"⚠️ Exceção Groq: {e}")
+    for i in range(3): # Tenta 3 vezes com backoff
+        try:
+            payload = {
+                "model": "llama-3.3-70b-versatile",
+                "messages": [
+                    {"role": "system", "content": SYSTEM_PROMPT_PASA},
+                    {"role": "user", "content": f"TEXTO: \"{text}\""}
+                ],
+                "response_format": {"type": "json_object"}
+            }
+            resp = httpx.post(url, headers=headers, json=payload, timeout=25.0)
+            if resp.status_code == 200:
+                content = resp.json()['choices'][0]['message']['content']
+                return parse_pasa_response(content)
+            elif resp.status_code == 429:
+                print(f"⏳ Rate limit atingido. Aguardando {2**(i+1)}s...")
+                time.sleep(2**(i+1))
+                continue
+            else:
+                print(f"⚠️ Erro API Groq ({resp.status_code}): {resp.text}")
+        except Exception as e:
+            print(f"⚠️ Exceção Groq: {e}")
+            time.sleep(1)
     
     return {"is_hate": False, "category": "FALHA_IA", "confianca": 0.0}
 
