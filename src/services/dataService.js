@@ -1,6 +1,8 @@
 // SENTINELA | Diamond Edition - Data Service
 // Centraliza todas as chamadas para a API FastAPI
 
+import { authService } from './authService.js';
+
 const API_BASE = window.SENTINELA_CONFIG?.apiUrl || '/api/v1';
 
 class SentinelDataService {
@@ -78,9 +80,9 @@ class SentinelDataService {
 // Singleton para uso em toda a aplicação
 export const dataService = new SentinelDataService();
 
-// Mock Plan Service (Futura Integração)
+// Real Plan Service (Identity-Driven)
 export const planService = {
-    getPlan: () => window.SENTINELA_USER?.plan || 'public',
+    getPlan: () => authService.getPlan(),
     canAccess: (feature) => {
         const plan = planService.getPlan();
         const limits = {
@@ -92,6 +94,7 @@ export const planService = {
     },
     maskName: (name) => {
         if (planService.canAccess('targets')) return name;
-        return name.charAt(0) + '*'.repeat(name.length - 1);
+        if (!name) return 'Alvo';
+        return name.charAt(0) + '*'.repeat(Math.max(3, name.length - 1));
     }
 };

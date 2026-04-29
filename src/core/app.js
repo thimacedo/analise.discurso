@@ -1,11 +1,20 @@
 import { state, setViewState } from './state.js';
 import { dataService } from '../services/dataService.js';
+import { authService } from '../services/authService.js';
 import { renderAll } from './ui.js';
 
 let lastSyncToken = null;
 
 async function init() {
-    console.log('SENTINELA | Diamond Edition v1.0 initializing...');
+    console.log('SENTINELA | Diamond Edition v19.5 initializing (Identity-First)...');
+
+    // 1. Inicializa Autenticação Real
+    try {
+        await authService.init();
+        console.log(`[App] Auth initialized. Plan: ${authService.getPlan()}`);
+    } catch (e) {
+        console.error('[App] Auth failure:', e);
+    }
 
     window.addEventListener('hashchange', () => {
         setViewState(window.location.hash.substring(1) || 'monitor');
