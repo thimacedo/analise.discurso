@@ -390,71 +390,61 @@ async def update_target(
 # ==========================================
 # MÓDULO DE PAGAMENTO: STRIPE (v19.6.0)
 # ==========================================
-import stripe
-import os
+from api.stripe_service import create_checkout_session, verify_webhook_signature
 from fastapi import Request, Header
 
-stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
-STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
-FRONTEND_URL = os.getenv("FRONTEND_URL", "https://sentinela-democratica.vercel.app")
-
-PACKAGE_CONFIG = {
-    "stn_starter": {"tokens": 1, "amount": 24900},
-    "stn_squad":   {"tokens": 4, "amount": 59700},
-    "stn_warroom": {"tokens": 15, "amount": 149700},
+# Mapeamento de Preços para Tokens
+PRICE_TO_TOKENS = {
+    os.getenv("STRIPE_STARTER_PRICE_ID"): 1,
+    os.getenv("STRIPE_SQUAD_PRICE_ID"): 4,
+    os.getenv("STRIPE_WARROOM_PRICE_ID"): 15,
 }
 
 @app.post("/api/v1/checkout/create-session")
-async def create_checkout_session(payload: dict = Body(...)):
-    user_id = payload.get("user_id")
-    package_slug = payload.get("package_slug")
-    
-    if package_slug not in PACKAGE_CONFIG:
-        raise HTTPException(status_code=400, detail="Pacote invalido")
+async def create_checkout_session_route(payload: dict = Body(...), authorization: str = Header(None)):
+    # Simulação de extração de user_id do JWT (idealmente via middleware ou helper)
+    # Por enquanto, confiamos no payload ou extraímos 'sub' se for JWT real
+    user_id = payload.get("user_id") 
+    price_id = payload.get("price_id")
+    package_slug = payload.get("package_slug", "custom")
+
+    if not price_id or not user_id:
+        raise HTTPException(status_code=400, detail="Faltam dados obrigatorios")
 
     try:
-        session = stripe.checkout.Session.create(
-            payment_method_types=['card', 'pix'],
-            line_items=[{
-                'price_data': {
-                    'currency': 'brl',
-                    'product_data': {'name': f'Munição Forense STN - {package_slug}'},
-                    'unit_amount': PACKAGE_CONFIG[package_slug]['amount'],
-                },
-                'quantity': 1,
-            }],
-            mode='payment',
-            success_url=f"{FRONTEND_URL}/#monitor?session_id={{CHECKOUT_SESSION_ID}}",
-            cancel_url=f"{FRONTEND_URL}/pricing.html",
-            metadata={"user_id": user_id, "package_slug": package_slug}
-        )
-        return {"url": session.url}
+        url = create_checkout_session(user_id, package_slug, price_id)
+        return {"url": url}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/v1/webhooks/stripe")
 async def stripe_webhook(request: Request, stripe_signature: str = Header(None)):
     payload = await request.body()
-    try:
-        event = stripe.Webhook.construct_event(payload, stripe_signature, STRIPE_WEBHOOK_SECRET)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Webhook Error: {str(e)}")
+    event = verify_webhook_signature(payload, stripe_signature)
+    
+    if not event:
+        raise HTTPException(status_code=400, detail="Webhook Error: Invalid Signature")
 
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
-        user_id = session['metadata']['user_id']
-        pkg = session['metadata']['package_slug']
+        user_id = session.get('metadata', {}).get('user_id')
+        price_id = session.get('metadata', {}).get('price_id')
         
-        # Dispara crédito atômico no Supabase
-        await fetch_json(
-            "rpc/process_stn_transaction",
-            method="POST",
-            json={
-                "p_user_id": user_id,
-                "p_amount": PACKAGE_CONFIG[pkg]['tokens'],
-                "p_type": "PURCHASE",
-                "p_session_id": session['id']
-            }
-        )
+        token_amount = PRICE_TO_TOKENS.get(price_id, 0)
+        
+        if user_id and token_amount > 0:
+            # Chamada atômica ao Supabase via RPC
+            await fetch_json(
+                "rpc/process_stn_transaction",
+                method="POST",
+                json={
+                    "p_user_id": user_id,
+                    "p_amount": token_amount,
+                    "p_type": "PURCHASE",
+                    "p_session_id": session.get('id'),
+                    "p_metadata": {"price_id": price_id}
+                }
+            )
+    
     return {"status": "success"}
 
