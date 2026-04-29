@@ -28,13 +28,27 @@ def classify_text_groq(text):
         "Content-Type": "application/json"
     }
     
-    prompt = f"""Analise o seguinte comentário sob o Protocolo PASA v16.4:
-"{text}"
+    prompt = f"""Analise o comentário sob o Protocolo PASA v16.4 de Linguística Forense.
+Diferencie CRÍTICA/APOIO POLÍTICO de HOSTILIDADE FORENSE.
 
-Categorias: ODIO_IDENTITARIO, VIOLENCIA_GENERO, AMEACA, INSULTO_AD_HOMINEM, ATAQUE_INSTITUCIONAL, RIGOR_CRIMINAL, NEUTRO.
+TEXTO: "{text}"
+
+DIRETRIZES DE BLINDAGEM:
+1. APOIO ENFÁTICO/AGRESSIVO: Frases com gírias ("o brabo", "mito") ou palavrões de exaltação ("porra!", "caralho!") direcionados AO CANDIDATO monitorado são NEUTRO.
+2. DEFESA DE MANDATO: Reclamações de perseguição contra o candidato monitorado são NEUTRO.
+3. MOBILIZAÇÃO: Convocar para ruas ou citar "inimigos do povo" em contexto de disputa ideológica NÃO é ameaça.
+
+CATEGORIAS: ODIO_IDENTITARIO, VIOLENCIA_GENERO, AMEACA, INSULTO_AD_HOMINEM, ATAQUE_INSTITUCIONAL, RIGOR_CRIMINAL, NEUTRO.
+
+EXEMPLOS DE "NEUTRO":
+- "O brabo tem nome porra! @tarcisiogdf" -> Motivo: Exaltação com gíria.
+- "@brisabracchi13 na Câmara vai ser um presente!" -> Motivo: Elogio.
+- "A ousadia vai ocupar o congresso!" -> Motivo: Vitória eleitoral.
+- "Perseguição escancarada contra mandato sério!" -> Motivo: Opinião política.
+- "Mobilizar nas ruas no 1º de maio!" -> Motivo: Exercício democrático.
 
 Responda APENAS em JSON:
-{{"is_hate": true/false, "category": "NOME_DA_CATEGORIA", "confianca": 0.0-1.0}}"""
+{{"is_hate": true/false, "category": "CATEGORIA", "justificativa": "breve motivo", "confianca": 0.0-1.0}}"""
 
     try:
         payload = {
