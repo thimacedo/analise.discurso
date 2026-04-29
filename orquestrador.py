@@ -13,8 +13,7 @@ from processing.data_miner import DataMiner
 from processing.report_generator import ReportGenerator
 from core.qwen_classifier import run_integrated_qwen_classification
 from tools.persistence import PersistenceManager
-from core.discord_alerter import send_alert
-from core.whatsapp_alerter import send_whatsapp_alert
+from core.whatsapp_alerter import send_whatsapp_summary
 
 load_dotenv()
 
@@ -86,12 +85,12 @@ class Orchestrator:
         
         self.persist_daily_metrics(df_proc)
         self.persist_networks(clusters, df_proc)
-        self.check_and_create_alerts(temporal_results, df_proc)
+        critical_alerts = self.check_and_create_alerts(temporal_results, df_proc)
         
         # Gera nuvem de palavras para o relatório
         miner.gerar_nuvem_palavras()
         
-        return df_clustered
+        return df_clustered, critical_alerts
 
     def persist_daily_metrics(self, df):
         """Salva agregações do dia na tabela metricas_diarias"""
@@ -146,7 +145,8 @@ class Orchestrator:
             except Exception: pass
 
     def check_and_create_alerts(self, temporal_results, df):
-        """Verifica picos e cria alertas."""
+        """Verifica picos, cria alertas no Supabase e retorna lista de strings para resumo."""
+        collected_alerts = []
         for peak in temporal_results.get('peaks', []):
             severity = 'CRITICAL' if peak['z_score'] > 3.0 else 'WARNING'
             payload = {
@@ -159,28 +159,19 @@ class Orchestrator:
             }
             try:
                 httpx.post(f"{SUPABASE_URL}/rest/v1/alertas_ativos", json=payload, headers=HEADERS)
-                
-                # Push Notification via Discord
                 if peak['z_score'] > 3.0:
-                    title = "🚨 Pico de Hostilidade Detectado!"
-                    msg = (
-                        f"**Data:** `{peak['data']}`\n"
-                        f"**Z-Score:** `{peak['z_score']:.2f}`\n"
-                        f"**Eventos:** {peak['event_count']}"
-                    )
-                    send_alert(title, msg, color=16711680) # Vermelho
-                    send_whatsapp_alert(f"🛡️ *SENTINELA* 🛡️\n\n{title}\n\n{msg}")
+                    collected_alerts.append(f"🚨 Pico Z-Score {peak['z_score']:.1f} em {peak['data']}")
             except Exception: pass
 
-        # Verificação de Ameaças Físicas (Push Direto)
+        # Verificação de Ameaças Físicas
         if 'category' in df.columns:
             ameacas = df[df['category'] == 'AMEACA']
             for _, row in ameacas.iterrows():
-                title = "⚠️ Ameaça Física Detectada!"
                 autor = row.get('owner_username') or row.get('autor_username') or 'desconhecido'
-                msg = f"**Alvo:** `{row.get('candidato_username', 'N/A')}`\n**Autor:** @{autor}\n**Texto:** {row['text'][:200]}..."
-                send_alert(title, msg, color=16753920) # Laranja
-                send_whatsapp_alert(f"🛡️ *SENTINELA* 🛡️\n\n{title}\n\n{msg}")
+                alvo = row.get('candidato_id') or 'N/A'
+                collected_alerts.append(f"⚠️ AMEAÇA: @{autor} -> {alvo}")
+        
+        return collected_alerts
 
     def generate_final_report(self, df_final):
         print("📄 [5/5] Gerando Dossiê PDF Final...")
@@ -192,7 +183,7 @@ class Orchestrator:
         return output_path
 
     async def run_full_pipeline(self):
-        print(f"\n🛡️  SENTINELA DEMOCRÁTICA - PIPELINE ATUALIZAÇÃO v19.2")
+        print(f"\n🛡️  SENTINELA DEMOCRÁTICA - PIPELINE ATUALIZAÇÃO v19.7.0")
         print(f"📅 Data: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n" + "="*50)
         
         # 1. Scraper
@@ -213,10 +204,23 @@ class Orchestrator:
         print(f"📊 Dados exportados para api/dados_latest.csv")
 
         # 4. NLP & Mining
-        df_final = self.process_and_mine(df)
+        df_final, critical_alerts = self.process_and_mine(df)
         
         # 5. Report
         report_path = self.generate_final_report(df_final)
+        
+        # 6. WhatsApp Executive Summary
+        total_comentarios = len(df_final)
+        total_odio = df_final['is_hate_speech'].sum() if 'is_hate_speech' in df_final.columns else 0
+        
+        resumo = (
+            f"📊 *Amostragem:* {total_comentarios} comentários\n"
+            f"💀 *Hostilidade:* {total_odio} detectados\n"
+            f"🚨 *Sinais Críticos:* {len(critical_alerts)}\n"
+            f"─────────────────\n"
+            + "\n".join(critical_alerts[:10])
+        )
+        send_whatsapp_summary(resumo)
         
         print("\n" + "="*50)
         print(f"✨ PIPELINE FINALIZADA COM SUCESSO!")
