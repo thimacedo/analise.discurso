@@ -448,3 +448,32 @@ async def stripe_webhook(request: Request, stripe_signature: str = Header(None))
     
     return {"status": "success"}
 
+@app.post("/api/v1/stn/consume")
+async def consume_stn_token(payload: dict = Body(...), authorization: str = Header(None)):
+    # Extração simples de user_id (para v19.6.0, assumimos que o frontend envia o ID validado pelo Auth)
+    user_id = payload.get("user_id")
+    action = payload.get("action", "pdf_gen")
+    target = payload.get("target", "unknown")
+
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Usuario nao identificado")
+
+    # Chama a RPC process_stn_transaction com valor negativo
+    data, _ = await fetch_json(
+        "rpc/process_stn_transaction",
+        method="POST",
+        json={
+            "p_user_id": user_id,
+            "p_amount": -1,
+            "p_type": "CONSUMPTION",
+            "p_metadata": {"action": action, "target": target}
+        }
+    )
+
+    # Se a RPC retornar false, o saldo era insuficiente
+    if data is False:
+        raise HTTPException(status_code=402, detail="Saldo de STN insuficiente")
+
+    return {"status": "success", "remaining_tokens": data}
+
+

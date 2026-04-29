@@ -300,22 +300,33 @@ function renderDossieGrid() {
                 <strong style="color: var(--text-muted); font-size: 0.75rem;">${members.length} ALVOS</strong>
             </header>
             <div class="dossie-card-grid">
-                ${members.map((item) => `
-                    <button type="button" onclick="window.inspectTarget('${item.username}')" class="dossie-card border-${item.nivel_risco?.toLowerCase()}">
-                        <div class="dossie-card__header">
-                            <span class="eyebrow" style="color: ${item.color}">${item.estado || 'BR'}</span>
-                            <span class="score-badge" style="background:${item.color}">${item.score_risco}</span>
+                ${members.map((item) => {
+                    const hasTokens = (authService.user?.stn_tokens || 0) > 0;
+                    const btnLabel = hasTokens ? '⚡ Gerar Dossiê (1 STN)' : '🛒 Obter Munição';
+                    const btnClass = hasTokens ? 'stn-btn-active' : 'stn-btn-buy';
+                    
+                    return `
+                    <div class="dossie-card border-${item.nivel_risco?.toLowerCase()}">
+                        <div onclick="window.inspectTarget('${item.username}')" style="cursor:pointer">
+                            <div class="dossie-card__header">
+                                <span class="eyebrow" style="color: ${item.color}">${item.estado || 'BR'}</span>
+                                <span class="score-badge" style="background:${item.color}">${item.score_risco}</span>
+                            </div>
+                            <h5> @${item.username}</h5>
+                            <p style="font-size: 0.8rem; height: 32px; overflow: hidden; opacity: 0.7;">${item.nome_completo || 'Monitorado Ativo'}</p>
+                            <div class="dossie-card__stats">
+                                <div><span style="font-size: 0.6rem;">Alertas</span><strong>${item.comentarios_odio_count}</strong></div>
+                                <div><span style="font-size: 0.6rem;">Amostra</span><strong>${item.comentarios_totales_count}</strong></div>
+                                <div><span style="font-size: 0.6rem;">Risco</span><strong>${item.nivel_risco}</strong></div>
+                            </div>
                         </div>
-                        <h5> @${item.username}</h5>
-                        <p style="font-size: 0.8rem; height: 32px; overflow: hidden; opacity: 0.7;">${item.nome_completo || 'Monitorado Ativo'}</p>
-                        <div class="dossie-card__stats">
-                            <div><span style="font-size: 0.6rem;">Alertas</span><strong>${item.comentarios_odio_count}</strong></div>
-                            <div><span style="font-size: 0.6rem;">Amostra</span><strong>${item.comentarios_totales_count}</strong></div>
-                            <div><span style="font-size: 0.6rem;">Risco</span><strong>${item.nivel_risco}</strong></div>
-                        </div>
-                    </button>
-                `).join('')}
+                        <button type="button" class="stn-action-btn ${btnClass}" onclick="window.triggerForensicAction('${item.username}')">
+                            ${btnLabel}
+                        </button>
+                    </div>
+                `;}).join('')}
             </div>
+
         </section>
     `).join('');
 }
@@ -418,6 +429,52 @@ window.setDossieSearch = setDossieSearch;
 window.setFiltroAlvo = (id) => {
     state.selectedAlvo = id ? state.data.find((item) => item.username === id) : null;
     renderAll();
+};
+
+window.triggerForensicAction = async (username) => {
+    const tokens = authService.user?.stn_tokens || 0;
+    
+    if (tokens <= 0) {
+        window.location.href = '/pricing.html';
+        return;
+    }
+
+    if (!confirm(`Deseja consumir 1 Token STN para gerar o Dossiê Forense de @${username}?`)) {
+        return;
+    }
+
+    try {
+        const resp = await fetch('/api/v1/stn/consume', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authService.session?.access_token}`
+            },
+            body: JSON.stringify({ 
+                user_id: authService.user.id,
+                action: 'pdf_gen',
+                target: username
+            })
+        });
+
+        if (resp.status === 402) {
+            alert('Saldo de STN insuficiente.');
+            window.location.href = '/pricing.html';
+            return;
+        }
+
+        if (!resp.ok) throw new Error('Erro ao processar consumo');
+
+        // Sucesso: Atualiza saldo e dispara ação (simulada por enquanto)
+        await authService.fetchUserTokens();
+        state.stn_tokens = authService.user.stn_tokens;
+        alert(`Dossiê de @${username} gerado com sucesso! (Saldo: ${state.stn_tokens} STN)`);
+        renderAll();
+        
+    } catch (e) {
+        console.error('[UI] Forensic action error:', e);
+        alert('Falha na operação forense.');
+    }
 };
 
 window.selectUF = (uf) => {

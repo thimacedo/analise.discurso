@@ -755,3 +755,53 @@ main {
 
 main { overflow-y: auto !important; height: 100vh; }
 
+/* STN MUNIÇÃO FORENSE STYLES */
+.stn-counter {
+    border: 1px solid var(--accent);
+    transition: all 0.3s ease;
+}
+
+.stn-counter:hover {
+    background: rgba(56, 189, 248, 0.1) !important;
+    transform: scale(1.02);
+}
+
+.stn-action-btn {
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.stn-btn-active {
+    background: rgba(56, 189, 248, 0.1);
+    color: var(--accent);
+    border-color: rgba(56, 189, 248, 0.3);
+}
+
+.stn-btn-active:hover {
+    background: var(--accent);
+    color: var(--bg-base);
+}
+
+.stn-btn-buy {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.stn-btn-buy:hover {
+    background: var(--danger);
+    color: white;
+}
+
+#stn-balance {
+    color: var(--text-main);
+}
+
+
