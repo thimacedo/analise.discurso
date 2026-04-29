@@ -16,6 +16,7 @@ export const state = {
     selectedAlvo: null,
     dossieGrouping: 'agressoes',
     dossieSearch: '',
+    stn_tokens: 0,
     loading: true,
     error: null,
     lastSyncAt: null

@@ -43,10 +43,10 @@ class SentinelAuthService {
 
     async getProfile(userId) {
         try {
-            // Busca dados estendidos na tabela profiles (id, plan, username)
+            // Busca dados estendidos na tabela profiles (id, plan, username, stn_tokens)
             const { data, error } = await this.client
                 .from('profiles')
-                .select('*')
+                .select('*, stn_tokens')
                 .eq('id', userId)
                 .single();
 
@@ -55,9 +55,21 @@ class SentinelAuthService {
         } catch (e) {
             console.error('[AuthService] Error fetching profile:', e);
             // Fallback para dados básicos do Auth se o profile não existir
-            return { id: userId, plan: 'public', username: 'Visitante' };
+            return { id: userId, plan: 'public', username: 'Visitante', stn_tokens: 0 };
         }
     }
+
+    async fetchUserTokens() {
+        if (!this.session?.user) return 0;
+        const profile = await this.getProfile(this.session.user.id);
+        if (profile) {
+            this.user = profile;
+            if (window.forceRefresh) window.forceRefresh();
+            return profile.stn_tokens || 0;
+        }
+        return 0;
+    }
+
 
     async signIn(email, password) {
         if (!this.client) return;

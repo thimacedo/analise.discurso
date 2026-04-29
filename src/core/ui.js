@@ -1,12 +1,14 @@
 import { state, setDossieGrouping, setDossieSearch } from './state.js';
 import { renderBrazilMap } from '../components/BrazilMap.js';
 import { planService } from '../services/dataService.js';
+import { authService } from '../services/authService.js';
 
 export function renderAll() {
     try {
         updateSidebarActive();
         renderKPIs();
         renderTopbar();
+        renderSTN();
 
         const views = ['monitor', 'networks', 'dossie', 'map'];
         views.forEach((view) => {
@@ -429,3 +431,11 @@ window.clearUFSelection = () => {
     window.__selectedUF = null;
     renderAll();
 };
+
+function renderSTN() {
+    const el = document.getElementById('stn-balance');
+    if (el) {
+        const tokens = authService.user?.stn_tokens || 0;
+        el.innerText = `${tokens} STN`;
+    }
+}

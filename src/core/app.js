@@ -11,10 +11,12 @@ async function init() {
     // 1. Inicializa Autenticação Real
     try {
         await authService.init();
-        console.log(`[App] Auth initialized. Plan: ${authService.getPlan()}`);
+        state.stn_tokens = authService.user?.stn_tokens || 0;
+        console.log(`[App] Auth initialized. Plan: ${authService.getPlan()} | Tokens: ${state.stn_tokens}`);
     } catch (e) {
         console.error('[App] Auth failure:', e);
     }
+
 
     window.addEventListener('hashchange', () => {
         setViewState(window.location.hash.substring(1) || 'monitor');
