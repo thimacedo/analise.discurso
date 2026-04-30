@@ -5,6 +5,9 @@ from playwright.async_api import async_playwright
 
 PROFILE = 'edinhosilvapt'
 
+def is_profile_query(request):
+    return request.url.startswith('https://www.instagram.com/graphql/query') and 'doc_id=25858451687162830' in request.post_data
+
 async def main():
     load_dotenv()
     ig_user = os.getenv('IG_USER')
@@ -27,15 +30,18 @@ async def main():
         )
         page = await context.new_page()
 
-        async def on_request(request):
-            if '/graphql/query' in request.url or 'web_profile_info' in request.url:
-                print('REQUEST URL', request.url)
-                print('METHOD', request.method)
-                print('POST', request.post_data if request.method == 'POST' else 'none')
-                print('HEADERS', request.headers)
-                print('---')
+        async def on_response(response):
+            request = response.request
+            try:
+                if request.url.startswith('https://www.instagram.com/graphql/query') and request.post_data and 'doc_id=25858451687162830' in request.post_data:
+                    print('PROFILE RESPONSE URL', response.url)
+                    print('STATUS', response.status)
+                    text = await response.text()
+                    print(text[:5000])
+            except Exception as e:
+                print('error response handler', e)
 
-        page.on('request', on_request)
+        page.on('response', on_response)
         await page.goto('https://www.instagram.com/accounts/login/', wait_until='networkidle', timeout=30000)
         if await page.locator('input[name="email"]').count() > 0:
             await page.fill('input[name="email"]', ig_user)
@@ -45,7 +51,7 @@ async def main():
         await page.locator('input[name="pass"]').press('Enter')
         await page.wait_for_timeout(10000)
         await page.goto(f'https://www.instagram.com/{PROFILE}/', wait_until='domcontentloaded', timeout=30000)
-        await page.wait_for_timeout(8000)
+        await page.wait_for_timeout(10000)
         await browser.close()
 
 if __name__ == '__main__':
