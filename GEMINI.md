@@ -20,3 +20,9 @@ Este arquivo contém as regras imutáveis de desenvolvimento e gestão de memór
 ## 🔄 FLUXO DE TRABALHO
 
 1. `Pesquisar` (STATE.md + Git) -> 2. `Propor Plano` (Bite-sized) -> 3. `Executar` (Passo a passo) -> 4. `Validar` (Teste real) -> 5. `Documentar` (Update STATE.md) -> 6. `Commit`.
+
+## 🤖 INTEGRAÇÃO DE IA
+
+- **Local:** O modelo padrão para processamento local é o `qwen2.5:3b`.
+- **Híbrido:** Para alternar entre o processamento local (Ollama) e nuvem (Gemini), utilize a variável `IA_PROVIDER` no seu arquivo `.env`.
+
