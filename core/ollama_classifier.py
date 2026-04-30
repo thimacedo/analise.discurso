@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-OLLAMA_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3")
+OLLAMA_URL = os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:3b")
 
 def classify_pasa_ollama(text: str):
     """Classificador PASA rodando 100% local via Ollama (Sem Rate Limits)."""
@@ -26,20 +26,24 @@ def classify_pasa_ollama(text: str):
     try:
         with httpx.Client(timeout=60.0) as client:
             response = client.post(
-                f"{OLLAMA_URL}/api/generate",
+                f"{OLLAMA_URL}/api/chat",
                 json={
                     "model": OLLAMA_MODEL,
-                    "prompt": prompt,
+                    "messages": [
+                        {"role": "user", "content": prompt}
+                    ],
                     "stream": False,
                     "format": "json"
                 }
             )
             response.raise_for_status()
             data = response.json()
-            result = json.loads(data.get("response", "{}"))
+            # No endpoint /api/chat, o conteúdo vem em message['content']
+            content = data.get("message", {}).get("content", "{}")
+            result = json.loads(content)
             
-            categoria = str(result.get("categoria", "FALHA_IA")).upper().strip()
-            confianza = float(result.get("confianza", 0.0))
+            categoria = str(result.get("categoria") or result.get("category") or "FALHA_IA").upper().strip()
+            confianza = float(result.get("confianza") or result.get("confianca") or 0.0)
             is_hate = bool(result.get("is_hate", False))
             
             # Normalização de categorias
