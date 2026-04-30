@@ -17,5 +17,15 @@
         "**/.venv": true
     },
     "sentinela.version": "15.4.1",
-    "sentinela.environment": "production-ready"
+    "sentinela.environment": "production-ready",
+    "ollama-copilot.model": "qwen2.5-coder:7b",
+    "ollama-copilot.chatModel": "qwen2.5-coder:7b",
+    "ollama-copilot.maxTokens": 10000,
+    "chat.disableAIFeatures": true,
+    "github.copilot.enable": {
+        "*": false,
+        "plaintext": false,
+        "markdown": false,
+        "scminput": false
+    }
 }
