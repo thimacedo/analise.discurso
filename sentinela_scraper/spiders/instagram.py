@@ -22,8 +22,15 @@ class InstagramSpider(scrapy.Spider):
             "Authorization": f"Bearer {self.supabase_key}"
         }
         
+        self.user_agents = [
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.3 Safari/605.1.15",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0",
+            "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:123.0) Gecko/20100101 Firefox/123.0"
+        ]
+        self.instagram_proxy = os.getenv("INSTAGRAM_PROXY")
+        self.instagram_proxy_list = os.getenv("INSTAGRAM_PROXY_LIST", "").split(";") if os.getenv("INSTAGRAM_PROXY_LIST") else []
         self.headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Accept": "*/*",
             "Accept-Language": "en-US,en;q=0.9",
             "X-IG-App-ID": self.app_id,
@@ -88,17 +95,31 @@ class InstagramSpider(scrapy.Spider):
             print(f"⚠️ [Scrapy] Erro ao buscar fila dinâmica: {e}")
             return ["lulaoficial", "flaviobolsonaro"]
 
+    def _build_request_headers(self, username: str) -> dict:
+        headers = self.headers.copy()
+        headers["User-Agent"] = self.user_agents[hash(username) % len(self.user_agents)]
+        headers["Referer"] = f"https://www.instagram.com/{username}/"
+        return headers
+
+    def _select_proxy(self) -> str | None:
+        if self.instagram_proxy_list:
+            return self.instagram_proxy_list[hash(datetime.utcnow().timestamp()) % len(self.instagram_proxy_list)]
+        return self.instagram_proxy or None
+
     def start_requests(self):
         for username in self.targets:
             url = f"https://www.instagram.com/api/v1/users/web_profile_info/?username={username}"
-            headers = self.headers.copy()
-            headers["Referer"] = f"https://www.instagram.com/{username}/"
+            headers = self._build_request_headers(username)
+            proxy = self._select_proxy()
+            meta = {'username': username}
+            if proxy:
+                meta['proxy'] = proxy
             
             yield scrapy.Request(
-                url, 
-                headers=headers, 
-                callback=self.parse_profile, 
-                meta={'username': username},
+                url,
+                headers=headers,
+                callback=self.parse_profile,
+                meta=meta,
                 dont_filter=True
             )
 
@@ -131,17 +152,21 @@ class InstagramSpider(scrapy.Spider):
                 # Ignoramos o item 'post' no pipeline v18.5 pois a tabela não existe
                 # Mas disparamos a coleta de comentários
                 comments_url = f"https://www.instagram.com/api/v1/media/{media_id}/comments/"
-                c_headers = self.headers.copy()
+                c_headers = self._build_request_headers(user['username'])
                 c_headers["Referer"] = f"https://www.instagram.com/p/{shortcode}/"
+                proxy = self._select_proxy()
+                meta = {
+                    'post_shortcode': shortcode,
+                    'candidato_username': user['username']
+                }
+                if proxy:
+                    meta['proxy'] = proxy
                 
                 yield scrapy.Request(
-                    comments_url, 
-                    headers=c_headers, 
-                    callback=self.parse_comments, 
-                    meta={
-                        'post_shortcode': shortcode,
-                        'candidato_username': user['username']
-                    }
+                    comments_url,
+                    headers=c_headers,
+                    callback=self.parse_comments,
+                    meta=meta
                 )
         except Exception as e:
             self.logger.error(f"Erro no parse de {username}: {e}")
