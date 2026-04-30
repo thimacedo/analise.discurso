@@ -47,7 +47,7 @@ class Orchestrator:
             except Exception as e:
                 print(f"⚠️ [Orquestrador] Erro ao ler priority_queue: {e}")
 
-        self.tm.ensure_competitor_coverage()
+        await self.tm.ensure_competitor_coverage()
 
         # 2. Monta fila dinâmica com perfis não raspados e perfis de maior movimento
         filtered_targets = self.tm.build_dynamic_queue(static_targets=current_targets)

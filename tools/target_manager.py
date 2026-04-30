@@ -3,6 +3,8 @@ from datetime import datetime, timedelta
 from supabase import create_client
 from dotenv import load_dotenv
 import httpx
+import asyncio
+from core.election_monitor import ElectionMonitor
 
 load_dotenv()
 
@@ -112,18 +114,42 @@ class TargetManager:
         items = self._fetch_supabase('candidatos', params=params)
         return [item['username'] for item in items if item.get('username')]
 
-    def ensure_competitor_coverage(self, per_cargo=3):
+    async def ensure_competitor_coverage(self, per_cargo=3):
         """
-        Garante que os principais concorrentes por cargo estejam em status de monitoramento ativo.
+        Garante cobertura de concorrentes baseada em dados externos (notícias + pesquisas)
+        """
+        print("🔍 [TargetManager] Iniciando monitoramento eleitoral externo...")
+
+        # Inicializa monitor eleitoral
+        election_monitor = ElectionMonitor()
+
+        # Busca dados externos e atualiza cobertura
+        activated_candidates = await election_monitor.update_competitor_coverage()
+
+        # Complementa com análise interna dos candidatos existentes
+        internal_activated = self._ensure_internal_coverage(per_cargo)
+
+        all_activated = activated_candidates + internal_activated
+
+        if all_activated:
+            print(f"✅ [TargetManager] Ativados {len(all_activated)} candidatos para monitoramento: {', '.join(all_activated[:5])}{'...' if len(all_activated) > 5 else ''}")
+        else:
+            print("🔎 [TargetManager] Cobertura de concorrentes já está completa.")
+
+        return all_activated
+
+    def _ensure_internal_coverage(self, per_cargo=3):
+        """
+        Método auxiliar para cobertura baseada em dados internos (fallback)
         """
         params = {
-            "select": "id,username,cargo,status_monitoramento,score_risco,comentarios_totais_count,seguidores",
-            "order": "score_risco.desc",
+            "select": "id,username,cargo,status_monitoramento,comentarios_totais_count,seguidores",
+            "order": "comentarios_totais_count.desc",
             "limit": "200"
         }
         candidates = self._fetch_supabase('candidatos', params=params)
         if not candidates:
-            print("⚠️ [TargetManager] Sem candidatos disponíveis para análise de concorrentes.")
+            print("⚠️ [TargetManager] Sem candidatos disponíveis para análise interna.")
             return []
 
         cargos = {}
@@ -133,17 +159,17 @@ class TargetManager:
 
         activated = []
         for cargo, group in cargos.items():
-            top = group[:per_cargo]
+            # Ordena por comentários totais (maior atividade)
+            sorted_group = sorted(group, key=lambda x: x.get('comentarios_totais_count', 0), reverse=True)
+            top = sorted_group[:per_cargo]
             for candidate in top:
                 current_status = str(candidate.get('status_monitoramento') or '').strip().lower()
                 if current_status != 'ativo':
                     updated = self._update_candidate(candidate['id'], {'status_monitoramento': 'ATIVO'})
                     if updated:
                         activated.append(candidate['username'])
-                        print(f"✅ [TargetManager] Passando @{candidate['username']} para monitoramento em {cargo}.")
+                        print(f"✅ [TargetManager] Ativado @{candidate['username']} ({cargo}) - análise interna.")
 
-        if not activated:
-            print("🔎 [TargetManager] Todos os principais concorrentes já estavam monitorados.")
         return activated
 
     def build_dynamic_queue(self, static_targets=None, limit=30):
