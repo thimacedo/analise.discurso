@@ -25,4 +25,5 @@ Este arquivo contém as regras imutáveis de desenvolvimento e gestão de memór
 
 - **Local:** O modelo padrão para processamento local é o `qwen2.5:3b`.
 - **Híbrido:** Para alternar entre o processamento local (Ollama) e nuvem (Gemini), utilize a variável `IA_PROVIDER` no seu arquivo `.env`.
+- **Credenciais Gemini:** Certifique-se de que sua `GEMINI_API_KEY` está configurada no arquivo `.env` para habilitar as funções de nuvem.
 
