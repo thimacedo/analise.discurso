@@ -1,7 +1,9 @@
 # ROADMAP - Sentinela Democrática
 
-## Status Atual: v19.7.1 (Intelligent Monitoring Locked) ✅
+## Status Atual: v19.7.3 (CI/CD & Security Hardening Locked) ✅
 
+- **Segurança de Infraestrutura**: Removido arquivo `.github/workflows/render.yaml` que continha credenciais expostas e causava erro de execução no GitHub Actions.
+- **CI/CD Operacional**: Implementado workflow real de deploy em `.github/workflows/render_deploy.yml`.
 - **Monitoramento Inteligente (TargetManager)**: Implementado filtro de deduplicação e raspagem recente (48h), otimizando recursos de rede e API.
 - **Persistência Forense Ativa**: O Orquestrador grava os resultados da IA (Categoria e Confiança Float) diretamente no Supabase em tempo real.
 - **Calibração PASA v16.4**: Blindagem contra falsos positivos implementada.

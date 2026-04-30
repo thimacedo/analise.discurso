@@ -18,6 +18,7 @@
 - **Resiliência IA:** Backoff Exponencial implementado no `qwen_classifier.py` para Rate Limits (429).
 - **Alertas WhatsApp:** Resumo executivo enviado ao final de cada ciclo de mineração via CallMeBot.
 - **Monitoramento Inteligente (TargetManager):** Filtro em memória que evita raspagens redundantes. Perfis atualizados nas últimas 48h são ignorados pelo Scrapy.
+- **CI/CD Corrigido:** Removido arquivo inválido `.github/workflows/render.yaml` que continha segredos expostos. Implementado workflow real em `.github/workflows/render_deploy.yml`.
 
 ## 🚫 Abordagens Descartadas
 
