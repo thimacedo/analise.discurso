@@ -25,21 +25,19 @@ def classify_pasa_ollama(text: str):
     
     try:
         with httpx.Client(timeout=60.0) as client:
+            # Usando /api/generate como fallback mais estável
             response = client.post(
-                f"{OLLAMA_URL}/api/chat",
+                f"{OLLAMA_URL}/api/generate",
                 json={
                     "model": OLLAMA_MODEL,
-                    "messages": [
-                        {"role": "user", "content": prompt}
-                    ],
+                    "prompt": prompt,
                     "stream": False,
                     "format": "json"
                 }
             )
             response.raise_for_status()
             data = response.json()
-            # No endpoint /api/chat, o conteúdo vem em message['content']
-            content = data.get("message", {}).get("content", "{}")
+            content = data.get("response", "{}")
             result = json.loads(content)
             
             categoria = str(result.get("categoria") or result.get("category") or "FALHA_IA").upper().strip()
@@ -59,7 +57,7 @@ def classify_pasa_ollama(text: str):
             }
             
     except Exception as e:
-        print(f"⚠️ Erro Ollama local: {e}")
+        print(f"⚠️ Erro Ollama local ({OLLAMA_MODEL}): {e}")
         return {"is_hate": False, "category": "FALHA_IA", "confianca": 0.0}
 
 if __name__ == "__main__":

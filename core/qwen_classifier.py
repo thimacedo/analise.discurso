@@ -88,7 +88,10 @@ def classify_text_groq(text):
         "Content-Type": "application/json"
     }
     
-    for i in range(3): # Tenta 3 vezes com backoff
+    # Delays de backoff progressivos para Rate Limit
+    backoff_times = [10, 30, 60, 120, 300]
+    
+    for i in range(len(backoff_times)): # Tenta 5 vezes com backoff pesado
         try:
             payload = {
                 "model": "llama-3.3-70b-versatile",
@@ -100,17 +103,20 @@ def classify_text_groq(text):
             }
             resp = httpx.post(url, headers=headers, json=payload, timeout=25.0)
             if resp.status_code == 200:
+                # Pequeno delay preventivo para evitar bater no limite de RPM
+                time.sleep(0.5)
                 content = resp.json()['choices'][0]['message']['content']
                 return parse_pasa_response(content)
             elif resp.status_code == 429:
-                print(f"⏳ Rate limit atingido. Aguardando {2**(i+1)}s...")
-                time.sleep(2**(i+1))
+                wait_time = backoff_times[i]
+                print(f"⏳ Rate limit Groq atingido. Aguardando {wait_time}s (Tentativa {i+1})...")
+                time.sleep(wait_time)
                 continue
             else:
                 print(f"⚠️ Erro API Groq ({resp.status_code}): {resp.text}")
         except Exception as e:
             print(f"⚠️ Exceção Groq: {e}")
-            time.sleep(1)
+            time.sleep(2)
     
     return {"is_hate": False, "category": "FALHA_IA", "confianca": 0.0}
 

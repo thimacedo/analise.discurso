@@ -60,9 +60,10 @@ class Orchestrator:
         with open(queue_path, 'w') as f:
             json.dump(filtered_targets, f)
 
-        # 4. Roda o Scrapy
+        # 4. Roda o Scraper Robusto (Instaloader Fortress)
+        print("🤖 [Orquestrador] Disparando motor Instaloader Fortress...")
         process = subprocess.run(
-            [sys.executable, "-m", "scrapy", "crawl", "instagram"],
+            [sys.executable, "core/instaloader_scraper.py"],
             capture_output=True, text=True, shell=True
         )
 

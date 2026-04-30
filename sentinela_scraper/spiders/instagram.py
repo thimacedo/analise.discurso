@@ -13,6 +13,8 @@ class InstagramSpider(scrapy.Spider):
     def __init__(self, *args, **kwargs):
         super(InstagramSpider, self).__init__(*args, **kwargs)
         self.session_id = os.getenv("INSTAGRAM_SESSIONID")
+        self.ds_user_id = os.getenv("INSTAGRAM_DS_USER_ID")
+        self.csrf_token = os.getenv("INSTAGRAM_CSRFTOKEN")
         self.app_id = "936619743392459" 
         
         self.supabase_url = os.getenv("SUPABASE_URL")
@@ -22,20 +24,19 @@ class InstagramSpider(scrapy.Spider):
             "Authorization": f"Bearer {self.supabase_key}"
         }
         
-        self.user_agents = [
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.3 Safari/605.1.15",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0",
-            "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:123.0) Gecko/20100101 Firefox/123.0"
-        ]
+        self.fixed_user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
         self.instagram_proxy = os.getenv("INSTAGRAM_PROXY")
         self.instagram_proxy_list = os.getenv("INSTAGRAM_PROXY_LIST", "").split(";") if os.getenv("INSTAGRAM_PROXY_LIST") else []
+        
+        # A Trindade da Autenticação: sessionid + ds_user_id + csrftoken
         self.headers = {
             "Accept": "*/*",
-            "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Language": "pt-BR,pt;q=0.9,en-US,en;q=0.8",
             "X-IG-App-ID": self.app_id,
             "X-Requested-With": "XMLHttpRequest",
-            "Cookie": f"sessionid={self.session_id}"
+            "X-CSRFToken": self.csrf_token,
+            "User-Agent": self.fixed_user_agent,
+            "Cookie": f"sessionid={self.session_id}; ds_user_id={self.ds_user_id}; csrftoken={self.csrf_token}"
         }
         
         # Carrega alvos de monitoramento DINAMICAMENTE do Supabase
@@ -97,7 +98,6 @@ class InstagramSpider(scrapy.Spider):
 
     def _build_request_headers(self, username: str) -> dict:
         headers = self.headers.copy()
-        headers["User-Agent"] = self.user_agents[hash(username) % len(self.user_agents)]
         headers["Referer"] = f"https://www.instagram.com/{username}/"
         return headers
 
