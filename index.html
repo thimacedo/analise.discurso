@@ -4,14 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SENTINELA | Diamond Edition v19.6.1</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="/src/styles/main.css?v=19.6.1">
-    <!-- REMOVIDO: SDK do Supabase. Tudo passa pelo Proxy FastAPI agora. -->
+    <!-- SDK Supabase (Necessário apenas para Auth) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         window.SENTINELA_CONFIG = {
             apiUrl: '/api/v1', // Aponta para o nosso Proxy FastAPI
+            supabaseUrl: 'https://vhamejkldzxbeibqeqpk.supabase.co',
+            supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoYW1lamtsZHp4YmVpYnFlcXBrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjQ4ODEyNSwiZXhwIjoyMDkyMDY0MTI1fQ.GfvAI7rV8isgdhVeJp4mOUscWpdOqOuBoURGm82VdtY',
             refreshInterval: 60000
         };
     </script>

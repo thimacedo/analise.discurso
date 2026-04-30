@@ -92,6 +92,9 @@ async function refreshData() {
 
 // Global exposure for UI interactions
 window.debouncedRender = renderAll;
-window.forceRefresh = refreshData;
+window.forceRefresh = async () => {
+    console.log("Sincronizando dados via Proxy...");
+    await refreshData();
+};
 
 document.addEventListener('DOMContentLoaded', init);

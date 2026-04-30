@@ -1,7 +1,8 @@
 # ROADMAP - Sentinela Democrática
 
-## Status Atual: v19.7.3 (CI/CD & Security Hardening Locked) ✅
+## Status Atual: v19.7.4 (Frontend Restore & Hybrid Auth Locked) ✅
 
+- **Arquitetura Híbrida de Auth**: Reintegrado SDK Supabase exclusivamente para gestão de sessão, mantendo a integridade do Proxy FastAPI para dados.
 - **Segurança de Infraestrutura**: Removido arquivo `.github/workflows/render.yaml` que continha credenciais expostas e causava erro de execução no GitHub Actions.
 - **CI/CD Operacional**: Implementado workflow real de deploy em `.github/workflows/render_deploy.yml`.
 - **Monitoramento Inteligente (TargetManager)**: Implementado filtro de deduplicação e raspagem recente (48h), otimizando recursos de rede e API.

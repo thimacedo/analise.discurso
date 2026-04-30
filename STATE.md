@@ -1,6 +1,6 @@
 # Estado Atual do Sistema - SENTINELA | Diamond Edition
 
-## 💎 Versão: 19.7.2 (Dynamic Queue & Batching Locked)
+## 💎 Versão: 19.7.4 (Frontend Restore & Hybrid Auth Locked)
 
 - **Data da última atualização:** 29/04/2026
 - **Status:** Scrapy desacoplado da IA, Fila Dinâmica ativa, Lote Seguro (Capping) operacional.
@@ -19,6 +19,7 @@
 - **Alertas WhatsApp:** Resumo executivo enviado ao final de cada ciclo de mineração via CallMeBot.
 - **Monitoramento Inteligente (TargetManager):** Filtro em memória que evita raspagens redundantes. Perfis atualizados nas últimas 48h são ignorados pelo Scrapy.
 - **CI/CD Corrigido:** Removido arquivo inválido `.github/workflows/render.yaml` que continha segredos expostos. Implementado workflow real em `.github/workflows/render_deploy.yml`.
+- **Frontend Restaurado (Arquitetura Híbrida):** SDK Supabase reintegrado apenas para Auth (Login/Sessão). Todos os dados sensíveis agora trafegam exclusivamente via Proxy FastAPI. Exposição global de funções críticas corrigida.
 
 ## 🚫 Abordagens Descartadas
 
