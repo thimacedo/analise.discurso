@@ -18,6 +18,7 @@ INSTAGRAM_SESSIONID = os.getenv("INSTAGRAM_SESSIONID")
 PLAYWRIGHT_HEADLESS = os.getenv("PLAYWRIGHT_HEADLESS", "true").lower() == "true"
 MAX_POSTS_PER_PROFILE = int(os.getenv("MAX_POSTS_PER_PROFILE", "3"))
 MAX_COMMENTS_PER_POST = int(os.getenv("MAX_COMMENTS_PER_POST", "50"))
+INSTAGRAM_LOGIN_URL = "https://www.instagram.com/accounts/login/"
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
@@ -47,6 +48,13 @@ class InstagramHeadlessScraper:
                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
                     "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
                 ),
+                extra_http_headers={
+                    "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+                },
+            )
+
+            await context.add_init_script(
+                "() => { Object.defineProperty(navigator, 'webdriver', {get: () => undefined}); }"
             )
 
             if INSTAGRAM_SESSIONID:
@@ -89,28 +97,43 @@ class InstagramHeadlessScraper:
         assert self.page is not None
 
         try:
-            await self.page.goto("https://www.instagram.com/", wait_until="networkidle", timeout=30000)
-            await asyncio.sleep(2)
+            await self.page.goto(INSTAGRAM_LOGIN_URL, wait_until="networkidle", timeout=30000)
+            await asyncio.sleep(3)
 
-            if await self.page.locator('input[name="username"]').count() > 0:
+            print(f"🔍 [Headless] Página de login: {self.page.url}")
+            username_selector = 'input[name="username"], input[name="email"]'
+            password_selector = 'input[name="password"]'
+            username_count = await self.page.locator(username_selector).count()
+            password_count = await self.page.locator(password_selector).count()
+            print(f"🔍 [Headless] username/email fields: {username_count}, password fields: {password_count}")
+            has_username = username_count > 0
+            has_password = password_count > 0
+
+            if has_username and has_password:
                 if not IG_USER or not IG_PASS:
                     print("❌ [Headless] Não há credenciais IG_USER/IG_PASS para login.")
                     return False
 
                 print("🔑 [Headless] Login via Playwright...")
-                await self.page.fill('input[name="username"]', IG_USER)
-                await self.page.fill('input[name="password"]', IG_PASS)
+                if await self.page.locator('input[name="email"]').count() > 0:
+                    await self.page.fill('input[name="email"]', IG_USER)
+                else:
+                    await self.page.fill('input[name="username"]', IG_USER)
+
+                await self.page.fill(password_selector, IG_PASS)
                 await asyncio.sleep(1)
                 await self.page.click('button[type="submit"]')
                 await self.page.wait_for_load_state("networkidle", timeout=30000)
-                await asyncio.sleep(3)
+                await asyncio.sleep(5)
 
-                if await self.page.locator('input[name="username"]').count() > 0:
+                if await self.page.locator(username_selector).count() > 0:
                     print("❌ [Headless] Login não foi possível. Verifique credenciais ou 2FA.")
                     return False
-            else:
-                print("✅ [Headless] Sessão válida encontrada via cookie ou login automático.")
 
+                print("✅ [Headless] Login realizado com sucesso.")
+                return True
+
+            print("✅ [Headless] Sessão válida encontrada ou login já estava estabelecido.")
             return True
         except PlaywrightTimeoutError:
             print("❌ [Headless] Timeout durante autenticação no Instagram.")
