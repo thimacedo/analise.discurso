@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from supabase import create_client, Client
 import os
@@ -7,22 +7,15 @@ from collections import Counter
 
 load_dotenv()
 
-app = FastAPI(title="Sentinela API", docs_url="/api/docs", openapi_url="/api/openapi.json")
+app = FastAPI(title="Sentinela API")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
-# Configuração Supabase com Fallback para Debug
+# Configuração Supabase
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-
-if not SUPABASE_URL or not SUPABASE_KEY:
-    print("⚠️ AVISO: SUPABASE_URL ou SUPABASE_KEY não configurados!")
-
 supa = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
 
-# Router para versionamento v1
-router = APIRouter(prefix="/api/v1")
-
-@router.get("/summary")
+@app.get("/api/v1/summary")
 def summary():
     if not supa: return {"error": "DB disconnected"}
     try:
@@ -34,7 +27,7 @@ def summary():
     except Exception as e:
         return {"error": str(e)}
 
-@router.get("/trends")
+@app.get("/api/v1/trends")
 def trends(days: int = 30):
     if not supa: return []
     try:
@@ -42,7 +35,7 @@ def trends(days: int = 30):
     except Exception:
         return []
 
-@router.get("/pasa/breakdown")
+@app.get("/api/v1/pasa/breakdown")
 def pasa_breakdown():
     if not supa: return {}
     try:
@@ -51,7 +44,7 @@ def pasa_breakdown():
     except Exception:
         return {}
 
-@router.get("/geo/uf")
+@app.get("/api/v1/geo/uf")
 def geo_uf():
     if not supa: return {}
     try:
@@ -62,11 +55,8 @@ def geo_uf():
     except Exception:
         return {}
 
-# Inclusão do router no app principal
-app.include_router(router)
-
-# Health Check na raiz da API
 @app.get("/api/health")
 def health():
     return {"status": "operational", "db": supa is not None}
+
 

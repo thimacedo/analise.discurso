@@ -3,7 +3,7 @@
   "cleanUrls": true,
   "rewrites": [
     {
-      "source": "/api/v1/(.*)",
+      "source": "/api/(.*)",
       "destination": "/api/index.py"
     },
     {
@@ -15,7 +15,7 @@
       "destination": "/docs/analise-violencia.html"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ]

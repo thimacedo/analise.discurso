@@ -5,3 +5,6 @@ pyotp
 requests
 uvicorn
 supabase
+mangum
+pydantic
+pydantic-settings
