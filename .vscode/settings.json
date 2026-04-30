@@ -28,5 +28,12 @@
         "plaintext": false,
         "markdown": false,
         "scminput": false
-    }
+    },
+    "workbench.editor.defaultBinaryEditor": "vscode.markdown.preview.editor",
+    "workbench.editor.pinnedTabSizing": "compact",
+    "workbench.editor.showIcons": true,
+    "workbench.editor.showTabIndex": true,
+    "workbench.editor.useModal": "all",
+    "workbench.editor.wrapTabs": true,
+    "window.density.editorTabHeight": "compact"
 }
