@@ -37,16 +37,20 @@ class Orchestrator:
     async def run_scraper(self):
         print("🚀 [1/5] Preparando Alvos e Iniciando Extração...")
         
-        # 1. Carrega alvos atuais (ex: do priority_queue ou corpus)
+        # 1. Carrega alvos manuais existentes e atualiza a cobertura de concorrentes
         queue_path = 'E:/projetos/sentinela-democratica/data/priority_queue.json'
-        try:
-            with open(queue_path, 'r') as f:
-                current_targets = json.load(f)
-        except:
-            current_targets = ["lulaoficial", "flaviobolsonaro", "nikolasferreirainfo", "erikahiltonoficial"]
+        current_targets = []
+        if os.path.exists(queue_path):
+            try:
+                with open(queue_path, 'r') as f:
+                    current_targets = json.load(f)
+            except Exception as e:
+                print(f"⚠️ [Orquestrador] Erro ao ler priority_queue: {e}")
 
-        # 2. Filtra via TargetManager
-        filtered_targets = self.tm.filter_targets(current_targets)
+        self.tm.ensure_competitor_coverage()
+
+        # 2. Monta fila dinâmica com perfis não raspados e perfis de maior movimento
+        filtered_targets = self.tm.build_dynamic_queue(static_targets=current_targets)
 
         if not filtered_targets:
             print("✅ Todos os alvos já estão atualizados. Pulando extração.")

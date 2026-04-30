@@ -34,6 +34,17 @@ class InstagramSpider(scrapy.Spider):
         # Carrega alvos de monitoramento DINAMICAMENTE do Supabase
         self.targets = self._fetch_dynamic_targets()
 
+    def _fetch_active_candidates(self, limit=15):
+        """Identifica perfis com maior movimentação e que merecem monitoramento em tempo real."""
+        try:
+            url = f"{self.supabase_url}/rest/v1/candidatos?select=username,comentarios_totais_count,score_risco,seguidores&status_monitoramento=eq.ATIVO&order=score_risco.desc,comentarios_totais_count.desc,seguidores.desc&limit={limit}"
+            resp = httpx.get(url, headers=self.headers_supa)
+            if resp.status_code == 200:
+                return [item['username'] for item in resp.json() if item.get('username')]
+        except Exception as e:
+            print(f"⚠️ [Scrapy] Erro ao buscar alvos de maior movimento: {e}")
+        return []
+
     def _fetch_dynamic_targets(self):
         print("🕷️ [Scrapy] Buscando alvos na priority_queue local...")
         queue_path = 'E:/projetos/sentinela-democratica/data/priority_queue.json'
@@ -49,21 +60,27 @@ class InstagramSpider(scrapy.Spider):
 
         print("🕷️ [Scrapy] Buscando fila dinâmica de perfis no Supabase...")
         try:
-            # 1. Busca perfis que AINDA NÃO foram raspados (prioridade total)
             url = f"{self.supabase_url}/rest/v1/candidatos?select=username&last_scraped_at=is.null&limit=15"
             resp = httpx.get(url, headers=self.headers_supa)
-            
             if resp.status_code == 200:
                 targets = [item['username'] for item in resp.json()]
-                if targets: return targets
+                if targets:
+                    print(f"🎯 [Scrapy] Alvos sem raspagem anterior: {len(targets)} perfis.")
+                    return targets
 
-            # 2. Fallback: Busca os mais antigos (> 48h) se a coluna existir
             cutoff = (datetime.utcnow() - timedelta(hours=48)).isoformat()
             url = f"{self.supabase_url}/rest/v1/candidatos?select=username&last_scraped_at=lt.{cutoff}&limit=15&order=last_scraped_at.asc"
             resp = httpx.get(url, headers=self.headers_supa)
             if resp.status_code == 200:
                 targets = [item['username'] for item in resp.json()]
-                if targets: return targets
+                if targets:
+                    print(f"⏳ [Scrapy] Perfis antigos sem raspagem recente: {len(targets)} perfis.")
+                    return targets
+
+            high_activity = self._fetch_active_candidates(limit=15)
+            if high_activity:
+                print(f"🚀 [Scrapy] Alvos de maior movimentação: {len(high_activity)} perfis.")
+                return high_activity
 
             print("⚠️ [Scrapy] Usando alvos estáticos como fallback final.")
             return ["lulaoficial", "flaviobolsonaro", "nikolasferreirainfo", "erikahiltonoficial"]
