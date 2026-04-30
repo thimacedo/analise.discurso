@@ -122,7 +122,10 @@ class InstagramHeadlessScraper:
 
                 await self.page.fill(password_selector, IG_PASS)
                 await asyncio.sleep(1)
-                await self.page.click('button[type="submit"]')
+                if await self.page.locator('button[type="submit"]').count() > 0:
+                    await self.page.click('button[type="submit"]')
+                else:
+                    await self.page.locator(password_selector).press('Enter')
                 await self.page.wait_for_load_state("networkidle", timeout=30000)
                 await asyncio.sleep(5)
 
