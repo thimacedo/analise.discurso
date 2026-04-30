@@ -1,4 +1,6 @@
 fastapi
-httpx
+supabase
 python-dotenv
-pyotp
+httpx
+pydantic
+pydantic-settings

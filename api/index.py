@@ -6,16 +6,11 @@ from dotenv import load_dotenv
 from collections import Counter
 
 load_dotenv()
-
-app = FastAPI(title="Sentinela API")
+app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+supa = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
 
-# Configuração Supabase
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-supa = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
-
-@app.get("/api/v1/summary")
+@app.get("/v1/summary")
 def summary():
     if not supa: return {"error": "DB disconnected"}
     try:
@@ -27,7 +22,7 @@ def summary():
     except Exception as e:
         return {"error": str(e)}
 
-@app.get("/api/v1/trends")
+@app.get("/v1/trends")
 def trends(days: int = 30):
     if not supa: return []
     try:
@@ -35,7 +30,7 @@ def trends(days: int = 30):
     except Exception:
         return []
 
-@app.get("/api/v1/pasa/breakdown")
+@app.get("/v1/pasa/breakdown")
 def pasa_breakdown():
     if not supa: return {}
     try:
@@ -44,7 +39,7 @@ def pasa_breakdown():
     except Exception:
         return {}
 
-@app.get("/api/v1/geo/uf")
+@app.get("/v1/geo/uf")
 def geo_uf():
     if not supa: return {}
     try:
@@ -54,9 +49,3 @@ def geo_uf():
         return dict(Counter([uf_map.get(c['candidato_id'], 'N/A') for c in coms]))
     except Exception:
         return {}
-
-@app.get("/api/health")
-def health():
-    return {"status": "operational", "db": supa is not None}
-
-
