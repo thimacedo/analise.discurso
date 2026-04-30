@@ -10,7 +10,7 @@ app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 supa = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
 
-@app.get("/v1/summary")
+@app.get("/api/v1/summary")
 def summary():
     if not supa: return {"error": "DB disconnected"}
     try:
@@ -22,7 +22,7 @@ def summary():
     except Exception as e:
         return {"error": str(e)}
 
-@app.get("/v1/trends")
+@app.get("/api/v1/trends")
 def trends(days: int = 30):
     if not supa: return []
     try:
@@ -30,7 +30,7 @@ def trends(days: int = 30):
     except Exception:
         return []
 
-@app.get("/v1/pasa/breakdown")
+@app.get("/api/v1/pasa/breakdown")
 def pasa_breakdown():
     if not supa: return {}
     try:
@@ -39,7 +39,7 @@ def pasa_breakdown():
     except Exception:
         return {}
 
-@app.get("/v1/geo/uf")
+@app.get("/api/v1/geo/uf")
 def geo_uf():
     if not supa: return {}
     try:
@@ -49,3 +49,12 @@ def geo_uf():
         return dict(Counter([uf_map.get(c['candidato_id'], 'N/A') for c in coms]))
     except Exception:
         return {}
+
+@app.get("/api/health")
+def health():
+    return {"status": "operational", "db": supa is not None}
+
+@app.get("/api/{full_path:path}")
+def catch_all(full_path: str):
+    return {"error": "Route not found", "path_received": full_path}
+
