@@ -6,8 +6,10 @@ NEWSPIDER_MODULE = "sentinela_scraper.spiders"
 ROBOTSTXT_OBEY = False
 
 # Delay para simular humano (v18.0 Resilience)
-DOWNLOAD_DELAY = 3
+DOWNLOAD_DELAY = 5.0
 RANDOMIZE_DOWNLOAD_DELAY = True
+CONCURRENT_REQUESTS_PER_DOMAIN = 1
+CONCURRENT_REQUESTS = 1
 
 ITEM_PIPELINES = {
     "sentinela_scraper.pipelines.SupabasePipeline": 300,

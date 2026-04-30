@@ -139,24 +139,30 @@ def run_integrated_qwen_classification():
     print(f"🧠 Intelligence Engine: Iniciando Perícia PASA v16.4 (Motor: {current_engine})...")
     
     try:
-        # Lote de segurança (Capping) para desengasgar a pipeline
-        BATCH_SIZE = 100
-        url = f"{SUPABASE_URL}/rest/v1/comentarios?processado_ia=eq.false&limit={BATCH_SIZE}"
+        # Alterado para not.eq.true para capturar NULL e False
+        BATCH_SIZE = 200
+        url = f"{SUPABASE_URL}/rest/v1/comentarios?processado_ia=not.eq.true&limit={BATCH_SIZE}"
         resp = httpx.get(url, headers=HEADERS)
+        
+        if resp.status_code != 200:
+            print(f"❌ Erro Supabase ({resp.status_code}): {resp.text}")
+            return
+            
         comentarios = resp.json()
 
         if not comentarios:
             print("✅ Tudo processado.")
             return
 
-        print(f"📦 [IA] Processando lote de segurança: {len(comentarios)} comentários pendentes.")
+        total = len(comentarios)
+        print(f"📦 [IA] Processando lote de segurança: {total} comentários pendentes.")
 
-        for c in comentarios:
+        for i, c in enumerate(comentarios, 1):
             # Usar texto_bruto obrigatoriamente
             text = c.get('texto_bruto', '')
             result = classify_with_smart_fallback(text)
             
-            # Atualiza no Supabase
+            # Atualiza no Supabase IMEDIATAMENTE (Real-time Persistence)
             update_url = f"{SUPABASE_URL}/rest/v1/comentarios?id=eq.{c['id']}"
             patch_data = {
                 "is_hate": result.get('is_hate', False),
@@ -165,11 +171,16 @@ def run_integrated_qwen_classification():
                 "processado_ia": True
             }
             
-            httpx.patch(update_url, headers=HEADERS, json=patch_data)
-            
-            status_icon = "🔥" if patch_data["is_hate"] else "✅"
-            engine_tag = "[Ollama]" if current_engine == "ollama" else "[Groq]"
-            print(f"   {status_icon} {engine_tag} @{c.get('autor_username')}: {patch_data['categoria_ia']}")
+            try:
+                httpx.patch(update_url, headers=HEADERS, json=patch_data)
+                
+                status_icon = "🔥" if patch_data["is_hate"] else "✅"
+                engine_tag = "[Ollama]" if current_engine == "ollama" else "[Groq]"
+                print(f"   [{i}/{total}] {status_icon} {engine_tag} @{c.get('autor_username')}: {patch_data['categoria_ia']}")
+            except Exception as e:
+                print(f"   ❌ Erro ao salvar comentário {c['id']}: {e}")
+
+        print(f"💾 [Save] Lote de {total} comentários finalizado e persistido.")
 
     except Exception as e:
         print(f"❌ Erro Crítico na Classificação: {e}")

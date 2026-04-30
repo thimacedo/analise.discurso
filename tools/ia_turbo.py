@@ -20,7 +20,7 @@ HEADERS = {
 
 def get_pending_count():
     try:
-        url = f"{SUPABASE_URL}/rest/v1/comentarios?processado_ia=eq.false"
+        url = f"{SUPABASE_URL}/rest/v1/comentarios?processado_ia=not.eq.true"
         resp = httpx.get(url, headers=HEADERS, params={'select': 'count'})
         data = resp.json()
         return data[0]['count'] if data else 0
