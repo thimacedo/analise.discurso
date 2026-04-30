@@ -36,47 +36,50 @@ Call log:
       - img "Logo Sentinela" [ref=e5]
       - generic [ref=e6]:
         - heading "Sentinela" [level=1] [ref=e7]
-        - text: Diamond v17.2
-    - navigation [ref=e8]:
-      - link "Panorama Global" [ref=e9] [cursor=pointer]:
+        - text: Diamond v19.6.1
+        - generic [ref=e8]:
+          - img [ref=e9]
+          - generic [ref=e11]: 0 STN
+    - navigation [ref=e12]:
+      - link "Panorama Global" [ref=e13] [cursor=pointer]:
         - /url: "#monitor"
-        - img [ref=e10]
+        - img [ref=e14]
         - text: Panorama Global
-      - link "Inteligência de Redes" [active] [ref=e15] [cursor=pointer]:
+      - link "Inteligência de Redes" [active] [ref=e19] [cursor=pointer]:
         - /url: "#networks"
-        - img [ref=e16]
+        - img [ref=e20]
         - text: Inteligência de Redes
-      - link "Dossiê de Alvos" [ref=e22] [cursor=pointer]:
+      - link "Dossiê de Alvos" [ref=e26] [cursor=pointer]:
         - /url: "#dossie"
-        - img [ref=e23]
+        - img [ref=e27]
         - text: Dossiê de Alvos
-      - link "Geopolítica UF" [ref=e32] [cursor=pointer]:
+      - link "Geopolítica UF" [ref=e36] [cursor=pointer]:
         - /url: "#map"
-        - img [ref=e33]
+        - img [ref=e37]
         - text: Geopolítica UF
-    - generic [ref=e36]:
-      - generic [ref=e37]: Aguardando leitura...
-      - button "Sincronizar Banco" [ref=e38] [cursor=pointer]
-  - main [ref=e39]:
-    - generic [ref=e41]: Sinal Operacional
-    - generic [ref=e42]:
-      - generic [ref=e43]:
-        - text: Monitorados
-        - generic [ref=e44]: "---"
-      - generic [ref=e45]:
-        - text: Alertas PASA
-        - generic [ref=e46]: "---"
+    - generic [ref=e40]:
+      - generic [ref=e41]: Aguardando leitura...
+      - button "Sincronizar Dados" [ref=e42] [cursor=pointer]
+  - main [ref=e43]:
+    - generic [ref=e45]: Sinal Operacional
+    - generic [ref=e46]:
       - generic [ref=e47]:
-        - text: Amostragem
+        - text: Monitorados
         - generic [ref=e48]: "---"
       - generic [ref=e49]:
-        - text: Resiliência
+        - text: Alertas PASA
         - generic [ref=e50]: "---"
-    - generic [ref=e52]:
-      - img [ref=e54]
-      - heading "Inteligência de Redes" [level=3] [ref=e57]
-      - paragraph [ref=e58]: A detecção de redes coordenadas é exclusiva para o plano Enterprise.
-      - button "Fazer Upgrade →" [ref=e59] [cursor=pointer]
+      - generic [ref=e51]:
+        - text: Amostragem
+        - generic [ref=e52]: "---"
+      - generic [ref=e53]:
+        - text: Resiliência
+        - generic [ref=e54]: "---"
+    - generic [ref=e56]:
+      - img [ref=e58]
+      - heading "Inteligência de Redes" [level=3] [ref=e61]
+      - paragraph [ref=e62]: A detecção de redes coordenadas é exclusiva para o plano Enterprise.
+      - button "Fazer Upgrade →" [ref=e63] [cursor=pointer]
 ```
 
 # Test source

@@ -36,60 +36,58 @@ Call log:
       - img "Logo Sentinela" [ref=e5]
       - generic [ref=e6]:
         - heading "Sentinela" [level=1] [ref=e7]
-        - text: Diamond v17.2
-    - navigation [ref=e8]:
-      - link "Panorama Global" [ref=e9] [cursor=pointer]:
+        - text: Diamond v19.6.1
+        - generic [ref=e8]:
+          - img [ref=e9]
+          - generic [ref=e11]: 0 STN
+    - navigation [ref=e12]:
+      - link "Panorama Global" [ref=e13] [cursor=pointer]:
         - /url: "#monitor"
-        - img [ref=e10]
+        - img [ref=e14]
         - text: Panorama Global
-      - link "Inteligência de Redes" [ref=e15] [cursor=pointer]:
+      - link "Inteligência de Redes" [ref=e19] [cursor=pointer]:
         - /url: "#networks"
-        - img [ref=e16]
+        - img [ref=e20]
         - text: Inteligência de Redes
-      - link "Dossiê de Alvos" [ref=e22] [cursor=pointer]:
+      - link "Dossiê de Alvos" [ref=e26] [cursor=pointer]:
         - /url: "#dossie"
-        - img [ref=e23]
+        - img [ref=e27]
         - text: Dossiê de Alvos
-      - link "Geopolítica UF" [ref=e32] [cursor=pointer]:
+      - link "Geopolítica UF" [ref=e36] [cursor=pointer]:
         - /url: "#map"
-        - img [ref=e33]
+        - img [ref=e37]
         - text: Geopolítica UF
-    - generic [ref=e36]:
-      - generic [ref=e37]: Aguardando leitura...
-      - button "Sincronizar Banco" [ref=e38] [cursor=pointer]
-  - main [ref=e39]:
-    - generic [ref=e41]: Sinal Operacional
-    - generic [ref=e42]:
-      - generic [ref=e43]:
-        - text: Monitorados
-        - generic [ref=e44]: "---"
-      - generic [ref=e45]:
-        - text: Alertas PASA
-        - generic [ref=e46]: "---"
+    - generic [ref=e40]:
+      - generic [ref=e41]: Aguardando leitura...
+      - button "Sincronizar Dados" [ref=e42] [cursor=pointer]
+  - main [ref=e43]:
+    - generic [ref=e45]: Sinal Operacional
+    - generic [ref=e46]:
       - generic [ref=e47]:
-        - text: Amostragem
+        - text: Monitorados
         - generic [ref=e48]: "---"
       - generic [ref=e49]:
-        - text: Resiliência
+        - text: Alertas PASA
         - generic [ref=e50]: "---"
-    - generic [ref=e52]:
+      - generic [ref=e51]:
+        - text: Amostragem
+        - generic [ref=e52]: "---"
       - generic [ref=e53]:
-        - generic [ref=e54]:
-          - generic [ref=e55]:
-            - generic [ref=e56]:
-              - text: Linha do Tempo
-              - heading "Evidências de Ataque" [level=3] [ref=e57]
-            - generic [ref=e58]: Monitoramento em tempo real dos sinais de hostilidade.
-          - generic [ref=e60]:
-            - img [ref=e62]
-            - strong [ref=e65]: Nenhum alerta ativo
-            - paragraph [ref=e66]: Sem sinais críticos para este filtro.
-        - generic [ref=e69]: Insights Rápidos
-      - generic [ref=e71]:
-        - generic [ref=e72]:
-          - text: Análise de Risco
-          - heading "Prioridade de Triagem" [level=3] [ref=e73]
-        - generic [ref=e74]: Selecione o alvo para isolar as evidências.
+        - text: Resiliência
+        - generic [ref=e54]: "---"
+    - generic [ref=e56]:
+      - generic [ref=e58]:
+        - generic [ref=e60]:
+          - text: Linha do Tempo
+          - heading "Evidências PASA" [level=3] [ref=e61]
+        - generic [ref=e63]:
+          - img [ref=e65]
+          - heading "Acesso Pro Necessário" [level=3] [ref=e68]
+          - paragraph [ref=e69]: O feed de alertas ativos é exclusivo para assinantes.
+          - button "Fazer Upgrade →" [ref=e70] [cursor=pointer]
+      - generic [ref=e73]:
+        - text: Análise de Risco
+        - heading "Prioridade de Triagem" [level=3] [ref=e74]
 ```
 
 # Test source
