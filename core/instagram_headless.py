@@ -102,7 +102,7 @@ class InstagramHeadlessScraper:
 
             print(f"🔍 [Headless] Página de login: {self.page.url}")
             username_selector = 'input[name="username"], input[name="email"]'
-            password_selector = 'input[name="password"]'
+            password_selector = 'input[name="password"], input[name="pass"]'
             username_count = await self.page.locator(username_selector).count()
             password_count = await self.page.locator(password_selector).count()
             print(f"🔍 [Headless] username/email fields: {username_count}, password fields: {password_count}")
