@@ -109,6 +109,10 @@ class InstagramHeadlessScraper:
             has_username = username_count > 0
             has_password = password_count > 0
 
+            if await self._has_session_cookie():
+                print("✅ [Headless] Sessão existente detectada via cookie.")
+                return True
+
             if has_username and has_password:
                 if not IG_USER or not IG_PASS:
                     print("❌ [Headless] Não há credenciais IG_USER/IG_PASS para login.")
@@ -129,21 +133,26 @@ class InstagramHeadlessScraper:
                 await self.page.wait_for_load_state("networkidle", timeout=30000)
                 await asyncio.sleep(5)
 
-                if await self.page.locator(username_selector).count() > 0:
-                    print("❌ [Headless] Login não foi possível. Verifique credenciais ou 2FA.")
-                    return False
+                if await self._has_session_cookie():
+                    print("✅ [Headless] Login realizado com sucesso.")
+                    return True
 
-                print("✅ [Headless] Login realizado com sucesso.")
-                return True
+                print("❌ [Headless] Login não foi possível. Verifique credenciais ou 2FA.")
+                return False
 
-            print("✅ [Headless] Sessão válida encontrada ou login já estava estabelecido.")
-            return True
+            print("⚠️ [Headless] Não foi possível detectar o formulário de login. Tentando seguir com a sessão atual.")
+            return await self._has_session_cookie()
         except PlaywrightTimeoutError:
             print("❌ [Headless] Timeout durante autenticação no Instagram.")
             return False
         except Exception as e:
             print(f"❌ [Headless] Erro durante autenticação: {e}")
             return False
+
+    async def _has_session_cookie(self) -> bool:
+        assert self.page is not None
+        cookies = await self.page.context.cookies()
+        return any(cookie.get('name') == 'sessionid' and cookie.get('value') for cookie in cookies)
 
     async def _scrape_candidate(self, candidate: Dict):
         username = candidate.get('username')
@@ -155,8 +164,8 @@ class InstagramHeadlessScraper:
         profile_url = f"https://www.instagram.com/{username}/"
 
         try:
-            await self.page.goto(profile_url, wait_until="networkidle", timeout=30000)
-            await asyncio.sleep(2)
+            await self.page.goto(profile_url, wait_until="domcontentloaded", timeout=30000)
+            await asyncio.sleep(3)
 
             shared_data = await self._extract_shared_data()
             if not shared_data:
@@ -228,8 +237,8 @@ class InstagramHeadlessScraper:
         print(f"   📰 [Headless] Carregando post {shortcode}...")
 
         try:
-            await self.page.goto(post_url, wait_until="networkidle", timeout=30000)
-            await asyncio.sleep(2)
+            await self.page.goto(post_url, wait_until="domcontentloaded", timeout=30000)
+            await asyncio.sleep(3)
             shared_data = await self._extract_shared_data()
             comments = self._extract_comments(shared_data)
             if not comments:
