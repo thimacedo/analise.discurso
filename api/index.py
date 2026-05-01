@@ -122,6 +122,43 @@ def get_active_alerts(limit: int = 20):
         logger.error(f"Erro em /alerts/active: {e}")
         return []
 
+@app.get("/api/v1/networks")
+def get_networks():
+    logger.debug("Iniciando requisição /api/v1/networks")
+    return []
+
+@app.get("/api/v1/pasa/breakdown")
+def pasa_breakdown():
+    logger.debug("Iniciando requisição /api/v1/pasa/breakdown")
+    try:
+        supa = get_supa()
+        if not supa: return []
+        res = supa.table('comentarios').select('categoria_ia').eq('is_hate', True).limit(1000).execute()
+        data = res.data if res and res.data else []
+        counts = Counter([i.get('categoria_ia') for i in data if i.get('categoria_ia')])
+        
+        PASA_CONFIG = {
+            "ODIO_IDENTITARIO":    {"label": "Ódio Identitário",   "color": "#ef4444", "icon": "users"},
+            "VIOLENCIA_GENERO":    {"label": "Violência de Gênero","color": "#ec4899", "icon": "shield-alert"},
+            "AMEACA":              {"label": "Ameaça",             "color": "#f97316", "icon": "alert-octagon"},
+            "INSULTO_AD_HOMINEM":  {"label": "Insulto Ad Hominem", "color": "#f59e0b", "icon": "swords"},
+            "ATAQUE_INSTITUCIONAL":{"label": "Ataque Institucional","color": "#8b5cf6", "icon": "landmark"},
+            "RIGOR_CRIMINAL":      {"label": "Rigor Criminal",     "color": "#06b6d4", "icon": "scale"},
+        }
+        
+        total_total = sum(counts.values())
+        return [{
+            "categoria_ia": cat,
+            "total": val,
+            "percentual": round(val/total_total*100, 1) if total_total > 0 else 0,
+            "label": PASA_CONFIG.get(cat, {}).get("label", cat),
+            "color": PASA_CONFIG.get(cat, {}).get("color", "#64748b"),
+            "icon": PASA_CONFIG.get(cat, {}).get("icon", "help-circle")
+        } for cat, val in counts.items()]
+    except Exception as e: 
+        logger.error(f"Erro em /pasa/breakdown: {e}")
+        return []
+
 @app.get("/api/v1/geo/uf")
 def geo_uf():
     logger.debug("Iniciando requisição /api/v1/geo/uf")
