@@ -213,9 +213,12 @@ function renderNetworkIntelligence() {
         return;
     }
 
-    // Toggle sub-menu visibility
-    const subNav = document.getElementById('sub-networks');
-    if (subNav) subNav.style.display = 'flex';
+    // Update active sub-nav item
+    document.querySelectorAll('.sub-nav-link').forEach(link => {
+        const isCurrent = link.id === `nav-net-${state.networkView}`;
+        link.style.color = isCurrent ? 'var(--accent)' : 'var(--text-muted)';
+        link.style.fontWeight = isCurrent ? '800' : 'normal';
+    });
 
     if (state.networkView === 'clusters') {
         renderClusters(container);
@@ -230,58 +233,116 @@ function renderClusters(container) {
     container.innerHTML = `
         <div class="section-heading">
             <div>
-                <span class="eyebrow">Visualização de Grafos</span>
+                <span class="eyebrow">Visualização de Grafos (D3-Force)</span>
                 <h3>Cluster de Ataque</h3>
             </div>
+            <div style="display:flex; gap:16px; font-size:11px; align-items:center;">
+                <div style="display:flex; align-items:center; gap:6px"><div style="width:10px; height:10px; border-radius:50%; background:#ef4444"></div> Candidato</div>
+                <div style="display:flex; align-items:center; gap:6px"><div style="width:10px; height:10px; border-radius:50%; background:#2563eb"></div> Agressor</div>
+                <button onclick="window.forceRefresh()" class="ghost-btn" style="padding:4px 8px">Recarregar Rede</button>
+            </div>
         </div>
-        <div class="glass-card" style="width:100%; height:600px; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;">
-            <canvas id="network-canvas" style="width:100%; height:100%"></canvas>
-            <div id="graph-loader" class="loader-overlay" style="position:absolute; display:none">Processando conexões...</div>
+        <div class="glass-card" style="width:100%; min-height:600px; position:relative; overflow:hidden; background: #0a0a0c;">
+            <canvas id="network-canvas" style="cursor: grab;"></canvas>
+            <div id="hover-info" style="position:absolute; bottom:20px; left:20px; background:rgba(0,0,0,0.8); padding:10px 15px; border-radius:8px; border:1px solid var(--accent); display:none; pointer-events:none;"></div>
         </div>
     `;
 
     const canvas = document.getElementById('network-canvas');
-    if (!canvas || !state.networks?.nodes) return;
+    if (!canvas || !state.networks?.nodes || state.networks.nodes.length === 0) {
+        if (!state.loading) container.innerHTML += createEmptyState('activity', 'Dados insuficientes', 'A rede ainda está sendo processada pelo pipeline.');
+        return;
+    }
 
     const ctx = canvas.getContext('2d');
-    const width = canvas.offsetWidth;
-    const height = canvas.offsetHeight;
+    const width = container.offsetWidth - 40;
+    const height = 600;
     canvas.width = width;
     canvas.height = height;
 
-    const nodes = state.networks.nodes;
-    const links = state.networks.links;
+    const nodes = state.networks.nodes.map(d => ({ ...d }));
+    const links = state.networks.links.map(d => ({ ...d }));
 
     const simulation = d3.forceSimulation(nodes)
-        .force("link", d3.forceLink(links).id(d => d.id).distance(100))
-        .force("charge", d3.forceManyBody().strength(-200))
-        .force("center", d3.forceCenter(width / 2, height / 2));
+        .force("link", d3.forceLink(links).id(d => d.id).distance(80))
+        .force("charge", d3.forceManyBody().strength(-300))
+        .force("center", d3.forceCenter(width / 2, height / 2))
+        .force("collision", d3.forceCollide().radius(30));
 
-    simulation.on("tick", () => {
-        ctx.clearRect(0, 0, width, height);
+    let transform = d3.zoomIdentity;
+    const zoom = d3.zoom()
+        .scaleExtent([0.2, 5])
+        .on("zoom", (event) => {
+            transform = event.transform;
+            draw();
+        });
+
+    d3.select(canvas).call(zoom);
+
+    // Hover detection
+    d3.select(canvas).on("mousemove", (event) => {
+        const [mx, my] = d3.pointer(event);
+        const mouseX = (mx - transform.x) / transform.k;
+        const mouseY = (my - transform.y) / transform.k;
         
-        // Draw links
+        const node = simulation.find(mouseX, mouseY, 20);
+        const infoEl = document.getElementById('hover-info');
+        
+        if (node) {
+            infoEl.style.display = 'block';
+            infoEl.innerHTML = `
+                <strong style="color:var(--accent)">@${node.id}</strong><br/>
+                <span style="font-size:10px; opacity:0.8">${node.type === 'target' ? 'Candidato Monitorado' : 'Perfil Agressor'}</span><br/>
+                <span style="font-size:12px">${node.val} interações</span>
+            `;
+        } else {
+            infoEl.style.display = 'none';
+        }
+    });
+
+    function draw() {
+        ctx.save();
+        ctx.clearRect(0, 0, width, height);
+        ctx.translate(transform.x, transform.y);
+        ctx.scale(transform.k, transform.k);
+
+        // Links
         ctx.beginPath();
-        ctx.strokeStyle = "rgba(255,255,255,0.1)";
+        ctx.strokeStyle = "rgba(255,255,255,0.08)";
+        ctx.lineWidth = 1;
         links.forEach(d => {
             ctx.moveTo(d.source.x, d.source.y);
             ctx.lineTo(d.target.x, d.target.y);
         });
         ctx.stroke();
 
-        // Draw nodes
+        // Nodes
         nodes.forEach(d => {
             ctx.beginPath();
-            ctx.arc(d.x, d.y, d.type === 'target' ? 8 : 4, 0, 2 * Math.PI);
+            const radius = d.type === 'target' ? 12 : 5;
+            ctx.arc(d.x, d.y, radius, 0, 2 * Math.PI);
             ctx.fillStyle = d.type === 'target' ? "#ef4444" : "#2563eb";
             ctx.fill();
-            if (d.val > 5) {
+            
+            // Halo for targets
+            if (d.type === 'target') {
+                ctx.strokeStyle = "rgba(239, 68, 68, 0.3)";
+                ctx.lineWidth = 4;
+                ctx.stroke();
+            }
+
+            // Labels for important nodes or on high zoom
+            if (d.val > 5 || transform.k > 1.5 || d.type === 'target') {
                 ctx.fillStyle = "white";
-                ctx.font = "10px Inter";
-                ctx.fillText(`@${d.id}`, d.x + 10, d.y + 3);
+                ctx.font = `${10 / transform.k}px Inter`;
+                ctx.textAlign = "center";
+                ctx.fillText(`@${d.id}`, d.x, d.y + radius + 12);
             }
         });
-    });
+        ctx.restore();
+    }
+
+    simulation.on("tick", draw);
 }
 
 function renderFlow(container) {

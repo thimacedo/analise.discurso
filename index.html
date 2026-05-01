@@ -42,13 +42,13 @@
             <a href="#monitor" class="nav-item active" id="nav-monitor"><i data-lucide="layout-grid" class="w-4 h-4"></i> Panorama Global</a>
             
             <div class="nav-group">
-                <a href="#networks" class="nav-item" id="nav-networks">
+                <a href="#networks" class="nav-item" id="nav-networks" onclick="document.getElementById('sub-networks').style.display='flex'">
                     <i data-lucide="share-2" class="w-4 h-4"></i> Inteligência de Redes
                 </a>
                 <div id="sub-networks" class="sub-nav" style="display: none; flex-direction: column; padding-left: 32px; font-size: 0.75rem; gap: 8px; margin-top: 4px; margin-bottom: 8px;">
-                    <a href="#networks" onclick="window.setNetworkView('clusters')" style="color: var(--text-muted); text-decoration: none;">• Cluster de Ataque</a>
-                    <a href="#networks" onclick="window.setNetworkView('flow')" style="color: var(--text-muted); text-decoration: none;">• Fluxo Coordenado</a>
-                    <a href="#networks" onclick="window.setNetworkView('matrix')" style="color: var(--text-muted); text-decoration: none;">• Matriz de Colusão</a>
+                    <a href="#networks" onclick="window.setNetworkView('clusters')" class="sub-nav-link" id="nav-net-clusters" style="color: var(--text-muted); text-decoration: none;">• Cluster de Ataque</a>
+                    <a href="#networks" onclick="window.setNetworkView('flow')" class="sub-nav-link" id="nav-net-flow" style="color: var(--text-muted); text-decoration: none;">• Fluxo Coordenado</a>
+                    <a href="#networks" onclick="window.setNetworkView('matrix')" class="sub-nav-link" id="nav-net-matrix" style="color: var(--text-muted); text-decoration: none;">• Matriz de Colusão</a>
                 </div>
             </div>
 
