@@ -1,4 +1,4 @@
-import { state, setDossieGrouping, setDossieSearch } from './state.js';
+import { state, setDossieGrouping, setDossieSearch, setViewState, setNetworkView } from './state.js';
 import { renderBrazilMap } from '../components/BrazilMap.js';
 import { planService } from '../services/dataService.js';
 import { authService } from '../services/authService.js';

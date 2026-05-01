@@ -1,9 +1,24 @@
-import { state, setViewState } from './state.js';
+import { state, setViewState, setNetworkView } from './state.js';
 import { dataService } from '../services/dataService.js';
 import { authService } from '../services/authService.js';
 import { renderAll } from './ui.js';
 
 let lastSyncToken = null;
+
+// Global exposure for UI interactions (Exposed immediately)
+window.debouncedRender = renderAll;
+window.forceRefresh = async () => {
+    console.log("Sincronizando dados via Proxy...");
+    await refreshData();
+};
+window.navigate = (view) => {
+    window.location.hash = view;
+};
+window.setNetworkView = (view) => {
+    const subNav = document.getElementById('sub-networks');
+    if (subNav) subNav.style.display = 'flex';
+    setNetworkView(view);
+};
 
 async function init() {
     console.log('SENTINELA | Diamond Edition v19.5 initializing (Identity-First)...');
@@ -22,16 +37,6 @@ async function init() {
         setViewState(window.location.hash.substring(1) || 'monitor');
         renderAll();
     });
-
-    window.navigate = (view) => {
-        window.location.hash = view;
-    };
-
-    window.setNetworkView = (view) => {
-        const subNav = document.getElementById('sub-networks');
-        if (subNav) subNav.style.display = 'flex';
-        setNetworkView(view);
-    };
 
     setViewState(window.location.hash.substring(1) || 'monitor');
     renderAll();
