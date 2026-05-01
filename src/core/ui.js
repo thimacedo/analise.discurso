@@ -16,6 +16,10 @@ export function renderAll() {
             if (el) el.style.display = state.view === view ? 'flex' : 'none';
         });
 
+        // Toggle sub-menu visibility
+        const subNav = document.getElementById('sub-networks');
+        if (subNav) subNav.style.display = state.view === 'networks' ? 'flex' : 'none';
+
         if (state.view === 'monitor') {
             renderMonitorImpacto();
             renderAlertasFeed();
@@ -209,37 +213,139 @@ function renderNetworkIntelligence() {
         return;
     }
 
-    const networks = state.networks || [];
-    if (!networks.length) {
-        container.innerHTML = createEmptyState('activity', 'Nenhuma rede coordenada', 'O pipeline ainda não identificou padrões de ataques em massa.');
-        return;
+    // Toggle sub-menu visibility
+    const subNav = document.getElementById('sub-networks');
+    if (subNav) subNav.style.display = 'flex';
+
+    if (state.networkView === 'clusters') {
+        renderClusters(container);
+    } else if (state.networkView === 'flow') {
+        renderFlow(container);
+    } else if (state.networkView === 'matrix') {
+        renderMatrix(container);
     }
+}
+
+function renderClusters(container) {
+    container.innerHTML = `
+        <div class="section-heading">
+            <div>
+                <span class="eyebrow">Visualização de Grafos</span>
+                <h3>Cluster de Ataque</h3>
+            </div>
+        </div>
+        <div class="glass-card" style="width:100%; height:600px; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+            <canvas id="network-canvas" style="width:100%; height:100%"></canvas>
+            <div id="graph-loader" class="loader-overlay" style="position:absolute; display:none">Processando conexões...</div>
+        </div>
+    `;
+
+    const canvas = document.getElementById('network-canvas');
+    if (!canvas || !state.networks?.nodes) return;
+
+    const ctx = canvas.getContext('2d');
+    const width = canvas.offsetWidth;
+    const height = canvas.offsetHeight;
+    canvas.width = width;
+    canvas.height = height;
+
+    const nodes = state.networks.nodes;
+    const links = state.networks.links;
+
+    const simulation = d3.forceSimulation(nodes)
+        .force("link", d3.forceLink(links).id(d => d.id).distance(100))
+        .force("charge", d3.forceManyBody().strength(-200))
+        .force("center", d3.forceCenter(width / 2, height / 2));
+
+    simulation.on("tick", () => {
+        ctx.clearRect(0, 0, width, height);
+        
+        // Draw links
+        ctx.beginPath();
+        ctx.strokeStyle = "rgba(255,255,255,0.1)";
+        links.forEach(d => {
+            ctx.moveTo(d.source.x, d.source.y);
+            ctx.lineTo(d.target.x, d.target.y);
+        });
+        ctx.stroke();
+
+        // Draw nodes
+        nodes.forEach(d => {
+            ctx.beginPath();
+            ctx.arc(d.x, d.y, d.type === 'target' ? 8 : 4, 0, 2 * Math.PI);
+            ctx.fillStyle = d.type === 'target' ? "#ef4444" : "#2563eb";
+            ctx.fill();
+            if (d.val > 5) {
+                ctx.fillStyle = "white";
+                ctx.font = "10px Inter";
+                ctx.fillText(`@${d.id}`, d.x + 10, d.y + 3);
+            }
+        });
+    });
+}
+
+function renderFlow(container) {
+    const list = state.alertas || [];
+    container.innerHTML = `
+        <div class="section-heading">
+            <div>
+                <span class="eyebrow">Análise Temporal</span>
+                <h3>Fluxo Coordenado</h3>
+            </div>
+        </div>
+        <div class="stack-list glass-card" style="padding:20px">
+            <table style="width:100%; border-collapse:collapse; font-size:0.85rem">
+                <thead>
+                    <tr style="text-align:left; border-bottom:1px solid rgba(255,255,255,0.1)">
+                        <th style="padding:12px">Horário</th>
+                        <th>Agressor</th>
+                        <th>Foco</th>
+                        <th>Inteligência</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${list.map(a => `
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+                            <td style="padding:12px; font-family:monospace; color:var(--text-muted)">
+                                ${new Date(a.data_coleta).toLocaleTimeString('pt-BR')}
+                            </td>
+                            <td><strong>@${a.autor_username}</strong></td>
+                            <td style="color:var(--danger)">➔ @${a.candidato_id}</td>
+                            <td><span class="severity-pill is-info" style="font-size:10px">${a.categoria_ia}</span></td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+function renderMatrix(container) {
+    const targets = [...new Set((state.networks.links || []).map(l => l.target.id || l.target))].slice(0, 10);
+    const authors = [...new Set((state.networks.links || []).map(l => l.source.id || l.source))].slice(0, 15);
 
     container.innerHTML = `
         <div class="section-heading">
             <div>
-                <span class="eyebrow">Detecção Algorítmica</span>
-                <h3>Redes Coordenadas</h3>
+                <span class="eyebrow">Matriz de Colusão</span>
+                <h3>Densidade de Ataque</h3>
             </div>
         </div>
-        <div class="networks-grid">
-            ${networks.map(n => `
-                <div class="network-card glass-card">
-                    <div class="network-card__header">
-                        <span class="status-badge is-${n.status.toLowerCase()}">${n.status}</span>
-                        <span class="severity-value">${n.severidade}</span>
-                    </div>
-                    <h4>${n.nome}</h4>
-                    <p>${n.descricao}</p>
-                    <div class="network-keywords">
-                        ${n.palavras_chave.slice(0, 5).map(k => `<span>#${k}</span>`).join('')}
-                    </div>
-                    <div class="network-stats">
-                        <div><span>Alvos</span><strong>${n.alvos_vinculados}</strong></div>
-                        <div><span>Eventos</span><strong>${n.eventos_count}</strong></div>
-                    </div>
-                </div>
-            `).join('')}
+        <div class="glass-card" style="padding:20px; overflow-x:auto">
+            <div class="matrix-grid" style="display:grid; grid-template-columns: 120px repeat(${targets.length}, 1fr); gap:4px">
+                <div></div>
+                ${targets.map(t => `<div style="font-size:10px; transform:rotate(-45deg); height:60px">@${t}</div>`).join('')}
+                
+                ${authors.map(a => `
+                    <div style="font-size:11px; font-weight:bold">@${a}</div>
+                    ${targets.map(t => {
+                        const link = state.networks.links.find(l => (l.source.id || l.source) === a && (l.target.id || l.target) === t);
+                        const opacity = link ? 0.2 + (link.weight * 0.2) : 0.05;
+                        const color = link ? `rgba(239, 68, 68, ${opacity})` : 'rgba(255,255,255,0.02)';
+                        return `<div style="background:${color}; height:30px; border-radius:2px"></div>`;
+                    }).join('')}
+                `).join('')}
+            </div>
         </div>
     `;
 }

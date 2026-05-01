@@ -123,9 +123,41 @@ def get_active_alerts(limit: int = 20):
         return []
 
 @app.get("/api/v1/networks")
-def get_networks():
-    logger.debug("Iniciando requisição /api/v1/networks")
-    return []
+def get_networks(days: int = 7):
+    logger.debug(f"Iniciando requisição /api/v1/networks (days={days})")
+    try:
+        supa = get_supa()
+        if not supa: return {"nodes": [], "links": []}
+
+        # Get hate comments from recent days
+        res = supa.table('comentarios').select('autor_username, candidato_id, data_publicacao').eq('is_hate', True).limit(1000).execute()
+        data = res.data if res and res.data else []
+
+        nodes = {}
+        links = []
+
+        # Simple graph logic: authors connected to targets
+        for item in data:
+            author = item.get('autor_username')
+            target = item.get('candidato_id')
+            if not author or not target: continue
+
+            if author not in nodes: nodes[author] = {"id": author, "type": "author", "val": 1}
+            else: nodes[author]["val"] += 1
+
+            if target not in nodes: nodes[target] = {"id": target, "type": "target", "val": 1}
+            else: nodes[target]["val"] += 1
+
+            links.append({"source": author, "target": target, "weight": 1})
+
+        logger.info(f"Rede gerada: {len(nodes)} nós, {len(links)} conexões.")
+        return {
+            "nodes": list(nodes.values()),
+            "links": links[:500] # Limit for UI performance
+        }
+    except Exception as e:
+        logger.error(f"Erro em /networks: {e}")
+        return {"error": str(e)}
 
 @app.get("/api/v1/pasa/breakdown")
 def pasa_breakdown():

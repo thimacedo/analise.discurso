@@ -2,7 +2,8 @@ export const state = {
     view: 'monitor',
     data: [],
     alertas: [],
-    networks: [],
+    networks: { nodes: [], links: [] },
+    networkView: 'clusters',
     stats: {
         total: 0,
         hate: 0,
@@ -25,6 +26,11 @@ export const state = {
 export function setViewState(view) {
     state.view = view;
     window.location.hash = view;
+    if (window.debouncedRender) window.debouncedRender();
+}
+
+export function setNetworkView(view) {
+    state.networkView = view;
     if (window.debouncedRender) window.debouncedRender();
 }
 

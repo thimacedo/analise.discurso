@@ -27,6 +27,12 @@ async function init() {
         window.location.hash = view;
     };
 
+    window.setNetworkView = (view) => {
+        const subNav = document.getElementById('sub-networks');
+        if (subNav) subNav.style.display = 'flex';
+        setNetworkView(view);
+    };
+
     setViewState(window.location.hash.substring(1) || 'monitor');
     renderAll();
 
