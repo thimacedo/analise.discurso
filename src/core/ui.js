@@ -16,13 +16,11 @@ export function renderAll() {
             if (el) el.style.display = state.view === view ? 'flex' : 'none';
         });
 
-        // Toggle sub-menu visibility
         const subNav = document.getElementById('sub-networks');
         if (subNav) subNav.style.display = (state.view === 'networks') ? 'flex' : 'none';
 
         if (state.view === 'monitor') {
-            renderMonitorImpacto();
-            renderAlertasFeed();
+            renderMonitorLayout();
         } else if (state.view === 'networks') {
             renderNetworkIntelligence();
         } else if (state.view === 'dossie') {
@@ -37,6 +35,72 @@ export function renderAll() {
     } catch (e) {
         console.error('Render error:', e);
     }
+}
+
+function renderMonitorLayout() {
+    const container = document.getElementById('view-monitor');
+    if (!container) return;
+
+    // Se houver um alvo selecionado, injeta o Profile Header no topo do feed
+    const feedContainer = document.getElementById('feed-alertas');
+    
+    // Renderiza a lista de prioridades (sempre visível)
+    renderMonitorImpacto();
+
+    // Se houver seleção, mostra o cabeçalho do perfil social
+    if (state.selectedAlvo) {
+        renderCandidateProfile(feedContainer);
+    } else {
+        renderOnboarding(feedContainer);
+    }
+
+    renderAlertasFeed();
+}
+
+function renderOnboarding(container) {
+    container.innerHTML = `
+        <div class="faq-section animate-in">
+            <span class="eyebrow">Onboarding Sentinela</span>
+            <h3 style="margin: 10px 0">Bem-vindo ao Centro de Comando</h3>
+            <p style="font-size: 0.85rem; color: var(--text-soft); line-height: 1.6">
+                Este painel monitora agressões coordenadas em tempo real. Selecione um alvo na lista de **Prioridade de Triagem** para ver o dossiê individual e o histórico PASA completo.
+            </p>
+            <div style="margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+                <div class="glass-card" style="padding: 12px; font-size: 0.75rem">
+                    <strong style="color: var(--accent)">Como funciona?</strong><br>
+                    A IA classifica cada comentário nas 6 categorias do Protocolo PASA.
+                </div>
+                <div class="glass-card" style="padding: 12px; font-size: 0.75rem">
+                    <strong style="color: var(--accent)">O que é STN?</strong><br>
+                    São tokens forenses necessários para gerar PDFs detalhados.
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderCandidateProfile(container) {
+    const a = state.selectedAlvo;
+    container.innerHTML = `
+        <div class="candidate-profile-header">
+            <div class="profile-avatar">${a.username.charAt(0).toUpperCase()}</div>
+            <div class="profile-info">
+                <span class="eyebrow">${a.estado || 'BR'} • ${a.partido || 'Sem Partido'}</span>
+                <h2>@${a.username}</h2>
+                <p>${a.bio || 'Sem descrição biográfica disponível no monitoramento.'}</p>
+                <div class="social-stats">
+                    <div class="stat-item"><span>Seguidores</span><strong>${formatCompactNumber(a.seguidores || 0)}</strong></div>
+                    <div class="stat-item"><span>Amostra</span><strong>${a.comentarios_totales_count}</strong></div>
+                    <div class="stat-item"><span>Alertas</span><strong style="color:var(--danger)">${a.comentarios_odio_count}</strong></div>
+                    <div class="stat-item"><span>Risco</span><strong style="color:${a.color}">${a.score_risco}%</strong></div>
+                </div>
+            </div>
+            <div style="margin-left: auto; display: flex; flex-direction: column; gap: 8px">
+                <button class="primary-btn" onclick="window.setFiltroAlvo(null)"><i data-lucide="x"></i> Fechar Foco</button>
+                <button class="ghost-btn" onclick="window.inspectTarget('${a.username}')"><i data-lucide="file-text"></i> Gerar Dossiê</button>
+            </div>
+        </div>
+    `;
 }
 
 function updateSidebarActive() {
@@ -105,39 +169,59 @@ function renderTopbar() {
 function renderAlertasFeed() {
     const container = document.getElementById('feed-alertas');
     if (!container) return;
-    if (state.loading) { container.innerHTML = createEmptyState('loader', 'Atualizando alertas', 'Sincronizando com o banco...'); return; }
-    if (!planService.canAccess('alerts')) { container.innerHTML = createUpgradeGate('Acesso Pro Necessário', 'O feed de alertas ativos é exclusivo para assinantes.'); return; }
-    const list = state.selectedAlvo ? state.alertas.filter((alerta) => String(alerta.candidato_id) === String(state.selectedAlvo.username)) : state.alertas;
-    if (!list.length) { container.innerHTML = createEmptyState('shield-check', 'Nenhum alerta ativo', 'Sem sinais críticos para este filtro.'); return; }
-    container.innerHTML = list.map((alerta) => {
+    if (state.loading) return; // Carregando já tratado no renderMonitorLayout
+
+    if (!planService.canAccess('alerts')) {
+        container.innerHTML += createUpgradeGate('Acesso Pro Necessário', 'O feed de alertas ativos é exclusivo para assinantes.');
+        return;
+    }
+
+    const list = state.selectedAlvo 
+        ? state.alertas.filter((alerta) => String(alerta.candidato_id) === String(state.selectedAlvo.username)) 
+        : state.alertas;
+
+    if (!list.length) {
+        container.innerHTML += createEmptyState('shield-check', 'Nenhum alerta ativo', 'Sem sinais críticos para este filtro.');
+        return;
+    }
+
+    container.innerHTML += list.map((alerta) => {
         const severity = alerta.severidade || 'INFO';
         const agressor = alerta.autor_username || 'anônimo';
         const target = alerta.candidato_id || 'alvo';
         const plataforma = (alerta.plataforma || 'instagram').toLowerCase();
         const platIcon = plataforma === 'youtube' ? 'youtube' : 'instagram';
         const platColor = plataforma === 'youtube' ? '#ff0000' : '#e1306c';
+
         return `
-            <article class="alert-card border-${severity.toLowerCase()}">
-                <div class="alert-card__header">
-                    <div>
-                        <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px">
-                            <i data-lucide="${platIcon}" style="width:12px; height:12px; color:${platColor}"></i>
-                            <span class="eyebrow" style="color:var(--danger); margin:0">Agressor: @${agressor}</span>
+            <article class="alert-post-card animate-in">
+                <div class="post-header">
+                    <div class="post-author">
+                        <div class="author-avatar">${agressor.charAt(1).toUpperCase()}</div>
+                        <div>
+                            <div style="display:flex; align-items:center; gap:6px">
+                                <strong style="font-size:0.85rem">@${agressor.replace('@','')}</strong>
+                                <i data-lucide="${platIcon}" style="width:12px; height:12px; color:${platColor}"></i>
+                            </div>
+                            <span class="eyebrow" style="font-size:0.6rem; opacity:0.6">${new Date(alerta.data_coleta).toLocaleString('pt-BR')}</span>
                         </div>
-                        <h4>➔ contra @${target}</h4>
                     </div>
-                    <div style="display:flex; align-items:center; gap:10px">
-                        <span class="severity-pill is-${severity.toLowerCase()}">${severity}</span>
-                        <button onclick="window.toggleTriage('${alerta.id}')" class="ghost-btn" style="padding:4px"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
-                    </div>
+                    <span class="severity-pill is-${severity.toLowerCase()}">${severity}</span>
                 </div>
-                <div id="triage-actions-${alerta.id}" style="display:none; gap:8px; margin-bottom:12px; padding:10px; background:rgba(0,0,0,0.2); border-radius:8px">
-                    <button onclick="window.markFalsePositive('${alerta.id}')" class="filter-chip" style="background:var(--success); color:white; border:none">Marcar Falso Positivo (Limpar)</button>
+                
+                <div class="post-content">
+                    "${alerta.texto_bruto || 'Sem conteúdo'}"
                 </div>
-                <p>"${alerta.texto_bruto || alerta.descricao || 'Sem conteúdo'}"</p>
-                <div class="alert-card__meta">
-                    <span>${formatCategory(alerta.categoria_ia || 'HOSPITALIDADE')}</span>
-                    <span>${new Date(alerta.data_coleta || alerta.created_at || Date.now()).toLocaleString('pt-BR')}</span>
+
+                <div class="post-actions">
+                    <button class="action-btn" onclick="window.toggleTriage('${alerta.id}')"><i data-lucide="shield-alert"></i> Analisar PASA</button>
+                    <button class="action-btn" onclick="window.markFalsePositive('${alerta.id}')"><i data-lucide="thumbs-down"></i> Falso Positivo</button>
+                    <button class="action-btn" style="margin-left:auto"><i data-lucide="share-2"></i></button>
+                </div>
+
+                <div id="triage-actions-${alerta.id}" style="display:none; margin-top:12px; padding:12px; background:rgba(0,0,0,0.3); border-radius:8px; font-size:0.75rem">
+                    <strong>Classificação IA:</strong> ${formatCategory(alerta.categoria_ia || 'HOSPITALIDADE')}<br>
+                    <strong>Confiança:</strong> ${(alerta.confianza_ia * 100).toFixed(1)}%
                 </div>
             </article>
         `;
@@ -155,12 +239,10 @@ function renderMonitorImpacto() {
         const q = state.dashboardSearch.toLowerCase();
         list = list.filter(a => a.username.toLowerCase().includes(q) || (a.estado && a.estado.toLowerCase().includes(q)));
     }
-    document.querySelectorAll('.filter-chip').forEach(chip => {
-        const type = chip.id.replace('btn-filter-', '');
-        chip.classList.toggle('active', (state.filterHateOnly || 'all') === type);
-    });
+    
     if (list.length === 0) { container.innerHTML = createEmptyState('search-x', 'Nenhum alvo corresponde ao filtro', ''); return; }
     const PASA_ICONS = {"ODIO_IDENTITARIO": "users", "VIOLENCIA_GENERO": "shield-alert", "AMEACA": "alert-octagon", "INSULTO_AD_HOMINEM": "swords", "ATAQUE_INSTITUCIONAL": "landmark", "RIGOR_CRIMINAL": "scale"};
+    
     container.innerHTML = list.map((alvo, index) => {
         const ratio = alvo.comentarios_totales_count > 0 ? ((alvo.comentarios_odio_count / alvo.comentarios_totales_count) * 100).toFixed(1) : '0.0';
         const isActive = state.selectedAlvo && state.selectedAlvo.username === alvo.username;
@@ -168,7 +250,7 @@ function renderMonitorImpacto() {
         const badgesHtml = Object.entries(breakdown).map(([cat, count]) => `<span class="cat-badge ${count > 0 ? 'has-count is-hate' : ''}" title="${cat}"><i data-lucide="${PASA_ICONS[cat] || 'help-circle'}"></i> ${count}</span>`).join('');
         return `
             <button type="button" onclick="window.setFiltroAlvo('${alvo.username}')" class="monitor-row ${isActive ? 'is-active' : ''}">
-                <div class="monitor-row__title"><div><span class="eyebrow">${alvo.estado || 'BR'} • Prioridade ${index + 1}</span><strong>@${alvo.username}</strong></div><span style="color:${alvo.color}">${alvo.comentarios_odio_count} alertas</span></div>
+                <div class="monitor-row__title"><div><span class="eyebrow">${alvo.estado || 'BR'} • Prioridade ${index + 1}</span><strong>@${alvo.username.replace('@','')}</strong></div><span style="color:${alvo.color}">${alvo.comentarios_odio_count} alertas</span></div>
                 <div class="monitor-row__details">${badgesHtml || '<span class="cat-badge">Sem evidências</span>'}</div>
                 <div class="progress-track"><div class="progress-bar" style="width:${alvo.score_risco}%; background:${alvo.color || 'var(--danger)'}"></div></div>
                 <div class="monitor-row__meta"><span>Risco: ${alvo.score_risco}%</span><span>${ratio}% toxicidade</span></div>
@@ -207,7 +289,7 @@ function renderClusters(container) {
     function draw() {
         ctx.save(); ctx.clearRect(0, 0, width, height); ctx.translate(transform.x, transform.y); ctx.scale(transform.k, transform.k);
         ctx.beginPath(); ctx.strokeStyle = "rgba(255,255,255,0.08)"; links.forEach(d => { ctx.moveTo(d.source.x, d.source.y); ctx.lineTo(d.target.x, d.target.y); }); ctx.stroke();
-        nodes.forEach(d => { ctx.beginPath(); const r = d.type === 'target' ? 12 : 5; ctx.arc(d.x, d.y, r, 0, 2 * Math.PI); ctx.fillStyle = d.type === 'target' ? "#ef4444" : "#2563eb"; ctx.fill(); if (d.type === 'target' || transform.k > 1.2) { ctx.fillStyle = "white"; ctx.font = `${10/transform.k}px Inter`; ctx.textAlign = "center"; ctx.fillText(`@${d.id}`, d.x, d.y + r + 10); } });
+        nodes.forEach(d => { ctx.beginPath(); const r = d.type === 'target' ? 12 : 5; ctx.arc(d.x, d.y, r, 0, 2 * Math.PI); ctx.fillStyle = d.type === 'target' ? "#ef4444" : "#2563eb"; ctx.fill(); if (d.type === 'target' || transform.k > 1.2) { ctx.fillStyle = "white"; ctx.font = `${10/transform.k}px Inter`; ctx.textAlign = "center"; ctx.fillText(`@${d.id.replace('@','')}`, d.x, d.y + r + 10); } });
         ctx.restore();
     }
     simulation.on("tick", draw);
@@ -215,13 +297,13 @@ function renderClusters(container) {
 
 function renderFlow(container) {
     const list = state.selectedAlvo ? state.alertas.filter(a => a.candidato_id === state.selectedAlvo.username) : state.alertas;
-    container.innerHTML = `<div class="section-heading"><div><span class="eyebrow">Análise Temporal</span><h3>Fluxo Coordenado</h3></div></div><div class="stack-list glass-card" style="padding:20px"><table style="width:100%; border-collapse:collapse; font-size:0.85rem"><thead><tr style="text-align:left; border-bottom:1px solid rgba(255,255,255,0.1)"><th style="padding:12px">Horário</th><th>Agressor</th><th>Foco</th><th>Plataforma</th></tr></thead><tbody>${list.map(a => `<tr style="border-bottom:1px solid rgba(255,255,255,0.05)"><td style="padding:12px; font-family:monospace; color:var(--text-muted)">${new Date(a.data_coleta).toLocaleTimeString('pt-BR')}</td><td><strong>@${a.autor_username}</strong></td><td style="color:var(--danger)">➔ @${a.candidato_id}</td><td><i data-lucide="${a.plataforma==='youtube'?'youtube':'instagram'}" style="width:14px; height:14px"></i></td></tr>`).join('')}</tbody></table></div>`;
+    container.innerHTML = `<div class="section-heading"><div><span class="eyebrow">Análise Temporal</span><h3>Fluxo Coordenado</h3></div></div><div class="stack-list glass-card" style="padding:20px"><table style="width:100%; border-collapse:collapse; font-size:0.85rem"><thead><tr style="text-align:left; border-bottom:1px solid rgba(255,255,255,0.1)"><th style="padding:12px">Horário</th><th>Agressor</th><th>Foco</th><th>Plataforma</th></tr></thead><tbody>${list.map(a => `<tr style="border-bottom:1px solid rgba(255,255,255,0.05)"><td style="padding:12px; font-family:monospace; color:var(--text-muted)">${new Date(a.data_coleta).toLocaleTimeString('pt-BR')}</td><td><strong>@${a.autor_username.replace('@','')}</strong></td><td style="color:var(--danger)">➔ @${a.candidato_id.replace('@','')}</td><td><i data-lucide="${a.plataforma==='youtube'?'youtube':'instagram'}" style="width:14px; height:14px"></i></td></tr>`).join('')}</tbody></table></div>`;
 }
 
 function renderMatrix(container) {
     const multiAuthors = state.networks.multi_target_authors || [];
     const targets = [...new Set((state.networks.links || []).map(l => l.target.id || l.target))].slice(0, 15);
-    container.innerHTML = `<div class="section-heading"><div><span class="eyebrow">Matriz de Eficácia</span><h3>Agressores Multi-Alvos</h3></div></div><div class="glass-card" style="padding:20px; overflow-x:auto"><div class="matrix-grid" style="display:grid; grid-template-columns: 150px repeat(${targets.length}, 1fr); gap:4px"><div></div>${targets.map(t => `<div style="font-size:9px; transform:rotate(-45deg); height:50px">@${t}</div>`).join('')}${multiAuthors.map(a => `<div style="font-size:11px; font-weight:bold">@${a}</div>${targets.map(t => { const link = state.networks.links.find(l => (l.source.id || l.source) === a && (l.target.id || l.target) === t); return `<div style="background:${link?'rgba(239, 68, 68, 0.4)':'rgba(255,255,255,0.02)'}; height:25px"></div>`; }).join('')}`).join('')}</div></div>`;
+    container.innerHTML = `<div class="section-heading"><div><span class="eyebrow">Matriz de Eficácia</span><h3>Agressores Multi-Alvos</h3></div></div><div class="glass-card" style="padding:20px; overflow-x:auto"><div class="matrix-grid" style="display:grid; grid-template-columns: 150px repeat(${targets.length}, 1fr); gap:4px"><div></div>${targets.map(t => `<div style="font-size:9px; transform:rotate(-45deg); height:50px">@${t.replace('@','')}</div>`).join('')}${multiAuthors.map(a => `<div style="font-size:11px; font-weight:bold">@${a.replace('@','')}</div>${targets.map(t => { const link = state.networks.links.find(l => (l.source.id || l.source) === a && (l.target.id || l.target) === t); return `<div style="background:${link?'rgba(239, 68, 68, 0.4)':'rgba(255,255,255,0.02)'}; height:25px"></div>`; }).join('')}`).join('')}</div></div>`;
 }
 
 function renderDirectory() {
@@ -230,7 +312,7 @@ function renderDirectory() {
     const list = state.data || [];
     container.innerHTML = `<div class="section-heading"><div><span class="eyebrow">Repositório</span><h3>Diretório de Perfis Monitorados</h3></div></div><div class="dossie-card-grid">${list.map(item => `
         <div class="dossie-card glass-card">
-            <div class="dossie-card__header"><span class="status-chip is-ok">${item.estado || 'BR'}</span><h5>@${item.username}</h5></div>
+            <div class="dossie-card__header"><span class="status-chip is-ok">${item.estado || 'BR'}</span><h5>@${item.username.replace('@','')}</h5></div>
             <p style="font-size:12px; margin:8px 0">${item.nome_completo || 'Candidato'}</p>
             <div class="dossie-card__stats">
                 <div><span>Alertas</span><strong>${item.comentarios_odio_count}</strong></div>
@@ -246,7 +328,7 @@ function renderDossieGrid() {
     const container = document.getElementById('dossie-grid-container');
     if (!container) return;
     const list = state.data || [];
-    container.innerHTML = list.map(item => `<div class="dossie-card glass-card"><div class="dossie-card__header"><span class="status-chip is-ok">${item.estado || 'BR'}</span><h5>@${item.username}</h5></div><p>${item.nome_completo || 'Candidato'}</p><div class="dossie-card__stats"><div><span>Total</span><strong>${item.comentarios_totales_count}</strong></div><div><span>Ódio</span><strong>${item.comentarios_odio_count}</strong></div><div><span>Risco</span><strong>${item.score_risco}%</strong></div></div><button class="stn-action-btn stn-btn-active" onclick="window.inspectTarget('${item.username}')">Gerar Dossiê Forense</button></div>`).join('');
+    container.innerHTML = list.map(item => `<div class="dossie-card glass-card"><div class="dossie-card__header"><span class="status-chip is-ok">${item.estado || 'BR'}</span><h5>@${item.username.replace('@','')}</h5></div><p>${item.nome_completo || 'Candidato'}</p><div class="dossie-card__stats"><div><span>Total</span><strong>${item.comentarios_totales_count}</strong></div><div><span>Ódio</span><strong>${item.comentarios_odio_count}</strong></div><div><span>Risco</span><strong>${item.score_risco}%</strong></div></div><button class="stn-action-btn stn-btn-active" onclick="window.inspectTarget('${item.username}')">Gerar Dossiê Forense</button></div>`).join('');
 }
 
 function renderGeopolitica() {
