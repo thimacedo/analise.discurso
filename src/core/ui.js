@@ -46,10 +46,19 @@ function updateSidebarActive() {
 function renderKPIs() {
     if (!state.summary) return;
     
-    const set = (id, value, trend = 0) => {
+    // Se houver um alvo selecionado, mostra os KPIs específicos dele
+    const target = state.selectedAlvo;
+    const isFiltered = !!target;
+
+    const set = (id, value, trend = 0, label = null) => {
         const el = document.getElementById(id);
         if (!el) return;
         
+        if (label) {
+            const labelEl = el.previousElementSibling;
+            if (labelEl && labelEl.classList.contains('kpi-label')) labelEl.innerText = label;
+        }
+
         el.innerHTML = `
             <div class="kpi-value animate-in">${value}</div>
             <div class="kpi-trend ${trend > 0 ? 'up' : trend < 0 ? 'down' : 'neutral'}">
@@ -62,10 +71,21 @@ function renderKPIs() {
     const s = state.summary;
     const t = s.trends || { hate_trend_pct: 0, resiliencia_trend_pct: 0 };
 
-    set('kpi-monitorados', s.total_monitorados.toLocaleString());
-    set('kpi-hate', s.total_alertas.toLocaleString(), t.hate_trend_pct);
-    set('kpi-total', formatCompactNumber(s.total_amostra));
-    set('kpi-res', `${s.resiliencia}%`, t.resiliencia_trend_pct);
+    if (isFiltered) {
+        const total = target.comentarios_totales_count || 0;
+        const hate = target.comentarios_odio_count || 0;
+        const res = total > 0 ? (((total - hate) / total) * 100).toFixed(1) : '100.0';
+        
+        set('kpi-monitorados', '@' + target.username, 0, 'Foco Atual');
+        set('kpi-hate', hate.toLocaleString(), 0, 'Alertas do Alvo');
+        set('kpi-total', formatCompactNumber(total), 0, 'Amostra do Alvo');
+        set('kpi-res', `${res}%`, 0, 'Resiliência Indiv.');
+    } else {
+        set('kpi-monitorados', s.total_monitorados.toLocaleString(), 0, 'Monitorados');
+        set('kpi-hate', s.total_alertas.toLocaleString(), t.hate_trend_pct, 'Alertas PASA');
+        set('kpi-total', formatCompactNumber(s.total_amostra), 0, 'Amostragem');
+        set('kpi-res', `${s.resiliencia}%`, t.resiliencia_trend_pct, 'Resiliência');
+    }
 }
 
 function formatCompactNumber(number) {
@@ -154,36 +174,88 @@ function renderMonitorImpacto() {
     if (!container) return;
 
     if (state.loading) {
-        container.innerHTML = createEmptyState('loader', 'Compilando...', '');
+        container.innerHTML = createEmptyState('loader', 'Compilando Centro de Comando...', '');
         return;
     }
 
-    const hotList = [...state.data].sort((a, b) => (b.score_risco || 0) - (a.score_risco || 0));
+    // 1. Aplicar Filtros e Busca
+    let list = [...state.data];
+    
+    if (state.filterHateOnly === 'hate') {
+        list = list.filter(a => a.comentarios_odio_count > 0);
+    } else if (state.filterHateOnly === 'critical') {
+        list = list.filter(a => a.score_risco > 80);
+    }
 
-    container.innerHTML = hotList.map((alvo, index) => {
+    if (state.dashboardSearch) {
+        const q = state.dashboardSearch.toLowerCase();
+        list = list.filter(a => 
+            a.username.toLowerCase().includes(q) || 
+            (a.estado && a.estado.toLowerCase().includes(q)) ||
+            (a.nome_completo && a.nome_completo.toLowerCase().includes(q))
+        );
+    }
+
+    // Atualiza estados dos chips de filtro na UI
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+        const type = chip.id.replace('btn-filter-', '');
+        chip.classList.toggle('active', (state.filterHateOnly || 'all') === type);
+    });
+
+    if (list.length === 0) {
+        container.innerHTML = createEmptyState('search-x', 'Nenhum alvo corresponde ao filtro', 'Tente ajustar sua busca ou critérios.');
+        return;
+    }
+
+    const PASA_ICONS = {
+        "ODIO_IDENTITARIO": "users",
+        "VIOLENCIA_GENERO": "shield-alert",
+        "AMEACA": "alert-octagon",
+        "INSULTO_AD_HOMINEM": "swords",
+        "ATAQUE_INSTITUCIONAL": "landmark",
+        "RIGOR_CRIMINAL": "scale"
+    };
+
+    container.innerHTML = list.map((alvo, index) => {
         const ratio = alvo.comentarios_totales_count > 0 ? ((alvo.comentarios_odio_count / alvo.comentarios_totales_count) * 100).toFixed(1) : '0.0';
         const isActive = state.selectedAlvo && state.selectedAlvo.username === alvo.username;
         const name = planService.maskName(alvo.username);
         
+        // Snippet de categoria
+        const breakdown = alvo.breakdown || {};
+        const badgesHtml = Object.entries(breakdown).map(([cat, count]) => `
+            <span class="cat-badge ${count > 0 ? 'has-count is-hate' : ''}" title="${cat}">
+                <i data-lucide="${PASA_ICONS[cat] || 'help-circle'}"></i> ${count}
+            </span>
+        `).join('');
+
         return `
             <button type="button" onclick="window.setFiltroAlvo('${alvo.username}')" class="monitor-row ${isActive ? 'is-active' : ''}">
                 <div class="monitor-row__title">
                     <div>
-                        <span class="eyebrow">Prioridade ${index + 1}</span>
+                        <span class="eyebrow">${alvo.estado || 'BR'} • Prioridade ${index + 1}</span>
                         <strong>@${name}</strong>
                     </div>
-                    <span>${alvo.comentarios_odio_count} ataques</span>
+                    <span style="color:${alvo.color}">${alvo.comentarios_odio_count} alertas</span>
                 </div>
-                <div class="progress-track">
+                
+                <div class="monitor-row__details">
+                    ${badgesHtml || '<span class="cat-badge">Sem evidências recentes</span>'}
+                </div>
+
+                <div class="progress-track" style="margin-top:12px">
                     <div class="progress-bar" style="width:${alvo.score_risco}%; background:${alvo.color || 'var(--danger)'}"></div>
                 </div>
+                
                 <div class="monitor-row__meta">
-                    <span>Score de Risco: ${alvo.score_risco}</span>
+                    <span>Risco: ${alvo.score_risco}%</span>
                     <span>${ratio}% de toxicidade</span>
                 </div>
             </button>
         `;
     }).join('');
+
+    if (window.lucide) lucide.createIcons();
 
     if (insights) {
         if (state.pasa && state.pasa.length) {
@@ -203,6 +275,16 @@ function renderMonitorImpacto() {
         }
     }
 }
+
+window.setDashboardFilter = (type) => {
+    state.filterHateOnly = type;
+    renderMonitorImpacto();
+};
+
+window.setDashboardSearch = (query) => {
+    state.dashboardSearch = query;
+    renderMonitorImpacto();
+};
 
 function renderNetworkIntelligence() {
     const container = document.getElementById('view-networks');

@@ -15,6 +15,8 @@ export const state = {
     geo: [],
     selectedUF: null,
     selectedAlvo: null,
+    filterHateOnly: false,
+    dashboardSearch: '',
     dossieGrouping: 'agressoes',
     dossieSearch: '',
     stn_tokens: 0,

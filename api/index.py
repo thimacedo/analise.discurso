@@ -53,6 +53,7 @@ def summary():
         supa = get_supa()
         if not supa: return {"error": "DB credentials missing"}
         
+        # Otimizado: count='exact' com limit(0) para não baixar dados
         c_res = supa.table('candidatos').select('*', count='exact').limit(0).execute()
         t_res = supa.table('comentarios').select('*', count='exact').limit(0).execute()
         h_res = supa.table('comentarios').select('*', count='exact').eq('is_hate', True).limit(0).execute()
@@ -92,18 +93,35 @@ def get_targets(limit: int = 50):
     try:
         supa = get_supa()
         if not supa: return []
+        
+        # 1. Busca candidatos
         res = supa.table('candidatos').select('*').order('username').limit(limit).execute()
         data = res.data if res and res.data else []
+        usernames = [c['username'] for c in data if c.get('username')]
+        
+        # 2. Busca breakdown de categorias para esses candidatos (otimizado em um lote)
+        h_res = supa.table('comentarios').select('candidato_id, categoria_ia').in_('candidato_id', usernames).eq('is_hate', True).execute()
+        h_data = h_res.data if h_res and h_res.data else []
+        
+        # Agrupa por candidato e categoria
+        breakdowns = {}
+        for h in h_data:
+            cid = h['candidato_id']
+            cat = h['categoria_ia'] or 'OUTROS'
+            if cid not in breakdowns: breakdowns[cid] = Counter()
+            breakdowns[cid][cat] += 1
         
         enriched = []
         for item in data:
             score, nivel, color = calculate_risk(item)
+            cid = item.get('username')
             enriched.append({
                 **item,
                 "score_risco": score,
                 "nivel_risco": nivel,
                 "color": color,
-                "comentarios_totales_count": item.get('comentarios_totais_count', 0)
+                "comentarios_totales_count": item.get('comentarios_totais_count', 0),
+                "breakdown": dict(breakdowns.get(cid, {}))
             })
         return sorted(enriched, key=lambda x: x.get('score_risco', 0), reverse=True)
     except Exception as e:
@@ -128,28 +146,28 @@ def get_networks(days: int = 7):
     try:
         supa = get_supa()
         if not supa: return {"nodes": [], "links": []}
-
+        
         # Get hate comments from recent days
         res = supa.table('comentarios').select('autor_username, candidato_id, data_publicacao').eq('is_hate', True).limit(1000).execute()
         data = res.data if res and res.data else []
-
+        
         nodes = {}
         links = []
-
+        
         # Simple graph logic: authors connected to targets
         for item in data:
             author = item.get('autor_username')
             target = item.get('candidato_id')
             if not author or not target: continue
-
+            
             if author not in nodes: nodes[author] = {"id": author, "type": "author", "val": 1}
             else: nodes[author]["val"] += 1
-
+            
             if target not in nodes: nodes[target] = {"id": target, "type": "target", "val": 1}
             else: nodes[target]["val"] += 1
-
+            
             links.append({"source": author, "target": target, "weight": 1})
-
+            
         logger.info(f"Rede gerada: {len(nodes)} nós, {len(links)} conexões.")
         return {
             "nodes": list(nodes.values()),

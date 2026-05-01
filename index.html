@@ -75,6 +75,21 @@
             <div class="glass-card metric-card metric-card--success"><span class="kpi-label">Resiliência</span><div id="kpi-res" class="kpi-value">---</div></div>
         </header>
 
+        <!-- DASHBOARD TOOLBAR (UX REFACTOR) -->
+        <div class="dashboard-toolbar glass-card" style="margin-bottom: 16px; padding: 12px; display: flex; align-items: center; gap: 16px; justify-content: space-between; border-color: rgba(255,255,255,0.05);">
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <span class="eyebrow" style="margin: 0; opacity: 0.5;">Filtros:</span>
+                <button onclick="window.setDashboardFilter('all')" id="btn-filter-all" class="filter-chip active">Todos</button>
+                <button onclick="window.setDashboardFilter('hate')" id="btn-filter-hate" class="filter-chip">Com Alertas</button>
+                <button onclick="window.setDashboardFilter('critical')" id="btn-filter-critical" class="filter-chip">Risco Crítico</button>
+            </div>
+            <div style="position: relative; flex: 1; max-width: 300px;">
+                <i data-lucide="search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; opacity: 0.5;"></i>
+                <input type="text" placeholder="Buscar alvo ou estado..." oninput="window.setDashboardSearch(this.value)" 
+                       style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 8px 12px 8px 36px; color: white; font-size: 0.8rem;">
+            </div>
+        </div>
+
         <section id="view-monitor" class="view-content" style="display: flex;">
             <div class="monitor-grid">
                 <div class="monitor-side" style="display: flex; flex-direction: column; gap: 16px;">

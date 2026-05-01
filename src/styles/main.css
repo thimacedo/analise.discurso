@@ -804,4 +804,64 @@ main { overflow-y: auto !important; height: 100vh; }
     color: var(--text-main);
 }
 
+/* DASHBOARD UX REFACTOR COMPONENTS */
+.filter-chip {
+    padding: 6px 14px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-soft);
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-chip:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.filter-chip.active {
+    background: var(--accent-strong);
+    color: white;
+    border-color: var(--accent);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.cat-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--text-soft);
+}
+
+.cat-badge i { width: 10px; height: 10px; }
+.cat-badge.has-count { color: var(--text-main); background: rgba(255, 255, 255, 0.1); }
+.cat-badge.is-hate { color: #fca5a5; background: rgba(239, 68, 68, 0.1); }
+
+.monitor-row__details {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.snippet-alert {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-style: italic;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
 
