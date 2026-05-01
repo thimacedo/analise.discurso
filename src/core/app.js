@@ -7,21 +7,57 @@ let lastSyncToken = null;
 
 // Global exposure for UI interactions (Exposed immediately)
 window.debouncedRender = renderAll;
+
 window.forceRefresh = async () => {
     console.log("Sincronizando dados via Proxy...");
     await refreshData();
 };
+
 window.navigate = (view) => {
     window.location.hash = view;
 };
+
 window.setNetworkView = (view) => {
     const subNav = document.getElementById('sub-networks');
     if (subNav) subNav.style.display = 'flex';
     setNetworkView(view);
 };
 
+// Toggle manual triage visibility
+window.toggleTriage = (commentId) => {
+    const el = document.getElementById(`triage-actions-${commentId}`);
+    if (el) el.style.display = el.style.display === 'none' ? 'flex' : 'none';
+};
+
+// Handle manual false positive marking
+window.markFalsePositive = async (id) => {
+    if (!confirm("Confirmar que este comentário NÃO é discurso de ódio? (Isso treinará a IA)")) return;
+    
+    try {
+        const response = await fetch(`${window.SENTINELA_CONFIG.apiUrl}/alerts/false-positive`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+        });
+        
+        if (response.ok) {
+            // Remove do estado local e re-renderiza
+            state.alertas = state.alertas.filter(a => a.id !== id);
+            // Atualiza contadores do alvo se houver
+            if (state.selectedAlvo) {
+                state.selectedAlvo.comentarios_odio_count = Math.max(0, state.selectedAlvo.comentarios_odio_count - 1);
+            }
+            renderAll();
+        } else {
+            alert("Erro ao processar triagem manual.");
+        }
+    } catch (e) {
+        console.error("Triage error:", e);
+    }
+};
+
 async function init() {
-    console.log('SENTINELA | Diamond Edition v19.5 initializing (Identity-First)...');
+    console.log('SENTINELA | Diamond Edition v19.7 initializing (Identity-First)...');
 
     // 1. Inicializa Autenticação Real
     try {
@@ -34,11 +70,13 @@ async function init() {
 
 
     window.addEventListener('hashchange', () => {
-        setViewState(window.location.hash.substring(1) || 'monitor');
+        const view = window.location.hash.substring(1) || 'monitor';
+        setViewState(view);
         renderAll();
     });
 
-    setViewState(window.location.hash.substring(1) || 'monitor');
+    const initialView = window.location.hash.substring(1) || 'monitor';
+    setViewState(initialView);
     renderAll();
 
     await refreshData();
@@ -65,14 +103,14 @@ async function refreshData() {
         state.trends = trends;
         state.pasa = pasa;
         state.geo = geo;
-        
+
         // Compatibilidade com UI atual (migração gradual)
         state.stats = {
             total: summary.total_amostra,
             hate: summary.total_alertas,
             resiliencia: summary.resiliencia
         };
-        
+
         // Carregar alvos para triagem/dossie
         const [targets, alerts, networks] = await Promise.all([
             dataService.getTargets(),
@@ -87,7 +125,7 @@ async function refreshData() {
         state.lastSyncAt = new Date().toISOString();
         state.loading = false;
         state.error = null;
-        
+
         // Atualiza texto de sincronização na UI
         const syncEl = document.getElementById('status-sync');
         if (syncEl) syncEl.innerText = `Sincronizado: ${new Date().toLocaleTimeString('pt-BR')}`;
@@ -100,12 +138,5 @@ async function refreshData() {
 
     renderAll();
 }
-
-// Global exposure for UI interactions
-window.debouncedRender = renderAll;
-window.forceRefresh = async () => {
-    console.log("Sincronizando dados via Proxy...");
-    await refreshData();
-};
 
 document.addEventListener('DOMContentLoaded', init);
