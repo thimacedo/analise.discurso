@@ -1,4 +1,9 @@
 fastapi
 supabase
 python-dotenv
+httpx
+pyotp
 uvicorn
+mangum
+pydantic
+pydantic-settings
