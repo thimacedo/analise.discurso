@@ -4,7 +4,6 @@ from supabase import create_client, Client
 import os
 from dotenv import load_dotenv
 from collections import Counter
-from datetime import datetime, timedelta
 
 load_dotenv()
 app = FastAPI()
@@ -36,12 +35,17 @@ def calculate_risk(item):
 def summary():
     try:
         supa = get_supa()
-        if not supa: return {"error": "ENV missing"}
-        c = len(supa.table('candidatos').select('id').execute().data)
-        t_data = supa.table('comentarios').select('id').execute().data
-        h_data = supa.table('comentarios').select('id').eq('is_hate', True).execute().data
-        t = len(t_data)
-        h = len(h_data)
+        if not supa: return {"error": "DB credentials missing"}
+        
+        # Uso de count='exact' para evitar carregar milhares de linhas
+        c_res = supa.table('candidatos').select('id', count='exact').execute()
+        t_res = supa.table('comentarios').select('id', count='exact').execute()
+        h_res = supa.table('comentarios').select('id', count='exact').eq('is_hate', True).execute()
+        
+        c = c_res.count if c_res.count is not None else 0
+        t = t_res.count if t_res.count is not None else 0
+        h = h_res.count if h_res.count is not None else 0
+        
         res = round((t-h)/t*100, 1) if t > 0 else 100
         return {
             "total_monitorados": c, 
@@ -57,9 +61,8 @@ def trends(days: int = 30):
     try:
         supa = get_supa()
         if not supa: return []
-        # Retorna dados das últimas 24h ou amostragem recente para o gráfico
         return supa.table('comentarios').select('autor_username, texto_bruto, categoria_ia, confianza_ia, data_coleta, candidato_id').eq('is_hate', True).order('data_coleta', desc=True).limit(50).execute().data
-    except Exception: return []
+    except Exception as e: return {"error": str(e)}
 
 @app.get("/api/v1/targets")
 def get_targets(limit: int = 50):
@@ -76,12 +79,10 @@ def get_targets(limit: int = 50):
                 "score_risco": score,
                 "nivel_risco": nivel,
                 "color": color,
-                "comentarios_totales_count": item.get('comentarios_totais_count', 0) # Mapeia para o nome esperado pela UI
+                "comentarios_totales_count": item.get('comentarios_totais_count', 0)
             })
-        
-        # Ordena por score para a UI
         return sorted(enriched, key=lambda x: x['score_risco'], reverse=True)
-    except Exception: return []
+    except Exception as e: return {"error": str(e)}
 
 @app.get("/api/v1/alerts/active")
 def get_active_alerts(limit: int = 20):
@@ -89,18 +90,19 @@ def get_active_alerts(limit: int = 20):
         supa = get_supa()
         if not supa: return []
         return supa.table('comentarios').select('*, candidatos(username)').eq('is_hate', True).order('data_coleta', desc=True).limit(limit).execute().data
-    except Exception: return []
+    except Exception as e: return {"error": str(e)}
 
 @app.get("/api/v1/networks")
 def get_networks():
-    return [] # Placeholder para evitar 404
+    return []
 
 @app.get("/api/v1/pasa/breakdown")
 def pasa_breakdown():
     try:
         supa = get_supa()
         if not supa: return []
-        res = supa.table('comentarios').select('categoria_ia').eq('is_hate', True).execute()
+        # Busca categorias apenas dos comentários de ódio recentes para breakdown
+        res = supa.table('comentarios').select('categoria_ia').eq('is_hate', True).limit(1000).execute()
         counts = Counter([i['categoria_ia'] for i in res.data if i.get('categoria_ia')])
         
         PASA_CONFIG = {
@@ -121,16 +123,19 @@ def pasa_breakdown():
             "color": PASA_CONFIG.get(cat, {}).get("color", "#64748b"),
             "icon": PASA_CONFIG.get(cat, {}).get("icon", "help-circle")
         } for cat, val in counts.items()]
-    except Exception as e: return []
+    except Exception as e: return {"error": str(e)}
 
 @app.get("/api/v1/geo/uf")
 def geo_uf():
     try:
         supa = get_supa()
         if not supa: return []
+        # Busca estados dos candidatos
         cands = supa.table('candidatos').select('username, estado').execute().data
-        uf_map = {c['username']: c.get('estado', 'N/A') for c in cands}
-        coms = supa.table('comentarios').select('candidato_id').eq('is_hate', True).execute().data
+        uf_map = {c['username']: (c.get('estado') or 'N/A') for c in cands}
+        
+        # Busca comentários de ódio (limite para evitar timeout)
+        coms = supa.table('comentarios').select('candidato_id').eq('is_hate', True).limit(2000).execute().data
         counts = Counter([uf_map.get(c['candidato_id'], 'N/A') for c in coms])
         
         RISK_COLORS = {
@@ -140,7 +145,6 @@ def geo_uf():
             "CONTROLADO": "#10b981",
         }
         
-        # Mapeia para o formato esperado pelo mapa
         return [{
             "uf": uf,
             "total_hate": val,
@@ -148,7 +152,7 @@ def geo_uf():
             "nivel_risco": "ELEVADO" if val > 10 else "MONITORANDO",
             "color": RISK_COLORS.get("ELEVADO" if val > 10 else "MONITORANDO")
         } for uf, val in counts.items()]
-    except Exception: return []
+    except Exception as e: return {"error": str(e)}
 
 @app.get("/api/health")
 def health():
