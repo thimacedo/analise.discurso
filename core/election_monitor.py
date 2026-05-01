@@ -59,7 +59,7 @@ class ElectionMonitor:
             if 'candidates' in poll:
                 mentioned_names.update(poll['candidates'])
 
-        existing_candidates = await self.db.client.table('candidatos').select('username').execute()
+        existing_candidates = self.db.client.table('candidatos').select('username').execute()
         existing_names = {c['username'].lower().strip() for c in existing_candidates.data}
 
         for name in mentioned_names:
@@ -116,6 +116,29 @@ class ElectionMonitor:
 
     async def add_candidate(self, candidate: Dict) -> bool:
         try:
-            resp = await self.db.client.table('candidatos').insert(candidate).execute()
+            resp = self.db.client.table('candidatos').insert(candidate).execute()
             return len(resp.data) > 0
         except Exception: return False
+
+    async def update_competitor_coverage(self) -> List[str]:
+        """
+        Executa o ciclo completo de monitoramento:
+        1. Busca notícias
+        2. Identifica candidatos
+        3. Adiciona novos ao banco
+        4. Retorna lista de nomes ativados
+        """
+        print("🌍 [ElectionMonitor] Iniciando ciclo de cobertura de competidores...")
+        news = await self.fetch_election_news()
+        polling = await self.fetch_polling_data()
+        
+        new_candidates = await self.identify_new_candidates(news, polling)
+        
+        activated_names = []
+        for cand in new_candidates:
+            success = await self.add_candidate(cand)
+            if success:
+                activated_names.append(cand['username'])
+                print(f"🆕 [ElectionMonitor] Novo candidato detectado e ativado: @{cand['username']}")
+        
+        return activated_names

@@ -62,6 +62,21 @@ class Orchestrator:
         await run_batch_classification(limit=200)
         print("✅ Classificação concluída.")
 
+    async def run_repericia_cycle(self):
+        print("🔍 [1.5/5] Verificando solicitações de RE-PERÍCIA...")
+        targets = await db_client.fetch_targets_needing_repericia()
+        
+        if not targets:
+            print("✅ Nenhuma re-perícia pendente.")
+            return
+
+        print(f"🕵️‍♂️ Detectados {len(targets)} alvos para re-perícia: {', '.join(targets)}")
+        
+        for username in targets:
+            await db_client.reset_target_comments(username)
+            await db_client.mark_repericia_complete(username)
+            print(f"✨ Alvo @{username} pronto para re-processamento.")
+
     async def fetch_and_normalize(self) -> pd.DataFrame:
         print("📥 [3/5] Coletando dados do Supabase...")
         data = await db_client.fetch_all_data()
@@ -149,6 +164,7 @@ class Orchestrator:
         print(f"📅 Data: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n" + "="*50)
         
         await self.run_scraper()
+        await self.run_repericia_cycle()
         await self.run_ia_classification()
         
         df = await self.fetch_and_normalize()

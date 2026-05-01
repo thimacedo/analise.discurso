@@ -185,7 +185,7 @@ function renderAlertasFeed() {
         return;
     }
 
-    container.innerHTML += list.map((alerta) => {
+    const html = list.map((alerta) => {
         const severity = alerta.severidade || 'INFO';
         const agressor = alerta.autor_username || 'anônimo';
         const target = alerta.candidato_id || 'alvo';
@@ -226,6 +226,8 @@ function renderAlertasFeed() {
             </article>
         `;
     }).join('');
+
+    container.innerHTML = html;
 }
 
 function renderMonitorImpacto() {

@@ -15,6 +15,9 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 IG_USER = os.getenv("IG_USER")
 IG_PASS = os.getenv("IG_PASS")
 INSTAGRAM_SESSIONID = os.getenv("INSTAGRAM_SESSIONID")
+INSTAGRAM_USER_ID = os.getenv("INSTAGRAM_USER_ID")
+INSTAGRAM_CSRF = os.getenv("INSTAGRAM_CSRF")
+INSTAGRAM_DID = os.getenv("INSTAGRAM_DID")
 PLAYWRIGHT_HEADLESS = os.getenv("PLAYWRIGHT_HEADLESS", "true").lower() == "true"
 MAX_POSTS_PER_PROFILE = int(os.getenv("MAX_POSTS_PER_PROFILE", "3"))
 MAX_COMMENTS_PER_POST = int(os.getenv("MAX_COMMENTS_PER_POST", "50"))
@@ -58,16 +61,26 @@ class InstagramHeadlessScraper:
             )
 
             if INSTAGRAM_SESSIONID:
-                await context.add_cookies([
+                cookies = [
                     {
                         "name": "sessionid",
                         "value": INSTAGRAM_SESSIONID,
                         "domain": ".instagram.com",
                         "path": "/",
                     }
-                ])
+                ]
+                if INSTAGRAM_USER_ID:
+                    cookies.append({"name": "ds_user_id", "value": INSTAGRAM_USER_ID, "domain": ".instagram.com", "path": "/"})
+                if INSTAGRAM_CSRF:
+                    cookies.append({"name": "csrftoken", "value": INSTAGRAM_CSRF, "domain": ".instagram.com", "path": "/"})
+                if INSTAGRAM_DID:
+                    cookies.append({"name": "ig_did", "value": INSTAGRAM_DID, "domain": ".instagram.com", "path": "/"})
+                
+                await context.add_cookies(cookies)
 
             self.page = await context.new_page()
+            self.page.set_default_timeout(60000) # 60 segundos
+            
             logged = await self._ensure_logged_in()
             if not logged:
                 print("❌ [Headless] Falha ao autenticar no Instagram. Abortando.")
@@ -97,21 +110,29 @@ class InstagramHeadlessScraper:
         assert self.page is not None
 
         try:
-            await self.page.goto(INSTAGRAM_LOGIN_URL, wait_until="networkidle", timeout=30000)
-            await asyncio.sleep(3)
+            # Tenta carregar a home do Instagram. Se os cookies funcionarem, seremos redirecionados ou veremos o feed.
+            print("🌐 [Headless] Acessando Instagram home...")
+            await self.page.goto("https://www.instagram.com/", wait_until="commit")
+            await asyncio.sleep(10) # Aguarda renderização
 
-            print(f"🔍 [Headless] Página de login: {self.page.url}")
+            current_url = self.page.url
+            print(f"📍 [Headless] URL atual: {current_url}")
+
+            if "/accounts/login/" not in current_url:
+                print("✅ [Headless] Autenticação confirmada (não redirecionado para login).")
+                return True
+            
+            # Se cair aqui, tenta o fluxo de login tradicional
+            print("🔑 [Headless] Cookies falharam. Tentando login tradicional...")
+            await self.page.goto(INSTAGRAM_LOGIN_URL, wait_until="domcontentloaded")
+            await asyncio.sleep(5)
+
             username_selector = 'input[name="username"], input[name="email"]'
             password_selector = 'input[name="password"], input[name="pass"]'
             username_count = await self.page.locator(username_selector).count()
             password_count = await self.page.locator(password_selector).count()
-            print(f"🔍 [Headless] username/email fields: {username_count}, password fields: {password_count}")
             has_username = username_count > 0
             has_password = password_count > 0
-
-            if await self._has_session_cookie():
-                print("✅ [Headless] Sessão existente detectada via cookie.")
-                return True
 
             if has_username and has_password:
                 if not IG_USER or not IG_PASS:
@@ -164,26 +185,69 @@ class InstagramHeadlessScraper:
         profile_url = f"https://www.instagram.com/{username}/"
 
         try:
-            await self.page.goto(profile_url, wait_until="domcontentloaded", timeout=30000)
+            await self.page.goto(profile_url, wait_until="domcontentloaded", timeout=60000)
+            await asyncio.sleep(10) # Aumentado para garantir carregamento
+
+            # Tenta fechar modais/popups que bloqueiam a visão
+            try:
+                close_btn = await self.page.query_selector('div[role="dialog"] button, button:has-text("Agora não"), button:has-text("Not Now")')
+                if close_btn:
+                    await close_btn.click()
+                    await asyncio.sleep(2)
+            except: pass
+
+            # Scroll proativo para disparar renderização de posts
+            await self.page.mouse.wheel(0, 500)
             await asyncio.sleep(3)
 
-            shared_data = await self._extract_shared_data()
-            if not shared_data:
-                print(f"⚠️ [Headless] Não foi possível extrair dados para @{username}.")
-                return
+            # Tenta extrair seguidores via DOM com múltiplos seletores
+            followers = 0
+            followers_selectors = [
+                'header section ul li:nth-child(2) span',
+                'span[title]',
+                'a[href$="/followers/"] span'
+            ]
+            
+            for selector in followers_selectors:
+                try:
+                    el = await self.page.query_selector(selector)
+                    if el:
+                        text = await el.get_attribute('title') or await el.inner_text()
+                        if text:
+                            clean_f = re.sub(r'[^\d,KkMm]', '', text.replace('.', '').replace(' ', ''))
+                            if 'M' in clean_f.upper():
+                                followers = int(float(clean_f.upper().replace('M', '').replace(',', '.')) * 1_000_000)
+                            elif 'K' in clean_f.upper():
+                                followers = int(float(clean_f.upper().replace('K', '').replace(',', '.')) * 1_000)
+                            else:
+                                followers = int(re.sub(r'\D', '', clean_f))
+                            print(f"     📌 Seguidores detectados ({selector}): {followers}")
+                            break
+                except: continue
+            
+            # Atualiza perfil básico
+            await self._update_candidate_profile(candidate_id, {'edge_followed_by': {'count': followers}, 'username': username})
 
-            profile = self._extract_profile_info(shared_data)
-            if not profile:
-                print(f"⚠️ [Headless] Perfil @{username} não retornou dados válidos.")
-                return
+            # Extração de shortcodes com seletores ultra-abrangentes
+            shortcodes = await self.page.evaluate(f"""() => {{
+                // Pega todos os links que contenham /p/ no href, filtrando duplicatas
+                const links = Array.from(document.querySelectorAll('a'))
+                    .map(a => a.getAttribute('href'))
+                    .filter(href => href && href.includes('/p/'))
+                    .map(href => {{
+                        const parts = href.split('/');
+                        return parts[parts.indexOf('p') + 1];
+                    }});
+                return [...new Set(links)].slice(0, {MAX_POSTS_PER_PROFILE});
+            }}""")
 
-            await self._update_candidate_profile(candidate_id, profile)
-
-            shortcodes = self._extract_recent_post_shortcodes(profile)
             if not shortcodes:
-                print(f"⚠️ [Headless] Nenhum post encontrado para @{username}.")
-                return
+                print(f"⚠️ [Headless] Nenhum post encontrado visualmente para @{username}. Tentando scroll mais profundo...")
+                await self.page.mouse.wheel(0, 1500)
+                await asyncio.sleep(5)
+                shortcodes = await self.page.evaluate(f"() => Array.from(document.querySelectorAll('a[href^=\"/p/\"]')).map(a => a.getAttribute('href').split('/')[2]).slice(0, {MAX_POSTS_PER_PROFILE})")
 
+            print(f"     📸 {len(shortcodes)} posts detectados.")
             for shortcode in shortcodes:
                 await self._scrape_post_comments(username, shortcode)
 
@@ -237,12 +301,14 @@ class InstagramHeadlessScraper:
         print(f"   📰 [Headless] Carregando post {shortcode}...")
 
         try:
-            await self.page.goto(post_url, wait_until="domcontentloaded", timeout=30000)
-            await asyncio.sleep(3)
-            shared_data = await self._extract_shared_data()
-            comments = self._extract_comments(shared_data)
-            if not comments:
-                comments = await self._extract_comments_from_dom()
+            await self.page.goto(post_url, wait_until="domcontentloaded", timeout=60000)
+            await asyncio.sleep(5)
+            
+            # Scroll para carregar comentários
+            await self.page.mouse.wheel(0, 1000)
+            await asyncio.sleep(2)
+
+            comments = await self._extract_comments_from_dom()
 
             saved = 0
             for comment in comments[:MAX_COMMENTS_PER_POST]:
@@ -255,42 +321,54 @@ class InstagramHeadlessScraper:
         except Exception as e:
             print(f"❌ [Headless] Erro no post {shortcode}: {e}")
 
-    def _extract_comments(self, shared_data: Optional[Dict]) -> List[Dict]:
-        if not shared_data:
-            return []
-        try:
-            post_data = shared_data.get('entry_data', {}).get('PostPage', [None])[0]
-            if not post_data:
-                return []
-            media = post_data.get('graphql', {}).get('shortcode_media', {})
-            edges = media.get('edge_media_to_parent_comment', {}).get('edges', [])
-            comments = []
-            for edge in edges:
-                node = edge.get('node', {})
-                comments.append({
-                    'id': node.get('id'),
-                    'owner_username': node.get('owner', {}).get('username'),
-                    'text': node.get('text'),
-                    'created_at': node.get('created_at'),
-                    'likes': node.get('edge_liked_by', {}).get('count', 0)
-                })
-            return comments
-        except Exception:
-            return []
-
     async def _extract_comments_from_dom(self) -> List[Dict]:
         assert self.page is not None
         comments = []
         try:
-            comment_items = await self.page.query_selector_all('ul > li > div > div > div.C4VMK')
-            for item in comment_items[:MAX_COMMENTS_PER_POST]:
-                author = await item.query_selector_eval('h3 span a', 'el => el.textContent')
-                text = await item.query_selector_eval('span', 'el => el.textContent')
-                if author and text:
-                    comments.append({'id': None, 'owner_username': author, 'text': text, 'created_at': None, 'likes': 0})
-        except Exception:
-            pass
-        return comments
+            # Seletores ultra-genéricos para comentários no Instagram 2026
+            # O Instagram costuma usar span dentro de itens de lista ou divs repetidas
+            # Vamos buscar por elementos que tenham estrutura de autor + texto
+            comment_items = await self.page.query_selector_all('div[role="button"], li, div.x9f619')
+            for item in comment_items:
+                try:
+                    # Filtra apenas itens que pareçam comentários (têm link de perfil e texto longo)
+                    author_el = await item.query_selector('a[href*="/"]')
+                    text_el = await item.query_selector('span')
+                    
+                    if author_el and text_el:
+                        author = await author_el.get_attribute('href')
+                        author = author.strip('/').split('/')[-1] if author else None
+                        text = await text_el.inner_text()
+                        
+                        if author and text and len(text) > 5:
+                             # Lista de exclusão de domínios/termos técnicos
+                             blacklist = [
+                                 "about", "help", "privacy", "terms", "locations", "popular", "lite", 
+                                 "threads", "meta", "careers", "instagram", "facebook", "utm_", "entrypoint"
+                             ]
+                             if not any(b in author.lower() or b in text.lower() for b in blacklist):
+                                 # Verifica se o texto não é apenas metadata (likes, tempo)
+                                if not any(x in text.lower() for x in ["curtidas", "responder", "ver tradu", " h ", " d ", " min "]):
+                                    comments.append({
+                                        'id': None, 
+                                        'owner_username': author, 
+                                        'text': text.strip(), 
+                                        'created_at': None, 
+                                        'likes': 0
+                                    })
+                except: continue
+        except Exception as e:
+            print(f"     ⚠️ Erro no DOM extractor: {e}")
+        
+        # Deduplicação básica por texto
+        unique_comments = []
+        seen_texts = set()
+        for c in comments:
+            if c['text'] not in seen_texts:
+                unique_comments.append(c)
+                seen_texts.add(c['text'])
+                
+        return unique_comments
 
     def _save_comment(self, username: str, shortcode: str, comment: Dict) -> bool:
         if not comment.get('owner_username') or not comment.get('text'):

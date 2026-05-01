@@ -79,4 +79,53 @@ class DatabaseClient:
         async with httpx.AsyncClient() as client:
             await client.post(url, json=payload, headers=self.headers)
 
+    async def fetch_targets_needing_repericia(self) -> List[str]:
+        """Busca usernames de candidatos marcados para re-perícia."""
+        if not self.client: return []
+        try:
+            res = self.client.table('candidatos').select('username').eq('needs_re_pericia', True).execute()
+            return [item['username'] for item in res.data]
+        except Exception as e:
+            if "column" in str(e) and "needs_re_pericia" in str(e):
+                return [] # Coluna ainda não existe
+            print(f"⚠️ Erro ao buscar alvos para re-perícia: {e}")
+            return []
+
+    async def reset_target_comments(self, username: str):
+        """Reseta o status de processamento de todos os comentários de um alvo."""
+        if not self.client: return
+        print(f"🔄 [DB] Resetando comentários para @{username}...")
+        
+        try:
+            # Busca IDs dos comentários do alvo
+            res = self.client.table('comentarios').select('id').eq('candidato_id', username).execute()
+            comment_ids = [c['id'] for c in res.data]
+            
+            if not comment_ids:
+                print(f"⚠️ [DB] Nenhum comentário para @{username}.")
+                return
+
+            # Reset em blocos para performance e segurança
+            batch_size = 100
+            for i in range(0, len(comment_ids), batch_size):
+                batch = comment_ids[i:i+batch_size]
+                self.client.table('comentarios').update({
+                    'processado_ia': False,
+                    'categoria_ia': None,
+                    'confianza_ia': 0,
+                    'is_hate': False
+                }).in_('id', batch).execute()
+            
+            print(f"✅ [DB] {len(comment_ids)} comentários resetados para @{username}.")
+        except Exception as e:
+            print(f"❌ [DB] Erro ao resetar comentários: {e}")
+
+    async def mark_repericia_complete(self, username: str):
+        """Desmarca o flag de re-perícia para o alvo."""
+        if not self.client: return
+        try:
+            self.client.table('candidatos').update({'needs_re_pericia': False}).eq('username', username).execute()
+        except Exception as e:
+            print(f"⚠️ Erro ao desmarcar re-perícia para @{username}: {e}")
+
 db_client = DatabaseClient()
