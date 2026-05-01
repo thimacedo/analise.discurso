@@ -82,19 +82,19 @@ class TargetManager:
     def get_stale_targets(self, limit=20):
         cutoff = (datetime.utcnow() - timedelta(days=self.stale_days)).isoformat()
         params = {
-            "select": "id,username,last_scraped_at,score_risco,comentarios_totais_count,seguidores",
-            "or": f"(last_scraped_at.is.null,last_scraped_at=lt.{cutoff})",
+            "select": "id,username,last_scraped_at,comentarios_totais_count,seguidores",
+            "or": f"(last_scraped_at.is.null,last_scraped_at.lt.{cutoff})",
             "order": "last_scraped_at.asc",
             "limit": str(limit)
         }
         items = self._fetch_supabase('candidatos', params=params)
         targets = [item['username'] for item in items if item.get('username')]
-        print(f"⏱️ [TargetManager] {len(targets)} alvos estagnados/prioritários encontrados.")
+        print(f"â±ï¸ [TargetManager] {len(targets)} alvos estagnados/prioritÃ¡rios encontrados.")
         return targets
 
     def get_high_activity_targets(self, limit=20):
-        query_fields = "id,username,cargo,status_monitoramento,score_risco,comentarios_totais_count,comentarios_odio_count,seguidores,last_scraped_at"
-        order_options = ["score_risco.desc", "comentarios_totais_count.desc", "seguidores.desc"]
+        query_fields = "id,username,cargo,status_monitoramento,comentarios_totais_count,comentarios_odio_count,seguidores,last_scraped_at"
+        order_options = ["comentarios_totais_count.desc", "seguidores.desc"]
 
         for order in order_options:
             params = {
