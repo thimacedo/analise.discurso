@@ -45,8 +45,8 @@ def geo_uf():
     try:
         if not SUPABASE_URL or not SUPABASE_KEY: return {"error": "ENV missing"}
         supa = create_client(SUPABASE_URL, SUPABASE_KEY)
-        cands = supa.table('candidatos').select('username, uf').execute().data
-        uf_map = {c['username']: c.get('uf', 'N/A') for c in cands}
+        cands = supa.table('candidatos').select('username, estado').execute().data
+        uf_map = {c['username']: c.get('estado', 'N/A') for c in cands}
         coms = supa.table('comentarios').select('candidato_id').eq('is_hate', True).execute().data
         from collections import Counter
         return dict(Counter([uf_map.get(c['candidato_id'], 'N/A') for c in coms]))
