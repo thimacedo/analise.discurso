@@ -256,24 +256,6 @@ function renderMonitorImpacto() {
     }).join('');
 
     if (window.lucide) lucide.createIcons();
-
-    if (insights) {
-        if (state.pasa && state.pasa.length) {
-            const topCat = state.pasa[0];
-            insights.innerHTML = `
-                <article class="insight-card">
-                    <span class="eyebrow">Maior Incidência</span>
-                    <strong style="color:${topCat.color}">${topCat.label}</strong>
-                    <p>${topCat.total} ocorrências (${topCat.percentual}%).</p>
-                </article>
-                <article class="insight-card">
-                    <span class="eyebrow">Resiliência Global</span>
-                    <strong>${state.summary.resiliencia}%</strong>
-                    <p>Média de estabilidade dos perfis.</p>
-                </article>
-            `;
-        }
-    }
 }
 
 window.setDashboardFilter = (type) => {
@@ -495,146 +477,37 @@ function renderMatrix(container) {
 
 function renderDossieGrid() {
     const container = document.getElementById('dossie-grid-container');
-    const resultCount = document.getElementById('dossie-result-count');
     if (!container) return;
 
-    if (!planService.canAccess('targets')) {
-        container.innerHTML = createUpgradeGate('Relatórios Avançados', 'Os dossiês detalhados com score composto são para usuários Pro.');
-        return;
-    }
-
-    document.querySelectorAll('.group-btn').forEach((btn) => {
-        btn.classList.toggle('active', btn.dataset.grouping === state.dossieGrouping);
-    });
-
     if (state.loading) {
-        container.innerHTML = createEmptyState('loader', 'Organizando dossies', 'Aplicando agrupamentos...');
+        container.innerHTML = createEmptyState('loader', 'Atualizando Dossiês', '');
         return;
     }
 
-    let data = [...state.data];
-    if (state.dossieSearch) {
-        data = data.filter((item) => {
-            const haystack = [item.username, item.nome_completo, item.estado].join(' ').toLowerCase();
-            return haystack.includes(state.dossieSearch);
-        });
-    }
-
-    if (resultCount) resultCount.innerText = `${data.length} registros visíveis`;
-
-    const groups = {};
-    if (state.dossieGrouping === 'score') {
-        const critico = data.filter(i => i.nivel_risco === 'CRITICO');
-        const elevado = data.filter(i => i.nivel_risco === 'ELEVADO');
-        const monitor = data.filter(i => i.nivel_risco === 'MONITORANDO');
-        const controlado = data.filter(i => i.nivel_risco === 'CONTROLADO');
-        if (critico.length) groups['🔴 Alvos Críticos'] = critico;
-        if (elevado.length) groups['🟠 Risco Elevado'] = elevado;
-        if (monitor.length) groups['🔵 Sob Monitoramento'] = monitor;
-        if (controlado.length) groups['🟢 Situação Controlada'] = controlado;
-    } else {
-        data.forEach((item) => {
-            const key = item.estado || 'Território Nacional';
-            if (!groups[key]) groups[key] = [];
-            groups[key].push(item);
-        });
-    }
-
-    container.innerHTML = Object.entries(groups).filter(([_, members]) => members.length > 0).map(([name, members]) => `
-        <section class="dossie-group">
-            <header class="dossie-group__header">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <h4>${name}</h4>
-                </div>
-                <strong style="color: var(--text-muted); font-size: 0.75rem;">${members.length} ALVOS</strong>
-            </header>
-            <div class="dossie-card-grid">
-                ${members.map((item) => {
-                    const hasTokens = (authService.user?.stn_tokens || 0) > 0;
-                    const btnLabel = hasTokens ? '⚡ Gerar Dossiê (1 STN)' : '🛒 Obter Munição';
-                    const btnClass = hasTokens ? 'stn-btn-active' : 'stn-btn-buy';
-                    
-                    return `
-                    <div class="dossie-card border-${item.nivel_risco?.toLowerCase()}">
-                        <div onclick="window.inspectTarget('${item.username}')" style="cursor:pointer">
-                            <div class="dossie-card__header">
-                                <span class="eyebrow" style="color: ${item.color}">${item.estado || 'BR'}</span>
-                                <span class="score-badge" style="background:${item.color}">${item.score_risco}</span>
-                            </div>
-                            <h5> @${item.username}</h5>
-                            <p style="font-size: 0.8rem; height: 32px; overflow: hidden; opacity: 0.7;">${item.nome_completo || 'Monitorado Ativo'}</p>
-                            <div class="dossie-card__stats">
-                                <div><span style="font-size: 0.6rem;">Alertas</span><strong>${item.comentarios_odio_count}</strong></div>
-                                <div><span style="font-size: 0.6rem;">Amostra</span><strong>${item.comentarios_totales_count}</strong></div>
-                                <div><span style="font-size: 0.6rem;">Risco</span><strong>${item.nivel_risco}</strong></div>
-                            </div>
-                        </div>
-                        <button type="button" class="stn-action-btn ${btnClass}" onclick="window.triggerForensicAction('${item.username}')">
-                            ${btnLabel}
-                        </button>
-                    </div>
-                `;}).join('')}
+    const list = state.data || [];
+    container.innerHTML = list.map(item => `
+        <div class="dossie-card glass-card">
+            <div class="dossie-card__header">
+                <span class="status-chip is-ok">${item.estado || 'BR'}</span>
+                <h5>@${item.username}</h5>
             </div>
-
-        </section>
+            <p>${item.nome_completo || 'Candidato'}</p>
+            <div class="dossie-card__stats">
+                <div><span>Total</span><strong>${item.comentarios_totales_count}</strong></div>
+                <div><span>Ódio</span><strong>${item.comentarios_odio_count}</strong></div>
+                <div><span>Risco</span><strong>${item.score_risco}%</strong></div>
+            </div>
+            <button class="stn-action-btn stn-btn-active" onclick="window.inspectTarget('${item.username}')">Gerar Dossiê Forense</button>
+        </div>
     `).join('');
 }
 
 function renderGeopolitica() {
-    const container = document.getElementById('map-container');
+    // Implementação do Mapa e Tabelas Regionais
+    const container = document.getElementById('view-map');
     if (!container) return;
-
-    if (state.loading) {
-        container.innerHTML = createEmptyState('loader', 'Compilando mapa', 'Consolidando dados territoriais...');
-        return;
-    }
-
-    const geoData = state.geo || [];
-    const ufStats = geoData.reduce((acc, item) => {
-        acc[item.uf] = { alvos: item.total_alvos, odio: item.total_hate, color: item.color };
-        return acc;
-    }, {});
-
-    const sortedUFs = [...geoData].sort((a, b) => b.total_hate - a.total_hate).slice(0, 5);
-    const selectedState = state.selectedUF ? geoData.find(i => i.uf === state.selectedUF) : null;
-
-    container.innerHTML = `
-        <section class="map-shell glass-card">
-            <div class="section-heading">
-                <div>
-                    <span class="eyebrow">Vigilancia territorial</span>
-                    <h3>Mapa geopolítico</h3>
-                </div>
-            </div>
-            <div id="svg-map-br" class="map-stage"></div>
-        </section>
-        <aside class="map-panel glass-card">
-            <div class="section-heading">
-                <div>
-                    <span class="eyebrow">Análise Regional</span>
-                    <h3 id="st-name">${state.selectedUF || 'Brasil'}</h3>
-                </div>
-            </div>
-            <div class="map-kpis">
-                <div><span>Alvos</span><strong>${selectedState ? selectedState.total_alvos : state.summary.total_monitorados}</strong></div>
-                <div><span>Alertas</span><strong>${selectedState ? selectedState.total_hate : state.summary.total_alertas}</strong></div>
-            </div>
-            <div class="hotspot-list">
-                <span class="eyebrow">Ufs mais tensionadas</span>
-                ${sortedUFs.map(([uf, info], index) => `
-                    <button type="button" class="hotspot-row ${state.selectedUF === uf ? 'is-active' : ''}" onclick="window.selectUF('${uf}')">
-                        <span>#${index + 1} ${uf}</span>
-                        <strong>${info.total_hate}</strong>
-                    </button>
-                `).join('')}
-            </div>
-        </aside>
-    `;
-
-    renderBrazilMap('svg-map-br', ufStats, (name, data, ufId) => {
-        state.selectedUF = ufId;
-        renderAll();
-    });
+    container.innerHTML = `<h3>Geopolítica UF</h3><div id="map-container"></div>`;
+    renderBrazilMap('map-container', state.geo);
 }
 
 function createUpgradeGate(title, description) {
@@ -651,7 +524,7 @@ function createUpgradeGate(title, description) {
 function createEmptyState(icon, title, description) {
     return `
         <div class="empty-state">
-            <div class="empty-state__icon"><i data-lucide="${icon}" class="w-5 h-5"></i></div>
+            <div class="empty-state__icon"><i data-lucide="${icon}"></i></div>
             <strong>${title}</strong>
             <p>${description}</p>
         </div>
@@ -666,77 +539,20 @@ window.inspectTarget = (username) => {
     const alvo = state.data.find((item) => item.username === username);
     if (alvo) {
         state.selectedAlvo = alvo;
-        state.view = 'monitor';
-        window.location.hash = 'monitor';
+        setViewState('monitor');
         renderAll();
     }
 };
-
-window.setDossieGrouping = setDossieGrouping;
-window.setDossieSearch = setDossieSearch;
 
 window.setFiltroAlvo = (id) => {
     state.selectedAlvo = id ? state.data.find((item) => item.username === id) : null;
     renderAll();
 };
 
-window.triggerForensicAction = async (username) => {
-    const tokens = authService.user?.stn_tokens || 0;
-    
-    if (tokens <= 0) {
-        window.location.href = '/pricing.html';
-        return;
-    }
-
-    if (!confirm(`Deseja consumir 1 Token STN para gerar o Dossiê Forense de @${username}?`)) {
-        return;
-    }
-
-    try {
-        const resp = await fetch('/api/v1/stn/consume', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authService.session?.access_token}`
-            },
-            body: JSON.stringify({ 
-                user_id: authService.user.id,
-                action: 'pdf_gen',
-                target: username
-            })
-        });
-
-        if (resp.status === 402) {
-            alert('Saldo de STN insuficiente.');
-            window.location.href = '/pricing.html';
-            return;
-        }
-
-        if (!resp.ok) throw new Error('Erro ao processar consumo');
-
-        // Sucesso: Atualiza saldo e dispara ação (simulada por enquanto)
-        await authService.fetchUserTokens();
-        state.stn_tokens = authService.user.stn_tokens;
-        alert(`Dossiê de @${username} gerado com sucesso! (Saldo: ${state.stn_tokens} STN)`);
-        renderAll();
-        
-    } catch (e) {
-        console.error('[UI] Forensic action error:', e);
-        alert('Falha na operação forense.');
-    }
-};
-
-window.selectUF = (uf) => {
-    state.selectedUF = uf;
-    window.__selectedUF = uf;
-    renderAll();
-};
-
-window.clearUFSelection = () => {
-    state.selectedUF = null;
-    window.__selectedUF = null;
-    renderAll();
-};
+window.setViewState = setViewState;
+window.setNetworkView = setNetworkView;
+window.setDossieGrouping = setDossieGrouping;
+window.setDossieSearch = setDossieSearch;
 
 function renderSTN() {
     const el = document.getElementById('stn-balance');
