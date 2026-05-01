@@ -76,7 +76,8 @@ def trends(days: int = 30):
     try:
         supa = get_supa()
         if not supa: return []
-        res = supa.table('comentarios').select('autor_username, texto_bruto, categoria_ia, confianza_ia, data_coleta, candidato_id').eq('is_hate', True).order('data_coleta', desc=True).limit(50).execute()
+        # Aumentamos o limite para garantir diversidade de alvos no dashboard
+        res = supa.table('comentarios').select('autor_username, texto_bruto, categoria_ia, confianza_ia, data_coleta, candidato_id').eq('is_hate', True).order('data_coleta', desc=True).limit(2000).execute()
         return res.data if res and res.data else []
     except Exception as e:
         return []
@@ -87,11 +88,10 @@ def get_targets(limit: int = 50):
         supa = get_supa()
         if not supa: return []
         
-        # 1. Busca todos os comentários de ódio recentes para calcular os contadores REAIS (bypass out-of-sync columns)
+        # 1. Busca todos os comentários de ódio recentes para calcular os contadores REAIS
         h_res = supa.table('comentarios').select('candidato_id, categoria_ia').eq('is_hate', True).limit(5000).execute()
         h_data = h_res.data if h_res and h_res.data else []
         
-        # Agrupa contadores por candidato e categoria
         real_hate_counts = Counter([h['candidato_id'] for h in h_data if h.get('candidato_id')])
         breakdowns = {}
         for h in h_data:
@@ -100,23 +100,17 @@ def get_targets(limit: int = 50):
             if cid not in breakdowns: breakdowns[cid] = Counter()
             breakdowns[cid][cat] += 1
 
-        # 2. Busca amostragem total real
-        # Para performance, usamos uma aproximação baseada nos candidatos que tiveram ódio ou os mais recentes
-        relevant_usernames = list(real_hate_counts.keys())
-        
-        # 3. Busca os dados dos candidatos (cobre os com ódio + os alfabéticos se sobrar espaço)
-        res = supa.table('candidatos').select('*').execute() # Pega todos (projeto pequeno < 500 alvos)
+        # 2. Busca todos os candidatos
+        res = supa.table('candidatos').select('*').execute()
         data = res.data if res and res.data else []
         
         enriched = []
         for item in data:
             cid = item.get('username')
-            # OVERRIDE: Usa contagem real da tabela de comentários
             item['comentarios_odio_count'] = real_hate_counts.get(cid, 0)
             
-            # Se o total for menor que o ódio (erro de sync), ajusta
             if item.get('comentarios_totais_count', 0) < item['comentarios_odio_count']:
-                item['comentarios_totais_count'] = item['comentarios_odio_count'] + 10 # Amostra mínima fake para ratio
+                item['comentarios_totais_count'] = item['comentarios_odio_count'] + 10
 
             score, nivel, color = calculate_risk(item)
             
@@ -129,7 +123,6 @@ def get_targets(limit: int = 50):
                 "breakdown": dict(breakdowns.get(cid, {}))
             })
         
-        # Ordena por Ódio (Prioridade Real)
         return sorted(enriched, key=lambda x: x.get('comentarios_odio_count', 0), reverse=True)[:limit]
     except Exception as e:
         logger.error(f"Erro em /targets: {e}")
@@ -140,7 +133,8 @@ def get_active_alerts(limit: int = 20):
     try:
         supa = get_supa()
         if not supa: return []
-        res = supa.table('comentarios').select('*, candidatos(username)').eq('is_hate', True).order('data_coleta', desc=True).limit(limit).execute()
+        # Aumentamos o scan interno para garantir que, se houver filtro, não venha vazio
+        res = supa.table('comentarios').select('*, candidatos(username)').eq('is_hate', True).order('data_coleta', desc=True).limit(2000).execute()
         return res.data if res and res.data else []
     except Exception: return []
 
@@ -149,20 +143,26 @@ def get_networks(days: int = 7):
     try:
         supa = get_supa()
         if not supa: return {"nodes": [], "links": []}
-        res = supa.table('comentarios').select('autor_username, candidato_id, data_publicacao').eq('is_hate', True).limit(1000).execute()
+        # Aumentamos o limite para 5000 para capturar redes de múltiplos alvos
+        res = supa.table('comentarios').select('autor_username, candidato_id, data_publicacao').eq('is_hate', True).limit(5000).execute()
         data = res.data if res and res.data else []
+        
         nodes = {}
         links = []
         for item in data:
             author = item.get('autor_username')
             target = item.get('candidato_id')
             if not author or not target: continue
+            
             if author not in nodes: nodes[author] = {"id": author, "type": "author", "val": 1}
             else: nodes[author]["val"] += 1
+            
             if target not in nodes: nodes[target] = {"id": target, "type": "target", "val": 1}
             else: nodes[target]["val"] += 1
+            
             links.append({"source": author, "target": target, "weight": 1})
-        return {"nodes": list(nodes.values()), "links": links[:500]}
+            
+        return {"nodes": list(nodes.values()), "links": links[:1000]}
     except Exception as e:
         return {"error": str(e)}
 
