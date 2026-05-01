@@ -5,7 +5,7 @@ Este arquivo contém as regras imutáveis de desenvolvimento e gestão de memór
 ## 🆔 IDENTIDADE E ESCOPO (CRÍTICO)
 
 1.  **Diretório Raiz:** O único caminho válido para este projeto é `E:\Projetos\sentinela-democratica`.
-2.  **Isolamento:** Este projeto (Sentinela) é totalmente distinto do projeto `inovasys`. NUNCA utilize scripts, caminhos, banco de dados ou configurações de outros projetos.
+2.  **Isolamento:** Este projeto (Sentinela) é totalmente independente. NUNCA utilize scripts, caminhos, banco de dados ou configurações de outros projetos.
 3.  **Verificação de Contexto:** Antes de qualquer operação de arquivo ou shell, confirme se o `PWD` é o diretório raiz mencionado acima.
 
 ## 🧠 GESTÃO DE MEMÓRIA (Protocolo Diamond)
