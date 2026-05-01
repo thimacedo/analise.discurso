@@ -77,7 +77,7 @@ def trends(days: int = 30):
         supa = get_supa()
         if not supa: return []
         # Aumentamos o limite para garantir diversidade de alvos no dashboard
-        res = supa.table('comentarios').select('autor_username, texto_bruto, categoria_ia, confianza_ia, data_coleta, candidato_id').eq('is_hate', True).order('data_coleta', desc=True).limit(2000).execute()
+        res = supa.table('comentarios').select('autor_username, texto_bruto, categoria_ia, confianza_ia, data_coleta, candidato_id, plataforma').eq('is_hate', True).order('data_coleta', desc=True).limit(2000).execute()
         return res.data if res and res.data else []
     except Exception as e:
         return []
@@ -144,7 +144,7 @@ def get_networks(days: int = 7):
         supa = get_supa()
         if not supa: return {"nodes": [], "links": []}
         # Aumentamos o limite para 5000 para capturar redes de múltiplos alvos
-        res = supa.table('comentarios').select('autor_username, candidato_id, data_publicacao').eq('is_hate', True).limit(5000).execute()
+        res = supa.table('comentarios').select('autor_username, candidato_id, data_publicacao, plataforma').eq('is_hate', True).limit(5000).execute()
         data = res.data if res and res.data else []
         
         nodes = {}

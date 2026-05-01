@@ -148,12 +148,18 @@ function renderAlertasFeed() {
         const severity = alerta.severidade || 'INFO';
         const agressor = alerta.autor_username || 'anônimo';
         const target = planService.maskName(alerta.candidatos?.username || alerta.candidato_id || 'alvo');
-        
+        const plataforma = (alerta.plataforma || 'instagram').toLowerCase();
+        const platIcon = plataforma === 'youtube' ? 'youtube' : 'instagram';
+        const platColor = plataforma === 'youtube' ? '#ff0000' : '#e1306c';
+
         return `
             <article class="alert-card border-${severity.toLowerCase()}">
                 <div class="alert-card__header">
                     <div>
-                        <span class="eyebrow" style="color:var(--danger)">Agressor: @${agressor}</span>
+                        <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px">
+                            <i data-lucide="${platIcon}" style="width:12px; height:12px; color:${platColor}"></i>
+                            <span class="eyebrow" style="color:var(--danger); margin:0">Agressor: @${agressor}</span>
+                        </div>
                         <h4>➔ contra @${target}</h4>
                     </div>
                     <span class="severity-pill is-${severity.toLowerCase()}">${severity}</span>
@@ -429,16 +435,27 @@ function renderFlow(container) {
                     </tr>
                 </thead>
                 <tbody>
-                    ${list.map(a => `
-                        <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
-                            <td style="padding:12px; font-family:monospace; color:var(--text-muted)">
-                                ${new Date(a.data_coleta).toLocaleTimeString('pt-BR')}
-                            </td>
-                            <td><strong>@${a.autor_username}</strong></td>
-                            <td style="color:var(--danger)">➔ @${a.candidato_id}</td>
-                            <td><span class="severity-pill is-info" style="font-size:10px">${a.categoria_ia}</span></td>
-                        </tr>
-                    `).join('')}
+                    ${list.map(a => {
+                        const plataforma = (a.plataforma || 'instagram').toLowerCase();
+                        const platIcon = plataforma === 'youtube' ? 'youtube' : 'instagram';
+                        const platColor = plataforma === 'youtube' ? '#ff0000' : '#e1306c';
+                        
+                        return `
+                            <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+                                <td style="padding:12px; font-family:monospace; color:var(--text-muted)">
+                                    ${new Date(a.data_coleta).toLocaleTimeString('pt-BR')}
+                                </td>
+                                <td><strong>@${a.autor_username}</strong></td>
+                                <td style="color:var(--danger)">➔ @${a.candidato_id}</td>
+                                <td>
+                                    <div style="display:flex; align-items:center; gap:8px">
+                                        <i data-lucide="${platIcon}" style="width:12px; height:12px; color:${platColor}"></i>
+                                        <span class="severity-pill is-info" style="font-size:10px">${a.categoria_ia}</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('')}
                 </tbody>
             </table>
         </div>
