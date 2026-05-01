@@ -4,15 +4,25 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Settings:
-    PROJECT_NAME: str = "Sentinela API"
-    VERSION: str = "16.0.0"
+    PROJECT_NAME: str = "Sentinela Democrática"
+    VERSION: str = "19.7.5"
     
     # Supabase
     SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
     SUPABASE_KEY: str = os.getenv("SUPABASE_KEY", "")
     
-    # External APIs
+    # AI Cloud APIs
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
+    
+    # AI Local (Ollama)
+    OLLAMA_BASE_URL: str = os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
+    OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "qwen2.5:3b")
+    
+    # AI Strategy
+    IA_PROVIDER: str = os.getenv("IA_PROVIDER", "hybrid") # hybrid, gemini, groq, ollama
+    
+    # External APIs
     RAPIDAPI_KEY: str = os.getenv("RAPIDAPI_KEY", "")
     
     # Security

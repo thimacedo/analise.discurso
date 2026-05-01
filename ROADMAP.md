@@ -1,17 +1,13 @@
 # ROADMAP - Sentinela Democrática
 
-## Status Atual: v19.7.5 (Hybrid AI & Qwen Local Coder) ✅
+## Status Atual: v19.8.0 (Ruthless Architecture & Unified Core) ✅
 
-- **Arquitetura Híbrida de Auth**: Reintegrado SDK Supabase exclusivamente para gestão de sessão, mantendo a integridade do Proxy FastAPI para dados.
-- **Segurança de Infraestrutura**: Removido arquivo `.github/workflows/render.yaml` que continha credenciais expostas e causava erro de execução no GitHub Actions.
-- **CI/CD Operacional**: Implementado workflow real de deploy em `.github/workflows/render_deploy.yml`.
-- **Monitoramento Inteligente (TargetManager)**: Implementado filtro de deduplicação e raspagem recente (48h), otimizando recursos de rede e API.
-- **Persistência Forense Ativa**: O Orquestrador grava os resultados da IA (Categoria e Confiança Float) diretamente no Supabase em tempo real.
-- **Calibração PASA v16.4**: Blindagem contra falsos positivos implementada.
-- **Integração de IA Local e Híbrida**: O modelo `qwen2.5:3b` foi adotado como o motor local padrão, e foi estabelecida integração com o Gemini como alternativa na nuvem via variável `IA_PROVIDER`.
-- **Monetização (STN)**: Stripe integrado. Sistema de créditos via RPC atômica funcional.
-- **Resiliência IA**: Backoff Exponencial para tratamento de Rate Limits da API Groq.
-- **Alertas de Inteligência**: Resumo de mineração enviado automaticamente via WhatsApp (CallMeBot).
+- **Arquitetura Unificada Diamond**: Toda a lógica de persistência e inteligência foi consolidada em `core/db.py` e `core/ai_service.py`, eliminando +500 linhas de código redundante.
+- **Async Pipeline**: O orquestrador agora opera de forma totalmente assíncrona, com batch updates para performance máxima.
+- **Híbrido de IA Resiliente**: Fallback automático entre Gemini, Groq e Ollama Local integrado nativamente no serviço de IA.
+- **Segurança de Subprocesso**: Removido uso de `shell=True` nas chamadas de sistema do orquestrador.
+- **Métricas Forenses**: Persistência de clusters e redes coordenadas otimizada via batching.
+
 
 ## Próximos Passos (v20.0 - Escala e Expansão)
 

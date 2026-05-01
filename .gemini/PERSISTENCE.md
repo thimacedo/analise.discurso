@@ -1,25 +1,25 @@
 # 🛡️ PERSISTÊNCIA TÉCNICA E GOVERNANÇA (MCP) - SENTINELA
 
-Este documento serve como a "Memória Técnica" do projeto, garantindo que qualquer agente mantenha a integridade arquitetural v18.5.
+Este documento serve como a "Memória Técnica" do projeto, garantindo que qualquer agente mantenha a integridade arquitetural v19.8.
 
-## 🏗️ ARQUITETURA MESTRE (v18.5)
-1. **Coleta**: `sentinela_scraper/` (Nativo Scrapy) acessa API REST do Instagram.
-2. **Nuvem**: `Supabase` armazena `candidatos`, `posts` e `comentarios`.
-3. **Cérebro**: `orquestrador.py` coordena o ciclo completo de atualização.
+## 🏗️ ARQUITETURA DIAMOND UNIFICADA (v19.8.0)
+1. **Coleta**: `sentinela_scraper/` (Nativo Scrapy) e `core/instaloader_scraper.py`.
+2. **Nuvem**: `Supabase` centralizado via `core/db.py` (Async DatabaseClient).
+3. **Cérebro**: `orquestrador.py` coordena o ciclo completo de forma assíncrona.
 4. **Motores (Folder: /processing)**:
    - `text_processor.py`: Limpeza e Lematização Forense.
    - `data_miner.py`: Clustering KMeans e Z-Score (Picos de Ódio).
    - `report_generator.py`: PDF FPDF2 com suporte nativo a UTF-8.
-5. **IA Pericial**: `core/qwen_classifier.py` utiliza o modelo **Qwen 2.5** balizado pelo `CRITERIOS_TREINAMENTO.md`.
+5. **Inteligência Híbrida**: `core/ai_service.py` unifica Gemini 2.0, Groq e Ollama (Qwen 2.5) com fallback automático.
 
 ## 📜 REGRAS INVIOLÁVEIS (GOVERNANÇA)
 - **Código Integral**: Proibido omitir partes de código (`//...`). Entregar sempre o arquivo completo.
-- **Protocolo PASA**: Toda classificação de ódio deve seguir estritamente o `CRITERIOS_TREINAMENTO.md`.
+- **Protocolo PASA v16.4**: Classificação de ódio via `AIService` seguindo o `forensic-discourse-analysis/SKILL.md`.
 - **Segurança Admin**: Acesso a `addalvo.html` protegido por TOTP.
 - **Linguagem**: Comunicação estritamente em Português (Brasil), técnica e direta.
-- **Nomenclatura**: Preservar colunas `owner_username`, `post_shortcode` e `texto_bruto`.
+- **Async First**: Priorizar operações assíncronas para Banco de Dados e IA.
 
 ## 📡 CONFIGURAÇÕES DE PERSISTÊNCIA (MCP)
 - **Scope**: `project`
-- **Key Facts**: Arquitetura unificada, FPDF2 para encoding, Scrapy nativo.
+- **Key Facts**: Arquitetura unificada Diamond, AI Fallback, Async DatabaseClient.
 - **Trigger**: Sempre ler este arquivo ou `ROADMAP.md` ao iniciar nova sessão.
