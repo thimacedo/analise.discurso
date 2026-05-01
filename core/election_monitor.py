@@ -76,10 +76,10 @@ class ElectionMonitor:
         """
         new_candidates = []
 
-        # Extrai nomes de candidatos das notícias
+        # Extrai nomes de candidatos das notÃ­cias
         mentioned_names = set()
         for article in news_data:
-            candidates = await self._extract_candidates_from_text(article.get('title', '') + ' ' + article.get('description', ''))
+            candidates = await self._extract_candidate_names(article.get('title', '') + ' ' + article.get('description', ''))
             mentioned_names.update(candidates)
 
         # Extrai nomes das pesquisas
@@ -196,26 +196,28 @@ class ElectionMonitor:
         # Por enquanto retorna dados mock para desenvolvimento
         return []
 
-    async def _extract_candidates_from_text(self, text: str) -> List[str]:
+    async def _extract_candidate_names(self, text: str) -> List[str]:
         """
         Extrai nomes de candidatos de um texto usando IA
         """
-        # Usar Qwen/Groq para extrair nomes de candidatos do texto
-        from core.qwen_classifier import classify_with_smart_fallback
+        # Usar Qwen/Groq para extrair nomes de candidatos do texto via query_llm genérica
+        from core.qwen_classifier import query_llm
 
         prompt = f"""
-        Analise o texto abaixo e extraia todos os nomes de candidatos políticos mencionados.
-        Retorne apenas uma lista de nomes, um por linha, sem formatação adicional.
+        Analise o texto abaixo e extraia todos os nomes de candidatos polÃ­ticos mencionados.
+        Retorne apenas uma lista de nomes, um por linha, sem formataÃ§Ã£o adicional.
 
         Texto: {text}
         """
 
         try:
-            response = classify_with_smart_fallback(prompt)
+            response = query_llm(prompt)
+            if not response or not isinstance(response, str):
+                return []
             names = [name.strip() for name in response.split('\n') if name.strip()]
             return names
         except Exception as e:
-            print(f"⚠️ [ElectionMonitor] Erro ao extrair candidatos: {e}")
+            print(f"âš ï¸ [ElectionMonitor] Erro ao extrair candidatos: {e}")
             return []
 
     def _get_existing_candidate_names(self) -> List[Dict]:
@@ -233,14 +235,13 @@ class ElectionMonitor:
         """
         Reúne informações sobre um candidato usando busca externa
         """
-        # Busca informações básicas do candidato
+        # Busca informações básicas do candidato mapeadas para o schema real
         candidate_info = {
             'username': name,
             'cargo': 'A Definir',
             'partido': 'A Definir',
             'status_monitoramento': 'ATIVO',
-            'fonte_identificacao': 'monitor_eleitoral_externo',
-            'data_identificacao': datetime.now().isoformat()
+            'data_entrada': datetime.now().isoformat()
         }
 
         # Tenta identificar cargo e partido através de busca

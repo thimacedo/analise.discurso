@@ -120,6 +120,50 @@ def classify_text_groq(text):
     
     return {"is_hate": False, "category": "FALHA_IA", "confianca": 0.0}
 
+def query_llm(prompt, system_prompt="Você é um assistente prestativo."):
+    """Função genérica para consultas à IA sem o rigor do Protocolo PASA."""
+    global current_engine
+    
+    if current_engine == "ollama":
+        try:
+            # Import dinâmico para evitar circular dependency
+            from core.ollama_classifier import OLLAMA_BASE_URL, OLLAMA_MODEL
+            payload = {
+                "model": OLLAMA_MODEL,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt}
+                ],
+                "stream": False
+            }
+            resp = httpx.post(f"{OLLAMA_BASE_URL}/v1/chat/completions", json=payload, timeout=30.0)
+            if resp.status_code == 200:
+                return resp.json()['choices'][0]['message']['content']
+        except:
+            pass
+
+    # Fallback/Primary Groq
+    if not GROQ_API_KEY: return "Erro: GROQ_API_KEY ausente"
+    
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
+    
+    try:
+        payload = {
+            "model": "llama-3.3-70b-versatile",
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt}
+            ]
+        }
+        resp = httpx.post(url, headers=headers, json=payload, timeout=25.0)
+        if resp.status_code == 200:
+            return resp.json()['choices'][0]['message']['content']
+    except Exception as e:
+        return f"Erro na consulta Groq: {e}"
+    
+    return ""
+
 def classify_with_smart_fallback(text: str):
     global consecutive_failures, current_engine
     
