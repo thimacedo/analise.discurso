@@ -80,21 +80,13 @@ class SentinelDataService {
 // Singleton para uso em toda a aplicação
 export const dataService = new SentinelDataService();
 
-// Real Plan Service (Identity-Driven)
+// Real Plan Service (Identity-Driven) - LIBERADO PARA TESTE
 export const planService = {
-    getPlan: () => authService.getPlan(),
+    getPlan: () => 'enterprise', // Força plano máximo
     canAccess: (feature) => {
-        const plan = planService.getPlan();
-        const limits = {
-            public: ['summary', 'geo', 'trends'],
-            pro: ['summary', 'geo', 'trends', 'targets', 'alerts', 'pasa'],
-            enterprise: ['summary', 'geo', 'trends', 'targets', 'alerts', 'pasa', 'networks']
-        };
-        return (limits[plan] || []).includes(feature);
+        return true; // Liberação total de funcionalidades
     },
     maskName: (name) => {
-        if (planService.canAccess('targets')) return name;
-        if (!name) return 'Alvo';
-        return name.charAt(0) + '*'.repeat(Math.max(3, name.length - 1));
+        return name; // Exibe nomes reais
     }
 };
