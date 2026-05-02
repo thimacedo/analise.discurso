@@ -22,27 +22,45 @@ class TargetNormalizer:
         self._profiles_loaded = False
 
     def _load_all_profiles(self):
-        """Carrega perfis em memória para matching rápido."""
+        """Carrega perfis em memória com priorização inteligente."""
         if not self.client or self._profiles_loaded:
             return
 
         try:
-            # Busca campos relevantes para matching
-            response = self.client.table('candidatos').select('username, nome, apelido').execute()
+            # Busca campos reais encontrados via inspeção
+            # Ordenamos por seguidores desc para que o mais importante ganhe no mapeamento simples
+            response = self.client.table('candidatos') \
+                .select('username, nome_completo, seguidores') \
+                .order('seguidores', desc=True) \
+                .execute()
+            
             for item in response.data:
-                username = item.get('username', '').lower().strip()
-                nome = item.get('nome', '').lower().strip()
-                apelido = item.get('apelido', '').lower().strip()
+                username = str(item.get('username', '')).lower().strip()
+                nome_completo = str(item.get('nome_completo', '')).lower().strip()
 
                 if username:
-                    # Mapeia nome e apelido para o username
-                    if nome: self._cache_usernames[nome] = username
-                    if apelido: self._cache_usernames[apelido] = username
-                    # Mapeia o próprio username para garantir consistência
+                    # Mapeia nome_completo para o username (prioridade alta)
+                    if nome_completo and nome_completo != 'none': 
+                        self._cache_usernames[nome_completo] = username
+                    
+                    # Tenta extrair primeiro nome e sobrenome
+                    # Como está ordenado por seguidores, "Lula" vai mapear para o maior perfil que tem "Lula" no nome
+                    partes_nome = nome_completo.split()
+                    if partes_nome:
+                        primeiro_nome = partes_nome[0]
+                        ultimo_nome = partes_nome[-1]
+                        
+                        # Apenas mapeia se ainda não existir (garante que o com mais seguidores vença)
+                        if primeiro_nome not in self._cache_usernames:
+                            self._cache_usernames[primeiro_nome] = username
+                        if ultimo_nome not in self._cache_usernames:
+                            self._cache_usernames[ultimo_nome] = username
+
+                    # Mapeia o próprio username (sempre vence se for exato)
                     self._cache_usernames[username] = username
             
             self._profiles_loaded = True
-            print(f"✅ [TargetNormalizer] {len(self._cache_usernames)} mapeamentos carregados em memória.")
+            print(f"✅ [TargetNormalizer] {len(self._cache_usernames)} mapeamentos carregados em memória (ordenados por relevância).")
         except Exception as e:
             print(f"❌ [TargetNormalizer] Erro ao carregar perfis: {e}")
 
@@ -54,12 +72,12 @@ class TargetNormalizer:
         if not target:
             return ""
 
-        target_clean = target.lower().strip()
+        target_clean = str(target).lower().strip()
         
         # Garante que os perfis estão carregados
         self._load_all_profiles()
 
-        # Busca exata no cache (que contém nomes, apelidos e usernames)
+        # Busca exata no cache
         normalized = self._cache_usernames.get(target_clean)
         
         if normalized:
@@ -72,6 +90,7 @@ class TargetNormalizer:
 
     def normalize_list(self, targets: List[str]) -> List[str]:
         """Normaliza uma lista de alvos."""
+        # Usa dict.fromkeys para manter ordem e remover duplicatas
         return list(dict.fromkeys([self.normalize(t) for t in targets if t]))
 
 # Instância única global
