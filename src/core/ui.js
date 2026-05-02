@@ -202,8 +202,14 @@ window.unlockIntel = async (id) => {
 };
 
 function renderMonitorImpacto(container) {
-    if (!container) return;
-    container.innerHTML = state.data.map((alvo, index) => {
+    if (!container || !state.data) return;
+    
+    // Otimização de DOM: Renderizar apenas os Top 15 alvos com maior volume de alertas
+    const topAlvos = [...state.data]
+        .sort((a, b) => (b.comentarios_odio_count || 0) - (a.comentarios_odio_count || 0))
+        .slice(0, 15);
+
+    container.innerHTML = topAlvos.map((alvo, index) => {
         const isActive = state.selectedAlvo && state.selectedAlvo.username === alvo.username;
         const avatarUrl = alvo.avatar_url || `https://ui-avatars.com/api/?name=${alvo.username}&background=0D8ABC&color=fff`;
         
