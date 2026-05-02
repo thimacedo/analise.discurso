@@ -14,7 +14,8 @@ Este arquivo contém as regras imutáveis de desenvolvimento e gestão de memór
 2.  **Externalização de Estado:** Após cada mudança bem-sucedida, atualize o arquivo `STATE.md` com o novo estado funcional e quaisquer abordagens descartadas.
 3.  **Anti-Regressão:** É terminantemente proibido sugerir tecnologias, padrões ou arquiteturas listadas como "DESCARTADAS" no `STATE.md`.
 4.  **Commits Obsessivos:** Cada tarefa concluída e validada deve ser commitada imediatamente. Use mensagens de commit descritivas.
-5.  **Estados Finitos:** Divida tarefas complexas em passos mínimos e exija confirmação de sucesso (ex: teste passando) antes de avançar para o próximo arquivo/serviço.
+5.  **Automação de Mensagens:** Sempre que houver arquivos no `git stage` ou após uma tarefa concluída, o agente DEVE analisar o `git diff --staged` e propor uma mensagem de commit seguindo o padrão Conventional Commits (ex: `feat:`, `fix:`, `refactor:`).
+6.  **Estados Finitos:** Divida tarefas complexas em passos mínimos e exija confirmação de sucesso (ex: teste passando) antes de avançar para o próximo arquivo/serviço.
 
 ## 🛠 DIRETRIZES TÉCNICAS
 
