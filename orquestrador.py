@@ -177,7 +177,12 @@ class Orchestrator:
 
     async def run_full_pipeline(self):
         print(f"\n🛡️ SENTINELA DEMOCRÁTICA - PIPELINE v{settings.VERSION}")
-        print(f"📅 Data: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n" + "="*50)
+        print(f"📅 Data: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
+        print(f"🧠 Intelligence: Provider={settings.IA_PROVIDER} (Engine={ai_service.current_engine})")
+        print("="*50 + "\n")
+        
+        if settings.IA_PROVIDER == "ollama":
+            print(f"📡 Local AI: Verificando Ollama em {settings.OLLAMA_BASE_URL}...")
         
         await self.run_scraper()
         await self.run_repericia_cycle()
