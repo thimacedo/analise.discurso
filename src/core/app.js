@@ -31,8 +31,21 @@ window.setDashboardFilter = (filter) => {
 
 window.setDashboardSearch = (query) => {
     state.searchQuery = query;
+    state.currentPage = 1; // Reseta para a página 1 ao pesquisar
+    
+    const clearBtn = document.getElementById('clear-search-btn');
+    if (clearBtn) {
+        clearBtn.style.display = query ? 'block' : 'none';
+    }
+    
     // Otimização: Não recarrega API para busca local se possível, ou recarrega se necessário
     window.debouncedRender();
+};
+
+window.clearDashboardSearch = () => {
+    const input = document.getElementById('dashboard-search-input');
+    if (input) input.value = '';
+    window.setDashboardSearch('');
 };
 
 async function init() {
@@ -69,7 +82,8 @@ async function refreshData() {
         const [summary, targets, alerts] = await Promise.all([
             dataService.getSummary(),
             dataService.getTargets(),
-            dataService.getAlerts(20, 1)
+            // Puxa 200 itens para garantir que a busca local tenha massa de dados suficiente
+            dataService.getAlerts(200, 1)
         ]);
 
         state.data = targets || [];

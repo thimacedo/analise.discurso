@@ -45,12 +45,16 @@
 
         <nav class="side-nav">
             <div class="search-box-sidebar px-3 mb-6">
-                <div class="relative flex items-center">
+                <div class="relative flex items-center group">
                     <i data-lucide="search" class="absolute left-3 w-4 h-4 text-slate-400"></i>
                     <input type="text" 
+                           id="dashboard-search-input"
                            placeholder="Pesquisar..." 
-                           class="w-full bg-slate-100 border-none rounded-lg py-2 pl-10 pr-3 text-xs focus:ring-2 focus:ring-blue-500"
+                           class="w-full bg-slate-100 border-none rounded-lg py-2 pl-10 pr-8 text-xs focus:ring-2 focus:ring-blue-500 transition-all"
                            oninput="window.setDashboardSearch(this.value)">
+                    <button onclick="window.clearDashboardSearch()" id="clear-search-btn" class="absolute right-3 w-4 h-4 text-slate-400 hover:text-slate-600 hidden group-hover:block transition-colors">
+                        <i data-lucide="x" class="w-full h-full"></i>
+                    </button>
                 </div>
             </div>
 
