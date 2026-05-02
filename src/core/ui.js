@@ -127,8 +127,27 @@ function renderAlertasFeed(container) {
         ? state.alertas.filter((alerta) => String(alerta.candidato_id) === String(state.selectedAlvo.username)) 
         : state.alertas;
 
-    // ALGORITMO DE REDE SOCIAL: Se não houver filtro, mistura agressivamente
-    if (!state.selectedAlvo && (!state.dashboardFilter || state.dashboardFilter === 'all')) {
+    // APLICAR FILTROS DE SIDEBAR
+    if (state.dashboardFilter) {
+        if (state.dashboardFilter === 'hate') {
+            list = list.filter(a => a.is_hate_speech || a.is_hate || ['ODIO_IDENTITARIO', 'VIOLENCIA_GENERO', 'AMEACA'].includes(a.category));
+        } else if (state.dashboardFilter === 'critical') {
+            list = list.filter(a => a.severidade === 'CRÍTICA' || a.severidade === 'ALTA' || (a.score_risco && a.score_risco > 70));
+        }
+    }
+
+    // APLICAR BUSCA GLOBAL
+    if (state.searchQuery && state.searchQuery.trim() !== '') {
+        const q = state.searchQuery.toLowerCase();
+        list = list.filter(a => 
+            (a.texto_bruto && a.texto_bruto.toLowerCase().includes(q)) || 
+            (a.autor_username && a.autor_username.toLowerCase().includes(q)) ||
+            (a.candidato_id && a.candidato_id.toLowerCase().includes(q))
+        );
+    }
+
+    // ALGORITMO DE REDE SOCIAL: Se não houver filtro ativo e nem busca, mistura agressivamente
+    if (!state.selectedAlvo && (!state.dashboardFilter || state.dashboardFilter === 'all') && !state.searchQuery) {
         // Shuffle determinístico por data mas com diversidade de alvos
         list = [...list].sort(() => Math.random() - 0.5);
     }
@@ -389,11 +408,60 @@ export function initInfiniteScroll() {
     observer.observe(sentinel);
 }
 
-// Outras views básicas para não quebrar o dashboard
-function renderNetworkIntelligence() { document.getElementById('view-networks').innerHTML = '<div class="p-8 text-center text-slate-400">Mapeamento de Redes Coordenadas v20.2</div>'; }
-function renderDossieGrid() { document.getElementById('view-dossie').innerHTML = '<div class="p-8 text-center text-slate-400">Repositório de Dossiês Forenses</div>'; }
-function renderGeopolitica() { document.getElementById('view-map').innerHTML = '<div class="p-8 text-center text-slate-400">Geopolítica UF - Mapa Integrado</div>'; }
-function renderDirectory() { document.getElementById('view-directory').innerHTML = '<div class="p-8 text-center text-slate-400">Diretório Global de Perfis</div>'; }
+// Outras views básicas e Gated
+function renderNetworkIntelligence() { 
+    document.getElementById('view-networks').innerHTML = `
+        <div class="p-12 text-center bg-white border border-slate-200 rounded-xl animate-in mt-4 flex flex-col items-center justify-center" style="min-height: 60vh;">
+            <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center mb-6 shadow-inner">
+                <i data-lucide="network" class="w-8 h-8"></i>
+            </div>
+            <h3 class="text-xl font-black text-slate-800 mb-2">Mapeamento de Redes Coordenadas</h3>
+            <p class="text-sm text-slate-500 max-w-md mx-auto mb-8">Esta funcionalidade requer calibração dos motores de processamento em grafo para gerar os clusters visuais. Módulo operando em background.</p>
+            <button class="px-6 py-3 bg-slate-900 text-white rounded-lg text-[11px] font-black uppercase tracking-widest shadow-lg shadow-slate-900/20 opacity-50 cursor-not-allowed">
+                Processamento Pendente
+            </button>
+        </div>`; 
+}
+
+function renderDossieGrid() { 
+    document.getElementById('view-dossie').innerHTML = `
+        <div class="p-12 text-center bg-white border border-slate-200 rounded-xl animate-in mt-4 flex flex-col items-center justify-center" style="min-height: 60vh;">
+            <div class="w-16 h-16 bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center mb-6 shadow-inner">
+                <i data-lucide="fingerprint" class="w-8 h-8"></i>
+            </div>
+            <h3 class="text-xl font-black text-slate-800 mb-2">Repositório de Dossiês Forenses</h3>
+            <p class="text-sm text-slate-500 max-w-md mx-auto mb-8">O acesso ao banco de PDF gerados (PASA v16.4) é restrito a administradores com verificação TOTP ativa. Solicite a chave de montagem.</p>
+            <button class="px-6 py-3 bg-blue-600 text-white rounded-lg text-[11px] font-black uppercase tracking-widest shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-colors">
+                Verificar Chave Local
+            </button>
+        </div>`; 
+}
+
+function renderGeopolitica() { 
+    document.getElementById('view-map').innerHTML = `
+        <div class="p-12 text-center bg-slate-950 border border-cyan-900/30 rounded-xl animate-in mt-4 flex flex-col items-center justify-center overflow-hidden relative" style="min-height: 60vh;">
+            <div class="absolute inset-0 bg-gradient-to-tr from-cyan-900/10 to-blue-900/10"></div>
+            <div class="w-16 h-16 bg-cyan-900/30 text-cyan-400 rounded-full flex items-center justify-center mb-6 border border-cyan-500/20 relative z-10">
+                <i data-lucide="globe" class="w-8 h-8"></i>
+            </div>
+            <h3 class="text-xl font-black text-white mb-2 relative z-10">Geopolítica UF - Mapa Integrado</h3>
+            <p class="text-sm text-cyan-200/60 max-w-md mx-auto mb-8 relative z-10">Conexão com servidor D3.js não estabelecida. O mapeamento vetorial requer download de topologia de estado.</p>
+            <div class="h-2 w-48 bg-slate-900 rounded-full overflow-hidden relative z-10">
+                <div class="h-full bg-cyan-500 w-1/3 animate-pulse"></div>
+            </div>
+        </div>`; 
+}
+
+function renderDirectory() { 
+    document.getElementById('view-directory').innerHTML = `
+        <div class="p-12 text-center bg-white border border-slate-200 rounded-xl animate-in mt-4 flex flex-col items-center justify-center" style="min-height: 60vh;">
+            <div class="w-16 h-16 bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center mb-6 shadow-inner">
+                <i data-lucide="users" class="w-8 h-8"></i>
+            </div>
+            <h3 class="text-xl font-black text-slate-800 mb-2">Diretório Global de Perfis</h3>
+            <p class="text-sm text-slate-500 max-w-md mx-auto mb-8">Mais de ${state.data?.length || '1000'} perfis mapeados no Supabase. O diretório expandido requer tokenização STN para exibição.</p>
+        </div>`; 
+}
 function renderPasaTemporalChart() { /* Implementação futura D3 */ }
 function renderTopbar() { /* Implementação futura */ }
 
