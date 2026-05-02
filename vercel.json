@@ -6,7 +6,19 @@
       "use": "@vercel/python"
     },
     {
-      "src": "vercel.json",
+      "src": "*.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "public/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "favicon.ico",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "*.png",
       "use": "@vercel/static"
     }
   ],
@@ -14,10 +26,6 @@
     {
       "source": "/api/(.*)",
       "destination": "/api/index.py"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/public/$1"
     }
   ]
 }
