@@ -196,9 +196,8 @@ function buildPostCard(alerta) {
     
     const dateStr = new Date(alerta.data_coleta).toLocaleTimeString('pt-BR');
     const severity = alerta.severidade || 'INFO';
-    const plataforma = (alerta.plataforma || 'instagram').toLowerCase();
-    const platLabel = plataforma === 'youtube' ? 'YT' : 'IG';
-    const platColor = plataforma === 'youtube' ? 'bg-red-500' : 'bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500';
+    const platLabel = 'IG';
+    const platColor = 'bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500';
     
     // LOGICA DE MONETIZAÇÃO: Se não for PRO, borra o agressor
     const isLocked = !planService.canAccess('identities');
