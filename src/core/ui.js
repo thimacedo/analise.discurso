@@ -127,13 +127,14 @@ function renderAlertasFeed(container) {
         ? state.alertas.filter((alerta) => String(alerta.candidato_id) === String(state.selectedAlvo.username)) 
         : state.alertas;
 
-    // ALGORITMO DE REDE SOCIAL (Misto): Se não houver filtro, mistura por diversidade de alvos
-    if (!state.selectedAlvo && state.dashboardFilter === 'all') {
+    // ALGORITMO DE REDE SOCIAL: Se não houver filtro, mistura agressivamente
+    if (!state.selectedAlvo && (!state.dashboardFilter || state.dashboardFilter === 'all')) {
+        // Shuffle determinístico por data mas com diversidade de alvos
         list = [...list].sort(() => Math.random() - 0.5);
     }
 
     if (!list.length && state.currentPage === 1) {
-        container.innerHTML += `<div class="p-12 text-center opacity-30 text-xs font-mono tracking-widest uppercase">Nenhum sinal detectado</div>`;
+        container.innerHTML = `<div class="p-12 text-center opacity-30 text-xs font-mono tracking-widest uppercase">Nenhum sinal detectado</div>`;
         return;
     }
 
@@ -144,17 +145,24 @@ function renderAlertasFeed(container) {
         // MONETIZAÇÃO ADSENSE: Injetar anúncio a cada 5 posts
         if ((index + 1) % 5 === 0) {
             html += `
-                <div class="ad-slot bg-slate-100 border-y border-slate-200 p-4 mb-4 text-center">
-                    <span class="text-[8px] text-slate-400 block mb-2 font-bold uppercase tracking-tighter">Patrocinado • Chiquinho do Gás & Meta Ads</span>
-                    <div class="bg-slate-200 h-24 rounded-lg flex items-center justify-center text-slate-400 font-bold italic text-xs">
-                        [ ADSENSE SLOT: GOOGLE_AD_CLIENT_V20.6 ]
-                    </div>
+                <div class="ad-slot bg-slate-50 border-y border-slate-100 p-6 mb-4 text-center overflow-hidden">
+                    <span class="text-[8px] text-slate-400 block mb-3 font-bold uppercase tracking-widest">Informativo Patrocinado</span>
+                    <!-- ADSENSE FEED UNIT -->
+                    <ins class="adsbygoogle"
+                         style="display:block"
+                         data-ad-format="fluid"
+                         data-ad-layout-key="-fb+5w+4e-db+86"
+                         data-ad-client="ca-pub-1827611269042960"
+                         data-ad-slot="FEED_UNIT_V20"></ins>
+                    <script>(window.adsbygoogle = window.adsbygoogle || []).push({});</script>
                 </div>
             `;
         }
     });
 
     if (state.currentPage === 1) {
+        container.innerHTML = html;
+    } else {
         container.insertAdjacentHTML('beforeend', html);
     }
 }
@@ -181,9 +189,9 @@ function buildPostCard(alerta) {
     const avatarTarget = targetData.avatar_url || `https://ui-avatars.com/api/?name=${targetId}&background=0D8ABC&color=fff`;
     
     return `
-        <article class="post-card animate-in ${isLocked ? 'is-locked' : ''} relative">
+        <article class="post-card animate-in ${isLocked ? 'is-locked' : ''} relative mb-4">
             <div class="absolute top-3 left-1/2 -translate-x-1/2 z-20">
-                <span class="px-2 py-0.5 ${platColor} text-white rounded-full text-[8px] font-black tracking-tighter shadow-sm">
+                <span class="px-2 py-0.5 ${platColor} text-white rounded-full text-[7px] font-black tracking-tighter shadow-sm opacity-80">
                     ${platLabel}
                 </span>
             </div>
@@ -191,59 +199,58 @@ function buildPostCard(alerta) {
             <div class="post-header items-start">
                 <div class="flex items-center gap-2">
                     <div class="post-avatar relative">
-                        <img src="${avatarAgressor}" alt="Agressor" class="w-9 h-9 rounded-full ${isLocked ? 'blur-[4px]' : ''}" loading="lazy">
+                        <img src="${avatarAgressor}" alt="Agressor" class="w-8 h-8 rounded-full ${isLocked ? 'blur-[4px]' : ''}" loading="lazy">
                         <div class="absolute -right-1 -bottom-1 bg-white rounded-full p-0.5 shadow-sm">
                             <i data-lucide="zap" class="w-2.5 h-2.5 text-yellow-500 fill-yellow-500"></i>
                         </div>
                     </div>
                     
                     <div class="flex flex-col">
-                        <div class="post-username text-xs font-bold ${isLocked ? 'blur-[5px] select-none' : ''}">${displayedUser}</div>
-                        <div class="text-[10px] text-slate-400">${dateStr}</div>
+                        <div class="post-username text-[11px] font-bold ${isLocked ? 'blur-[5px] select-none' : ''}">${displayedUser}</div>
+                        <div class="text-[9px] text-slate-400">${dateStr}</div>
                     </div>
                 </div>
 
                 <div class="flex-1 flex justify-center items-center px-2">
-                    <div class="h-px bg-slate-100 flex-1 relative">
-                         <i data-lucide="chevron-right" class="absolute right-0 -top-[7px] w-3 h-3 text-slate-200"></i>
+                    <div class="h-px bg-slate-50 flex-1 relative">
+                         <i data-lucide="chevron-right" class="absolute right-0 -top-[7px] w-3 h-3 text-slate-100"></i>
                     </div>
                 </div>
 
                 <div class="flex items-center gap-2 text-right">
                     <div class="flex flex-col items-end">
-                        <div class="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-tighter">
+                        <div class="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[9px] font-black uppercase tracking-tighter">
                             @${targetId}
                         </div>
-                        <div class="text-[9px] font-bold text-slate-300 uppercase">${targetData.partido || 'ALVO'}</div>
+                        <div class="text-[8px] font-bold text-slate-300 uppercase">${targetData.partido || 'ALVO'}</div>
                     </div>
-                    <div class="w-9 h-9 rounded-full overflow-hidden border-2 border-white shadow-sm ring-1 ring-slate-100">
+                    <div class="w-8 h-8 rounded-full overflow-hidden border border-slate-100 shadow-sm">
                         <img src="${avatarTarget}" alt="Alvo" class="w-full h-full object-cover">
                     </div>
                 </div>
             </div>
 
-            <div class="post-content mt-4 text-[13px] leading-relaxed text-slate-700 font-medium italic">
+            <div class="post-content mt-3 text-[12px] leading-relaxed text-slate-600 font-medium italic">
                 "${alerta.texto_bruto || 'Sem conteúdo'}"
             </div>
             
             ${isLocked ? `
-                <div class="mt-4 p-4 bg-slate-950 border border-cyan-500/20 rounded-xl flex items-center justify-between shadow-2xl relative overflow-hidden">
-                    <div class="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-transparent"></div>
-                    <div class="relative z-10">
-                        <span class="block text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-1">Ruptura Necessária</span>
-                        <p class="text-[11px] text-slate-500 max-w-[180px] leading-tight">Identidade protegida por criptografia de nível militar.</p>
+                <div class="mt-4 pt-3 border-t border-slate-50 flex items-center justify-between opacity-80 hover:opacity-100 transition-opacity">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="lock" class="w-3 h-3 text-slate-300"></i>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Identidade sob sigilo</span>
                     </div>
-                    <button class="relative z-10 bg-cyan-600 text-white px-4 py-2.5 rounded-lg text-[10px] font-black shadow-lg shadow-cyan-900/40 hover:bg-cyan-500 transition-all uppercase tracking-tighter" onclick="window.unlockIntel('${alerta.id}')">
-                        Quebrar Sigilo
+                    <button class="text-[10px] font-black text-blue-500 hover:text-blue-600 transition-colors uppercase tracking-widest flex items-center gap-1" onclick="window.unlockIntel('${alerta.id}')">
+                        Desbloquear <i data-lucide="chevron-right" class="w-3 h-3"></i>
                     </button>
                 </div>
             ` : `
-                <div class="flex gap-4 mt-5 pt-3 border-t border-slate-50">
-                    <button class="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 hover:text-blue-500 transition-colors" onclick="window.toggleTriage('${alerta.id}')"><i data-lucide="shield-alert" class="w-3.5 h-3.5"></i> Periciar</button>
-                    <button class="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 hover:text-red-500 transition-colors" onclick="window.markFalsePositive('${alerta.id}')"><i data-lucide="thumbs-down" class="w-3.5 h-3.5"></i> Descartar</button>
+                <div class="flex gap-4 mt-4 pt-2 border-t border-slate-50">
+                    <button class="flex items-center gap-1.5 text-[9px] font-bold text-slate-300 hover:text-blue-500 transition-colors" onclick="window.toggleTriage('${alerta.id}')"><i data-lucide="shield-alert" class="w-3 h-3"></i> Periciar</button>
+                    <button class="flex items-center gap-1.5 text-[9px] font-bold text-slate-300 hover:text-red-500 transition-colors" onclick="window.markFalsePositive('${alerta.id}')"><i data-lucide="thumbs-down" class="w-3 h-3"></i> Descartar</button>
                     <div class="ml-auto flex items-center gap-2">
-                        <span class="px-2 py-0.5 bg-slate-100 text-slate-500 rounded text-[9px] font-bold uppercase">${severity}</span>
-                        <button class="p-1.5 text-slate-300 hover:text-slate-600"><i data-lucide="share-2" class="w-3.5 h-3.5"></i></button>
+                        <span class="px-1.5 py-0.5 bg-slate-50 text-slate-400 rounded text-[8px] font-bold uppercase">${severity}</span>
+                        <button class="p-1 text-slate-200 hover:text-slate-400"><i data-lucide="share-2" class="w-3 h-3"></i></button>
                     </div>
                 </div>
             `}
