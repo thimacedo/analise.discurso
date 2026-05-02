@@ -4,7 +4,7 @@ from typing import Optional
 from fastapi import HTTPException
 
 # CONFIGURAÇÃO DE ELITE
-stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+stripe.api_key = os.getenv("STRIPE_API_KEY")
 WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 
 class PaymentManager:
