@@ -26,7 +26,7 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
 
     <title>SENTINELA | Diamond Edition v20.5.0</title>
-    <link rel="icon" type="image/png" href="./assets/sentinela_small.png">
+    <link rel="icon" type="image/png" href="./public/assets/sentinela_small.png">
     
     <!-- Critical Scripts -->
     <script src="https://cdn.tailwindcss.com" defer></script>
@@ -39,11 +39,21 @@
     <!-- SIDEBAR ESQUERDA (Navegação) -->
     <aside class="sidebar-left">
         <div class="brand-block">
-            <div class="brand-mark"><img src="./assets/sentinela_small.webp" alt="Logo" fetchpriority="high"></div>
+            <div class="brand-mark"><img src="./public/assets/sentinela_small.webp" alt="Logo" fetchpriority="high"></div>
             <h1>Sentinela</h1>
         </div>
 
         <nav class="side-nav">
+            <div class="search-box-sidebar px-3 mb-6">
+                <div class="relative flex items-center">
+                    <i data-lucide="search" class="absolute left-3 w-4 h-4 text-slate-400"></i>
+                    <input type="text" 
+                           placeholder="Pesquisar..." 
+                           class="w-full bg-slate-100 border-none rounded-lg py-2 pl-10 pr-3 text-xs focus:ring-2 focus:ring-blue-500"
+                           oninput="window.setDashboardSearch(this.value)">
+                </div>
+            </div>
+
             <a href="#monitor" class="nav-item active" id="nav-monitor"><i data-lucide="home" class="w-5 h-5"></i> <span>Panorama</span></a>
             <a href="#networks" class="nav-item" id="nav-networks"><i data-lucide="share-2" class="w-5 h-5"></i> <span>Redes</span></a>
             <a href="#directory" class="nav-item" id="nav-directory"><i data-lucide="users" class="w-5 h-5"></i> <span>Perfis</span></a>
@@ -64,13 +74,6 @@
 
     <!-- FEED CENTRAL -->
     <main class="main-feed-container custom-scrollbar dashboard-main">
-        <header class="feed-header">
-            <div class="search-box">
-                <i data-lucide="search" class="search-icon w-4 h-4"></i>
-                <input type="text" placeholder="Pesquisar inteligência..." oninput="window.setDashboardSearch(this.value)">
-            </div>
-        </header>
-
         <div class="views-container">
             <section id="view-monitor" class="view-content active-view">
                 <div id="feed-alertas" class="social-feed">
@@ -95,7 +98,7 @@
     <aside class="sidebar-right custom-scrollbar">
         <div class="profile-summary mb-8">
             <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200">
-                <img src="/assets/sentinela_small.webp" alt="Logo" class="w-6 h-6" fetchpriority="high">
+                <img src="./public/assets/sentinela_small.webp" alt="Logo" class="w-6 h-6" fetchpriority="high">
             </div>
             <div>
                 <h2 class="text-sm font-black text-slate-800">Sentinela Diamond</h2>
