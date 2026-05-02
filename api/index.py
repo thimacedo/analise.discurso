@@ -183,6 +183,41 @@ def geo_uf():
         return [{"uf": uf, "total_hate": val, "total_alvos": len([u for u, s in uf_map.items() if s == uf]), "nivel_risco": "ELEVADO" if val > 10 else "MONITORANDO", "color": RISK_COLORS.get("ELEVADO" if val > 10 else "MONITORANDO")} for uf, val in counts.items()]
     except Exception as e: return []
 
+from pydantic import BaseModel
+from typing import Optional, List
+
+class PushTokenRegistration(BaseModel):
+    user_id: str
+    token: str
+    platform: Optional[str] = "web"
+    device_id: Optional[str] = None
+
+@app.post("/api/v1/auth/register-push-token")
+def register_push_token(payload: PushTokenRegistration):
+    """Registra um token FCM para um usuário no Supabase."""
+    try:
+        supa = get_supa()
+        if not supa: return {"status": "error", "message": "DB credentials missing"}
+        
+        # Upsert do token para evitar duplicidade
+        data = {
+            "user_id": payload.user_id,
+            "token": payload.token,
+            "platform": payload.platform,
+            "device_id": payload.device_id,
+            "updated_at": datetime.utcnow().isoformat()
+        }
+        
+        res = supa.table('user_push_tokens').upsert(
+            data, 
+            on_conflict="user_id,token"
+        ).execute()
+        
+        return {"status": "success", "message": "Token registered"}
+    except Exception as e:
+        logger.error(f"Erro ao registrar token: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/health")
 def health():
     return {"status": "operational", "db": get_supa() is not None}

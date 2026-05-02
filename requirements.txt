@@ -8,3 +8,4 @@ supabase
 mangum
 pydantic
 pydantic-settings
+firebase-admin
