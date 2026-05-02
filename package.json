@@ -1,6 +1,6 @@
 {
   "name": "sentinela-democratica",
-  "version": "19.5.4",
+  "version": "20.1.0",
   "description": "Pipeline profissional para coleta, análise e visualização de discurso de ódio e tendências políticas, baseado no **Protocolo PASA** (Proprietário).",
   "main": "index.js",
   "directories": {
