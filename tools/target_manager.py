@@ -74,10 +74,31 @@ class TargetManager:
             print(f"✅ [TargetManager] {len(activated)} novos alvos ativados via monitoramento.")
         return activated
 
+    def get_priority_targets(self, limit=20):
+        # Caciques sem dados (Presidentes/Governadores)
+        try:
+            resp = self.supabase.table('candidatos')\
+                .select('username, cargo, comentarios_totais_count')\
+                .execute()
+            
+            priorities = []
+            for item in resp.data:
+                cargo = str(item.get('cargo', '')).lower()
+                comentarios = item.get('comentarios_totais_count')
+                if ('presidente' in cargo or 'governador' in cargo) and (not comentarios or comentarios == 0):
+                    if item['username']: priorities.append(item['username'])
+                    if len(priorities) >= limit: break
+            return priorities
+        except Exception as e:
+            print(f"⚠️ Erro ao buscar alvos prioritários: {e}")
+            return []
+
     def build_dynamic_queue(self, static_targets=None, limit=30):
         queue = target_normalizer.normalize_list(static_targets or [])
+        priority = self.get_priority_targets(limit=15)
         stale = self.get_stale_targets(limit)
         active = self.get_high_activity_targets(limit)
         
-        combined = queue + [t for t in stale + active if t not in queue]
-        return combined[:limit*2]
+        # Ordem de força: Estáticos -> Caciques Vazios -> Velhos -> Ativos
+        combined = queue + [t for t in priority + stale + active if t not in queue]
+        return combined[:limit*3]

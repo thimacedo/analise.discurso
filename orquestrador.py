@@ -47,10 +47,10 @@ class Orchestrator:
         with open(self.queue_path, 'w') as f:
             json.dump(filtered_targets, f)
 
-        print("🤖 Disparando Scraper Headless (Diamond Edition)...")
+        print(f"🤖 Disparando Scraper Headless (Diamond Edition) para {len(filtered_targets[:30])} alvos...")
         from core.instagram_headless import InstagramHeadlessScraper
         scraper = InstagramHeadlessScraper()
-        await scraper.run(targets=filtered_targets[:15])
+        await scraper.run(targets=filtered_targets[:30])
 
     async def run_ia_classification(self):
         print("🧠 [2/5] Iniciando Perícia PASA v16.4...")
