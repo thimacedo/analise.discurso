@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SENTINELA | Diamond Edition v20.2.0</title>
+    <title>SENTINELA | Diamond Edition v20.2.1</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <link rel="stylesheet" href="/src/styles/main.css?v=20.2.0">
+    <link rel="stylesheet" href="/src/styles/main.css?v=20.2.1">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="custom-scrollbar">
-    <!-- SIDEBAR ESQUERDA (Navegação Clean) -->
+    <!-- SIDEBAR ESQUERDA (Navegação) -->
     <aside class="sidebar-left">
         <div class="brand-block">
             <div class="brand-mark"><img src="/logo_transparente.png" alt="Logo"></div>
@@ -21,11 +21,11 @@
         </div>
 
         <nav class="side-nav">
-            <a href="#monitor" class="nav-item active" id="nav-monitor"><i data-lucide="home" class="w-6 h-6"></i> <span>Início</span></a>
-            <a href="#networks" class="nav-item" id="nav-networks"><i data-lucide="search" class="w-6 h-6"></i> <span>Explorar Redes</span></a>
-            <a href="#directory" class="nav-item" id="nav-directory"><i data-lucide="users" class="w-6 h-6"></i> <span>Perfis</span></a>
-            <a href="#dossie" class="nav-item" id="nav-dossie"><i data-lucide="file-text" class="w-6 h-6"></i> <span>Dossiês</span></a>
-            <a href="#map" class="nav-item" id="nav-map"><i data-lucide="map" class="w-6 h-6"></i> <span>Mapa UF</span></a>
+            <a href="#monitor" class="nav-item active" id="nav-monitor"><i data-lucide="home" class="w-5 h-5"></i> <span>Panorama</span></a>
+            <a href="#networks" class="nav-item" id="nav-networks"><i data-lucide="share-2" class="w-5 h-5"></i> <span>Redes</span></a>
+            <a href="#directory" class="nav-item" id="nav-directory"><i data-lucide="users" class="w-5 h-5"></i> <span>Perfis</span></a>
+            <a href="#dossie" class="nav-item" id="nav-dossie"><i data-lucide="fingerprint" class="w-5 h-5"></i> <span>Dossiês</span></a>
+            <a href="#map" class="nav-item" id="nav-map"><i data-lucide="globe" class="w-5 h-5"></i> <span>Mapa</span></a>
         </nav>
 
         <div class="sidebar-footer">
@@ -33,75 +33,80 @@
         </div>
     </aside>
 
-    <!-- FEED CENTRAL (O Conteúdo Principal) -->
-    <main class="main-feed-container custom-scrollbar">
+    <!-- FEED CENTRAL -->
+    <main class="main-feed-container custom-scrollbar dashboard-main">
         <header class="feed-header">
             <div class="filter-tabs">
-                <button onclick="window.setDashboardFilter('all')" id="btn-filter-all" class="tab-btn active">Todos</button>
-                <button onclick="window.setDashboardFilter('hate')" id="btn-filter-hate" class="tab-btn">Com Alertas</button>
+                <button onclick="window.setDashboardFilter('all')" id="btn-filter-all" class="tab-btn active">Global</button>
+                <button onclick="window.setDashboardFilter('hate')" id="btn-filter-hate" class="tab-btn">Alertas</button>
                 <button onclick="window.setDashboardFilter('critical')" id="btn-filter-critical" class="tab-btn">Crítico</button>
             </div>
             <div class="search-box">
-                <i data-lucide="search" class="search-icon"></i>
-                <input type="text" placeholder="Buscar alvo ou estado..." oninput="window.setDashboardSearch(this.value)">
+                <i data-lucide="search" class="search-icon w-4 h-4"></i>
+                <input type="text" placeholder="Pesquisar inteligência..." oninput="window.setDashboardSearch(this.value)">
             </div>
         </header>
 
-        <section id="view-monitor" class="view-content active-view">
-            <div id="feed-alertas" class="social-feed">
-                <!-- Os cards de post vão aqui -->
-            </div>
-            
-            <!-- SENTINELA DA ROLAGEM INFINITA -->
-            <div id="scroll-sentinel" style="height: 1px; width: 100%;"></div>
-            
-            <div id="loading-spinner" class="loading-state" style="display: none;">
-                <div class="spinner"></div> Carregando mais...
-            </div>
-        </section>
+        <div class="views-container">
+            <section id="view-monitor" class="view-content active-view">
+                <div id="feed-alertas" class="social-feed">
+                    <!-- Cards de Alerta aqui -->
+                </div>
+                
+                <div id="scroll-sentinel" style="height: 10px; width: 100%;"></div>
+                
+                <div id="loading-spinner" class="loading-state" style="display: none;">
+                    <div class="spinner"></div> <span class="text-[10px] font-bold text-slate-400">CARREGANDO...</span>
+                </div>
+            </section>
 
-        <section id="view-networks" class="view-content"></section>
-        <section id="view-directory" class="view-content"></section>
-        <section id="view-dossie" class="view-content"></section>
-        <section id="view-map" class="view-content"></section>
+            <section id="view-networks" class="view-content"></section>
+            <section id="view-directory" class="view-content"></section>
+            <section id="view-dossie" class="view-content"></section>
+            <section id="view-map" class="view-content"></section>
+        </div>
     </main>
 
-    <!-- SIDEBAR DIREITA (KPIs e Insights Fixos) -->
+    <!-- SIDEBAR DIREITA (Inteligência Fixa) -->
     <aside class="sidebar-right custom-scrollbar">
-        <div class="profile-summary">
-            <div class="brand-mark"><img src="/logo_transparente.png" alt="Logo"></div>
+        <div class="profile-summary mb-8">
+            <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200">
+                <img src="/logo_transparente.png" alt="Logo" class="w-6 h-6">
+            </div>
             <div>
-                <h2>Sentinela Diamond</h2>
-                <span class="stn-badge">● <span id="stn-balance">-- STN</span></span>
+                <h2 class="text-sm font-black text-slate-800">Sentinela Diamond</h2>
+                <span class="text-[10px] font-bold text-blue-500 uppercase tracking-tighter" id="stn-balance">0 STN</span>
             </div>
         </div>
 
-        <div class="kpi-grid-vertical">
-            <div class="kpi-card">
-                <span class="kpi-label">Monitorados</span>
-                <div id="kpi-monitorados" class="kpi-value">---</div>
+        <div class="kpi-grid-vertical flex flex-col gap-3 mb-8">
+            <div class="kpi-card flex justify-between items-center p-4 bg-white border border-slate-200 rounded-xl">
+                <span class="text-[10px] font-bold text-slate-400 uppercase">Alvos</span>
+                <div id="kpi-monitorados" class="text-sm font-black text-slate-800">---</div>
             </div>
-            <div class="kpi-card kpi-card--danger">
-                <span class="kpi-label">Alertas PASA</span>
-                <div id="kpi-hate" class="kpi-value">---</div>
+            <div class="kpi-card flex justify-between items-center p-4 bg-white border border-slate-200 rounded-xl">
+                <span class="text-[10px] font-bold text-slate-400 uppercase text-red-500">Alertas</span>
+                <div id="kpi-hate" class="text-sm font-black text-red-600">---</div>
             </div>
-            <div class="kpi-card">
-                <span class="kpi-label">Amostragem</span>
-                <div id="kpi-total" class="kpi-value">---</div>
+            <div class="kpi-card flex justify-between items-center p-4 bg-white border border-slate-200 rounded-xl">
+                <span class="text-[10px] font-bold text-slate-400 uppercase">Amostra</span>
+                <div id="kpi-total" class="text-sm font-black text-slate-800">---</div>
             </div>
-            <div class="kpi-card kpi-card--success">
-                <span class="kpi-label">Resiliência</span>
-                <div id="kpi-res" class="kpi-value">---</div>
+            <div class="kpi-card flex justify-between items-center p-4 bg-white border border-slate-200 rounded-xl">
+                <span class="text-[10px] font-bold text-slate-400 uppercase">Resiliência</span>
+                <div id="kpi-res" class="text-sm font-black text-green-600">---</div>
             </div>
         </div>
 
-        <div class="insight-card">
-            <h3 class="insight-title">Análise de Risco</h3>
-            <div id="chartMain" class="stack-list-clean"></div>
+        <div class="insight-card p-4 bg-white border border-slate-200 rounded-xl">
+            <h3 class="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest">Prioridade de Triagem</h3>
+            <div id="chartMain" class="flex flex-col gap-2">
+                <!-- Lista de Risco aqui -->
+            </div>
         </div>
     </aside>
 
-    <script type="module" src="/src/core/app.js?v=20.2.0"></script>
-    <script type="module" src="/src/core/payments.js?v=20.2.0"></script>
+    <script type="module" src="/src/core/app.js?v=20.2.1"></script>
+    <script type="module" src="/src/core/payments.js?v=20.2.1"></script>
 </body>
 </html>
