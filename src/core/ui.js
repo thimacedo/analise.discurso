@@ -210,72 +210,81 @@ function buildPostCard(alerta) {
     const avatarTarget = targetData.avatar_url || `https://ui-avatars.com/api/?name=${targetId}&background=0D8ABC&color=fff`;
     
     return `
-        <article class="post-card animate-in ${isLocked ? 'is-locked' : ''} relative mb-4">
-            <div class="absolute top-3 left-1/2 -translate-x-1/2 z-20">
-                <span class="px-2 py-0.5 ${platColor} text-white rounded-full text-[7px] font-black tracking-tighter shadow-sm opacity-80">
-                    ${platLabel}
-                </span>
-            </div>
-
-            <div class="post-header items-start">
-                <div class="flex items-center gap-2">
-                    <div class="post-avatar relative">
-                        <img src="${avatarAgressor}" alt="Agressor" class="w-8 h-8 rounded-full ${isLocked ? 'blur-[4px]' : ''}" loading="lazy">
-                        <div class="absolute -right-1 -bottom-1 bg-white rounded-full p-0.5 shadow-sm">
-                            <i data-lucide="zap" class="w-2.5 h-2.5 text-yellow-500 fill-yellow-500"></i>
-                        </div>
-                    </div>
-                    
-                    <div class="flex flex-col">
-                        <div class="post-username text-[11px] font-bold ${isLocked ? 'blur-[5px] select-none' : ''}">${displayedUser}</div>
-                        <div class="text-[9px] text-slate-400">${dateStr}</div>
-                    </div>
-                </div>
-
-                <div class="flex-1 flex justify-center items-center px-2">
-                    <div class="h-px bg-slate-50 flex-1 relative">
-                         <i data-lucide="chevron-right" class="absolute right-0 -top-[7px] w-3 h-3 text-slate-100"></i>
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-2 text-right">
-                    <div class="flex flex-col items-end">
-                        <div class="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[9px] font-black uppercase tracking-tighter">
-                            @${targetId}
-                        </div>
-                        <div class="text-[8px] font-bold text-slate-300 uppercase">${targetData.partido || 'ALVO'}</div>
-                    </div>
-                    <div class="w-8 h-8 rounded-full overflow-hidden border border-slate-100 shadow-sm">
-                        <img src="${avatarTarget}" alt="Alvo" class="w-full h-full object-cover">
-                    </div>
+        <div class="post-card-container relative mb-4 rounded-xl overflow-hidden bg-red-500" data-alerta-id="${alerta.id}">
+            <div class="absolute inset-y-0 right-0 w-1/3 flex items-center justify-end pr-6">
+                <div class="flex flex-col items-center justify-center opacity-80">
+                    <i data-lucide="trash-2" class="w-5 h-5 text-white mb-1"></i>
+                    <span class="text-[9px] font-black text-white uppercase tracking-widest">Descartar</span>
                 </div>
             </div>
 
-            <div class="post-content mt-3 text-[13px] leading-relaxed text-slate-800">
-                "${alerta.texto_bruto || 'Sem conteúdo'}"
-            </div>
-            
-            ${isLocked ? `
-                <div class="mt-4 pt-3 border-t border-slate-50 flex items-center justify-between opacity-80 hover:opacity-100 transition-opacity">
+            <article class="post-card-surface animate-in ${isLocked ? 'is-locked' : ''} relative bg-white border border-slate-200 rounded-xl p-4 shadow-sm z-10 w-full h-full transition-transform">
+                <div class="absolute top-3 left-1/2 -translate-x-1/2 z-20">
+                    <span class="px-2 py-0.5 ${platColor} text-white rounded-full text-[7px] font-black tracking-tighter shadow-sm opacity-80">
+                        ${platLabel}
+                    </span>
+                </div>
+
+                <div class="post-header items-start">
                     <div class="flex items-center gap-2">
-                        <i data-lucide="lock" class="w-3 h-3 text-slate-300"></i>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Identidade sob sigilo</span>
+                        <div class="post-avatar relative">
+                            <img src="${avatarAgressor}" alt="Agressor" class="w-8 h-8 rounded-full ${isLocked ? 'blur-[4px]' : ''}" loading="lazy">
+                            <div class="absolute -right-1 -bottom-1 bg-white rounded-full p-0.5 shadow-sm">
+                                <i data-lucide="zap" class="w-2.5 h-2.5 text-yellow-500 fill-yellow-500"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-col">
+                            <div class="post-username text-[11px] font-bold ${isLocked ? 'blur-[5px] select-none' : ''}">${displayedUser}</div>
+                            <div class="text-[9px] text-slate-400">${dateStr}</div>
+                        </div>
                     </div>
-                    <button class="text-[10px] font-black text-blue-500 hover:text-blue-600 transition-colors uppercase tracking-widest flex items-center gap-1" onclick="window.unlockIntel('${alerta.id}')">
-                        Desbloquear <i data-lucide="chevron-right" class="w-3 h-3"></i>
-                    </button>
-                </div>
-            ` : `
-                <div class="flex gap-4 mt-4 pt-2 border-t border-slate-50">
-                    <button class="flex items-center gap-1.5 text-[9px] font-bold text-slate-300 hover:text-blue-500 transition-colors" onclick="window.toggleTriage('${alerta.id}')"><i data-lucide="shield-alert" class="w-3 h-3"></i> Periciar</button>
-                    <button class="flex items-center gap-1.5 text-[9px] font-bold text-slate-300 hover:text-red-500 transition-colors" onclick="window.markFalsePositive('${alerta.id}')"><i data-lucide="thumbs-down" class="w-3 h-3"></i> Descartar</button>
-                    <div class="ml-auto flex items-center gap-2">
-                        <span class="px-1.5 py-0.5 bg-slate-50 text-slate-400 rounded text-[8px] font-bold uppercase">${severity}</span>
-                        <button class="p-1 text-slate-200 hover:text-slate-400"><i data-lucide="share-2" class="w-3 h-3"></i></button>
+
+                    <div class="flex-1 flex justify-center items-center px-2">
+                        <div class="h-px bg-slate-50 flex-1 relative">
+                             <i data-lucide="chevron-right" class="absolute right-0 -top-[7px] w-3 h-3 text-slate-100"></i>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 text-right">
+                        <div class="flex flex-col items-end">
+                            <div class="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[9px] font-black uppercase tracking-tighter">
+                                @${targetId}
+                            </div>
+                            <div class="text-[8px] font-bold text-slate-300 uppercase">${targetData.partido || 'ALVO'}</div>
+                        </div>
+                        <div class="w-8 h-8 rounded-full overflow-hidden border border-slate-100 shadow-sm">
+                            <img src="${avatarTarget}" alt="Alvo" class="w-full h-full object-cover">
+                        </div>
                     </div>
                 </div>
-            `}
-        </article>
+
+                <div class="post-content mt-3 text-[13px] leading-relaxed text-slate-800">
+                    "${alerta.texto_bruto || 'Sem conteúdo'}"
+                </div>
+                
+                ${isLocked ? `
+                    <div class="mt-4 pt-3 border-t border-slate-50 flex items-center justify-between opacity-80 hover:opacity-100 transition-opacity">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="lock" class="w-3 h-3 text-slate-300"></i>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Identidade sob sigilo</span>
+                        </div>
+                        <button class="text-[10px] font-black text-blue-500 hover:text-blue-600 transition-colors uppercase tracking-widest flex items-center gap-1" onclick="window.unlockIntel('${alerta.id}')">
+                            Desbloquear <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                        </button>
+                    </div>
+                ` : `
+                    <div class="flex gap-4 mt-4 pt-2 border-t border-slate-50">
+                        <button class="flex items-center gap-1.5 text-[9px] font-bold text-slate-300 hover:text-blue-500 transition-colors" onclick="window.toggleTriage('${alerta.id}')"><i data-lucide="shield-alert" class="w-3 h-3"></i> Periciar</button>
+                        <button class="flex items-center gap-1.5 text-[9px] font-bold text-slate-300 hover:text-red-500 transition-colors" onclick="window.markFalsePositive('${alerta.id}')"><i data-lucide="thumbs-down" class="w-3 h-3"></i> Descartar</button>
+                        <div class="ml-auto flex items-center gap-2">
+                            <span class="px-1.5 py-0.5 bg-slate-50 text-slate-400 rounded text-[8px] font-bold uppercase">${severity}</span>
+                            <button class="p-1 text-slate-200 hover:text-slate-400"><i data-lucide="share-2" class="w-3 h-3"></i></button>
+                        </div>
+                    </div>
+                `}
+            </article>
+        </div>
     `;
 }
 
@@ -515,3 +524,64 @@ window.inspectTarget = (username) => {
 
 window.forceRefresh = () => window.location.reload();
 window.setNetworkView = (view) => { state.networkView = view; state.view = 'networks'; renderAll(); };
+
+// --- GESTOS DE SWIPE (Tinder do Ódio) ---
+export function initSwipeGestures() {
+    const container = document.getElementById('feed-alertas');
+    if (!container) return;
+
+    let startX = 0;
+    let currentX = 0;
+    let activeSurface = null;
+    let isDragging = false;
+
+    const startDrag = (x, target) => {
+        const surface = target.closest('.post-card-surface');
+        if (!surface) return;
+        activeSurface = surface;
+        startX = x;
+        isDragging = true;
+        activeSurface.style.transition = 'none'; 
+    };
+
+    const moveDrag = (x) => {
+        if (!isDragging || !activeSurface) return;
+        currentX = x - startX;
+        if (currentX < 0) { // Permitir apenas arraste para a esquerda (descarte)
+            activeSurface.style.transform = `translateX(${currentX}px)`;
+        }
+    };
+
+    const endDrag = () => {
+        if (!isDragging || !activeSurface) return;
+        isDragging = false;
+        activeSurface.style.transition = 'transform 0.2s ease-out';
+        
+        if (currentX < -100) { // Limiar de descarte (100px)
+            const alertaId = activeSurface.closest('.post-card-container').dataset.alertaId;
+            activeSurface.style.transform = `translateX(-120%)`; // Desliza pra fora da tela
+            
+            // Aguarda animação e despacha o falso positivo
+            setTimeout(() => {
+                if (window.markFalsePositive) window.markFalsePositive(alertaId);
+            }, 200);
+        } else {
+            // Volta para a posição original
+            activeSurface.style.transform = `translateX(0px)`;
+        }
+        activeSurface = null;
+        currentX = 0;
+    };
+
+    // Suporte a Touch (Mobile)
+    container.addEventListener('touchstart', (e) => startDrag(e.touches[0].clientX, e.target), {passive: true});
+    container.addEventListener('touchmove', (e) => moveDrag(e.touches[0].clientX), {passive: true});
+    container.addEventListener('touchend', endDrag);
+
+    // Suporte a Mouse (Desktop)
+    container.addEventListener('mousedown', (e) => startDrag(e.clientX, e.target));
+    container.addEventListener('mousemove', (e) => moveDrag(e.clientX));
+    container.addEventListener('mouseup', endDrag);
+    container.addEventListener('mouseleave', endDrag);
+}
+

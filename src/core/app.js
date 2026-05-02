@@ -2,7 +2,7 @@ import { state, setViewState } from './state.js';
 import { dataService } from '../services/dataService.js';
 import { authService } from '../services/authService.js';
 import { fcmService } from '../services/fcmService.js';
-import { renderAll, initInfiniteScroll } from './ui.js';
+import { renderAll, initInfiniteScroll, initSwipeGestures } from './ui.js';
 
 // CONFIGURAÇÃO CENTRALIZADA
 window.SENTINELA_CONFIG = {
@@ -70,8 +70,9 @@ async function init() {
 
     await refreshData();
     
-    // Inicia o observador de rolagem infinita
+    // Inicia o observador de rolagem infinita e gestos de Swipe
     initInfiniteScroll();
+    initSwipeGestures();
 
     if (window.lucide) lucide.createIcons();
 }
