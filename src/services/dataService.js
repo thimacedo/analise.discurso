@@ -2,6 +2,7 @@
 // Centraliza todas as chamadas para a API FastAPI
 
 import { authService } from './authService.js';
+import { state } from '../core/state.js';
 
 const API_BASE = window.SENTINELA_CONFIG?.apiUrl || '/api/v1';
 

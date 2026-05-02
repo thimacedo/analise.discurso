@@ -14,6 +14,7 @@
 - **Infinite Scroll:** Carregamento paginado de alertas ativos.
 - **Identidade de Alvos:** Sistema de revelação de usernames por 'Carga de Dados' (Paga).
 - **Normalizador Inteligente:** Mapeamento de alvos (Lula/Bolsonaro) consolidado.
+- **Stripe Auth Persistence:** Autenticação via Restricted API Key (`STRIPE_API_KEY`) no `.env` validada e sincronizada com o serviço Python. Operações de leitura de Clientes, Produtos e Preços funcionais e silenciosas.
 
 ## 💰 Tabela de Preços (Elite Tier)
 1.  **Revelação de Identidade:** R$ 49,99 (Carga Única).
