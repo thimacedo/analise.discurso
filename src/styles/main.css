@@ -264,19 +264,14 @@ body {
     max-height: calc(100vh - 320px);
 }
 
-.monitor-row,
-.dossie-card,
-.hotspot-row {
+.monitor-row {
     width: 100%;
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 16px;
     background: rgba(255, 255, 255, 0.03);
     color: var(--text-main);
     cursor: pointer;
-}
-
-.monitor-row {
-    padding: 14px;
+    padding: 10px 14px;
     text-align: left;
 }
 
@@ -290,24 +285,24 @@ body {
 .network-card h4,
 .dossie-card h5,
 .alert-card h4 {
-    font-size: 0.96rem;
+    font-size: 0.9rem;
     font-weight: 800;
 }
 
 .monitor-row__title span:last-child,
 .monitor-row__meta span:last-child,
 .hotspot-row strong {
-    font-size: 0.82rem;
+    font-size: 0.75rem;
     color: #fca5a5;
     font-weight: 700;
 }
 
 .progress-track {
-    height: 8px;
-    margin: 12px 0 10px;
+    height: 6px;
+    margin: 8px 0 6px;
     background: rgba(255, 255, 255, 0.08);
     border-radius: 999px;
-    overflow-y: auto;
+    overflow: hidden;
 }
 
 .progress-bar {
