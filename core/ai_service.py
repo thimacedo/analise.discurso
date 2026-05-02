@@ -25,6 +25,11 @@ REGRAS DE SAÍDA:
 """
 
 class AIService:
+    """
+    Serviço central de Inteligência Artificial para o Sentinela Democrática.
+    Gerencia provedores (Gemini, Groq, Ollama) com lógica de fallback e 
+    priorização local (Ollama) para redução de custos.
+    """
     def __init__(self):
         self.provider = settings.IA_PROVIDER
         self.consecutive_failures = 0
@@ -100,32 +105,38 @@ class AIService:
                 print(f"⚠️ Groq Error: {e}")
         return None
 
-    async def _call_ollama(self, text: str) -> Dict[str, Any]:
-        # Tenta usar a API de Chat para melhor suporte a System Prompt
+    async def _invoke_ollama(self, messages: list, stream: bool = False, format: str = "") -> Optional[str]:
+        """Chamada unificada ao Ollama API."""
         url = f"{settings.OLLAMA_BASE_URL}/api/chat"
         payload = {
             "model": settings.OLLAMA_MODEL,
-            "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT_PASA},
-                {"role": "user", "content": f"TEXTO: \"{text}\""}
-            ],
-            "stream": False,
-            "format": "json",
-            "options": {
-                "temperature": 0.1,
-                "top_p": 0.9
-            }
+            "messages": messages,
+            "stream": stream,
+            "options": {"temperature": 0.1, "top_p": 0.9}
         }
+        if format: payload["format"] = format
+
         async with httpx.AsyncClient() as client:
             try:
                 resp = await client.post(url, json=payload, timeout=45.0)
                 if resp.status_code == 200:
-                    content = resp.json().get("message", {}).get("content", "{}")
-                    return self._parse_response(content)
-                else:
-                    print(f"⚠️ Ollama Status Error: {resp.status_code}")
+                    return resp.json().get("message", {}).get("content", "")
+                print(f"⚠️ Ollama Status Error: {resp.status_code}")
+            except httpx.ConnectError:
+                print(f"❌ Connection Error: Ollama offline em {settings.OLLAMA_BASE_URL}")
             except Exception as e:
                 print(f"⚠️ Ollama Error: {e}")
+        return None
+
+    async def _call_ollama(self, text: str) -> Dict[str, Any]:
+        messages = [
+            {"role": "system", "content": SYSTEM_PROMPT_PASA},
+            {"role": "user", "content": f"TEXTO: \"{text}\""}
+        ]
+        content = await self._invoke_ollama(messages, format="json")
+        if content:
+            return self._parse_response(content)
+        
         return {"category": "NEUTRO", "confidence": 0.0, "is_hate": False, "reason": "Ollama local falhou ou está offline"}
 
     async def classify(self, text: str) -> Dict[str, Any]:
@@ -184,12 +195,10 @@ class AIService:
 
         # Tenta Ollama
         try:
-            url = f"{settings.OLLAMA_BASE_URL}/v1/chat/completions"
-            payload = {"model": settings.OLLAMA_MODEL, "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt}], "stream": False}
-            async with httpx.AsyncClient() as client:
-                resp = await client.post(url, json=payload, timeout=30.0)
-                if resp.status_code == 200:
-                    return resp.json()['choices'][0]['message']['content']
+            messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt}]
+            content = await self._invoke_ollama(messages)
+            if content:
+                return content
         except: pass
 
         return ""
