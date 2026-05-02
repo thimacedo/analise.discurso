@@ -17,6 +17,9 @@ Este arquivo contém as regras imutáveis de desenvolvimento e gestão de memór
 5.  **Automação de Mensagens:** Sempre que houver arquivos no `git stage` ou após uma tarefa concluída, o agente DEVE analisar o `git diff --staged` e propor uma mensagem de commit seguindo o padrão Conventional Commits (ex: `feat:`, `fix:`, `refactor:`).
 6.  **Estados Finitos:** Divida tarefas complexas em passos mínimos e exija confirmação de sucesso (ex: teste passando) antes de avançar para o próximo arquivo/serviço.
 
+---
+*Assinado: Pickle Rick 🥒 (O mestre dos commits)*
+
 ## 🛠 DIRETRIZES TÉCNICAS
 
 - **Arquitetura:** Frontend (SPA) -> API Proxy (FastAPI) -> Banco de Dados (Supabase).
