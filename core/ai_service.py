@@ -32,6 +32,11 @@ class AIService:
         self.current_engine = self._determine_initial_engine()
 
     def _determine_initial_engine(self):
+        # Prioriza a escolha explícita no .env
+        if settings.IA_PROVIDER in ["gemini", "groq", "ollama"]:
+            return settings.IA_PROVIDER
+        
+        # Modo Hybrid (Default) ou Indeterminado: Segue a cascata de custo/performance
         if settings.GEMINI_API_KEY: return "gemini"
         if settings.GROQ_API_KEY: return "groq"
         return "ollama"
@@ -96,30 +101,44 @@ class AIService:
         return None
 
     async def _call_ollama(self, text: str) -> Dict[str, Any]:
-        url = f"{settings.OLLAMA_BASE_URL}/api/generate"
+        # Tenta usar a API de Chat para melhor suporte a System Prompt
+        url = f"{settings.OLLAMA_BASE_URL}/api/chat"
         payload = {
             "model": settings.OLLAMA_MODEL,
-            "prompt": f"{SYSTEM_PROMPT_PASA}\n\nTEXTO: \"{text}\"",
+            "messages": [
+                {"role": "system", "content": SYSTEM_PROMPT_PASA},
+                {"role": "user", "content": f"TEXTO: \"{text}\""}
+            ],
             "stream": False,
-            "format": "json"
+            "format": "json",
+            "options": {
+                "temperature": 0.1,
+                "top_p": 0.9
+            }
         }
         async with httpx.AsyncClient() as client:
             try:
-                resp = await client.post(url, json=payload, timeout=60.0)
+                resp = await client.post(url, json=payload, timeout=45.0)
                 if resp.status_code == 200:
-                    content = resp.json().get("response", "{}")
+                    content = resp.json().get("message", {}).get("content", "{}")
                     return self._parse_response(content)
+                else:
+                    print(f"⚠️ Ollama Status Error: {resp.status_code}")
             except Exception as e:
                 print(f"⚠️ Ollama Error: {e}")
-        return {"category": "NEUTRO", "confidence": 0.0, "is_hate": False, "reason": "Ollama falhou"}
+        return {"category": "NEUTRO", "confidence": 0.0, "is_hate": False, "reason": "Ollama local falhou ou está offline"}
 
     async def classify(self, text: str) -> Dict[str, Any]:
         if not text or not text.strip():
             return {"category": "NEUTRO", "confidence": 1.0, "is_hate": False, "reason": "Texto vazio"}
 
+        # Se for explicitamente local, não tenta nuvem para economizar tokens
+        if self.provider == "ollama":
+            return await self._call_ollama(text)
+
         result = None
         
-        # Tenta motor atual
+        # Fluxo de Cascata (Hybrid)
         if self.current_engine == "gemini":
             result = await self._call_gemini(text)
             if not result: self.current_engine = "groq"
@@ -179,7 +198,7 @@ async def run_batch_classification(limit: int = 200):
     """Executa processamento de IA em lote utilizando o DatabaseClient e AIService."""
     from core.db import db_client
     
-    print(f"🧠 Intelligence Engine: Motor atual: {ai_service.current_engine}")
+    print(f"🧠 Intelligence Engine: Motor atual: {ai_service.current_engine} (Provider: {ai_service.provider})")
     
     comentarios = await db_client.fetch_unprocessed_comments(limit=limit)
     if not comentarios:

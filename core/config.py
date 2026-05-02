@@ -5,7 +5,7 @@ load_dotenv()
 
 class Settings:
     PROJECT_NAME: str = "Sentinela Democrática"
-    VERSION: str = "19.7.5"
+    VERSION: str = "20.5.0"
     
     # Supabase
     SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")

@@ -21,6 +21,7 @@ export function renderAll() {
 
         if (state.view === 'monitor') {
             renderMonitorLayout();
+            renderPasaTemporalChart();
         } else if (state.view === 'networks') {
             renderNetworkIntelligence();
         } else if (state.view === 'dossie') {
@@ -277,25 +278,163 @@ function renderNetworkIntelligence() {
 }
 
 function renderClusters(container) {
-    container.innerHTML = `<div class="section-heading"><div><span class="eyebrow">D3-Force</span><h3>Cluster de Ataque</h3></div><div style="display:flex; gap:16px; font-size:11px"><div style="display:flex; align-items:center; gap:6px"><div style="width:10px; height:10px; border-radius:50%; background:#ef4444"></div> Candidato</div><div style="display:flex; align-items:center; gap:6px"><div style="width:10px; height:10px; border-radius:50%; background:#2563eb"></div> Agressor</div></div></div><div class="glass-card" style="width:100%; min-height:600px; position:relative; overflow:hidden; background: #0a0a0c;"><canvas id="network-canvas" style="cursor: grab;"></canvas><div id="hover-info" style="position:absolute; bottom:20px; left:20px; background:rgba(0,0,0,0.8); padding:10px; border-radius:8px; border:1px solid var(--accent); display:none; pointer-events:none;"></div></div>`;
-    const canvas = document.getElementById('network-canvas');
-    if (!canvas || !state.networks?.nodes?.length) return;
-    const ctx = canvas.getContext('2d');
+    const PASA_COLORS = {
+        "ODIO_IDENTITARIO": "#ef4444",
+        "VIOLENCIA_GENERO": "#ec4899",
+        "AMEACA": "#f97316",
+        "INSULTO_AD_HOMINEM": "#f59e0b",
+        "ATAQUE_INSTITUCIONAL": "#8b5cf6",
+        "RIGOR_CRIMINAL": "#06b6d4",
+        "NEUTRO": "#64748b",
+        "OUTROS": "#64748b"
+    };
+
+    container.innerHTML = `
+        <div class="section-heading">
+            <div>
+                <span class="eyebrow">D3-Force Integrated</span>
+                <h3>Cluster de Ataque Coordenado</h3>
+            </div>
+            <div style="display:flex; gap:16px; font-size:11px">
+                <div style="display:flex; align-items:center; gap:6px"><div style="width:10px; height:10px; border-radius:50%; background:#ef4444; border: 1px solid white;"></div> Alvo</div>
+                <div style="display:flex; align-items:center; gap:6px"><div style="width:10px; height:10px; border-radius:50%; background:#2563eb;"></div> Agressor</div>
+            </div>
+        </div>
+        <div class="glass-card" style="width:100%; min-height:700px; position:relative; overflow:hidden; background: #020617; border-color: rgba(6, 182, 212, 0.1);">
+            <svg id="network-svg" style="width:100%; height:700px; cursor: grab;"></svg>
+            <div id="graph-tooltip" style="position:absolute; padding:12px; background:rgba(15, 23, 42, 0.95); border:1px solid var(--accent); border-radius:12px; font-size:0.75rem; display:none; pointer-events:none; z-index:100; backdrop-filter:blur(8px); box-shadow: 0 10px 30px rgba(0,0,0,0.5);"></div>
+        </div>
+    `;
+
+    const svg = d3.select("#network-svg");
+    if (!svg.node() || !state.networks?.nodes?.length) return;
+
     const width = container.offsetWidth - 40;
-    const height = 600;
-    canvas.width = width; canvas.height = height;
+    const height = 700;
+    const g = svg.append("g");
+
+    const zoom = d3.zoom()
+        .scaleExtent([0.1, 8])
+        .on("zoom", (event) => {
+            g.attr("transform", event.transform);
+        });
+
+    svg.call(zoom);
+
     const nodes = state.networks.nodes.map(d => ({ ...d }));
     const links = state.networks.links.map(d => ({ ...d }));
-    const simulation = d3.forceSimulation(nodes).force("link", d3.forceLink(links).id(d => d.id).distance(80)).force("charge", d3.forceManyBody().strength(-300)).force("center", d3.forceCenter(width / 2, height / 2)).force("collision", d3.forceCollide().radius(30));
-    let transform = d3.zoomIdentity;
-    d3.select(canvas).call(d3.zoom().scaleExtent([0.2, 5]).on("zoom", (event) => { transform = event.transform; draw(); }));
-    function draw() {
-        ctx.save(); ctx.clearRect(0, 0, width, height); ctx.translate(transform.x, transform.y); ctx.scale(transform.k, transform.k);
-        ctx.beginPath(); ctx.strokeStyle = "rgba(255,255,255,0.08)"; links.forEach(d => { ctx.moveTo(d.source.x, d.source.y); ctx.lineTo(d.target.x, d.target.y); }); ctx.stroke();
-        nodes.forEach(d => { ctx.beginPath(); const r = d.type === 'target' ? 12 : 5; ctx.arc(d.x, d.y, r, 0, 2 * Math.PI); ctx.fillStyle = d.type === 'target' ? "#ef4444" : "#2563eb"; ctx.fill(); if (d.type === 'target' || transform.k > 1.2) { ctx.fillStyle = "white"; ctx.font = `${10/transform.k}px Inter`; ctx.textAlign = "center"; ctx.fillText(`@${d.id.replace('@','')}`, d.x, d.y + r + 10); } });
-        ctx.restore();
+
+    const simulation = d3.forceSimulation(nodes)
+        .force("link", d3.forceLink(links).id(d => d.id).distance(120))
+        .force("charge", d3.forceManyBody().strength(-400))
+        .force("center", d3.forceCenter(width / 2, height / 2))
+        .force("collision", d3.forceCollide().radius(40));
+
+    const link = g.append("g")
+        .selectAll("line")
+        .data(links)
+        .enter().append("line")
+        .attr("stroke", d => PASA_COLORS[d.category] || "rgba(255,255,255,0.1)")
+        .attr("stroke-opacity", 0.4)
+        .attr("stroke-width", d => Math.sqrt(d.weight || 1) * 1.5);
+
+    const node = g.append("g")
+        .selectAll("g")
+        .data(nodes)
+        .enter().append("g")
+        .call(d3.drag()
+            .on("start", dragstarted)
+            .on("drag", dragged)
+            .on("end", dragended));
+
+    node.append("circle")
+        .attr("r", d => d.type === 'target' ? 18 : 8)
+        .attr("fill", d => d.type === 'target' ? "#ef4444" : "#2563eb")
+        .attr("stroke", "#fff")
+        .attr("stroke-width", 1.5)
+        .style("filter", d => d.type === 'target' ? "drop-shadow(0 0 8px rgba(239, 68, 68, 0.5))" : "none")
+        .on("mouseover", (event, d) => {
+            const tooltip = document.getElementById('graph-tooltip');
+            tooltip.style.display = 'block';
+            tooltip.innerHTML = `
+                <div style="font-weight:800; color:var(--accent); margin-bottom:4px;">@${d.id.replace('@','')}</div>
+                <div style="opacity:0.8; margin-bottom:8px;">${d.type === 'target' ? 'Alvo sob ataque' : 'Perfil Agressor'}</div>
+                <div style="display:flex; gap:10px; font-size:10px;">
+                    <div style="background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:4px;">
+                        <span style="display:block; opacity:0.6; text-transform:uppercase;">Interações</span>
+                        <strong>${d.val}</strong>
+                    </div>
+                </div>
+            `;
+            highlightCluster(d);
+        })
+        .on("mousemove", (event) => {
+            const tooltip = document.getElementById('graph-tooltip');
+            tooltip.style.left = (event.offsetX + 15) + 'px';
+            tooltip.style.top = (event.offsetY + 15) + 'px';
+        })
+        .on("mouseout", () => {
+            document.getElementById('graph-tooltip').style.display = 'none';
+            resetHighlight();
+        });
+
+    node.append("text")
+        .attr("dy", d => d.type === 'target' ? 30 : 20)
+        .attr("text-anchor", "middle")
+        .attr("fill", "white")
+        .style("font-size", "10px")
+        .style("font-weight", d => d.type === 'target' ? "800" : "500")
+        .style("pointer-events", "none")
+        .text(d => `@${d.id.replace('@','')}`);
+
+    simulation.on("tick", () => {
+        link
+            .attr("x1", d => d.source.x)
+            .attr("y1", d => d.source.y)
+            .attr("x2", d => d.target.x)
+            .attr("y2", d => d.target.y);
+
+        node
+            .attr("transform", d => `translate(${d.x},${d.y})`);
+    });
+
+    function highlightCluster(d) {
+        const connectedNodes = new Set();
+        connectedNodes.add(d.id);
+        
+        link.style("stroke-opacity", l => {
+            if (l.source.id === d.id || l.target.id === d.id) {
+                connectedNodes.add(l.source.id);
+                connectedNodes.add(l.target.id);
+                return 1;
+            }
+            return 0.05;
+        }).attr("stroke-width", l => (l.source.id === d.id || l.target.id === d.id) ? 3 : 1);
+
+        node.style("opacity", n => connectedNodes.has(n.id) ? 1 : 0.1);
     }
-    simulation.on("tick", draw);
+
+    function resetHighlight() {
+        link.style("stroke-opacity", 0.4).attr("stroke-width", l => Math.sqrt(l.weight || 1) * 1.5);
+        node.style("opacity", 1);
+    }
+
+    function dragstarted(event) {
+        if (!event.active) simulation.alphaTarget(0.3).restart();
+        event.subject.fx = event.subject.x;
+        event.subject.fy = event.subject.y;
+    }
+
+    function dragged(event) {
+        event.subject.fx = event.x;
+        event.subject.fy = event.y;
+    }
+
+    function dragended(event) {
+        if (!event.active) simulation.alphaTarget(0);
+        event.subject.fx = null;
+        event.subject.fy = null;
+    }
 }
 
 function renderFlow(container) {
@@ -363,4 +502,66 @@ window.setDossieSearch = setDossieSearch;
 function renderSTN() {
     const el = document.getElementById('stn-balance');
     if (el) { const tokens = authService.user?.stn_tokens || 0; el.innerText = `${tokens} STN`; }
+}
+
+function renderPasaTemporalChart() {
+    const container = document.getElementById('pasa-temporal-chart');
+    if (!container || !state.pasaTemporal?.length) return;
+
+    const data = state.pasaTemporal;
+    const categories = ["ODIO_IDENTITARIO", "VIOLENCIA_GENERO", "AMEACA", "INSULTO_AD_HOMINEM", "ATAQUE_INSTITUCIONAL", "RIGOR_CRIMINAL"];
+    const colors = {
+        "ODIO_IDENTITARIO": "#ef4444",
+        "VIOLENCIA_GENERO": "#ec4899",
+        "AMEACA": "#f97316",
+        "INSULTO_AD_HOMINEM": "#f59e0b",
+        "ATAQUE_INSTITUCIONAL": "#8b5cf6",
+        "RIGOR_CRIMINAL": "#06b6d4"
+    };
+
+    container.innerHTML = `<svg id="temporal-svg" style="width:100%; height:350px;"></svg>`;
+    const svg = d3.select("#temporal-svg");
+    const width = container.offsetWidth;
+    const height = 350;
+    const margin = {top: 20, right: 30, bottom: 40, left: 40};
+
+    const x = d3.scaleBand()
+        .domain(data.map(d => d.date))
+        .range([margin.left, width - margin.right])
+        .padding(0.3);
+
+    const y = d3.scaleLinear()
+        .domain([0, d3.max(data, d => categories.reduce((sum, k) => sum + (d[k] || 0), 0))]).nice()
+        .range([height - margin.bottom, margin.top]);
+
+    const stack = d3.stack().keys(categories);
+    const series = stack(data);
+
+    svg.append("g")
+        .selectAll("g")
+        .data(series)
+        .enter().append("g")
+        .attr("fill", d => colors[d.key])
+        .selectAll("rect")
+        .data(d => d)
+        .enter().append("rect")
+        .attr("x", d => x(d.data.date))
+        .attr("y", d => y(d[1]))
+        .attr("height", d => y(d[0]) - y(d[1]))
+        .attr("width", x.bandwidth())
+        .attr("rx", 4);
+
+    svg.append("g")
+        .attr("transform", `translate(0,${height - margin.bottom})`)
+        .call(d3.axisBottom(x).tickFormat(d => d.split('-').slice(1).reverse().join('/')))
+        .attr("font-family", "var(--font-sans)")
+        .attr("font-size", "10px")
+        .call(g => g.select(".domain").remove());
+
+    svg.append("g")
+        .attr("transform", `translate(${margin.left},0)`)
+        .call(d3.axisLeft(y).ticks(5))
+        .attr("font-family", "var(--font-mono)")
+        .attr("font-size", "10px")
+        .call(g => g.select(".domain").remove());
 }

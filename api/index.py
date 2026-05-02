@@ -132,7 +132,7 @@ def get_networks(days: int = 7):
     try:
         supa = get_supa()
         if not supa: return {"nodes": [], "links": []}
-        res = supa.table('comentarios').select('autor_username, candidato_id, data_publicacao, plataforma').eq('is_hate', True).limit(5000).execute()
+        res = supa.table('comentarios').select('autor_username, candidato_id, data_publicacao, plataforma, categoria_ia').eq('is_hate', True).limit(5000).execute()
         data = res.data if res and res.data else []
         nodes = {}
         links = []
@@ -140,19 +140,37 @@ def get_networks(days: int = 7):
         for item in data:
             author = item.get('autor_username')
             target = item.get('candidato_id')
+            category = item.get('categoria_ia', 'OUTROS')
             if not author or not target: continue
+            
             if author not in author_targets: author_targets[author] = set()
             author_targets[author].add(target)
-            if author not in nodes: nodes[author] = {"id": author, "type": "author", "val": 1}
-            else: nodes[author]["val"] += 1
-            if target not in nodes: nodes[target] = {"id": target, "type": "target", "val": 1}
-            else: nodes[target]["val"] += 1
-            links.append({"source": author, "target": target, "weight": 1})
+            
+            if author not in nodes: 
+                nodes[author] = {"id": author, "type": "author", "val": 1}
+            else: 
+                nodes[author]["val"] += 1
+                
+            if target not in nodes: 
+                nodes[target] = {"id": target, "type": "target", "val": 1}
+            else: 
+                nodes[target]["val"] += 1
+                
+            links.append({
+                "source": author, 
+                "target": target, 
+                "weight": 1,
+                "category": category
+            })
             
         # Filtro para Matriz: Apenas agressores com múltiplos alvos
         multi_target_authors = [a for a, t in author_targets.items() if len(t) > 1]
         
-        return {"nodes": list(nodes.values()), "links": links[:1000], "multi_target_authors": multi_target_authors}
+        return {
+            "nodes": list(nodes.values()), 
+            "links": links[:2000], 
+            "multi_target_authors": multi_target_authors
+        }
     except Exception as e: return {"error": str(e)}
 
 @app.get("/api/v1/pasa/breakdown")
@@ -230,6 +248,45 @@ def get_firebase_config():
         "appId": os.getenv("FIREBASE_APP_ID"),
         "vapidKey": os.getenv("FIREBASE_VAPID_KEY")
     }
+
+@app.get("/api/v1/analytics/pasa-temporal")
+def pasa_temporal(days: int = 7):
+    """Retorna a evolução das categorias PASA dia a dia."""
+    try:
+        supa = get_supa()
+        if not supa: return []
+        
+        # Busca comentários de ódio recentes
+        res = supa.table('comentarios')\
+            .select('data_coleta, categoria_ia')\
+            .eq('is_hate', True)\
+            .order('data_coleta', desc=True)\
+            .limit(5000)\
+            .execute()
+        
+        data = res.data if res and res.data else []
+        
+        # Agrupamento por data e categoria
+        timeline = {}
+        for item in data:
+            dt = item['data_coleta'][:10] # YYYY-MM-DD
+            cat = item['categoria_ia'] or 'OUTROS'
+            
+            if dt not in timeline:
+                timeline[dt] = Counter()
+            timeline[dt][cat] += 1
+            
+        # Formatação para o Chart.js/D3.js
+        formatted = []
+        for dt in sorted(timeline.keys()):
+            entry = {"date": dt}
+            entry.update(dict(timeline[dt]))
+            formatted.append(entry)
+            
+        return formatted
+    except Exception as e:
+        logger.error(f"Erro no analytics temporal: {e}")
+        return []
 
 @app.get("/api/health")
 def health():

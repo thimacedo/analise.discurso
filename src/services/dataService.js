@@ -66,6 +66,11 @@ class SentinelDataService {
         return this.fetchJson('/pasa/breakdown');
     }
 
+    // ── Analytics Temporal ──
+    async getPasaTemporal(days = 7) {
+        return this.fetchJson('/analytics/pasa-temporal', { days });
+    }
+
     // ── Geolocalização (Mapa) ──
     async getGeoUF() {
         return this.fetchJson('/geo/uf');

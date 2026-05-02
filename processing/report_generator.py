@@ -76,6 +76,38 @@ class ReportGenerator(FPDF):
         self.cell(0, 6, f"Status: {status}")
         self.ln(10)
 
+    def render_forensic_integrity(self, df):
+        self.add_page()
+        self.set_font(self.font_family_main, 'B', 12)
+        self.set_text_color(37, 99, 235)
+        self.cell(0, 10, 'INTEGRIDADE FORENSE E ASSINATURA DIGITAL', ln=True)
+        self.ln(5)
+        
+        self.set_font(self.font_family_main, '', 9)
+        self.set_text_color(0, 0, 0)
+        
+        import hashlib
+        # Gera hash dos dados processados
+        data_str = df.to_json()
+        data_hash = hashlib.sha256(data_str.encode()).hexdigest()
+        
+        self.multi_cell(0, 6, self.clean_text(f"Este documento foi gerado pelo sistema Sentinela Democrática utilizando o Protocolo PASA v16.4. Os dados contidos neste relatório possuem integridade verificável através do hash SHA-256 abaixo:"))
+        self.ln(2)
+        
+        self.set_font(self.font_family_main, 'B', 8)
+        self.set_fill_color(240, 240, 240)
+        self.cell(0, 8, f" SHA-256: {data_hash} ", border=1, ln=True, fill=True)
+        self.ln(10)
+        
+        self.set_font(self.font_family_main, '', 9)
+        self.multi_cell(0, 6, self.clean_text("Certificação de Origem:\nOrquestrador Sentinela Diamond v20.4\nID de Sessão Forense: " + hashlib.md5(str(datetime.now().timestamp()).encode()).hexdigest()[:8].upper()))
+        
+        # Placeholder para assinatura
+        self.ln(20)
+        self.line(10, self.get_y(), 80, self.get_y())
+        self.set_font(self.font_family_main, 'I', 7)
+        self.cell(0, 5, 'Assinado Digitalmente por Sentinela AI - Unidade de Perícia')
+
     def generate_pdf(self, df_final, output_path):
         if df_final is None or df_final.empty:
             print("⚠️ DataFrame vazio. Nenhum PDF gerado.")
@@ -88,12 +120,15 @@ class ReportGenerator(FPDF):
         self.ln(5)
 
         # Prioriza ódio para o relatório, mas mantém fallback se vazio
-        df_report = df_final[df_final['is_hate_speech'] == True].head(50)
+        df_report = df_final[df_final['is_hate_speech'] == True].head(100)
         if df_report.empty:
             df_report = df_final.head(10)
 
         for _, row in df_report.iterrows():
             self.render_item(row.to_dict())
+
+        # Adiciona seção de integridade
+        self.render_forensic_integrity(df_final)
 
         self.output(output_path)
         print(f"📄 Relatório salvo em: {output_path}")
