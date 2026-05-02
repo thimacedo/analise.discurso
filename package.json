@@ -8,7 +8,7 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "playwright test",
+    "test": "playwright test tests/",
     "api": "uvicorn api.index:app --reload --host 0.0.0.0 --port 8000",
     "dev": "concurrently \"npm run api\" \"http-server . -p 3000\""
   },
