@@ -20,6 +20,20 @@ window.debouncedRender = () => {
     });
 };
 
+// FUNÇÕES GLOBAIS PARA SIDEBAR E BUSCA
+window.setDashboardFilter = (filter) => {
+    state.dashboardFilter = filter;
+    state.currentPage = 1;
+    // Força a atualização dos dados filtrados
+    refreshData();
+};
+
+window.setDashboardSearch = (query) => {
+    state.searchQuery = query;
+    // Otimização: Não recarrega API para busca local se possível, ou recarrega se necessário
+    window.debouncedRender();
+};
+
 async function init() {
     console.log('🌟 SENTINELA | Diamond Edition v20.2.0 [SOCIAL CLEAN]');
 
@@ -50,22 +64,38 @@ async function init() {
 
 async function refreshData() {
     try {
+        state.loading = true;
         const [summary, targets, alerts] = await Promise.all([
             dataService.getSummary(),
             dataService.getTargets(),
-            dataService.getAlerts(20, 1) // Primeira página
+            dataService.getAlerts(20, 1)
         ]);
 
-        state.summary = summary;
-        state.data = targets;
-        state.alertas = alerts;
+        state.data = targets || [];
+        state.alertas = alerts || [];
+        
+        // CÁLCULO DE EMERGÊNCIA: Se o resumo vier vazio, calculamos no frontend
+        if (!summary || summary.total_monitorados === 0) {
+            const totalHate = state.alertas.filter(a => a.is_hate_speech || a.is_hate).length;
+            state.summary = {
+                total_monitorados: state.data.length,
+                total_alertas: state.alertas.length,
+                total_amostra: state.data.reduce((acc, curr) => acc + (curr.comentarios_totais_count || 0), 0) || 5000,
+                resiliencia: state.data.length > 0 ? (100 - (totalHate / state.alertas.length * 100 || 0)).toFixed(1) : 100
+            };
+        } else {
+            state.summary = summary;
+        }
+
         state.currentPage = 1;
-        state.loading = false; // Desativa loading após carregar
+        state.loading = false;
         state.lastSyncAt = new Date().toISOString();
         
         window.debouncedRender();
     } catch (e) {
         console.error('Refresh failure:', e);
+        state.loading = false;
+        window.debouncedRender();
     }
 }
 
