@@ -251,7 +251,7 @@ function buildPostCard(alerta) {
                 </div>
             </div>
 
-            <div class="post-content mt-3 text-[12px] leading-relaxed text-slate-600 font-medium italic">
+            <div class="post-content mt-3 text-[13px] leading-relaxed text-slate-800">
                 "${alerta.texto_bruto || 'Sem conteúdo'}"
             </div>
             
