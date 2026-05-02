@@ -123,9 +123,14 @@ function renderCandidateProfile(container) {
 }
 
 function renderAlertasFeed(container) {
-    const list = state.selectedAlvo 
+    let list = state.selectedAlvo 
         ? state.alertas.filter((alerta) => String(alerta.candidato_id) === String(state.selectedAlvo.username)) 
         : state.alertas;
+
+    // ALGORITMO DE REDE SOCIAL (Misto): Se não houver filtro, mistura por diversidade de alvos
+    if (!state.selectedAlvo && state.dashboardFilter === 'all') {
+        list = [...list].sort(() => Math.random() - 0.5);
+    }
 
     if (!list.length && state.currentPage === 1) {
         container.innerHTML += `<div class="p-12 text-center opacity-30 text-xs font-mono tracking-widest uppercase">Nenhum sinal detectado</div>`;
@@ -156,49 +161,90 @@ function renderAlertasFeed(container) {
 
 function buildPostCard(alerta) {
     const agressor = alerta.autor_username || 'anônimo';
-    const target = alerta.candidato_id || 'alvo';
+    const targetId = alerta.candidato_id || 'alvo';
+    const targetData = state.data.find(a => a.username === targetId) || { username: targetId };
+    
     const dateStr = new Date(alerta.data_coleta).toLocaleTimeString('pt-BR');
     const severity = alerta.severidade || 'INFO';
     const plataforma = (alerta.plataforma || 'instagram').toLowerCase();
+    const platLabel = plataforma === 'youtube' ? 'YT' : 'IG';
+    const platColor = plataforma === 'youtube' ? 'bg-red-500' : 'bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500';
     
     // LOGICA DE MONETIZAÇÃO: Se não for PRO, borra o agressor
     const isLocked = !planService.canAccess('identities');
     const displayedUser = isLocked ? 'agressor_protegido' : `@${agressor.replace('@','')}`;
-    const avatarUrl = isLocked 
+    
+    const avatarAgressor = isLocked 
         ? 'https://ui-avatars.com/api/?name=?&background=334155&color=fff'
         : `https://ui-avatars.com/api/?name=${agressor}&background=random&color=fff&size=64`;
+        
+    const avatarTarget = targetData.avatar_url || `https://ui-avatars.com/api/?name=${targetId}&background=0D8ABC&color=fff`;
     
     return `
-        <article class="post-card animate-in ${isLocked ? 'is-locked' : ''}">
-            <div class="post-header">
-                <div class="post-avatar">
-                    <img src="${avatarUrl}" alt="Avatar" class="${isLocked ? 'blur-[4px]' : ''}" loading="lazy" width="36" height="36">
-                </div>
-                <div class="post-user-info">
-                    <div class="post-username ${isLocked ? 'blur-[5px] select-none' : ''}">${displayedUser}</div>
-                    <div class="post-meta">➔ @${target} • ${dateStr}</div>
-                </div>
-                <span class="severity-pill is-${severity.toLowerCase()}">${severity}</span>
+        <article class="post-card animate-in ${isLocked ? 'is-locked' : ''} relative">
+            <div class="absolute top-3 left-1/2 -translate-x-1/2 z-20">
+                <span class="px-2 py-0.5 ${platColor} text-white rounded-full text-[8px] font-black tracking-tighter shadow-sm">
+                    ${platLabel}
+                </span>
             </div>
-            <div class="post-content">
+
+            <div class="post-header items-start">
+                <div class="flex items-center gap-2">
+                    <div class="post-avatar relative">
+                        <img src="${avatarAgressor}" alt="Agressor" class="w-9 h-9 rounded-full ${isLocked ? 'blur-[4px]' : ''}" loading="lazy">
+                        <div class="absolute -right-1 -bottom-1 bg-white rounded-full p-0.5 shadow-sm">
+                            <i data-lucide="zap" class="w-2.5 h-2.5 text-yellow-500 fill-yellow-500"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col">
+                        <div class="post-username text-xs font-bold ${isLocked ? 'blur-[5px] select-none' : ''}">${displayedUser}</div>
+                        <div class="text-[10px] text-slate-400">${dateStr}</div>
+                    </div>
+                </div>
+
+                <div class="flex-1 flex justify-center items-center px-2">
+                    <div class="h-px bg-slate-100 flex-1 relative">
+                         <i data-lucide="chevron-right" class="absolute right-0 -top-[7px] w-3 h-3 text-slate-200"></i>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 text-right">
+                    <div class="flex flex-col items-end">
+                        <div class="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-tighter">
+                            @${targetId}
+                        </div>
+                        <div class="text-[9px] font-bold text-slate-300 uppercase">${targetData.partido || 'ALVO'}</div>
+                    </div>
+                    <div class="w-9 h-9 rounded-full overflow-hidden border-2 border-white shadow-sm ring-1 ring-slate-100">
+                        <img src="${avatarTarget}" alt="Alvo" class="w-full h-full object-cover">
+                    </div>
+                </div>
+            </div>
+
+            <div class="post-content mt-4 text-[13px] leading-relaxed text-slate-700 font-medium italic">
                 "${alerta.texto_bruto || 'Sem conteúdo'}"
             </div>
             
             ${isLocked ? `
-                <div class="mt-4 p-4 bg-slate-900 border border-cyan-900/30 rounded-xl flex items-center justify-between shadow-inner">
-                    <div>
-                        <span class="block text-[10px] font-black text-cyan-400 uppercase tracking-widest">Ruptura Necessária</span>
-                        <p class="text-[11px] text-slate-400">Alvo com blindagem ativa. Requer pulso de varredura.</p>
+                <div class="mt-4 p-4 bg-slate-950 border border-cyan-500/20 rounded-xl flex items-center justify-between shadow-2xl relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-transparent"></div>
+                    <div class="relative z-10">
+                        <span class="block text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-1">Ruptura Necessária</span>
+                        <p class="text-[11px] text-slate-500 max-w-[180px] leading-tight">Identidade protegida por criptografia de nível militar.</p>
                     </div>
-                    <button class="bg-cyan-600 text-white px-4 py-2 rounded-lg text-[10px] font-black shadow-lg shadow-cyan-900/20 hover:bg-cyan-500 transition-all uppercase tracking-tighter" onclick="window.unlockIntel('${alerta.id}')">
-                        Injetar Carga
+                    <button class="relative z-10 bg-cyan-600 text-white px-4 py-2.5 rounded-lg text-[10px] font-black shadow-lg shadow-cyan-900/40 hover:bg-cyan-500 transition-all uppercase tracking-tighter" onclick="window.unlockIntel('${alerta.id}')">
+                        Quebrar Sigilo
                     </button>
                 </div>
             ` : `
-                <div class="flex gap-6 mt-4 pt-3 border-t border-slate-50">
-                    <button class="action-btn" onclick="window.toggleTriage('${alerta.id}')"><i data-lucide="shield-alert" class="w-4 h-4"></i> Analisar</button>
-                    <button class="action-btn" onclick="window.markFalsePositive('${alerta.id}')"><i data-lucide="thumbs-down" class="w-4 h-4"></i> Falso</button>
-                    <button class="action-btn ml-auto"><i data-lucide="share-2" class="w-4 h-4"></i></button>
+                <div class="flex gap-4 mt-5 pt-3 border-t border-slate-50">
+                    <button class="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 hover:text-blue-500 transition-colors" onclick="window.toggleTriage('${alerta.id}')"><i data-lucide="shield-alert" class="w-3.5 h-3.5"></i> Periciar</button>
+                    <button class="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 hover:text-red-500 transition-colors" onclick="window.markFalsePositive('${alerta.id}')"><i data-lucide="thumbs-down" class="w-3.5 h-3.5"></i> Descartar</button>
+                    <div class="ml-auto flex items-center gap-2">
+                        <span class="px-2 py-0.5 bg-slate-100 text-slate-500 rounded text-[9px] font-bold uppercase">${severity}</span>
+                        <button class="p-1.5 text-slate-300 hover:text-slate-600"><i data-lucide="share-2" class="w-3.5 h-3.5"></i></button>
+                    </div>
                 </div>
             `}
         </article>
