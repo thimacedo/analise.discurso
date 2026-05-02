@@ -237,19 +237,31 @@ body {
     display: grid;
     grid-template-columns: minmax(0, 1.6fr) minmax(320px, 0.95fr);
     gap: 20px;
+    align-items: start;
+    max-height: calc(100vh - 250px);
 }
 
 .monitor-side {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    min-height: 0;
 }
 
-.stack-list,
-.hotspot-list {
+.stack-list {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+#feed-alertas {
+    max-height: calc(100vh - 320px) !important;
+}
+
+#chartMain {
+    max-height: calc(100vh - 320px);
 }
 
 .monitor-row,
