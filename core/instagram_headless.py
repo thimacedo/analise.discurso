@@ -3,7 +3,7 @@ import re
 import json
 import asyncio
 from datetime import datetime, timezone
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 from dotenv import load_dotenv
 from supabase import create_client
 from playwright.async_api import async_playwright, Browser, Page, TimeoutError as PlaywrightTimeoutError
@@ -144,8 +144,15 @@ class InstagramHeadlessScraper:
         res = supabase.table('candidatos').select('id,username').order('last_scraped_at', desc=False).limit(limit).execute()
         return res.data or []
 
-    async def _scrape_candidate(self, candidate: Dict) -> bool:
-        username = candidate.get('username')
+    async def _scrape_candidate(self, candidate: Any) -> bool:
+        if isinstance(candidate, str):
+            username = candidate
+        else:
+            username = candidate.get('username')
+            
+        if not username:
+            return False
+            
         print(f"🎯 [Headless] @{username}...")
         try:
             await self.page.goto(f"https://www.instagram.com/{username}/", timeout=60000)

@@ -26,22 +26,16 @@ REGRAS DE SAÍDA:
 
 class AIService:
     """
-    Serviço central de Inteligência Artificial para o Sentinela Democrática.
-    Gerencia provedores (Gemini, Groq, Ollama) com lógica de fallback e 
-    priorização local (Ollama) para redução de custos.
+    Serviço central de IA com suporte a múltiplos provedores,
+    priorização local (Ollama) e monitoramento de performance.
     """
     def __init__(self):
         self.provider = settings.IA_PROVIDER
-        self.consecutive_failures = 0
-        self.max_failures = 3
         self.current_engine = self._determine_initial_engine()
 
     def _determine_initial_engine(self):
-        # Prioriza a escolha explícita no .env
         if settings.IA_PROVIDER in ["gemini", "groq", "ollama"]:
             return settings.IA_PROVIDER
-        
-        # Modo Hybrid (Default) ou Indeterminado: Segue a cascata de custo/performance
         if settings.GEMINI_API_KEY: return "gemini"
         if settings.GROQ_API_KEY: return "groq"
         return "ollama"
@@ -143,33 +137,42 @@ class AIService:
         if not text or not text.strip():
             return {"category": "NEUTRO", "confidence": 1.0, "is_hate": False, "reason": "Texto vazio"}
 
-        # Se for explicitamente local, não tenta nuvem para economizar tokens
-        if self.provider == "ollama":
-            return await self._call_ollama(text)
-
+        start_time = time.perf_counter()
         result = None
         
-        # Fluxo de Cascata (Hybrid)
-        if self.current_engine == "gemini":
-            result = await self._call_gemini(text)
-            if not result: self.current_engine = "groq"
+        # Fluxo de Cascata (Prioridade Local-First se provider for ollama)
+        engines_to_try = []
+        if self.provider == "ollama":
+            engines_to_try = ["ollama", "gemini", "groq"]
+        elif self.provider == "groq":
+            engines_to_try = ["groq", "gemini", "ollama"]
+        else: # gemini ou hybrid
+            engines_to_try = ["gemini", "groq", "ollama"]
+
+        for engine in engines_to_try:
+            if engine == "gemini" and settings.GEMINI_API_KEY:
+                result = await self._call_gemini(text)
+            elif engine == "groq" and settings.GROQ_API_KEY:
+                result = await self._call_groq(text)
+            elif engine == "ollama":
+                result = await self._call_ollama(text)
+                # Verifica se o resultado do Ollama é válido (não é o placeholder de erro)
+                if result and result.get("confidence") == 0.0 and "offline" in result.get("reason", ""):
+                    result = None # Gatilha fallback
             
-        if not result and self.current_engine == "groq":
-            result = await self._call_groq(text)
-            if not result:
-                self.consecutive_failures += 1
-                if self.consecutive_failures >= self.max_failures:
-                    self.current_engine = "ollama"
-            else:
-                self.consecutive_failures = 0
-                
-        if not result:
-            result = await self._call_ollama(text)
-            
-        return result
+            if result:
+                latency = time.perf_counter() - start_time
+                print(f"📊 [AI] Inference ({engine}) took {latency:.2f}s")
+                result["latency"] = latency
+                self.current_engine = engine
+                return result
+
+        return {"category": "NEUTRO", "confidence": 0.0, "is_hate": False, "reason": "Todos os provedores de IA falharam"}
 
     async def query(self, prompt: str, system_prompt: str = "Você é um assistente prestativo.") -> str:
         """Consulta genérica à IA com fallback."""
+        start_time = time.perf_counter()
+        
         # Tenta Gemini
         if settings.GEMINI_API_KEY:
             try:
@@ -178,7 +181,9 @@ class AIService:
                 async with httpx.AsyncClient() as client:
                     resp = await client.post(url, json=payload, timeout=30.0)
                     if resp.status_code == 200:
-                        return resp.json()['candidates'][0]['content']['parts'][0]['text']
+                        content = resp.json()['candidates'][0]['content']['parts'][0]['text']
+                        print(f"📊 [AI] Query (gemini) took {time.perf_counter() - start_time:.2f}s")
+                        return content
             except: pass
 
         # Tenta Groq
@@ -190,7 +195,9 @@ class AIService:
                 async with httpx.AsyncClient() as client:
                     resp = await client.post(url, headers=headers, json=payload, timeout=25.0)
                     if resp.status_code == 200:
-                        return resp.json()['choices'][0]['message']['content']
+                        content = resp.json()['choices'][0]['message']['content']
+                        print(f"📊 [AI] Query (groq) took {time.perf_counter() - start_time:.2f}s")
+                        return content
             except: pass
 
         # Tenta Ollama
@@ -198,6 +205,7 @@ class AIService:
             messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt}]
             content = await self._invoke_ollama(messages)
             if content:
+                print(f"📊 [AI] Query (ollama) took {time.perf_counter() - start_time:.2f}s")
                 return content
         except: pass
 
