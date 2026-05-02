@@ -152,13 +152,18 @@ function renderAlertasFeed(container) {
         list = [...list].sort(() => Math.random() - 0.5);
     }
 
-    if (!list.length && state.currentPage === 1) {
+    // PAGINAÇÃO ESTRITA NO FRONTEND (Dopamine Flow)
+    // Corta a lista para mostrar apenas a quantidade da página atual, evitando travamentos
+    const maxItems = state.currentPage * 20;
+    const paginatedList = list.slice(0, maxItems);
+
+    if (!paginatedList.length) {
         container.innerHTML = `<div class="p-12 text-center opacity-30 text-xs font-mono tracking-widest uppercase">Nenhum sinal detectado</div>`;
         return;
     }
 
     let html = "";
-    list.forEach((alerta, index) => {
+    paginatedList.forEach((alerta, index) => {
         html += buildPostCard(alerta);
         
         // MONETIZAÇÃO ADSENSE: Injetar anúncio a cada 5 posts
@@ -179,11 +184,9 @@ function renderAlertasFeed(container) {
         }
     });
 
-    if (state.currentPage === 1) {
-        container.innerHTML = html;
-    } else {
-        container.insertAdjacentHTML('beforeend', html);
-    }
+    // Como o paginatedList contém TODOS os itens até a página atual,
+    // sempre atualizamos o innerHTML completamente para evitar duplicação em re-renders
+    container.innerHTML = html;
 }
 
 function buildPostCard(alerta) {
