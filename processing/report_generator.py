@@ -14,6 +14,8 @@ class ReportGenerator(FPDF):
             if os.path.exists('C:\\Windows\\Fonts\\arial.ttf'):
                 self.add_font('ArialCustom', '', 'C:\\Windows\\Fonts\\arial.ttf')
                 self.add_font('ArialCustom', 'B', 'C:\\Windows\\Fonts\\arialbd.ttf')
+                if os.path.exists('C:\\Windows\\Fonts\\ariali.ttf'):
+                    self.add_font('ArialCustom', 'I', 'C:\\Windows\\Fonts\\ariali.ttf')
                 self.font_family_main = 'ArialCustom'
         except Exception as e:
             print(f"⚠️ Aviso ao carregar fontes: {e}")
@@ -105,7 +107,10 @@ class ReportGenerator(FPDF):
         # Placeholder para assinatura
         self.ln(20)
         self.line(10, self.get_y(), 80, self.get_y())
-        self.set_font(self.font_family_main, 'I', 7)
+        try:
+            self.set_font(self.font_family_main, 'I', 7)
+        except:
+            self.set_font(self.font_family_main, '', 7)
         self.cell(0, 5, 'Validado por Sentinela AI - Núcleo de Processamento de Dados')
 
     def generate_pdf(self, df_final, output_path):
