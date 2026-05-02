@@ -14,6 +14,10 @@
       "use": "@vercel/static"
     },
     {
+      "src": "src/assets/**",
+      "use": "@vercel/static"
+    },
+    {
       "src": "favicon.ico",
       "use": "@vercel/static"
     },
