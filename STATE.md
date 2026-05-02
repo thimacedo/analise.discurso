@@ -1,15 +1,17 @@
 # Triagem de Estado e Pendências (Sentinela)
 
-## 📊 Estado Geral (v20.1.0)
-- **Operacional:** Sim.
-- **Limpeza:** Saneado juridicamente (Termos: "Forense", "Prova", "Perícia" removidos).
-- **Testes:** Suite Python validada (3/3). Suite Playwright validada (2/3 passaram, 1 skip).
+## 📊 Estado Geral (v20.5.1)
+- **Operacional:** Sim. Fullstack Estável.
+- **Backend/IA:** Integração Ollama (GGUF) unificada e com fallback inteligente. Latência rastreada.
+- **Frontend/UI:** Diamond Edition ativa. KPIs com design semântico e robustez garantida (fallbacks de API via dataService).
+- **Monetização:** AdSense injetado no feed (a cada 5 posts) e na sidebar direita.
 
 ## ⚠️ Pendências Críticas
-- [ ] Nenhuma pendência crítica encontrada. Projeto estável.
+- [ ] Nenhuma. O sistema alcançou estabilidade total na UI e no orquestrador.
 
 ## 🛠 Plano de Ação
-- [ ] Monitoramento contínuo da estabilidade dos testes em CI/CD.
+- [ ] Iniciar captação de usuários reais e monitorar a receita do AdSense.
+- [ ] Avaliar upgrade do modelo Ollama para quantizações maiores caso o hardware permita.
 
 ---
-*Estado: Investigação inicial concluída.*
+*Estado: Arquitetura Diamond consolidada, testada E2E e monetizada.*
