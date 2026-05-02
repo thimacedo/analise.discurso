@@ -42,6 +42,25 @@ function renderMonitorLayout() {
     if (feedContainer) {
         if (state.currentPage === 1) {
             feedContainer.innerHTML = '';
+            
+            // Exibir Skeleton enquanto carrega
+            if (state.alertas.length === 0 && state.loading) {
+                feedContainer.innerHTML = Array(3).fill(0).map(() => `
+                    <div class="post-card">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="skeleton w-10 h-10 rounded-full"></div>
+                            <div class="flex-1 space-y-2">
+                                <div class="skeleton h-3 w-24 rounded"></div>
+                                <div class="skeleton h-2 w-32 rounded"></div>
+                            </div>
+                        </div>
+                        <div class="skeleton h-4 w-full rounded mb-2"></div>
+                        <div class="skeleton h-4 w-3/4 rounded"></div>
+                    </div>
+                `).join('');
+                return;
+            }
+
             if (state.selectedAlvo) {
                 renderCandidateProfile(feedContainer);
             } else {

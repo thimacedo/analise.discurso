@@ -60,6 +60,7 @@ async function refreshData() {
         state.data = targets;
         state.alertas = alerts;
         state.currentPage = 1;
+        state.loading = false; // Desativa loading após carregar
         state.lastSyncAt = new Date().toISOString();
         
         window.debouncedRender();
