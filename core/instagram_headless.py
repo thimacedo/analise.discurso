@@ -31,7 +31,7 @@ class InstagramHeadlessScraper:
         self.browser: Optional[Browser] = None
         self.page: Optional[Page] = None
 
-    async def run(self, limit: int = 15):
+    async def run(self, limit: int = 15, targets: List[Dict] = None):
         print("🧠 [Headless] Iniciando Instagram Headless Scraper...")
 
         async with async_playwright() as pw:
@@ -86,7 +86,13 @@ class InstagramHeadlessScraper:
                 print("❌ [Headless] Falha ao autenticar no Instagram. Abortando.")
                 return
 
-            targets = self._load_pending_targets(limit)
+            if not targets:
+                targets = self._load_pending_targets(limit)
+            else:
+                # Se targets for uma lista de strings (usernames), converte para Dict format
+                if all(isinstance(t, str) for t in targets):
+                    targets = [{'username': t, 'id': None} for t in targets]
+                
             if not targets:
                 print("✅ [Headless] Nenhum perfil pendente para raspagem.")
                 return
@@ -392,15 +398,23 @@ class InstagramHeadlessScraper:
             return False
 
     async def _update_candidate_profile(self, candidate_id: str, profile: Dict):
+        username = profile.get('username')
         followers = profile.get('edge_followed_by', {}).get('count')
         try:
-            supabase.table('candidatos').update({
+            query = supabase.table('candidatos').update({
                 'seguidores': followers,
                 'last_scraped_at': datetime.now(timezone.utc).isoformat()
-            }).eq('id', candidate_id).execute()
-            print(f"     📌 @{profile.get('username')} atualizado com {followers} seguidores.")
+            })
+            
+            if candidate_id:
+                query = query.eq('id', candidate_id)
+            else:
+                query = query.eq('username', username)
+                
+            query.execute()
+            print(f"     📌 @{username} atualizado com {followers} seguidores.")
         except Exception as e:
-            print(f"⚠️ [Headless] Erro ao atualizar candidato {candidate_id}: {e}")
+            print(f"⚠️ [Headless] Erro ao atualizar candidato {username}: {e}")
 
 if __name__ == '__main__':
     asyncio.run(InstagramHeadlessScraper().run())

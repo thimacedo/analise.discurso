@@ -47,14 +47,10 @@ class Orchestrator:
         with open(self.queue_path, 'w') as f:
             json.dump(filtered_targets, f)
 
-        print("🤖 Disparando scraper...")
-        process = subprocess.run(
-            [sys.executable, "core/instaloader_scraper.py"],
-            capture_output=True, text=True
-        )
-
-        if process.returncode != 0:
-            print(f"⚠️ Aviso Scraper: {process.stderr[:200]}")
+        print("🤖 Disparando Scraper Headless (Diamond Edition)...")
+        from core.instagram_headless import InstagramHeadlessScraper
+        scraper = InstagramHeadlessScraper()
+        await scraper.run(targets=filtered_targets[:15])
 
     async def run_ia_classification(self):
         print("🧠 [2/5] Iniciando Perícia PASA v16.4...")
