@@ -324,8 +324,11 @@ function renderSTN() {
 
 function updateSidebarActive() {
     document.querySelectorAll('.nav-item').forEach(nav => {
-        const href = nav.getAttribute('href').substring(1);
-        nav.classList.toggle('active', state.view === href);
+        const href = nav.getAttribute('href');
+        if (href) {
+            const view = href.substring(1);
+            nav.classList.toggle('active', state.view === view);
+        }
     });
 }
 
