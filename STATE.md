@@ -1,27 +1,26 @@
 # Estado Atual do Sistema - SENTINELA | Diamond Edition
 
-## 💎 Versão: 20.1.0 (Diamond Push)
+## 💎 Versão: 20.2.2 (Social Clean)
 - **Data da última atualização:** 02/05/2026
-- **Status:** Operacional. Notificações Push nativas e Normalização de Alvos robusta.
+- **Status:** Operacional. Interface totalmente remodelada para estética Instagram/Meta.
 
 ## ✅ O que está funcionando
-- **Firebase Push Notifications (NEW):** Migração total dos alertas de WhatsApp para Push nativo via FCM. Backend integrado e Frontend Service Worker operacional.
-- **Normalizador Inteligente (NEW):** Bug de alvos genéricos corrigido com `TargetNormalizer` + `FALLBACK_MAP`. Suporte a Unicode (limpeza de acentos) e de-duplicação.
-- **Ambiente Virtual Blindado:** `.venv` recriado com Python 3.12 e todas as dependências core (pandas, spacy, networkx, fpdf2) validadas via Smoke Test.
-- **Meta Ad Library:** Motor de scraping Playwright integrado ao orquestrador.
-- **Arquitetura Diamond:** Núcleo assíncrono validado e estável.
+- **Interface Social Clean (NEW):** Layout de 3 colunas (Nav | Feed | Intel) com fundo claro e tipografia Inter.
+- **Infinite Scroll (NEW):** Implementação de `IntersectionObserver` no Feed Central com carregamento sob demanda.
+- **Identidade Forense (NEW):** Suporte a avatares reais e visual de post de rede social para diminuir fadiga visual.
+- **Normalizador Inteligente:** Mapeamento de alvos genéricos (Lula/Bolsonaro) consolidado.
+- **Ambiente Virtual:** Python 3.12 blindado com todas as dependências core.
 
-## 🛠 Mudanças Técnicas (v20.1)
-1. **API v1 Config:** Novo endpoint `/api/v1/config/firebase` para chaves públicas.
-2. **Orquestrador:** Saneado de referências ao CallMeBot; agora utiliza `FirebaseAlerter` nativamente.
-3. **Frontend:** `app.js` restaurado integralmente com suporte a `fcmService.init()`.
-4. **NLP:** Inclusão de `spacy` (pt_core_news_sm) e `nltk` no pipeline de processamento de texto.
+## 🛠 Mudanças Técnicas (v20.2)
+1.  **CSS:** Transição total de Dark/Neon para Light/Minimalist. Scroll independente em todas as colunas.
+2.  **Lógica:** Introdução de `state.currentPage` e `dataService.fetchMoreAlertas` para suporte a paginação.
+3.  **UI:** Centralização da renderização no `ui.js` com suporte a `insertAdjacentHTML` para performance no scroll.
+4.  **Segurança:** Remoção definitiva de chaves de API do código HTML estático.
 
 ## 🚫 Abordagens Descartadas
-- **[DESCARTADO] CallMeBot WhatsApp:** Removido por instabilidade e latência; substituído por Firebase.
-- **[DESCARTADO] Instaloader Simples:** Frequentemente bloqueado pela infraestrutura do Instagram 2026.
-- **[DESCARTADO] Python 3.14 (Beta):** Incompatível com algumas bibliotecas core; revertido para 3.12 estável.
+-   **[DESCARTADO] Layout Full-Height sem Scroll Interno:** Gerava páginas infinitas e quebrava a experiência de dashboard.
+-   **[DESCARTADO] Temas Neon:** Removidos para reduzir estresse visual em longas sessões de análise.
 
 ## 🐛 Bugs Atuais / Bloqueios
-- **Cota de API (Cloud):** Erros 429 intermitentes no Gemini 3 Flash Preview; mitigado via retry com backoff ou switch manual para local.
-- **Próximo Foco:** Polimento visual (v20.2 - Diamond Theme).
+-   **Proporção de Colunas:** Ajustes finais em andamento para telas 1080p+.
+-   **Navegação:** Roteamento por hash (#view) sendo refinado no `ui.js`.

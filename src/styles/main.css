@@ -24,14 +24,14 @@ body {
     overflow: hidden; 
 }
 
-/* LAYOUT DE 3 COLUNAS */
+/* LAYOUT DE 3 COLUNAS - PROPORÇÃO INSTAGRAM */
 .sidebar-left {
     width: 250px;
     min-width: 250px;
     height: 100vh;
     background: var(--bg-panel);
     border-right: 1px solid var(--border);
-    padding: 24px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
 }
@@ -43,31 +43,62 @@ body {
     background: var(--bg-base);
     display: flex;
     justify-content: center;
+    border-right: 1px solid var(--border);
 }
 
 .views-container {
     width: 100%;
-    max-width: 630px;
-    padding: 20px 0;
+    max-width: 600px; /* LARGURA IDEAL FEED */
+    padding: 20px 16px;
 }
 
 .sidebar-right {
-    width: 350px;
-    min-width: 350px;
+    width: 380px; /* COLUNA DE INTELIGÊNCIA MAIS LARGA */
+    min-width: 380px;
     height: 100vh;
     padding: 24px;
     overflow-y: auto;
     background: var(--bg-base);
 }
 
-/* COMPONENTES */
-.brand-block { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
-.brand-block h1 { font-size: 1.3rem; font-weight: 900; letter-spacing: -1px; }
+/* NAVEGAÇÃO LINKS */
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px;
+    border-radius: 12px;
+    color: var(--text-main);
+    text-decoration: none;
+    font-weight: 500;
+    transition: background 0.2s, transform 0.1s;
+    cursor: pointer;
+}
 
-.side-nav { display: flex; flex-direction: column; gap: 4px; }
-.nav-item { display: flex; align-items: center; gap: 16px; padding: 12px; border-radius: 8px; color: var(--text-main); text-decoration: none; font-weight: 500; transition: 0.2s; }
-.nav-item:hover { background: #fafafa; }
-.nav-item.active { font-weight: 800; color: var(--accent); }
+.nav-item:active { transform: scale(0.98); }
+.nav-item:hover { background: #f2f2f2; }
+.nav-item.active { font-weight: 800; color: var(--text-main); }
+.nav-item.active i { color: var(--accent); }
+
+/* AVATARES REAIS */
+.post-avatar, .monitor-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #efefef;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.post-avatar img, .monitor-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
 
 .feed-header {
     background: rgba(255, 255, 255, 0.8);
