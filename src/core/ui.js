@@ -323,13 +323,26 @@ function renderSTN() {
 }
 
 function updateSidebarActive() {
-    document.querySelectorAll('.nav-item').forEach(nav => {
-        const href = nav.getAttribute('href');
-        if (href) {
-            const view = href.substring(1);
-            nav.classList.toggle('active', state.view === view);
-        }
-    });
+    try {
+        const navItems = document.querySelectorAll('.nav-item');
+        if (!navItems) return;
+        
+        navItems.forEach(nav => {
+            const href = nav.getAttribute('href');
+            if (href && href.startsWith('#')) {
+                const view = href.substring(1);
+                nav.classList.toggle('active', state.view === view);
+            } else {
+                // Para botões sem href (filtros), usamos o ID ou a lógica de estado
+                const navId = nav.getAttribute('id');
+                if (navId && state.dashboardFilter) {
+                    nav.classList.toggle('active', navId.includes(state.dashboardFilter));
+                }
+            }
+        });
+    } catch (err) {
+        console.warn('[UI] Sidebar update skipped:', err.message);
+    }
 }
 
 function formatCompactNumber(number) {

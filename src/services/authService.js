@@ -1,18 +1,17 @@
 // SENTINELA | Diamond Edition - Auth Service
 // Gerencia autenticação e sessão real via Supabase Auth
 
-const { createClient } = supabase; // Injetado via CDN no index.html
-const sbUrl = window.SENTINELA_CONFIG?.supabaseUrl;
-const sbKey = window.SENTINELA_CONFIG?.supabaseKey;
+const sbUrl = 'https://vhamejkldzxbeibqeqpk.supabase.co';
+const sbKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoYW1lamtsZHp4YmVpYnFlcXBrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjQ4ODEyNSwiZXhwIjoyMDkyMDY0MTI1fQ.GfvAI7rV8isgdhVeJp4mOUscWpdOqOuBoURGm82VdtY';
 
 class SentinelAuthService {
     constructor() {
-        if (!sbUrl || !sbKey) {
-            console.warn('[AuthService] Supabase config missing. Auth will be disabled.');
+        if (typeof supabase === 'undefined') {
+            console.error('[AuthService] Supabase SDK not loaded!');
             this.client = null;
-        } else {
-            this.client = createClient(sbUrl, sbKey);
+            return;
         }
+        this.client = supabase.createClient(sbUrl, sbKey);
         this.user = null;
         this.session = null;
     }

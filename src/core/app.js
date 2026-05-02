@@ -36,7 +36,7 @@ window.setDashboardSearch = (query) => {
 };
 
 async function init() {
-    console.log('🌟 SENTINELA | Diamond Edition v20.2.0 [SOCIAL CLEAN]');
+    console.log('🌟 SENTINELA | Diamond Edition v20.5.1 [STABLE]');
 
     try {
         await authService.init();
