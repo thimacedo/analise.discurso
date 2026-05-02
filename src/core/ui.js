@@ -328,14 +328,32 @@ function renderMonitorImpacto(container) {
 function renderKPIs() {
     if (!state.summary) return;
     const s = state.summary;
+    
+    // Formata a hora do último sync (ex: 14:05:00)
+    let timeStr = "--:--";
+    if (state.lastSyncAt) {
+        const d = new Date(state.lastSyncAt);
+        timeStr = `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}:${d.getSeconds().toString().padStart(2, '0')}`;
+    }
+
     const update = (id, val) => {
         const el = document.getElementById(id);
         if (el) el.innerText = val;
     };
+    
+    const updateTime = (id) => update(id, timeStr);
+
     update('kpi-monitorados', s.total_monitorados);
+    updateTime('kpi-time-monitorados');
+    
     update('kpi-hate', s.total_alertas);
+    updateTime('kpi-time-hate');
+    
     update('kpi-total', s.total_amostra.toLocaleString());
+    updateTime('kpi-time-total');
+    
     update('kpi-res', s.resiliencia + '%');
+    updateTime('kpi-time-res');
 }
 
 function renderSTN() {
