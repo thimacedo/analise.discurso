@@ -113,7 +113,23 @@ function renderAlertasFeed(container) {
         return;
     }
 
-    const html = list.map((alerta) => buildPostCard(alerta)).join('');
+    let html = "";
+    list.forEach((alerta, index) => {
+        html += buildPostCard(alerta);
+        
+        // MONETIZAÇÃO ADSENSE: Injetar anúncio a cada 5 posts
+        if ((index + 1) % 5 === 0) {
+            html += `
+                <div class="ad-slot bg-slate-100 border-y border-slate-200 p-4 mb-4 text-center">
+                    <span class="text-[8px] text-slate-400 block mb-2 font-bold uppercase tracking-tighter">Patrocinado • Chiquinho do Gás & Meta Ads</span>
+                    <div class="bg-slate-200 h-24 rounded-lg flex items-center justify-center text-slate-400 font-bold italic text-xs">
+                        [ ADSENSE SLOT: GOOGLE_AD_CLIENT_V20.6 ]
+                    </div>
+                </div>
+            `;
+        }
+    });
+
     if (state.currentPage === 1) {
         container.insertAdjacentHTML('beforeend', html);
     }
