@@ -201,6 +201,7 @@ function renderAlertasFeed() {
                         <div>
                             <div style="display:flex; align-items:center; gap:6px">
                                 <strong style="font-size:0.85rem">@${agressor.replace('@','')}</strong>
+                                <span class="cat-badge">${alerta.plataforma || alerta.rede_social || 'Desconhecido'}</span>
                                 <i data-lucide="${platIcon}" style="width:12px; height:12px; color:${platColor}"></i>
                             </div>
                             <span class="eyebrow" style="font-size:0.6rem; opacity:0.6">${new Date(alerta.data_coleta).toLocaleString('pt-BR')}</span>
