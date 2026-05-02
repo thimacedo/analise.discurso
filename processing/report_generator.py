@@ -80,7 +80,7 @@ class ReportGenerator(FPDF):
         self.add_page()
         self.set_font(self.font_family_main, 'B', 12)
         self.set_text_color(37, 99, 235)
-        self.cell(0, 10, 'INTEGRIDADE FORENSE E ASSINATURA DIGITAL', ln=True)
+        self.cell(0, 10, 'INTEGRIDADE DE DADOS E RASTREABILIDADE', ln=True)
         self.ln(5)
         
         self.set_font(self.font_family_main, '', 9)
@@ -100,13 +100,13 @@ class ReportGenerator(FPDF):
         self.ln(10)
         
         self.set_font(self.font_family_main, '', 9)
-        self.multi_cell(0, 6, self.clean_text("Certificação de Origem:\nOrquestrador Sentinela Diamond v20.4\nID de Sessão Forense: " + hashlib.md5(str(datetime.now().timestamp()).encode()).hexdigest()[:8].upper()))
+        self.multi_cell(0, 6, self.clean_text("Certificação de Origem:\nOrquestrador Sentinela Diamond v20.5\nID de Sessão Informativa: " + hashlib.md5(str(datetime.now().timestamp()).encode()).hexdigest()[:8].upper()))
         
         # Placeholder para assinatura
         self.ln(20)
         self.line(10, self.get_y(), 80, self.get_y())
         self.set_font(self.font_family_main, 'I', 7)
-        self.cell(0, 5, 'Assinado Digitalmente por Sentinela AI - Unidade de Perícia')
+        self.cell(0, 5, 'Validado por Sentinela AI - Núcleo de Processamento de Dados')
 
     def generate_pdf(self, df_final, output_path):
         if df_final is None or df_final.empty:
