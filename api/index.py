@@ -218,6 +218,19 @@ def register_push_token(payload: PushTokenRegistration):
         logger.error(f"Erro ao registrar token: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/v1/config/firebase")
+def get_firebase_config():
+    """Retorna as chaves públicas do Firebase para o frontend."""
+    return {
+        "apiKey": os.getenv("FIREBASE_API_KEY"),
+        "authDomain": os.getenv("FIREBASE_AUTH_DOMAIN"),
+        "projectId": os.getenv("FIREBASE_PROJECT_ID"),
+        "storageBucket": os.getenv("FIREBASE_STORAGE_BUCKET"),
+        "messagingSenderId": os.getenv("FIREBASE_MESSAGING_SENDER_ID"),
+        "appId": os.getenv("FIREBASE_APP_ID"),
+        "vapidKey": os.getenv("FIREBASE_VAPID_KEY")
+    }
+
 @app.get("/api/health")
 def health():
     return {"status": "operational", "db": get_supa() is not None}

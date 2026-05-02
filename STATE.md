@@ -1,27 +1,27 @@
 # Estado Atual do Sistema - SENTINELA | Diamond Edition
 
-## 💎 Versão: 20.0.0 (Expansion Pack)
-- **Data da última atualização:** 01/05/2026
-- **Status:** Operacional e Expandido. Meta Ad Library integrada.
+## 💎 Versão: 20.1.0 (Diamond Push)
+- **Data da última atualização:** 02/05/2026
+- **Status:** Operacional. Notificações Push nativas e Normalização de Alvos robusta.
 
 ## ✅ O que está funcionando
-- **Meta Ad Library (NEW):** Motor de scraping Playwright integrado ao orquestrador para rastrear financiadores de anúncios.
-- **Re-perícia Automática (NEW):** Ciclo de atualização de alvos integrado ao pipeline principal.
-- **Autenticação Multi-Cookie:** Injeção de `sessionid`, `ds_user_id`, `csrftoken` e `ig_did` via Playwright para bypass total de login.
-- **Extração Resiliente (DOM 2026):** Novo extrator de seguidores e posts baseado em seletores ultra-abrangentes e scroll proativo.
-- **Filtro de Ruído Forense:** Blacklist integrada no scraper para ignorar links de sistema (meta, help, privacy) e capturar apenas discurso real.
-- **Arquitetura Diamond:** Núcleo assíncrono em `core/db.py` e `core/ai_service.py` validado sob carga.
-- **Pipeline Completa:** Coleta -> Meta Ads -> Re-perícia -> Classificação PASA v16.4 -> Clustering -> Dossiê PDF -> Alerta WhatsApp.
+- **Firebase Push Notifications (NEW):** Migração total dos alertas de WhatsApp para Push nativo via FCM.
+- **Normalizador Inteligente (NEW):** Bug de alvos genéricos corrigido com fallback map e priorização por popularidade (seguidores).
+- **Service Worker Push:** `firebase-messaging-sw.js` integrado para notificações em background.
+- **Meta Ad Library:** Motor de scraping Playwright integrado ao orquestrador.
+- **Re-perícia Automática:** Ciclo de atualização de alvos integrado ao pipeline principal.
+- **Arquitetura Diamond:** Núcleo assíncrono validado e estável.
 
-## 🛠 Mudanças Técnicas (Sessão 01/05)
-1. **ElectionMonitor:** Corrigido bug de `AttributeError` e `TypeError` (await em chamadas síncronas do Supabase).
-2. **InstagramHeadless:** Migração total de extração via `window._sharedData` (obsoleto) para análise direta de DOM com seletores de fallback.
-3. **TargetManager:** Ajustado para integrar nativamente com o ciclo de monitoramento eleitoral externo.
+## 🛠 Mudanças Técnicas (Sessão 02/05)
+1. **API v1 Config:** Novo endpoint `/api/v1/config/firebase` para fornecer chaves públicas ao frontend.
+2. **Orquestrador:** Substituída a dependência `core.whatsapp_alerter` por `core.firebase_alerter`.
+3. **Frontend Services:** Criado `fcmService.js` e integrado ao ciclo de vida do `app.js`.
+4. **TargetNormalizer:** Implementada limpeza agressiva de strings e mapeamento manual de figuras públicas críticas.
 
 ## 🚫 Abordagens Descartadas
-- **[DESCARTADO] Instaloader Simples:** Frequentemente bloqueado ou detectando perfis públicos como "privados".
-- **[DESCARTADO] wait_until="networkidle":** Removido por causar timeouts infinitos no Instagram 2026; substituído por `commit` + `sleep` estratégico.
-- **[DESCARTADO] Seletores Fixos de Classe:** Substituídos por busca de atributos (`href`, `title`) para maior durabilidade contra mudanças de CSS.
+- **[DESCARTADO] Instaloader Simples:** Frequentemente bloqueado.
+- **[DESCARTADO] CallMeBot WhatsApp:** Removido por instabilidade e latência; substituído por Firebase.
+- **[DESCARTADO] Seletores Fixos de Classe:** Substituídos por atributos de DOM estáveis.
 
 ## 🐛 Bugs Atuais / Bloqueios
-- **Alvos Genéricos:** Nomes como "Lula" ou "Bolsonaro" sem o sufixo oficial falham na busca; necessário normalização contínua na fila.
+- **Nenhum bloqueio crítico detectado.** Próximo foco: Polimento do Tema CSS Diamond.

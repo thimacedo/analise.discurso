@@ -10,7 +10,7 @@ from typing import List, Dict, Any
 from core.config import settings
 from core.db import db_client
 from core.ai_service import ai_service
-from core.whatsapp_alerter import send_whatsapp_summary
+from core.firebase_alerter import send_alert_summary
 
 # Specialized processing modules
 from processing.text_processor import TextProcessor
