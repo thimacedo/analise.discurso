@@ -19,7 +19,8 @@ export const state = {
     dashboardSearch: '',
     dossieGrouping: 'agressoes',
     dossieSearch: '',
-    stn_tokens: 0,
+    stn_tokens: 50,   // Amostra grátis de munição forense
+    userPlan: 'free', // Começa no Free pra forçar o gasto
     loading: true,
     isLoading: false, // Controle de load do scroll infinito
     currentPage: 1,   // Página atual do feed

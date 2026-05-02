@@ -126,38 +126,64 @@ function buildPostCard(alerta) {
     const severity = alerta.severidade || 'INFO';
     const plataforma = (alerta.plataforma || 'instagram').toLowerCase();
     
-    // Avatar Dinâmico para o agressor
-    const agressorAvatar = `https://ui-avatars.com/api/?name=${agressor}&background=random&color=fff&size=64`;
+    // LOGICA DE MONETIZAÇÃO: Se não for PRO, borra o agressor
+    const isLocked = !planService.canAccess('identities');
+    const displayedUser = isLocked ? 'agressor_protegido' : `@${agressor.replace('@','')}`;
+    const avatarUrl = isLocked 
+        ? 'https://ui-avatars.com/api/?name=?&background=334155&color=fff'
+        : `https://ui-avatars.com/api/?name=${agressor}&background=random&color=fff&size=64`;
     
     return `
-        <article class="post-card animate-in">
+        <article class="post-card animate-in ${isLocked ? 'is-locked' : ''}">
             <div class="post-header">
                 <div class="post-avatar">
-                    <img src="${agressorAvatar}" alt="${agressor}">
+                    <img src="${avatarUrl}" alt="Avatar" class="${isLocked ? 'blur-[4px]' : ''}">
                 </div>
                 <div class="post-user-info">
-                    <div class="post-username">@${agressor.replace('@','')}</div>
+                    <div class="post-username ${isLocked ? 'blur-[5px] select-none' : ''}">${displayedUser}</div>
                     <div class="post-meta">➔ @${target} • ${dateStr}</div>
                 </div>
                 <span class="severity-pill is-${severity.toLowerCase()}">${severity}</span>
             </div>
-            <div class="post-content">"${alerta.texto_bruto || 'Sem conteúdo'}"</div>
+            <div class="post-content">
+                "${alerta.texto_bruto || 'Sem conteúdo'}"
+            </div>
             
-            <!-- Imagem Ilustrativa de Post (Opcional se houver no dado) -->
-            ${alerta.thumbnail_url ? `<div class="rounded-lg overflow-hidden border border-slate-100 mb-4"><img src="${alerta.thumbnail_url}" class="w-full h-auto"></div>` : ''}
-
-            <div class="flex gap-6 mt-4 pt-3 border-t border-slate-50">
-                <button class="action-btn" onclick="window.toggleTriage('${alerta.id}')"><i data-lucide="shield-alert" class="w-4 h-4"></i> Analisar</button>
-                <button class="action-btn" onclick="window.markFalsePositive('${alerta.id}')"><i data-lucide="thumbs-down" class="w-4 h-4"></i> Falso Positivo</button>
-                <button class="action-btn ml-auto"><i data-lucide="share-2" class="w-4 h-4"></i></button>
-            </div>
-            <div id="triage-actions-${alerta.id}" class="mt-3 p-3 bg-slate-50 rounded-lg text-[10px] hidden font-mono">
-                <strong class="text-slate-400">PASA CATEGORY:</strong> ${String(alerta.categoria_ia || 'NEUTRO').replace(/_/g, ' ')}<br>
-                <strong class="text-slate-400">CONFIDENCE:</strong> ${(alerta.confianza_ia * 100).toFixed(1)}%
-            </div>
+            ${isLocked ? `
+                <div class="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-between">
+                    <div>
+                        <span class="block text-[10px] font-black text-blue-600 uppercase tracking-widest">Inteligência Bloqueada</span>
+                        <p class="text-[11px] text-blue-800 font-bold">Desbloqueie a identidade e o link original.</p>
+                    </div>
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-[10px] font-black shadow-lg shadow-blue-200 hover:scale-105 transition-transform" onclick="window.unlockIntel('${alerta.id}')">
+                        10 STN
+                    </button>
+                </div>
+            ` : `
+                <div class="flex gap-6 mt-4 pt-3 border-t border-slate-50">
+                    <button class="action-btn" onclick="window.toggleTriage('${alerta.id}')"><i data-lucide="shield-alert" class="w-4 h-4"></i> Analisar</button>
+                    <button class="action-btn" onclick="window.markFalsePositive('${alerta.id}')"><i data-lucide="thumbs-down" class="w-4 h-4"></i> Falso</button>
+                    <button class="action-btn ml-auto"><i data-lucide="share-2" class="w-4 h-4"></i></button>
+                </div>
+            `}
         </article>
     `;
 }
+
+window.unlockIntel = async (id) => {
+    if (state.stn_tokens < 10) {
+        alert("MUNIÇÃO INSUFICIENTE! Adquira mais tokens STN para continuar a perícia.");
+        window.location.hash = 'pricing';
+        return;
+    }
+    
+    if (confirm("Gastar 10 STN para revelar a identidade do agressor?")) {
+        // Aqui entraria a chamada de API real
+        state.stn_tokens -= 10;
+        alert("IDENTIDADE REVELADA! (Simulação)");
+        renderAll();
+    }
+};
 
 function renderMonitorImpacto(container) {
     if (!container) return;

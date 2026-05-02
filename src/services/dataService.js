@@ -89,13 +89,17 @@ class SentinelDataService {
 // Singleton para uso em toda a aplicação
 export const dataService = new SentinelDataService();
 
-// Real Plan Service (Identity-Driven) - LIBERADO PARA TESTE
+// Real Plan Service (Identity-Driven) - CONFIGURADO PARA MONETIZAÇÃO
 export const planService = {
-    getPlan: () => 'enterprise', // Força plano máximo
+    getPlan: () => state.userPlan || 'free', 
     canAccess: (feature) => {
-        return true; // Liberação total de funcionalidades
+        const plan = planService.getPlan();
+        if (plan === 'enterprise') return true;
+        if (feature === 'identities') return plan === 'pro';
+        if (feature === 'pdf_export') return false; // Sempre custa STN
+        return true; // Acesso básico grátis
     },
     maskName: (name) => {
-        return name; // Exibe nomes reais
+        return planService.canAccess('identities') ? name : 'Agressor Oculto';
     }
 };
