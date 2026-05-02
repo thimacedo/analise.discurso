@@ -187,12 +187,12 @@ function renderAlertasFeed() {
     }
 
     const html = list.map((alerta) => {
-        const severity = alerta.severidade || 'INFO';
         const agressor = alerta.autor_username || 'anônimo';
         const target = alerta.candidato_id || 'alvo';
         const plataforma = (alerta.plataforma || 'instagram').toLowerCase();
         const platIcon = plataforma === 'youtube' ? 'youtube' : 'instagram';
         const platColor = plataforma === 'youtube' ? '#ff0000' : '#e1306c';
+        const severity = alerta.severidade || (plataforma.toUpperCase());
 
         return `
             <article class="alert-post-card animate-in">
@@ -202,13 +202,13 @@ function renderAlertasFeed() {
                         <div>
                             <div style="display:flex; align-items:center; gap:6px">
                                 <strong style="font-size:0.85rem">@${agressor.replace('@','')}</strong>
-                                <span class="cat-badge">${alerta.plataforma || alerta.rede_social || 'Desconhecido'}</span>
+                                <span class="cat-badge" style="background:${platColor}22; color:${platColor}; border-color:${platColor}44">${plataforma.toUpperCase()}</span>
                                 <i data-lucide="${platIcon}" style="width:12px; height:12px; color:${platColor}"></i>
                             </div>
                             <span class="eyebrow" style="font-size:0.6rem; opacity:0.6">${new Date(alerta.data_coleta).toLocaleString('pt-BR')}</span>
                         </div>
                     </div>
-                    <span class="severity-pill is-${severity.toLowerCase()}">${severity}</span>
+                    <span class="severity-pill is-${alerta.severidade ? alerta.severidade.toLowerCase() : 'info'}">${alerta.severidade || 'ALERTA'}</span>
                 </div>
                 
                 <div class="post-content">
