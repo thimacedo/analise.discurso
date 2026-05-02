@@ -14,7 +14,7 @@
       "use": "@vercel/static"
     },
     {
-      "src": "src/assets/**",
+      "src": "public/assets/**",
       "use": "@vercel/static"
     },
     {
