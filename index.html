@@ -49,21 +49,22 @@
             <a href="#directory" class="nav-item" id="nav-directory"><i data-lucide="users" class="w-5 h-5"></i> <span>Perfis</span></a>
             <a href="#dossie" class="nav-item" id="nav-dossie"><i data-lucide="fingerprint" class="w-5 h-5"></i> <span>Dossiês</span></a>
             <a href="#map" class="nav-item" id="nav-map"><i data-lucide="globe" class="w-5 h-5"></i> <span>Mapa</span></a>
+            
+            <div class="mt-8 pt-6 border-t border-slate-200">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-3 mb-3 block">Filtros de Inteligência</span>
+                <button onclick="window.setDashboardFilter('all')" id="btn-filter-all" class="nav-item"><i data-lucide="globe" class="w-5 h-5"></i> <span>Global</span></button>
+                <button onclick="window.setDashboardFilter('hate')" id="btn-filter-hate" class="nav-item"><i data-lucide="shield-alert" class="w-5 h-5"></i> <span>Alertas</span></button>
+                <button onclick="window.setDashboardFilter('critical')" id="btn-filter-critical" class="nav-item"><i data-lucide="alert-octagon" class="w-5 h-5"></i> <span>Crítico</span></button>
+            </div>
         </nav>
 
         <div class="sidebar-footer">
-            <button type="button" class="sync-btn" onclick="window.forceRefresh()"><i data-lucide="refresh-cw" class="w-4 h-4"></i> Sincronizar</button>
         </div>
     </aside>
 
     <!-- FEED CENTRAL -->
     <main class="main-feed-container custom-scrollbar dashboard-main">
         <header class="feed-header">
-            <div class="filter-tabs">
-                <button onclick="window.setDashboardFilter('all')" id="btn-filter-all" class="tab-btn active">Global</button>
-                <button onclick="window.setDashboardFilter('hate')" id="btn-filter-hate" class="tab-btn">Alertas</button>
-                <button onclick="window.setDashboardFilter('critical')" id="btn-filter-critical" class="tab-btn">Crítico</button>
-            </div>
             <div class="search-box">
                 <i data-lucide="search" class="search-icon w-4 h-4"></i>
                 <input type="text" placeholder="Pesquisar inteligência..." oninput="window.setDashboardSearch(this.value)">
