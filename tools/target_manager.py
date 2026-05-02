@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import httpx
 import asyncio
 from core.election_monitor import ElectionMonitor
+from core.normalizer import target_normalizer
 
 load_dotenv()
 
