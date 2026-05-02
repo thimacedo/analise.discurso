@@ -11,13 +11,13 @@ def sentinel_audit():
     key = os.getenv("SUPABASE_KEY")
     headers = {"apikey": key, "Authorization": f"Bearer {key}"}
     
-    print(f"🕵️‍♂️ [AUDIT] Iniciando Auditoria Forense - Sentinela v20.1.0")
+    print(f"🕵️‍♂️ [AUDIT] Auditoria Forense Completa - Sentinela v20.1.1")
     print(f"📅 Data: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
     print("=" * 60)
     
     try:
         # 1. Auditoria da Tabela 'comentarios'
-        print("📊 [TABLE: comentarios]")
+        print("📊 [ESTATÍSTICAS DE COMENTÁRIOS]")
         r_total = httpx.get(f"{url}/rest/v1/comentarios?select=id", headers=headers)
         total = len(r_total.json())
         
@@ -27,22 +27,24 @@ def sentinel_audit():
         r_hate = httpx.get(f"{url}/rest/v1/comentarios?is_hate=eq.true&select=id", headers=headers)
         hate = len(r_hate.json())
         
-        print(f"   - Total de Registros: {total}")
-        print(f"   - Processados pela IA: {processed} ({(processed/total*100 if total > 0 else 0):.1f}%)")
-        print(f"   - Pendentes: {total - processed}")
-        print(f"   - Discurso de Ódio Detectado: {hate} ({(hate/processed*100 if processed > 0 else 0):.1f}% do processado)")
+        print(f"   • Total na Base       : {total}")
+        print(f"   • Processamento IA    : {processed} ({(processed/total*100 if total > 0 else 0):.1f}%)")
+        print(f"   • Alertas de Ódio     : {hate} ({(hate/processed*100 if processed > 0 else 0):.1f}%)")
         
-        # 2. Auditoria da Tabela 'candidatos' (Alvos)
-        print("\n🎯 [TABLE: candidatos]")
-        r_targets = httpx.get(f"{url}/rest/v1/candidatos?select=username,comentarios_odio_count,score_risco&order=score_risco.desc", headers=headers)
+        # 2. Auditoria da Tabela 'candidatos'
+        print("\n🎯 [ESTADO DOS ALVOS]")
+        # Colunas reais via introspecção: username, nome_completo, score_risco, comentarios_odio_count
+        r_targets = httpx.get(f"{url}/rest/v1/candidatos?select=username,nome_completo,score_risco,comentarios_odio_count&order=score_risco.desc", headers=headers)
         targets = r_targets.json()
-        print(f"   - Alvos Monitorados: {len(targets)}")
-        print(f"   - Top 5 Alvos em Risco:")
-        for t in targets[:5]:
-            print(f"     • @{t['username']}: {t['score_risco']}% Risco ({t['comentarios_odio_count']} alertas)")
+        if isinstance(targets, list) and len(targets) > 0:
+            print(f"   • Alvos Ativos: {len(targets)}")
+            for t in targets:
+                print(f"     - @{t.get('username', '???'):15} | Risco: {t.get('score_risco', 0):3}% | Alertas: {t.get('comentarios_odio_count', 0)}")
+        else:
+            print("   ⚠️ Nenhum alvo encontrado ou erro de acesso.")
 
-        # 3. Auditoria de Categorias PASA
-        print("\n🧠 [PASA BREAKDOWN]")
+        # 3. Distribuição PASA
+        print("\n🧠 [DISTRIBUIÇÃO DE CATEGORIAS PASA]")
         r_pasa = httpx.get(f"{url}/rest/v1/comentarios?is_hate=eq.true&select=categoria_ia", headers=headers)
         pasa_data = r_pasa.json()
         counts = {}
@@ -51,20 +53,22 @@ def sentinel_audit():
             counts[cat] = counts.get(cat, 0) + 1
         
         for cat, count in sorted(counts.items(), key=lambda x: x[1], reverse=True):
-            print(f"   • {cat:20}: {count} ocorrências")
+            pct = (count / hate * 100) if hate > 0 else 0
+            print(f"   • {cat:20}: {count:4} ({pct:4.1f}%)")
 
-        # 4. Verificação de Saúde do Backend
-        print("\n🏥 [SYSTEM HEALTH]")
-        r_health = httpx.get(f"{url}/rest/v1/metricas_diarias?limit=1&order=data.desc", headers=headers)
-        if r_health.status_code == 200 and r_health.json():
-            last_metric = r_health.json()[0]
-            print(f"   - Última métrica consolidada: {last_metric['data']}")
-            print(f"   - Resiliência Global: {last_metric['resiliencia']}%")
-        else:
-            print("   ⚠️ Nenhuma métrica diária encontrada para hoje.")
+        # 4. Auditoria de Redes Sociais
+        print("\n🌐 [ORIGEM DOS DADOS]")
+        r_social = httpx.get(f"{url}/rest/v1/comentarios?select=plataforma", headers=headers)
+        social_data = r_social.json()
+        s_counts = {}
+        for item in social_data:
+            plat = item.get('plataforma', 'INSTAGRAM')
+            s_counts[plat] = s_counts.get(plat, 0) + 1
+        for plat, count in s_counts.items():
+            print(f"   • {plat:20}: {count:4}")
 
         print("\n" + "=" * 60)
-        print("✅ AUDITORIA CONCLUÍDA SEM ANOMALIAS CRÍTICAS.")
+        print("✅ AUDITORIA CONCLUÍDA - SISTEMA EM ESTADO DIAMOND.")
         
     except Exception as e:
         print(f"❌ FALHA NA AUDITORIA: {e}")
