@@ -128,4 +128,13 @@ class DatabaseClient:
         except Exception as e:
             print(f"⚠️ Erro ao desmarcar re-perícia para @{username}: {e}")
 
+    async def persist_ad(self, data: Dict[str, Any]):
+        """Persiste um anúncio extraído da Meta Ad Library."""
+        if not self.client: return
+        try:
+            # Usa upsert baseado no ad_id (id_externo no contexto Meta)
+            self.client.table('anuncios').upsert(data, on_conflict='ad_id').execute()
+        except Exception as e:
+            print(f"❌ [DB] Erro ao persistir anúncio {data.get('ad_id')}: {e}")
+
 db_client = DatabaseClient()

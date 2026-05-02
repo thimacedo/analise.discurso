@@ -1,15 +1,17 @@
 # Estado Atual do Sistema - SENTINELA | Diamond Edition
 
-## 💎 Versão: 19.8.5 (Headless Dominance)
+## 💎 Versão: 20.0.0 (Expansion Pack)
 - **Data da última atualização:** 01/05/2026
-- **Status:** Operacional e Estabilizado. Scraper headless operando em alta performance.
+- **Status:** Operacional e Expandido. Meta Ad Library integrada.
 
 ## ✅ O que está funcionando
+- **Meta Ad Library (NEW):** Motor de scraping Playwright integrado ao orquestrador para rastrear financiadores de anúncios.
+- **Re-perícia Automática (NEW):** Ciclo de atualização de alvos integrado ao pipeline principal.
 - **Autenticação Multi-Cookie:** Injeção de `sessionid`, `ds_user_id`, `csrftoken` e `ig_did` via Playwright para bypass total de login.
 - **Extração Resiliente (DOM 2026):** Novo extrator de seguidores e posts baseado em seletores ultra-abrangentes e scroll proativo.
 - **Filtro de Ruído Forense:** Blacklist integrada no scraper para ignorar links de sistema (meta, help, privacy) e capturar apenas discurso real.
 - **Arquitetura Diamond:** Núcleo assíncrono em `core/db.py` e `core/ai_service.py` validado sob carga.
-- **Pipeline Completa:** Coleta -> Classificação PASA v16.4 -> Clustering -> Dossiê PDF -> Alerta WhatsApp.
+- **Pipeline Completa:** Coleta -> Meta Ads -> Re-perícia -> Classificação PASA v16.4 -> Clustering -> Dossiê PDF -> Alerta WhatsApp.
 
 ## 🛠 Mudanças Técnicas (Sessão 01/05)
 1. **ElectionMonitor:** Corrigido bug de `AttributeError` e `TypeError` (await em chamadas síncronas do Supabase).

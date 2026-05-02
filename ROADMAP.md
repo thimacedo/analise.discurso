@@ -9,9 +9,10 @@
 
 ## Próximos Passos (v20.0 - Escala e Expansão)
 
-- [ ] **Meta Ad Library**: Iniciar integração com a biblioteca de anúncios do Facebook/Instagram para rastrear financiamento de desinformação.
+- [x] **Meta Ad Library**: Integração com a biblioteca de anúncios do Facebook/Instagram concluída. Motor de scraping e persistência em banco.
 - [ ] **Firebase Push Notifications**: Migrar alertas de WhatsApp (CallMeBot) para um sistema de Notificações Push nativo no Dashboard (In-App) via Firebase Cloud Messaging.
 - [x] **High-Performance Headless**: Scraper Playwright agora é o motor primário de coleta.
+- [x] **Re-perícia Automática**: Ciclo de atualização de alvos integrado ao pipeline Diamond.
 
 ---
 *Atualizado em 01/05/2026 - Recuperação de autenticação e otimização de extração.*

@@ -77,6 +77,26 @@ class Orchestrator:
             await db_client.mark_repericia_complete(username)
             print(f"✨ Alvo @{username} pronto para re-processamento.")
 
+    async def run_meta_ads_cycle(self):
+        print("📢 [1.7/5] Rastreando META AD LIBRARY...")
+        from core.meta_ad_scraper import meta_ad_scraper
+        
+        try:
+            with open("data/priority_queue.json", "r") as f:
+                targets = json.load(f)
+        except:
+            targets = []
+
+        if not targets:
+            print("⚠️ Ninguém na fila de prioridade para anúncios.")
+            return
+
+        # Roda apenas para os Top 5 da fila pra não ser bloqueado rápido demais
+        for target in targets[:5]:
+            await meta_ad_scraper.scrape_ads_for_target(target)
+        
+        print("✅ Ciclo de anúncios concluído.")
+
     async def fetch_and_normalize(self) -> pd.DataFrame:
         print("📥 [3/5] Coletando dados do Supabase...")
         data = await db_client.fetch_all_data()
@@ -165,6 +185,7 @@ class Orchestrator:
         
         await self.run_scraper()
         await self.run_repericia_cycle()
+        await self.run_meta_ads_cycle()
         await self.run_ia_classification()
         
         df = await self.fetch_and_normalize()
