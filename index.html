@@ -108,15 +108,11 @@
 
     <script type="module" src="/src/core/app.js?v=20.0.0"></script>
     <script type="module" src="/src/core/payments.js?v=20.0.0"></script>
-</body>
-</html>
-ent" style="display: none;"></section>
-        <section id="view-directory" class="view-content" style="display: none;"></section>
-        <section id="view-dossie" class="view-content" style="display: none;"></section>
-        <section id="view-map" class="view-content" style="display: none;"></section>
-    </main>
-
-    <script type="module" src="/src/core/app.js?v=20.0.0"></script>
-    <script type="module" src="/src/core/payments.js?v=20.0.0"></script>
+    <script type="module">
+        import NotificationToast from '/src/components/NotificationToast.js';
+        const root = document.body;
+        const container = document.createElement('div');
+        root.appendChild(container);
+    </script>
 </body>
 </html>
