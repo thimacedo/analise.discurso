@@ -200,10 +200,10 @@ class Orchestrator:
         os.makedirs("data/reports", exist_ok=True)
         self.rg.generate_pdf(df_final, output_path)
 
-        # Resumo WhatsApp
+        # Notificação Push
         total_odio = df_final['is_hate_speech'].sum() if 'is_hate_speech' in df_final.columns else 0
-        resumo = f"📊 *Relatório Sentinela*\nComentários: {len(df_final)}\nHostilidade: {total_odio} detectados\nVersão: {settings.VERSION}"
-        send_whatsapp_summary(resumo)
+        resumo = f"📊 Relatório Sentinela\nComentários: {len(df_final)}\nHostilidade: {total_odio} detectados\nVersão: {settings.VERSION}"
+        send_alert_summary(resumo)
         
         print("\n" + "="*50)
         print(f"✨ PIPELINE FINALIZADA! Relatório: {output_path}\n")
