@@ -73,7 +73,7 @@ function renderCandidateProfile(container) {
         <div class="p-6 bg-white border border-slate-200 rounded-xl mb-6 animate-in">
             <div class="flex items-center gap-4 mb-6">
                 <div class="monitor-avatar w-16 h-16 shadow-xl shadow-blue-100">
-                    <img src="${avatarUrl}" alt="${a.username}">
+                    <img src="${avatarUrl}" alt="${a.username}" width="64" height="64">
                 </div>
                 <div>
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">${a.estado || 'BR'} • ${a.partido || 'Sem Partido'}</span>
@@ -153,7 +153,7 @@ function buildPostCard(alerta) {
         <article class="post-card animate-in ${isLocked ? 'is-locked' : ''}">
             <div class="post-header">
                 <div class="post-avatar">
-                    <img src="${avatarUrl}" alt="Avatar" class="${isLocked ? 'blur-[4px]' : ''}">
+                    <img src="${avatarUrl}" alt="Avatar" class="${isLocked ? 'blur-[4px]' : ''}" loading="lazy" width="36" height="36">
                 </div>
                 <div class="post-user-info">
                     <div class="post-username ${isLocked ? 'blur-[5px] select-none' : ''}">${displayedUser}</div>
@@ -216,7 +216,7 @@ function renderMonitorImpacto(container) {
         return `
             <div onclick="window.setFiltroAlvo('${alvo.username}')" class="monitor-row ${isActive ? 'is-active' : ''} p-3 rounded-xl border border-transparent hover:bg-white hover:shadow-sm cursor-pointer transition-all flex items-center gap-3">
                 <div class="monitor-avatar w-10 h-10 border-2 ${isActive ? 'border-blue-500' : 'border-slate-100'}">
-                    <img src="${avatarUrl}" alt="${alvo.username}">
+                    <img src="${avatarUrl}" alt="${alvo.username}" loading="lazy" width="40" height="40">
                 </div>
                 <div class="flex-1">
                     <div class="flex justify-between items-center mb-1">

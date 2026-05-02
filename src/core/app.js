@@ -11,6 +11,15 @@ window.SENTINELA_CONFIG = {
     refreshInterval: 3600000 
 };
 
+// DEBOUNCED RENDER PARA PERFORMANCE
+let renderTimeout;
+window.debouncedRender = () => {
+    if (renderTimeout) cancelAnimationFrame(renderTimeout);
+    renderTimeout = requestAnimationFrame(() => {
+        renderAll();
+    });
+};
+
 async function init() {
     console.log('🌟 SENTINELA | Diamond Edition v20.2.0 [SOCIAL CLEAN]');
 
@@ -53,7 +62,7 @@ async function refreshData() {
         state.currentPage = 1;
         state.lastSyncAt = new Date().toISOString();
         
-        renderAll();
+        window.debouncedRender();
     } catch (e) {
         console.error('Refresh failure:', e);
     }
