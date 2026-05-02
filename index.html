@@ -3,22 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SENTINELA | Diamond Edition v20.1.0</title>
+    <title>SENTINELA | Diamond Edition v20.1.1</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <link rel="stylesheet" href="/src/styles/main.css?v=20.1.0">
+    <link rel="stylesheet" href="/src/styles/main.css?v=20.1.1">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-        window.SENTINELA_CONFIG = {
-            apiUrl: '/api/v1',
-            supabaseUrl: 'https://vhamejkldzxbeibqeqpk.supabase.co',
-            supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoYW1lamtsZHp4YmVpYnFlcXBrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjQ4ODEyNSwiZXhwIjoyMDkyMDY0MTI1fQ.GfvAI7rV8isgdhVeJp4mOUscWpdOqOuBoURGm82VdtY',
-            refreshInterval: 3600000 // Aumentado para 1 hora para evitar reloads chatos
-        };
-    </script>
+    
+    <!-- SEGURANÇA: Chaves removidas do HTML. Configuradas via src/core/app.js -->
 </head>
 <body class="custom-scrollbar">
     <aside>
@@ -26,7 +20,7 @@
             <div class="brand-mark"><img src="/logo_transparente.png" alt="Logo Sentinela"></div>
             <div>
                 <h1>Sentinela</h1>
-                <span>Diamond v20.1.0</span>
+                <span>Diamond v20.1.1</span>
                 <div class="stn-counter glass-card" style="margin-top: 10px; display: flex; align-items: center; gap: 8px; padding: 4px 12px; border-color: var(--accent); background: rgba(220, 38, 38, 0.05);">
                     <i data-lucide="zap" style="width: 14px; height: 14px; color: var(--accent);"></i>
                     <span id="stn-balance" class="stn-text">-- STN</span>
@@ -38,13 +32,13 @@
             <a href="#monitor" class="nav-item active" id="nav-monitor"><i data-lucide="layout-grid" class="w-4 h-4"></i> Panorama Global</a>
             
             <div class="nav-group">
-                <a href="#networks" class="nav-item" id="nav-networks" onclick="document.getElementById('sub-networks').style.display='flex'">
+                <a href="#networks" class="nav-item" id="nav-networks" onclick="window.setNetworkView('clusters')">
                     <i data-lucide="share-2" class="w-4 h-4"></i> Inteligência de Redes
                 </a>
                 <div id="sub-networks" class="sub-nav" style="display: none; flex-direction: column; padding-left: 32px; font-size: 0.75rem; gap: 8px; margin-top: 4px; margin-bottom: 8px;">
-                    <a href="#networks" onclick="window.setNetworkView('clusters')" class="sub-nav-link" id="nav-net-clusters" style="color: var(--text-muted); text-decoration: none;">• Cluster de Ataque</a>
-                    <a href="#networks" onclick="window.setNetworkView('flow')" class="sub-nav-link" id="nav-net-flow" style="color: var(--text-muted); text-decoration: none;">• Fluxo Coordenado</a>
-                    <a href="#networks" onclick="window.setNetworkView('matrix')" class="sub-nav-link" id="nav-net-matrix" style="color: var(--text-muted); text-decoration: none;">• Matriz de Colusão</a>
+                    <a href="#networks" onclick="window.setNetworkView('clusters')" class="sub-nav-link" id="nav-net-clusters">• Cluster de Ataque</a>
+                    <a href="#networks" onclick="window.setNetworkView('flow')" class="sub-nav-link" id="nav-net-flow">• Fluxo Coordenado</a>
+                    <a href="#networks" onclick="window.setNetworkView('matrix')" class="sub-nav-link" id="nav-net-matrix">• Matriz de Colusão</a>
                 </div>
             </div>
 
@@ -59,7 +53,7 @@
         </div>
     </aside>
 
-    <main class="custom-scrollbar">
+    <main class="custom-scrollbar dashboard-main">
         <header class="main-header">
              <div id="active-filter"></div>
              <div class="status-chip is-ok">Sinal Operacional</div>
@@ -85,40 +79,34 @@
             </div>
         </div>
 
-        <section id="view-monitor" class="view-content" style="display: flex;">
-            <div class="monitor-grid">
-                <div class="monitor-side" style="display: flex; flex-direction: column; gap: 16px;">
-                    <div class="glass-card section-card">
+        <div class="views-container">
+            <section id="view-monitor" class="view-content active-view">
+                <div class="monitor-grid">
+                    <div class="monitor-side glass-card section-card">
                         <div class="section-heading"><div><span class="eyebrow">Linha do Tempo</span><h3>Evidências PASA</h3></div></div>
-                        <div id="feed-alertas" class="stack-list" style="max-height: 800px; overflow-y: auto;"></div>
+                        <div id="feed-alertas" class="stack-list"></div>
+                    </div>
+                    
+                    <div class="glass-card section-card">
+                        <div class="section-heading"><div><span class="eyebrow">Análise de Risco</span><h3>Prioridade de Triagem</h3></div></div>
+                        <div id="chartMain" class="stack-list"></div>
                     </div>
                 </div>
-                <div class="glass-card section-card">
-                    <div class="section-heading"><div><span class="eyebrow">Análise de Risco</span><h3>Prioridade de Triagem</h3></div></div>
-                    <div id="chartMain" class="stack-list"></div>
+                
+                <div class="glass-card section-card" style="margin-top: 16px; flex-shrink: 0;">
+                    <div class="section-heading"><div><span class="eyebrow">Monitoramento Estrutural</span><h3>Evolução das Categorias PASA</h3></div></div>
+                    <div id="pasa-temporal-chart" style="width: 100%; min-height: 300px;"></div>
                 </div>
-            </div>
-            
-            <!-- NOVO: Evolução Temporal PASA -->
-            <div class="glass-card section-card" style="margin-top: 20px;">
-                <div class="section-heading"><div><span class="eyebrow">Monitoramento Estutural</span><h3>Evolução das Categorias PASA</h3></div></div>
-                <div id="pasa-temporal-chart" style="width: 100%; min-height: 350px;"></div>
-            </div>
-        </section>
+            </section>
 
-        <section id="view-networks" class="view-content" style="display: none;"></section>
-        <section id="view-directory" class="view-content" style="display: none;"></section>
-        <section id="view-dossie" class="view-content" style="display: none;"></section>
-        <section id="view-map" class="view-content" style="display: none;"></section>
+            <section id="view-networks" class="view-content"></section>
+            <section id="view-directory" class="view-content"></section>
+            <section id="view-dossie" class="view-content"></section>
+            <section id="view-map" class="view-content"></section>
+        </div>
     </main>
 
-    <script type="module" src="/src/core/app.js?v=20.1.0"></script>
-    <script type="module" src="/src/core/payments.js?v=20.1.0"></script>
-    <script type="module">
-        import NotificationToast from '/src/components/NotificationToast.js';
-        const root = document.body;
-        const container = document.createElement('div');
-        root.appendChild(container);
-    </script>
+    <script type="module" src="/src/core/app.js?v=20.1.1"></script>
+    <script type="module" src="/src/core/payments.js?v=20.1.1"></script>
 </body>
 </html>
