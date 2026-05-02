@@ -34,7 +34,10 @@ class SentinelAuthService {
             } else {
                 this.user = null;
             }
-            if (window.forceRefresh) window.forceRefresh();
+            // Apenas recarrega a página em mudanças reais de login/logout, não na inicialização
+            if (window.forceRefresh && (event === 'SIGNED_IN' || event === 'SIGNED_OUT')) {
+                window.forceRefresh();
+            }
         });
 
         return this.user;

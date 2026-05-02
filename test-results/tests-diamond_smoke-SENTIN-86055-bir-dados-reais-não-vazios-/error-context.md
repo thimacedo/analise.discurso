@@ -12,35 +12,112 @@
 # Error details
 
 ```
-Error: expect(page).toHaveTitle(expected) failed
+Error: expect(locator).not.toHaveText(expected) failed
 
-Expected pattern: /SENTINELA | Diamond Edition/
-Received string:  "404: NOT_FOUND"
-Timeout: 5000ms
+Locator:  locator('#kpi-monitorados')
+Expected: not "---"
+Received: "---"
+Timeout:  30000ms
 
 Call log:
-  - Expect "toHaveTitle" with timeout 5000ms
-    8 × unexpected value "404: NOT_FOUND"
+  - Expect "not toHaveText" with timeout 30000ms
+  - waiting for locator('#kpi-monitorados')
+    2 × locator resolved to <div id="kpi-monitorados" class="text-sm font-black text-slate-800">---</div>
+      - unexpected value "---"
+      - locator resolved to <div id="kpi-monitorados" class="text-sm font-black text-slate-800">---</div>
+      - unexpected value "---"
+      - waiting for" https://sentinela-democratica-ruby.vercel.app/" navigation to finish...
+      - navigated to "https://sentinela-democratica-ruby.vercel.app/#monitor"
+    3 × locator resolved to <div id="kpi-monitorados" class="text-sm font-black text-slate-800">---</div>
+      - unexpected value "---"
+      - waiting for" https://sentinela-democratica-ruby.vercel.app/" navigation to finish...
+      - navigated to "https://sentinela-democratica-ruby.vercel.app/#monitor"
+    5 × locator resolved to <div id="kpi-monitorados" class="text-sm font-black text-slate-800">---</div>
+      - unexpected value "---"
+    - waiting for" https://sentinela-democratica-ruby.vercel.app/" navigation to finish...
+    - navigated to "https://sentinela-democratica-ruby.vercel.app/#monitor"
+    3 × locator resolved to <div id="kpi-monitorados" class="text-sm font-black text-slate-800">---</div>
+      - unexpected value "---"
+    2 × waiting for" https://sentinela-democratica-ruby.vercel.app/" navigation to finish...
+      - navigated to "https://sentinela-democratica-ruby.vercel.app/#monitor"
+      - locator resolved to <div id="kpi-monitorados" class="text-sm font-black text-slate-800">---</div>
+      - unexpected value "---"
+      - locator resolved to <div id="kpi-monitorados" class="text-sm font-black text-slate-800">---</div>
+      - unexpected value "---"
+    6 × locator resolved to <div id="kpi-monitorados" class="text-sm font-black text-slate-800">---</div>
+      - unexpected value "---"
+    3 × waiting for" https://sentinela-democratica-ruby.vercel.app/" navigation to finish...
+      - navigated to "https://sentinela-democratica-ruby.vercel.app/#monitor"
+      - locator resolved to <div id="kpi-monitorados" class="text-sm font-black text-slate-800">---</div>
+      - unexpected value "---"
+    - locator resolved to <div id="kpi-monitorados" class="text-sm font-black text-slate-800">---</div>
+    - unexpected value "---"
+    - waiting for navigation to finish...
+    - navigated to "https://sentinela-democratica-ruby.vercel.app/#monitor"
+    2 × locator resolved to <div id="kpi-monitorados" class="text-sm font-black text-slate-800">---</div>
+      - unexpected value "---"
 
 ```
 
 # Page snapshot
 
 ```yaml
-- main [ref=e3]:
-  - paragraph [ref=e4]:
-    - generic [ref=e5]:
-      - strong [ref=e6]: "404"
-      - text: ": NOT_FOUND"
-    - generic [ref=e7]:
-      - text: "Code:"
-      - code [ref=e8]: "`NOT_FOUND`"
-    - generic [ref=e9]:
-      - text: "ID:"
-      - code [ref=e10]: "`gru1::gk44p-1777747681020-51f32ee681c4`"
-  - link "Read our documentation to learn more about this error." [ref=e11] [cursor=pointer]:
-    - /url: https://vercel.com/docs/errors/NOT_FOUND
-    - generic [ref=e12]: Read our documentation to learn more about this error.
+- generic [active] [ref=e1]:
+  - complementary [ref=e2]:
+    - generic [ref=e3]:
+      - img "Logo" [ref=e5]
+      - heading "Sentinela" [level=1] [ref=e6]
+    - navigation [ref=e7]:
+      - textbox "Pesquisar..." [ref=e10]
+      - link "Panorama" [ref=e11] [cursor=pointer]:
+        - /url: "#monitor"
+        - generic [ref=e12]: Panorama
+      - link "Redes" [ref=e13] [cursor=pointer]:
+        - /url: "#networks"
+        - generic [ref=e14]: Redes
+      - link "Perfis" [ref=e15] [cursor=pointer]:
+        - /url: "#directory"
+        - generic [ref=e16]: Perfis
+      - link "Dossiês" [ref=e17] [cursor=pointer]:
+        - /url: "#dossie"
+        - generic [ref=e18]: Dossiês
+      - link "Mapa" [ref=e19] [cursor=pointer]:
+        - /url: "#map"
+        - generic [ref=e20]: Mapa
+      - generic [ref=e21]:
+        - text: Filtros de Inteligência
+        - button "Global" [ref=e22] [cursor=pointer]:
+          - generic [ref=e23]: Global
+        - button "Alertas" [ref=e24] [cursor=pointer]:
+          - generic [ref=e25]: Alertas
+        - button "Crítico" [ref=e26] [cursor=pointer]:
+          - generic [ref=e27]: Crítico
+  - main [ref=e28]
+  - complementary [ref=e32]:
+    - generic [ref=e33]:
+      - img "Logo" [ref=e35]
+      - generic [ref=e36]:
+        - heading "Sentinela Diamond" [level=2] [ref=e37]
+        - text: 0 STN
+    - generic [ref=e38]:
+      - generic [ref=e39]:
+        - text: Alvos
+        - generic [ref=e40]: "---"
+      - generic [ref=e41]:
+        - text: Alertas
+        - generic [ref=e42]: "---"
+      - generic [ref=e43]:
+        - text: Amostra
+        - generic [ref=e44]: "---"
+      - generic [ref=e45]:
+        - text: Resiliência
+        - generic [ref=e46]: "---"
+    - generic [ref=e47]:
+      - heading "Publicidade Estratégica" [level=3] [ref=e48]
+      - insertion [ref=e50]:
+        - iframe [ref=e52]:
+          
+    - heading "Prioridade de Triagem" [level=3] [ref=e54]
 ```
 
 # Test source
@@ -53,21 +130,21 @@ Call log:
   5  | test.describe('SENTINELA | Diamond Edition - Smoke Tests', () => {
   6  | 
   7  |     test('deve carregar o dashboard e exibir dados reais (não vazios)', async ({ page }) => {
-  8  |         // Aumenta o timeout para lidar com o cold start da API na Vercel
+  8  |         // Aumenta o timeout para lidar com o cold start
   9  |         test.setTimeout(60000);
   10 | 
   11 |         await page.goto(PRODUCTION_URL);
   12 | 
   13 |         // 1. Verifica o Título
-> 14 |         await expect(page).toHaveTitle(/SENTINELA | Diamond Edition/);
-     |                            ^ Error: expect(page).toHaveTitle(expected) failed
+  14 |         await expect(page).toHaveTitle(/SENTINELA | Diamond Edition/);
   15 | 
   16 |         // 2. Aguarda o desaparecimento do estado inicial '---' nos KPIs
   17 |         const kpiMonitorados = page.locator('#kpi-monitorados');
   18 |         const kpiAlertas = page.locator('#kpi-hate');
   19 |         
   20 |         // Aguarda até que o texto não seja mais '---' (timeout de 30s automático do Playwright)
-  21 |         await expect(kpiMonitorados).not.toHaveText('---', { timeout: 30000 });
+> 21 |         await expect(kpiMonitorados).not.toHaveText('---', { timeout: 30000 });
+     |                                          ^ Error: expect(locator).not.toHaveText(expected) failed
   22 |         await expect(kpiAlertas).not.toHaveText('---');
   23 | 
   24 |         // 3. Valida se os valores são numéricos (ou contêm K/M)

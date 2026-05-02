@@ -5,7 +5,7 @@ const PRODUCTION_URL = 'https://sentinela-democratica-ruby.vercel.app';
 test.describe('SENTINELA | Diamond Edition - Smoke Tests', () => {
 
     test('deve carregar o dashboard e exibir dados reais (não vazios)', async ({ page }) => {
-        // Aumenta o timeout para lidar com o cold start da API na Vercel
+        // Aumenta o timeout para lidar com o cold start
         test.setTimeout(60000);
 
         await page.goto(PRODUCTION_URL);
