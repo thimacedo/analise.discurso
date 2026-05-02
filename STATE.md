@@ -1,26 +1,30 @@
 # Estado Atual do Sistema - SENTINELA | Diamond Edition
 
-## 💎 Versão: 20.2.2 (Social Clean)
+## 💎 Versão: 20.5.0 (Safe & Elite)
 - **Data da última atualização:** 02/05/2026
-- **Status:** Operacional. Interface totalmente remodelada para estética Instagram/Meta.
+- **Status:** Operacional. Sistema saneado juridicamente e precificação de elite ativa.
+
+## ⚖️ Diretrizes Jurídicas (CRÍTICO)
+- **Nomenclatura:** É estritamente proibido o uso dos termos "Forense", "Prova" ou "Perícia" em qualquer artefato gerado (Relatórios, UI, Logs).
+- **Natureza:** Todo conteúdo produzido pelo sistema é de natureza **MERAMENTE INFORMATIVA**, servindo apenas como subsídio para análise humana.
+- **Isenção:** O Sentinela não se responsabiliza pelo uso legal dos dados por parte de terceiros.
 
 ## ✅ O que está funcionando
-- **Interface Social Clean (NEW):** Layout de 3 colunas (Nav | Feed | Intel) com fundo claro e tipografia Inter.
-- **Infinite Scroll (NEW):** Implementação de `IntersectionObserver` no Feed Central com carregamento sob demanda.
-- **Identidade Forense (NEW):** Suporte a avatares reais e visual de post de rede social para diminuir fadiga visual.
-- **Normalizador Inteligente:** Mapeamento de alvos genéricos (Lula/Bolsonaro) consolidado.
-- **Ambiente Virtual:** Python 3.12 blindado com todas as dependências core.
+- **Interface Social Clean:** Layout de 3 colunas otimizado para alta densidade informativa.
+- **Infinite Scroll:** Carregamento paginado de alertas ativos.
+- **Identidade de Alvos:** Sistema de revelação de usernames por 'Carga de Dados' (Paga).
+- **Normalizador Inteligente:** Mapeamento de alvos (Lula/Bolsonaro) consolidado.
 
-## 🛠 Mudanças Técnicas (v20.2)
-1.  **CSS:** Transição total de Dark/Neon para Light/Minimalist. Scroll independente em todas as colunas.
-2.  **Lógica:** Introdução de `state.currentPage` e `dataService.fetchMoreAlertas` para suporte a paginação.
-3.  **UI:** Centralização da renderização no `ui.js` com suporte a `insertAdjacentHTML` para performance no scroll.
-4.  **Segurança:** Remoção definitiva de chaves de API do código HTML estático.
+## 💰 Tabela de Preços (Elite Tier)
+1.  **Revelação de Identidade:** R$ 49,99 (Carga Única).
+2.  **Dossiê Informativo (PDF):** R$ 250,00 (Por Unidade).
+3.  **Inteligência de Redes Profundas:** R$ 2.500,00 (Acesso por Ciclo).
+
+## 🛠 Mudanças Técnicas (v20.5)
+1.  **Saneamento:** Purga global de termos de risco jurídico.
+2.  **Pricing:** Atualização dos valores de checkout para o Tier Político/Jornalístico.
+3.  **Disclaimer:** Inclusão de rodapé de isenção em todos os componentes de visualização.
 
 ## 🚫 Abordagens Descartadas
--   **[DESCARTADO] Layout Full-Height sem Scroll Interno:** Gerava páginas infinitas e quebrava a experiência de dashboard.
--   **[DESCARTADO] Temas Neon:** Removidos para reduzir estresse visual em longas sessões de análise.
-
-## 🐛 Bugs Atuais / Bloqueios
--   **Proporção de Colunas:** Ajustes finais em andamento para telas 1080p+.
--   **Navegação:** Roteamento por hash (#view) sendo refinado no `ui.js`.
+-   **[DESCARTADO] Garantia Judicial:** O sistema não emite laudos com validade jurídica automática.
+-   **[DESCARTADO] Preços Populares:** Foco total em orçamentos de campanha e redações de grande porte.
