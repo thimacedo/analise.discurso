@@ -1,97 +1,61 @@
 import os
-from typing import List, Optional, Dict
+import unicodedata
+from typing import List, Dict
 from supabase import create_client, Client
 from dotenv import load_dotenv
 
 load_dotenv()
 
 class TargetNormalizer:
-    """
-    Normaliza nomes genéricos de alvos para usernames oficiais do Instagram.
-    """
+    """Normaliza nomes genéricos de alvos para usernames do Instagram."""
+    
     def __init__(self):
-        self.supabase_url = os.getenv("SUPABASE_URL")
-        self.supabase_key = os.getenv("SUPABASE_KEY")
-        if not self.supabase_url or not self.supabase_key:
-            print("⚠️ [TargetNormalizer] Credenciais Supabase não encontradas.")
-            self.client = None
-        else:
-            self.client: Client = create_client(self.supabase_url, self.supabase_key)
-        
-        self._cache_usernames: Dict[str, str] = {}
-        self._profiles_loaded = False
+        self.client: Client = self._init_client()
+        self._cache: Dict[str, str] = {}
+        self._loaded = False
 
-    def _load_all_profiles(self):
-        """Carrega perfis em memória com priorização inteligente."""
-        if not self.client or self._profiles_loaded:
-            return
+    def _init_client(self) -> Client:
+        url, key = os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY")
+        return create_client(url, key) if url and key else None
+
+    def _clean(self, text: str) -> str:
+        if not text or str(text).lower() == 'none': return ""
+        return unicodedata.normalize('NFKC', str(text)).lower().strip()
+
+    def _load(self):
+        if not self.client or self._loaded: return
 
         try:
-            # Busca campos reais encontrados via inspeção
-            # Ordenamos por seguidores desc para que o mais importante ganhe no mapeamento simples
-            response = self.client.table('candidatos') \
+            resp = self.client.table('candidatos') \
                 .select('username, nome_completo, seguidores') \
-                .order('seguidores', desc=True) \
-                .execute()
+                .order('seguidores', desc=True).execute()
             
-            for item in response.data:
-                username = str(item.get('username', '')).lower().strip()
-                nome_completo = str(item.get('nome_completo', '')).lower().strip()
+            for item in resp.data:
+                user = self._clean(item.get('username'))
+                nome = self._clean(item.get('nome_completo'))
+                if not user: continue
 
-                if username:
-                    # Mapeia nome_completo para o username (prioridade alta)
-                    if nome_completo and nome_completo != 'none': 
-                        self._cache_usernames[nome_completo] = username
-                    
-                    # Tenta extrair primeiro nome e sobrenome
-                    # Como está ordenado por seguidores, "Lula" vai mapear para o maior perfil que tem "Lula" no nome
-                    partes_nome = nome_completo.split()
-                    if partes_nome:
-                        primeiro_nome = partes_nome[0]
-                        ultimo_nome = partes_nome[-1]
-                        
-                        # Apenas mapeia se ainda não existir (garante que o com mais seguidores vença)
-                        if primeiro_nome not in self._cache_usernames:
-                            self._cache_usernames[primeiro_nome] = username
-                        if ultimo_nome not in self._cache_usernames:
-                            self._cache_usernames[ultimo_nome] = username
-
-                    # Mapeia o próprio username (sempre vence se for exato)
-                    self._cache_usernames[username] = username
+                self._cache[user] = user
+                if nome and len(nome) > 3:
+                    self._cache.setdefault(nome, user)
+                    for p in nome.split():
+                        if len(p) > 3: self._cache.setdefault(p, user)
             
-            self._profiles_loaded = True
-            print(f"✅ [TargetNormalizer] {len(self._cache_usernames)} mapeamentos carregados em memória (ordenados por relevância).")
+            self._loaded = True
+            print(f"✅ [Normalizer] {len(self._cache)} perfis mapeados.")
         except Exception as e:
-            print(f"❌ [TargetNormalizer] Erro ao carregar perfis: {e}")
+            print(f"❌ [Normalizer] Falha no carregamento: {e}")
 
     def normalize(self, target: str) -> str:
-        """
-        Tenta encontrar o username oficial para um nome/apelido.
-        Retorna o alvo original se não encontrar correspondência.
-        """
-        if not target:
-            return ""
-
-        target_clean = str(target).lower().strip()
-        
-        # Garante que os perfis estão carregados
-        self._load_all_profiles()
-
-        # Busca exata no cache
-        normalized = self._cache_usernames.get(target_clean)
-        
-        if normalized:
-            if normalized != target_clean:
-                print(f"🔄 [Normalizer] Traduzido: '{target}' -> @{normalized}")
-            return normalized
-
-        # Se não encontrou, retorna o original (pode já ser um username novo não cadastrado)
-        return target_clean
+        if not target: return ""
+        self._load()
+        clean_target = self._clean(target)
+        normalized = self._cache.get(clean_target, clean_target)
+        if normalized != clean_target:
+            print(f"🔄 [Normalizer] '{target}' -> @{normalized}")
+        return normalized
 
     def normalize_list(self, targets: List[str]) -> List[str]:
-        """Normaliza uma lista de alvos."""
-        # Usa dict.fromkeys para manter ordem e remover duplicatas
-        return list(dict.fromkeys([self.normalize(t) for t in targets if t]))
+        return list(dict.fromkeys(self.normalize(t) for t in targets if t))
 
-# Instância única global
 target_normalizer = TargetNormalizer()
