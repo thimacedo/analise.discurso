@@ -21,6 +21,8 @@ export const state = {
     dossieSearch: '',
     stn_tokens: 0,
     loading: true,
+    isLoading: false, // Controle de load do scroll infinito
+    currentPage: 1,   // Página atual do feed
     error: null,
     lastSyncAt: null
 };

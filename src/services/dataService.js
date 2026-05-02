@@ -52,8 +52,12 @@ class SentinelDataService {
     }
 
     // ── Alertas PASA ──
-    async getAlerts(limit = 20) {
-        return this.fetchJson('/alerts/active', { limit });
+    async getAlerts(limit = 20, page = 1) {
+        return this.fetchJson('/alerts/active', { limit, page });
+    }
+
+    async fetchMoreAlertas(page = 1, limit = 20) {
+        return this.getAlerts(limit, page);
     }
 
     // ── Redes Coordenadas ──

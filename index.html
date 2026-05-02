@@ -3,110 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SENTINELA | Diamond Edition v20.1.1</title>
+    <title>SENTINELA | Diamond Edition v20.2.0</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <link rel="stylesheet" href="/src/styles/main.css?v=20.1.1">
+    <link rel="stylesheet" href="/src/styles/main.css?v=20.2.0">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- SEGURANÇA: Chaves removidas do HTML. Configuradas via src/core/app.js -->
 </head>
 <body class="custom-scrollbar">
-    <aside>
+    <!-- SIDEBAR ESQUERDA (Navegação Clean) -->
+    <aside class="sidebar-left">
         <div class="brand-block">
-            <div class="brand-mark"><img src="/logo_transparente.png" alt="Logo Sentinela"></div>
-            <div>
-                <h1>Sentinela</h1>
-                <span>Diamond v20.1.1</span>
-                <div class="stn-counter glass-card" style="margin-top: 10px; display: flex; align-items: center; gap: 8px; padding: 4px 12px; border-color: var(--accent); background: rgba(220, 38, 38, 0.05);">
-                    <i data-lucide="zap" style="width: 14px; height: 14px; color: var(--accent);"></i>
-                    <span id="stn-balance" class="stn-text">-- STN</span>
-                </div>
-            </div>
+            <div class="brand-mark"><img src="/logo_transparente.png" alt="Logo"></div>
+            <h1>Sentinela</h1>
         </div>
 
         <nav class="side-nav">
-            <a href="#monitor" class="nav-item active" id="nav-monitor"><i data-lucide="layout-grid" class="w-4 h-4"></i> Panorama Global</a>
-            
-            <div class="nav-group">
-                <a href="#networks" class="nav-item" id="nav-networks" onclick="window.setNetworkView('clusters')">
-                    <i data-lucide="share-2" class="w-4 h-4"></i> Inteligência de Redes
-                </a>
-                <div id="sub-networks" class="sub-nav" style="display: none; flex-direction: column; padding-left: 32px; font-size: 0.75rem; gap: 8px; margin-top: 4px; margin-bottom: 8px;">
-                    <a href="#networks" onclick="window.setNetworkView('clusters')" class="sub-nav-link" id="nav-net-clusters">• Cluster de Ataque</a>
-                    <a href="#networks" onclick="window.setNetworkView('flow')" class="sub-nav-link" id="nav-net-flow">• Fluxo Coordenado</a>
-                    <a href="#networks" onclick="window.setNetworkView('matrix')" class="sub-nav-link" id="nav-net-matrix">• Matriz de Colusão</a>
-                </div>
-            </div>
-
-            <a href="#directory" class="nav-item" id="nav-directory"><i data-lucide="users" class="w-4 h-4"></i> Perfis Monitorados</a>
-            <a href="#dossie" class="nav-item" id="nav-dossie"><i data-lucide="fingerprint" class="w-4 h-4"></i> Dossiê de Alvos</a>
-            <a href="#map" class="nav-item" id="nav-map"><i data-lucide="globe" class="w-4 h-4"></i> Geopolítica UF</a>
+            <a href="#monitor" class="nav-item active" id="nav-monitor"><i data-lucide="home" class="w-6 h-6"></i> <span>Início</span></a>
+            <a href="#networks" class="nav-item" id="nav-networks"><i data-lucide="search" class="w-6 h-6"></i> <span>Explorar Redes</span></a>
+            <a href="#directory" class="nav-item" id="nav-directory"><i data-lucide="users" class="w-6 h-6"></i> <span>Perfis</span></a>
+            <a href="#dossie" class="nav-item" id="nav-dossie"><i data-lucide="file-text" class="w-6 h-6"></i> <span>Dossiês</span></a>
+            <a href="#map" class="nav-item" id="nav-map"><i data-lucide="map" class="w-6 h-6"></i> <span>Mapa UF</span></a>
         </nav>
 
-        <div class="sidebar-footer glass-card">
-            <span id="status-sync" class="status-copy">Conectado ao Proxy...</span>
-            <button type="button" class="ghost-btn sync-btn" onclick="window.forceRefresh()">Sincronizar Dados</button>
+        <div class="sidebar-footer">
+            <button type="button" class="sync-btn" onclick="window.forceRefresh()"><i data-lucide="refresh-cw" class="w-4 h-4"></i> Sincronizar</button>
         </div>
     </aside>
 
-    <main class="custom-scrollbar dashboard-main">
-        <header class="main-header">
-             <div id="active-filter"></div>
-             <div class="status-chip is-ok">Sinal Operacional</div>
-        </header>
-
-        <header class="kpi-grid">
-            <div class="glass-card metric-card"><span class="kpi-label">Monitorados</span><div id="kpi-monitorados" class="kpi-value">---</div></div>
-            <div class="glass-card metric-card metric-card--danger"><span class="kpi-label">Alertas PASA</span><div id="kpi-hate" class="kpi-value">---</div></div>
-            <div class="glass-card metric-card"><span class="kpi-label">Amostragem</span><div id="kpi-total" class="kpi-value">---</div></div>
-            <div class="glass-card metric-card metric-card--success"><span class="kpi-label">Resiliência</span><div id="kpi-res" class="kpi-value">---</div></div>
-        </header>
-
-        <div class="dashboard-toolbar glass-card">
-            <div class="filter-group">
-                <span class="eyebrow filter-label">Filtros:</span>
-                <button onclick="window.setDashboardFilter('all')" id="btn-filter-all" class="filter-chip active">Todos</button>
-                <button onclick="window.setDashboardFilter('hate')" id="btn-filter-hate" class="filter-chip">Com Alertas</button>
-                <button onclick="window.setDashboardFilter('critical')" id="btn-filter-critical" class="filter-chip">Risco Crítico</button>
+    <!-- FEED CENTRAL (O Conteúdo Principal) -->
+    <main class="main-feed-container custom-scrollbar">
+        <header class="feed-header">
+            <div class="filter-tabs">
+                <button onclick="window.setDashboardFilter('all')" id="btn-filter-all" class="tab-btn active">Todos</button>
+                <button onclick="window.setDashboardFilter('hate')" id="btn-filter-hate" class="tab-btn">Com Alertas</button>
+                <button onclick="window.setDashboardFilter('critical')" id="btn-filter-critical" class="tab-btn">Crítico</button>
             </div>
             <div class="search-box">
                 <i data-lucide="search" class="search-icon"></i>
-                <input type="text" placeholder="Buscar alvo ou estado..." oninput="window.setDashboardSearch(this.value)" class="search-input">
+                <input type="text" placeholder="Buscar alvo ou estado..." oninput="window.setDashboardSearch(this.value)">
+            </div>
+        </header>
+
+        <section id="view-monitor" class="view-content active-view">
+            <div id="feed-alertas" class="social-feed">
+                <!-- Os cards de post vão aqui -->
+            </div>
+            
+            <!-- SENTINELA DA ROLAGEM INFINITA -->
+            <div id="scroll-sentinel" style="height: 1px; width: 100%;"></div>
+            
+            <div id="loading-spinner" class="loading-state" style="display: none;">
+                <div class="spinner"></div> Carregando mais...
+            </div>
+        </section>
+
+        <section id="view-networks" class="view-content"></section>
+        <section id="view-directory" class="view-content"></section>
+        <section id="view-dossie" class="view-content"></section>
+        <section id="view-map" class="view-content"></section>
+    </main>
+
+    <!-- SIDEBAR DIREITA (KPIs e Insights Fixos) -->
+    <aside class="sidebar-right custom-scrollbar">
+        <div class="profile-summary">
+            <div class="brand-mark"><img src="/logo_transparente.png" alt="Logo"></div>
+            <div>
+                <h2>Sentinela Diamond</h2>
+                <span class="stn-badge">● <span id="stn-balance">-- STN</span></span>
             </div>
         </div>
 
-        <div class="views-container">
-            <section id="view-monitor" class="view-content active-view">
-                <div class="monitor-grid">
-                    <div class="monitor-side glass-card section-card">
-                        <div class="section-heading"><div><span class="eyebrow">Linha do Tempo</span><h3>Evidências PASA</h3></div></div>
-                        <div id="feed-alertas" class="stack-list"></div>
-                    </div>
-                    
-                    <div class="glass-card section-card">
-                        <div class="section-heading"><div><span class="eyebrow">Análise de Risco</span><h3>Prioridade de Triagem</h3></div></div>
-                        <div id="chartMain" class="stack-list"></div>
-                    </div>
-                </div>
-                
-                <div class="glass-card section-card" style="margin-top: 16px; flex-shrink: 0;">
-                    <div class="section-heading"><div><span class="eyebrow">Monitoramento Estrutural</span><h3>Evolução das Categorias PASA</h3></div></div>
-                    <div id="pasa-temporal-chart" style="width: 100%; min-height: 300px;"></div>
-                </div>
-            </section>
-
-            <section id="view-networks" class="view-content"></section>
-            <section id="view-directory" class="view-content"></section>
-            <section id="view-dossie" class="view-content"></section>
-            <section id="view-map" class="view-content"></section>
+        <div class="kpi-grid-vertical">
+            <div class="kpi-card">
+                <span class="kpi-label">Monitorados</span>
+                <div id="kpi-monitorados" class="kpi-value">---</div>
+            </div>
+            <div class="kpi-card kpi-card--danger">
+                <span class="kpi-label">Alertas PASA</span>
+                <div id="kpi-hate" class="kpi-value">---</div>
+            </div>
+            <div class="kpi-card">
+                <span class="kpi-label">Amostragem</span>
+                <div id="kpi-total" class="kpi-value">---</div>
+            </div>
+            <div class="kpi-card kpi-card--success">
+                <span class="kpi-label">Resiliência</span>
+                <div id="kpi-res" class="kpi-value">---</div>
+            </div>
         </div>
-    </main>
 
-    <script type="module" src="/src/core/app.js?v=20.1.1"></script>
-    <script type="module" src="/src/core/payments.js?v=20.1.1"></script>
+        <div class="insight-card">
+            <h3 class="insight-title">Análise de Risco</h3>
+            <div id="chartMain" class="stack-list-clean"></div>
+        </div>
+    </aside>
+
+    <script type="module" src="/src/core/app.js?v=20.2.0"></script>
+    <script type="module" src="/src/core/payments.js?v=20.2.0"></script>
 </body>
 </html>
