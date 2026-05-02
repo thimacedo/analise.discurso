@@ -150,13 +150,13 @@ function buildPostCard(alerta) {
             </div>
             
             ${isLocked ? `
-                <div class="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-between">
+                <div class="mt-4 p-4 bg-slate-900 border border-cyan-900/30 rounded-xl flex items-center justify-between shadow-inner">
                     <div>
-                        <span class="block text-[10px] font-black text-blue-600 uppercase tracking-widest">Inteligência Bloqueada</span>
-                        <p class="text-[11px] text-blue-800 font-bold">Desbloqueie a identidade e o link original.</p>
+                        <span class="block text-[10px] font-black text-cyan-400 uppercase tracking-widest">Ruptura Necessária</span>
+                        <p class="text-[11px] text-slate-400">Alvo com blindagem ativa. Requer pulso de varredura.</p>
                     </div>
-                    <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-[10px] font-black shadow-lg shadow-blue-200 hover:scale-105 transition-transform" onclick="window.unlockIntel('${alerta.id}')">
-                        10 STN
+                    <button class="bg-cyan-600 text-white px-4 py-2 rounded-lg text-[10px] font-black shadow-lg shadow-cyan-900/20 hover:bg-cyan-500 transition-all uppercase tracking-tighter" onclick="window.unlockIntel('${alerta.id}')">
+                        Injetar Carga
                     </button>
                 </div>
             ` : `

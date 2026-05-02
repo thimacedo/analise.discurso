@@ -3,82 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SENTINELA | Arsenal de Inteligência</title>
+    <title>SENTINELA | Arsenal de Carga Forense</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background: #fafafa; color: #262626; }
-        .diamond-card { transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1); }
-        .diamond-card:hover { transform: translateY(-8px); }
+        body { font-family: 'Inter', sans-serif; background: #020617; color: #f8fafc; }
+        .charge-card { transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.1); }
+        .charge-card:hover { transform: translateY(-10px) scale(1.02); border-color: #06b6d4; box-shadow: 0 20px 40px rgba(6, 182, 212, 0.1); }
+        .glitch-text { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
     </style>
 </head>
-<body class="p-4 md:p-12">
+<body class="p-4 md:p-12 bg-slate-950">
     <div class="max-w-5xl m-auto">
         <header class="text-center mb-16">
-            <span class="text-blue-500 font-black uppercase tracking-widest text-[10px]">Arsenal Forense</span>
-            <h1 class="text-4xl font-black mt-2">Munição STN & Intel</h1>
-            <p class="text-slate-500 mt-4">Adquira tokens para desbloquear identidades e gerar dossiês judiciais.</p>
+            <span class="text-cyan-400 font-black uppercase tracking-[0.3em] text-[10px] glitch-text">Conexão Criptografada Ativa</span>
+            <h1 class="text-5xl font-black mt-4 bg-gradient-to-b from-white to-slate-500 bg-clip-text text-transparent">Poder de Revelação</h1>
+            <p class="text-slate-400 mt-6 max-w-lg m-auto text-sm leading-relaxed">Não compre dados. Adquira a capacidade de romper o anonimato digital em tempo real. A carga necessária varia de acordo com a blindagem do alvo.</p>
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <!-- PACK BÁSICO -->
-            <div class="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm diamond-card">
-                <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mb-6">
-                    <span class="text-xl">📦</span>
-                </div>
-                <h3 class="text-lg font-black">Pack Recruta</h3>
-                <div class="text-3xl font-black my-4">R$ 10,00</div>
-                <ul class="text-sm text-slate-500 space-y-3 mb-8">
-                    <li>● <strong>100 STN</strong> (Tokens Forenses)</li>
-                    <li>● Revela 10 identidades</li>
-                    <li>● Link original incluso</li>
-                </ul>
-                <button onclick="buy('pix', 100)" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-sm hover:bg-black transition-colors">COMPRAR VIA PIX</button>
+            <!-- PACK IRREGULAR 1 -->
+            <div class="rounded-3xl p-8 charge-card relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-10"><i data-lucide="zap" class="w-20 h-20"></i></div>
+                <h3 class="text-xl font-black text-cyan-400">Pulso de Varredura</h3>
+                <div class="text-sm font-bold text-slate-500 mt-1">Carga Estimada: ~140 unidades</div>
+                <div class="text-3xl font-black my-8">R$ 13,89</div>
+                <p class="text-xs text-slate-400 mb-8 leading-relaxed">Ideal para alvos de baixa blindagem e verificações rápidas de identidade.</p>
+                <button onclick="buy('pix', 140)" class="w-full py-4 bg-cyan-600 text-white rounded-2xl font-black text-xs hover:bg-cyan-500 transition-all uppercase tracking-widest shadow-lg shadow-cyan-900/20">Injetar Carga</button>
             </div>
 
-            <!-- PACK POPULAR -->
-            <div class="bg-white border-2 border-blue-500 rounded-3xl p-8 shadow-xl shadow-blue-100 diamond-card relative">
-                <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-500 text-white text-[10px] font-black px-4 py-1 rounded-full uppercase">Mais Vendido</div>
-                <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-6">
-                    <span class="text-xl">💎</span>
-                </div>
-                <h3 class="text-lg font-black">Pack Especialista</h3>
-                <div class="text-3xl font-black my-4">R$ 45,00</div>
-                <ul class="text-sm text-slate-500 space-y-3 mb-8">
-                    <li>● <strong>500 STN</strong> (Tokens Forenses)</li>
-                    <li>● Revela 50 identidades</li>
-                    <li>● 2 Dossiês PDF Premium</li>
-                </ul>
-                <button onclick="buy('stripe', 500)" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-sm hover:bg-blue-700 transition-colors">COMPRAR VIA CARTÃO</button>
+            <!-- PACK IRREGULAR 2 (O CAÓTICO) -->
+            <div class="rounded-3xl p-8 charge-card relative border-cyan-500/50 bg-slate-900/40 border-2 scale-105 shadow-2xl shadow-cyan-500/10">
+                <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-cyan-500 text-slate-950 text-[10px] font-black px-6 py-1.5 rounded-full uppercase tracking-tighter">Sincronia Recomendada</div>
+                <h3 class="text-xl font-black text-white">Sobrecarga Diamond</h3>
+                <div class="text-sm font-bold text-cyan-400 mt-1">Carga Estimada: ~625 + Bônus Crítico</div>
+                <div class="text-3xl font-black my-8">R$ 47,21</div>
+                <p class="text-xs text-slate-300 mb-8 leading-relaxed">Rompe blindagens institucionais. Capacidade para múltiplas extrações de dossiê SHA-256.</p>
+                <button onclick="buy('stripe', 625)" class="w-full py-4 bg-white text-slate-950 rounded-2xl font-black text-xs hover:bg-slate-200 transition-all uppercase tracking-widest">Ativar Sobrecarga</button>
             </div>
 
-            <!-- PLANO PRO -->
-            <div class="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm diamond-card">
-                <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mb-6">
-                    <span class="text-xl">🏛️</span>
-                </div>
-                <h3 class="text-lg font-black">Assinatura Pro</h3>
-                <div class="text-3xl font-black my-4">R$ 199<span class="text-sm text-slate-400 font-bold">/mês</span></div>
-                <ul class="text-sm text-slate-500 space-y-3 mb-8">
-                    <li>● <strong>Identidades ILIMITADAS</strong></li>
-                    <li>● Acesso a Redes Coordenadas</li>
-                    <li>● Prioridade de Processamento</li>
-                </ul>
-                <button onclick="buy('stripe', 'subscription')" class="w-full py-4 border-2 border-slate-900 text-slate-900 rounded-2xl font-black text-sm hover:bg-slate-50 transition-colors">ASSINAR PRO</button>
+            <!-- PACK IRREGULAR 3 -->
+            <div class="rounded-3xl p-8 charge-card relative overflow-hidden">
+                <h3 class="text-xl font-black text-slate-300">Núcleo de Inteligência</h3>
+                <div class="text-sm font-bold text-slate-500 mt-1">Fluxo Contínuo de Dados</div>
+                <div class="text-3xl font-black my-8">R$ 184,97<span class="text-xs text-slate-500 font-bold">/ciclo</span></div>
+                <p class="text-xs text-slate-400 mb-8 leading-relaxed">Acesso total às Redes Coordenadas. Revelação passiva de agressores em todos os alvos monitorados.</p>
+                <button onclick="buy('stripe', 'sub')" class="w-full py-4 border border-slate-700 text-white rounded-2xl font-black text-xs hover:bg-slate-800 transition-all uppercase tracking-widest">Estabelecer Link</button>
             </div>
         </div>
 
-        <footer class="mt-16 text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-            Sentinela Democrática v20.3 • Operação Segura SSL
+        <div class="mt-20 p-8 border border-slate-800 rounded-3xl bg-slate-900/20 max-w-2xl m-auto text-center">
+            <h4 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Como funciona o cálculo de carga?</h4>
+            <p class="text-[11px] text-slate-500 leading-relaxed italic">
+                O Sentinela utiliza um algoritmo de IA para calcular a resistência do alvo. Perfis com alta proteção de privacidade ou redes coordenadas exigem mais **Carga Forense** para a extração completa de dados. O valor da unidade é dinâmico e sintonizado com a carga de processamento dos nossos clusters.
+            </p>
+        </div>
+
+        <footer class="mt-16 text-center text-[9px] text-slate-600 font-bold uppercase tracking-[0.4em]">
+            Diamond Intelligence Protocol • v20.4.0 • Zero-Knowledge Encryption
         </footer>
     </div>
 
-    <script type="module">
-        import { paymentService } from './src/services/paymentService.js';
-        window.buy = async (method, amount) => {
-            alert(`Iniciando checkout de ${amount} STN via ${method}...`);
-            // paymentService.purchaseSTN(method, amount);
-        }
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        lucide.createIcons();
+        window.buy = (m, a) => alert(`Redirecionando para Injeção de Carga via ${m.toUpperCase()}...`);
     </script>
 </body>
 </html>
