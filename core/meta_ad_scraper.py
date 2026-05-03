@@ -22,9 +22,20 @@ class MetaAdScraper:
             browser = await p.chromium.launch(headless=self.headless)
             context = await browser.new_context(
                 viewport={"width": 1280, "height": 800},
-                locale="pt-BR"
+                locale="pt-BR",
+                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
             )
+            
+            # Aplica stealth
+            from playwright_stealth import stealth_async
             page = await context.new_page()
+            await stealth_async(page)
+            
+            # Carrega cookies se existirem
+            if os.path.exists("cookies.txt"):
+                with open("cookies.txt", "r") as f:
+                    cookies = json.load(f)
+                    await context.add_cookies(cookies)
             
             try:
                 await page.goto(search_url, wait_until="domcontentloaded", timeout=60000)
@@ -39,8 +50,11 @@ class MetaAdScraper:
                 print(f"     📊 {len(cards)} cards de anúncios detectados visualmente.")
 
                 if len(cards) == 0:
+                    html_content = await page.content()
+                    with open("debug_meta_ads.html", "w", encoding="utf-8") as f:
+                        f.write(html_content)
                     await page.screenshot(path="debug_meta_ads.png")
-                    print("📸 [DEBUG] Nenhum anúncio encontrado. Screenshot salvo em debug_meta_ads.png")
+                    print("📸 [DEBUG] Nenhum anúncio encontrado. HTML e Screenshot salvos.")
 
                 for card in cards:
                     try:
