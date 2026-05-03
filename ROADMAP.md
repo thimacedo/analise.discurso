@@ -8,7 +8,7 @@ Monitoramento situacional de alto desempenho para as Eleições 2026. Foco em de
 - [x] **KPIs 24h**: Dashboard operando com janela móvel de 24 horas (Alvos, Alertas, Amostra).
 - [x] **Refatoração Implacável**: Backend e DataService limpos de 'AI Slop' e otimizados para performance.
 - [x] **Persistência de Dossiês**: Infraestrutura STN-001 concluída e testada.
-- [ ] **Segurança RLS**: Script de blindagem pronto, aguardando execução no DB.
+- [x] **Segurança RLS**: Blindagem consolidada com papéis (anon/auth) e Grants explícitos.
 
 ## Próximos Passos (Backlog Ativo)
 1. **STN-005: Diretório Global de Perfis**: Implementar visualização e busca para os 343+ candidatos mapeados.

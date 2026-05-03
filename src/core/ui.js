@@ -544,15 +544,77 @@ function renderGeopolitica() {
 }
 
 function renderDirectory() { 
-    document.getElementById('view-directory').innerHTML = `
-        <div class="p-12 text-center bg-white border border-slate-200 rounded-xl animate-in mt-4 flex flex-col items-center justify-center" style="min-height: 60vh;">
-            <div class="w-16 h-16 bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center mb-6 shadow-inner">
-                <i data-lucide="users" class="w-8 h-8"></i>
+    const container = document.getElementById('view-directory');
+    if (!container) return;
+
+    const query = state.directorySearchQuery?.toLowerCase() || '';
+    const filtered = (state.data || []).filter(c => 
+        (c.username && c.username.toLowerCase().includes(query)) || 
+        (c.nome_completo && c.nome_completo.toLowerCase().includes(query))
+    );
+
+    container.innerHTML = `
+        <div class="p-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-800">Diretório Global de Perfis</h2>
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-tighter">${state.data?.length || 0} perfis monitorados no Supabase</p>
+                </div>
+                <div class="relative w-full md:w-80">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                    <input type="text" 
+                           id="directory-search-input" 
+                           placeholder="Buscar handle ou nome..." 
+                           class="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                           value="${state.directorySearchQuery || ''}"
+                           oninput="window.setDirectorySearch(this.value)">
+                </div>
             </div>
-            <h3 class="text-xl font-black text-slate-800 mb-2">Diretório Global de Perfis</h3>
-            <p class="text-sm text-slate-500 max-w-md mx-auto mb-8">Mais de ${state.data?.length || '1000'} perfis mapeados no Supabase. O diretório expandido requer tokenização STN para exibição.</p>
-        </div>`; 
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                ${filtered.map(c => {
+                    const avatarUrl = c.avatar_url || `https://ui-avatars.com/api/?name=${c.username}&background=0D8ABC&color=fff`;
+                    return `
+                        <div class="p-4 bg-white border border-slate-200 rounded-2xl hover:shadow-lg transition-all group cursor-pointer" onclick="window.inspectTarget('${c.username}')">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-50 group-hover:border-blue-200 transition-colors">
+                                    <img src="${avatarUrl}" alt="${c.username}" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="text-sm font-black text-slate-800 truncate">@${c.username}</h4>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase truncate block">${c.nome_completo || 'Identidade Pendente'}</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="px-2 py-0.5 bg-slate-50 text-slate-500 rounded-full text-[8px] font-black">${c.estado || 'BR'}</span>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 py-3 border-t border-slate-50">
+                                <div>
+                                    <span class="text-[8px] text-slate-400 font-bold uppercase block">Seguidores</span>
+                                    <strong class="text-xs font-black text-slate-700">${formatCompactNumber(c.seguidores || 0)}</strong>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-[8px] text-slate-400 font-bold uppercase block">Risco PASA</span>
+                                    <strong class="text-xs font-black" style="color:${c.color || 'var(--success)'}">${c.score_risco || 0}%</strong>
+                                </div>
+                            </div>
+                            <button class="w-full mt-2 py-2 bg-slate-50 text-slate-400 group-hover:bg-blue-600 group-hover:text-white rounded-lg text-[10px] font-black uppercase tracking-widest transition-all">
+                                Ver Perícia
+                            </button>
+                        </div>
+                    `;
+                }).join('')}
+                ${filtered.length === 0 ? '<div class="col-span-full py-12 text-center text-slate-400 text-xs font-mono uppercase opacity-50">Nenhum perfil corresponde à busca</div>' : ''}
+            </div>
+        </div>
+    `;
+    if (window.lucide) lucide.createIcons();
 }
+
+window.setDirectorySearch = (val) => {
+    state.directorySearchQuery = val;
+    window.debouncedRender();
+};
 function renderPasaTemporalChart() { /* Implementação futura D3 */ }
 function renderTopbar() { /* Implementação futura */ }
 
