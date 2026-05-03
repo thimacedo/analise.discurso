@@ -88,6 +88,39 @@ async def stripe_webhook(request: Request):
 
 # --- DOSSIÊS ---
 
+class DossierGenerateRequest(BaseModel):
+    candidato_id: str
+
+@app.post("/api/v1/dossiers/generate")
+async def generate_dossier(payload: DossierGenerateRequest):
+    """Gera um dossiê PDF para um candidato."""
+    try:
+        from processing.dossie_service import DossieService
+        service = DossieService()
+        
+        supa = get_supa()
+        if not supa: raise HTTPException(status_code=500, detail="DB Error")
+        
+        # 1. Busca dados do candidato para o dossiê
+        res = supa.table('comentarios').select('*').eq('candidato_id', payload.candidato_id).limit(500).execute()
+        data = res.data if res else []
+        
+        if not data:
+            raise HTTPException(status_code=404, detail="Nenhum dado encontrado para este candidato.")
+            
+        # 2. Define caminho do arquivo (simulado para Vercel tmp)
+        import time
+        filename = f"dossie_{payload.candidato_id}_{int(time.time())}.pdf"
+        output_path = f"data/reports/{filename}"
+        
+        # 3. Gera e persiste
+        pdf_path = await service.generate_dossie(data, output_path, payload.candidato_id)
+        
+        return {"status": "success", "pdf_url": pdf_path}
+    except Exception as e:
+        logger.error(f"Error generating dossier: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/v1/dossiers")
 def list_dossiers(candidato_id: Optional[str] = None):
     """Lista dossiês gerados e disponíveis."""
