@@ -75,7 +75,8 @@ class Orchestrator:
 
     async def run_meta_ads_cycle(self):
         print("📢 [1.7/5] Rastreando META AD LIBRARY...")
-        from core.meta_ad_scraper import meta_ad_scraper
+        from core.meta_ad_service import meta_ad_service
+        from processing.ad_processor import ad_processor
         
         try:
             with open("data/priority_queue.json", "r") as f:
@@ -89,7 +90,13 @@ class Orchestrator:
 
         # Roda apenas para os Top 5 da fila pra não ser bloqueado rápido demais
         for target in targets[:5]:
-            await meta_ad_scraper.scrape_ads_for_target(target)
+            ads = await meta_ad_service.search_ads(target)
+            if ads:
+                await db_client.persist_ads_batch(ads)
+        
+        # Processamento de IA (PASA v16.4)
+        print("⛏️ [1.8/5] Classificando Anúncios Meta...")
+        await ad_processor.process_pending_ads(limit=10)
         
         print("✅ Ciclo de anúncios concluído.")
 

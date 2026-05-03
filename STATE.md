@@ -6,8 +6,13 @@
 - **Frontend/UI:** Diamond Edition ativa. KPIs com design semântico e robustez garantida (fallbacks de API via dataService).
 - **Monetização:** AdSense injetado no feed (a cada 5 posts) e na sidebar direita.
 
+## ✅ Concluído (v20.5.2)
+- **Integração Meta Ad Library (Epico STN-003)**: Monitoramento de anúncios pagos via API oficial (Ads Archive).
+  - Implementado `core/meta_ad_service.py` com busca assíncrona e normalização.
+  - Implementado `processing/ad_processor.py` com classificação PASA v16.4.
+  - Persistência em lote no Supabase via `DatabaseClient`.
+
 ## ⚠️ Pendências Críticas
-- [ ] Integração Meta Ad Library (Epico STN-003) - Monitoramento de anúncios pagos.
 - [ ] Diretório Global de Perfis, Repositório de Dossiês Forenses, Geopolítica UF - Mapa Integrado, Filtros de Inteligência
 
 ## 🛠 Plano de Ação (Resumido)
