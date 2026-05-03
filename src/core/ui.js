@@ -115,7 +115,7 @@ function renderCandidateProfile(container) {
                     <strong class="text-xs font-black" style="color:${a.color || 'var(--danger)'}">${a.score_risco}%</strong>
                 </div>
                 <div class="p-3 bg-blue-50 rounded-lg text-center cursor-pointer hover:bg-blue-100 transition-colors" onclick="window.generateTargetDossier('${a.username}')">
-                    <span class="block text-[9px] font-bold text-blue-600 uppercase mb-1">Gerar PDF</span>
+                    <span class="block text-[9px] font-bold text-blue-600 uppercase mb-1">Relatório</span>
                     <i data-lucide="file-down" class="w-3 h-3 m-auto text-blue-600"></i>
                 </div>
             </div>
@@ -193,14 +193,13 @@ function renderAlertasFeed(container) {
 function buildPostCard(alerta) {
     const agressor = alerta.autor_username || 'anônimo';
     const targetId = alerta.candidato_id || 'alvo';
-    const targetData = state.data.find(a => a.username === targetId) || { username: targetId };
+    const targetData = state.data.find(a => a.username === targetId) || { username: targetId, nome_completo: 'Alvo não mapeado' };
     
     const dateStr = new Date(alerta.data_coleta).toLocaleTimeString('pt-BR');
     const severity = alerta.severidade || 'INFO';
     const platLabel = 'IG';
     const platColor = 'bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500';
     
-    // LOGICA DE MONETIZAÇÃO: Se não for PRO, borra o agressor
     const isLocked = !planService.canAccess('identities');
     const displayedUser = isLocked ? 'agressor_protegido' : `@${agressor.replace('@','')}`;
     
@@ -211,76 +210,80 @@ function buildPostCard(alerta) {
     const avatarTarget = targetData.avatar_url || `https://ui-avatars.com/api/?name=${targetId}&background=0D8ABC&color=fff`;
     
     return `
-        <div class="post-card-container relative mb-4 rounded-xl overflow-hidden bg-red-500" data-alerta-id="${alerta.id}">
-            <div class="absolute inset-y-0 right-0 w-1/3 flex items-center justify-end pr-6">
-                <div class="flex flex-col items-center justify-center opacity-80">
-                    <i data-lucide="trash-2" class="w-5 h-5 text-white mb-1"></i>
-                    <span class="text-[9px] font-black text-white uppercase tracking-widest">Descartar</span>
+        <div class="post-card-container relative mb-6 rounded-3xl overflow-hidden bg-slate-900" data-alerta-id="${alerta.id}">
+            <div class="absolute inset-y-0 right-0 w-1/3 flex items-center justify-end pr-8">
+                <div class="flex flex-col items-center justify-center opacity-60 text-white">
+                    <i data-lucide="archive" class="w-6 h-6 mb-1"></i>
+                    <span class="text-[10px] font-black uppercase tracking-widest">Arquivar</span>
                 </div>
             </div>
 
-            <article class="post-card-surface animate-in ${isLocked ? 'is-locked' : ''} relative bg-white border border-slate-200 rounded-xl p-4 shadow-sm z-10 w-full h-full transition-transform">
-                <div class="absolute top-3 left-1/2 -translate-x-1/2 z-20">
-                    <span class="px-2 py-0.5 ${platColor} text-white rounded-full text-[7px] font-black tracking-tighter shadow-sm opacity-80">
-                        ${platLabel}
+            <article class="post-card-surface animate-in ${isLocked ? 'is-locked' : ''} relative bg-white border border-slate-200 rounded-3xl p-6 shadow-sm z-10 w-full h-full transition-all hover:shadow-xl hover:-translate-y-1">
+                <div class="absolute top-4 left-6 z-20">
+                    <span class="px-3 py-1 ${platColor} text-white rounded-full text-[9px] font-black tracking-widest shadow-sm uppercase">
+                        ${platLabel} Source
                     </span>
                 </div>
 
-                <div class="post-header items-start">
-                    <div class="flex items-center gap-2">
+                <div class="post-header flex justify-between items-center gap-4 mb-6">
+                    <div class="flex items-center gap-4 mt-2">
                         <div class="post-avatar relative">
-                            <img src="${avatarAgressor}" alt="Agressor" class="w-8 h-8 rounded-full ${isLocked ? 'blur-[4px]' : ''}" loading="lazy">
-                            <div class="absolute -right-1 -bottom-1 bg-white rounded-full p-0.5 shadow-sm">
-                                <i data-lucide="zap" class="w-2.5 h-2.5 text-yellow-500 fill-yellow-500"></i>
+                            <img src="${avatarAgressor}" alt="Agressor" class="w-12 h-12 rounded-2xl ${isLocked ? 'blur-[4px]' : ''} object-cover border border-slate-100 shadow-sm" loading="lazy">
+                            <div class="absolute -right-2 -bottom-2 bg-white rounded-full p-1.5 shadow-md border border-slate-50">
+                                <i data-lucide="user" class="w-3 h-3 text-slate-500"></i>
                             </div>
                         </div>
                         
                         <div class="flex flex-col">
-                            <div class="post-username text-[11px] font-bold ${isLocked ? 'blur-[5px] select-none' : ''}">${displayedUser}</div>
-                            <div class="text-[9px] text-slate-400">${dateStr}</div>
+                            <div class="post-username text-[13px] font-black text-slate-900 ${isLocked ? 'blur-[6px] select-none opacity-50' : ''}">${displayedUser}</div>
+                            <div class="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+                                <i data-lucide="clock" class="w-2.5 h-2.5"></i> ${dateStr}
+                            </div>
                         </div>
                     </div>
 
-                    <div class="flex-1 flex justify-center items-center px-2">
-                        <div class="h-px bg-slate-50 flex-1 relative">
-                             <i data-lucide="chevron-right" class="absolute right-0 -top-[7px] w-3 h-3 text-slate-100"></i>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-2 text-right">
-                        <div class="flex flex-col items-end">
-                            <div class="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[9px] font-black uppercase tracking-tighter">
+                    <div class="flex items-center gap-4 text-right">
+                        <div class="flex flex-col items-end min-w-0 max-w-[120px]">
+                            <div class="px-2 py-1 bg-blue-50 text-blue-800 rounded-lg text-[10px] font-black uppercase tracking-tighter truncate w-full">
                                 @${targetId}
                             </div>
-                            <div class="text-[8px] font-bold text-slate-300 uppercase">${targetData.partido || 'ALVO'}</div>
+                            <div class="text-[9px] font-black text-slate-700 uppercase truncate w-full mt-1">${targetData.nome_completo || 'Alvo Monitorado'}</div>
                         </div>
-                        <div class="w-8 h-8 rounded-full overflow-hidden border border-slate-100 shadow-sm">
+                        <div class="w-12 h-12 rounded-2xl overflow-hidden border-2 border-slate-50 shadow-sm transition-transform group-hover:scale-110">
                             <img src="${avatarTarget}" alt="Alvo" class="w-full h-full object-cover">
                         </div>
                     </div>
                 </div>
 
-                <div class="post-content mt-3 text-[13px] leading-relaxed text-slate-800">
-                    "${alerta.texto_bruto || 'Sem conteúdo'}"
+                <div class="post-content mt-4 p-5 bg-slate-50 rounded-2xl text-[15px] leading-relaxed text-slate-800 font-medium border-l-8 border-blue-500 shadow-inner italic">
+                    "${alerta.texto_bruto || 'Conteúdo indisponível para esta perícia manual.'}"
                 </div>
                 
                 ${isLocked ? `
-                    <div class="mt-4 pt-3 border-t border-slate-50 flex items-center justify-between opacity-80 hover:opacity-100 transition-opacity">
-                        <div class="flex items-center gap-2">
-                            <i data-lucide="lock" class="w-3 h-3 text-slate-300"></i>
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Identidade sob sigilo</span>
+                    <div class="mt-6 pt-5 border-t border-slate-100 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center border border-amber-100">
+                                <i data-lucide="lock" class="w-4 h-4 text-amber-500"></i>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-black text-slate-900 uppercase block leading-none">Dados Ocultos</span>
+                                <span class="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">Upgrade STN necessário</span>
+                            </div>
                         </div>
-                        <button class="text-[10px] font-black text-blue-500 hover:text-blue-600 transition-colors uppercase tracking-widest flex items-center gap-1" onclick="window.unlockIntel('${alerta.id}')">
-                            Desbloquear <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                        <button class="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-xl shadow-slate-200" onclick="window.unlockIntel('${alerta.id}')">
+                            Revelar Dados
                         </button>
                     </div>
                 ` : `
-                    <div class="flex gap-4 mt-4 pt-2 border-t border-slate-50">
-                        <button class="flex items-center gap-1.5 text-[9px] font-bold text-slate-300 hover:text-blue-500 transition-colors" onclick="window.toggleTriage('${alerta.id}')"><i data-lucide="shield-alert" class="w-3 h-3"></i> Periciar</button>
-                        <button class="flex items-center gap-1.5 text-[9px] font-bold text-slate-300 hover:text-red-500 transition-colors" onclick="window.markFalsePositive('${alerta.id}')"><i data-lucide="thumbs-down" class="w-3 h-3"></i> Descartar</button>
-                        <div class="ml-auto flex items-center gap-2">
-                            <span class="px-1.5 py-0.5 bg-slate-50 text-slate-400 rounded text-[8px] font-bold uppercase">${severity}</span>
-                            <button class="p-1 text-slate-200 hover:text-slate-400"><i data-lucide="share-2" class="w-3 h-3"></i></button>
+                    <div class="flex gap-3 mt-6 pt-4 border-t border-slate-100">
+                        <button class="flex-1 flex items-center justify-center gap-2 py-3 bg-slate-50 text-slate-600 hover:bg-blue-600 hover:text-white rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all shadow-sm" onclick="window.toggleTriage('${alerta.id}')">
+                            <i data-lucide="scan-eye" class="w-4 h-4"></i> Analisar
+                        </button>
+                        <button class="flex-1 flex items-center justify-center gap-2 py-3 bg-slate-50 text-slate-600 hover:bg-red-600 hover:text-white rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all shadow-sm" onclick="window.markFalsePositive('${alerta.id}')">
+                            <i data-lucide="x-circle" class="w-4 h-4"></i> Descartar
+                        </button>
+                        <div class="flex items-center gap-2 px-3 bg-red-50 rounded-2xl border border-red-100">
+                            <span class="text-[10px] font-black text-red-600 uppercase tracking-tighter">${severity}</span>
                         </div>
                     </div>
                 `}
@@ -291,13 +294,12 @@ function buildPostCard(alerta) {
 
 window.unlockIntel = async (id) => {
     if (state.stn_tokens < 10) {
-        alert("MUNIÇÃO INSUFICIENTE! Adquira mais tokens STN para continuar a perícia.");
+        alert("CRÉDITOS INSUFICIENTES! Adquira mais munição de dados para continuar a análise.");
         window.location.hash = 'pricing';
         return;
     }
     
-    if (confirm("Gastar 10 STN para revelar a identidade do agressor?")) {
-        // Aqui entraria a chamada de API real
+    if (confirm("Gastar 10 STN para revelar a identidade do autor?")) {
         state.stn_tokens -= 10;
         alert("IDENTIDADE REVELADA! (Simulação)");
         renderAll();
@@ -307,7 +309,6 @@ window.unlockIntel = async (id) => {
 function renderMonitorImpacto(container) {
     if (!container || !state.data) return;
     
-    // Otimização de DOM: Renderizar apenas os Top 15 alvos com maior volume de alertas
     const topAlvos = [...state.data]
         .sort((a, b) => (b.comentarios_odio_count || 0) - (a.comentarios_odio_count || 0))
         .slice(0, 15);
@@ -339,7 +340,6 @@ function renderKPIs() {
     if (!state.summary) return;
     const s = state.summary;
     
-    // Formata a hora do último sync (ex: 14:05:00)
     let timeStr = "--:--";
     if (state.lastSyncAt) {
         const d = new Date(state.lastSyncAt);
@@ -459,9 +459,9 @@ async function renderDossieGrid() {
 
     container.innerHTML = `
         <div class="flex justify-between items-center mb-6 px-4 pt-4">
-            <h2 class="text-xl font-black text-slate-800">Repositório de Dossiês</h2>
+            <h2 class="text-xl font-black text-slate-800">Repositório de Relatórios</h2>
             <button onclick="window.location.hash='pricing'" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
-                Novo Dossiê
+                Novo Relatório
             </button>
         </div>
         <div id="dossie-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 px-4">
@@ -480,7 +480,7 @@ async function renderDossieGrid() {
             listContainer.innerHTML = `
                 <div class="p-12 text-center bg-white border border-slate-200 rounded-xl col-span-full">
                     <i data-lucide="file-warning" class="w-12 h-12 text-slate-200 m-auto mb-4"></i>
-                    <p class="text-sm text-slate-400">Nenhum dossiê gerado no repositório.</p>
+                    <p class="text-sm text-slate-400">Nenhum relatório gerado no repositório.</p>
                 </div>
             `;
             if (window.lucide) lucide.createIcons();
@@ -528,19 +528,94 @@ async function renderDossieGrid() {
     }
 }
 
-function renderGeopolitica() { 
-    document.getElementById('view-map').innerHTML = `
-        <div class="p-12 text-center bg-slate-950 border border-cyan-900/30 rounded-xl animate-in mt-4 flex flex-col items-center justify-center overflow-hidden relative" style="min-height: 60vh;">
-            <div class="absolute inset-0 bg-gradient-to-tr from-cyan-900/10 to-blue-900/10"></div>
-            <div class="w-16 h-16 bg-cyan-900/30 text-cyan-400 rounded-full flex items-center justify-center mb-6 border border-cyan-500/20 relative z-10">
-                <i data-lucide="globe" class="w-8 h-8"></i>
+async function renderGeopolitica() { 
+    const container = document.getElementById('view-map');
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="p-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-800">Geopolítica da Hostilidade</h2>
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-tighter">Mapeamento de ódio por unidade federativa</p>
+                </div>
+                <div class="bg-white border border-slate-200 p-2 rounded-xl flex gap-2">
+                    <button class="px-4 py-1.5 bg-slate-900 text-white rounded-lg text-[10px] font-black uppercase tracking-widest">Mapa de Calor</button>
+                    <button class="px-4 py-1.5 bg-white text-slate-400 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-slate-50">Ranking UF</button>
+                </div>
             </div>
-            <h3 class="text-xl font-black text-white mb-2 relative z-10">Geopolítica UF - Mapa Integrado</h3>
-            <p class="text-sm text-cyan-200/60 max-w-md mx-auto mb-8 relative z-10">Conexão com servidor D3.js não estabelecida. O mapeamento vetorial requer download de topologia de estado.</p>
-            <div class="h-2 w-48 bg-slate-900 rounded-full overflow-hidden relative z-10">
-                <div class="h-full bg-cyan-500 w-1/3 animate-pulse"></div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-white border border-slate-200 rounded-3xl p-8 shadow-sm relative overflow-hidden" style="min-height: 600px;">
+                    <div id="map-canvas" class="w-full h-full flex items-center justify-center">
+                        <!-- O D3.js injetará o SVG aqui -->
+                        <div class="flex flex-col items-center opacity-20">
+                            <i data-lucide="map" class="w-24 h-24 mb-4"></i>
+                            <span class="text-xs font-mono uppercase tracking-[0.2em]">Processando Topologia Vetorial...</span>
+                        </div>
+                    </div>
+                    
+                    <!-- LEGENDA -->
+                    <div class="absolute bottom-8 right-8 p-4 bg-white/80 backdrop-blur border border-slate-100 rounded-2xl shadow-xl">
+                        <span class="text-[9px] font-black text-slate-400 uppercase block mb-2 tracking-widest">Nível de Hostilidade</span>
+                        <div class="flex items-center gap-3">
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="w-4 h-4 rounded bg-slate-100"></div>
+                                <span class="text-[8px] font-bold">Baixo</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="w-4 h-4 rounded bg-blue-400"></div>
+                                <span class="text-[8px] font-bold">Médio</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="w-4 h-4 rounded bg-red-500"></div>
+                                <span class="text-[8px] font-bold">Crítico</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 rounded-3xl p-6 shadow-2xl">
+                    <h3 class="text-white font-black text-sm uppercase tracking-widest mb-6">Focos de Alerta por Estado</h3>
+                    <div id="geo-ranking-list" class="space-y-4">
+                        <div class="animate-pulse flex flex-col gap-4">
+                            <div class="h-12 bg-slate-800 rounded-xl"></div>
+                            <div class="h-12 bg-slate-800 rounded-xl"></div>
+                            <div class="h-12 bg-slate-800 rounded-xl"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>`; 
+        </div>
+    `;
+
+    try {
+        const geoData = await dataService.getGeoUF();
+        const rankingList = document.getElementById('geo-ranking-list');
+        if (rankingList) {
+            rankingList.innerHTML = geoData.map(item => `
+                <div class="flex items-center justify-between p-3 bg-slate-800/50 border border-slate-700 rounded-xl hover:bg-slate-800 transition-all cursor-pointer group">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center text-white font-black text-xs">${item.uf}</div>
+                        <div>
+                            <span class="text-[9px] font-bold text-slate-500 uppercase block">${item.total_alvos} Alvos</span>
+                            <strong class="text-white text-xs">${item.uf === 'BR' ? 'Brasil (Geral)' : item.uf}</strong>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] font-black text-red-500 block">${item.total_hate}</span>
+                        <div class="w-12 h-1 bg-slate-700 rounded-full mt-1 overflow-hidden">
+                            <div class="h-full" style="width: ${Math.min(100, item.total_hate * 5)}%; background: ${item.color}"></div>
+                        </div>
+                    </div>
+                </div>
+            `).join('') || '<p class="text-slate-500 text-center text-xs">Aguardando dados geográficos...</p>';
+        }
+        
+        if (window.lucide) lucide.createIcons();
+    } catch (e) {
+        console.error('Error rendering geopolitica:', e);
+    }
 }
 
 function renderDirectory() { 
@@ -558,7 +633,7 @@ function renderDirectory() {
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
                     <h2 class="text-2xl font-black text-slate-800">Diretório Global de Perfis</h2>
-                    <p class="text-xs text-slate-400 font-bold uppercase tracking-tighter">${state.data?.length || 0} perfis monitorados no Supabase</p>
+                    <p class="text-xs text-slate-500 font-bold uppercase tracking-tighter">${state.data?.length || 0} perfis monitorados no sistema</p>
                 </div>
                 <div class="relative w-full md:w-80">
                     <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
@@ -575,31 +650,31 @@ function renderDirectory() {
                 ${filtered.map(c => {
                     const avatarUrl = c.avatar_url || `https://ui-avatars.com/api/?name=${c.username}&background=0D8ABC&color=fff`;
                     return `
-                        <div class="p-4 bg-white border border-slate-200 rounded-2xl hover:shadow-lg transition-all group cursor-pointer" onclick="window.inspectTarget('${c.username}')">
+                        <div class="p-4 bg-white border border-slate-200 rounded-2xl hover:shadow-xl transition-all group cursor-pointer" onclick="window.inspectTarget('${c.username}')">
                             <div class="flex items-center gap-3 mb-4">
-                                <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-50 group-hover:border-blue-200 transition-colors">
+                                <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-50 group-hover:border-blue-500 transition-colors shadow-sm">
                                     <img src="${avatarUrl}" alt="${c.username}" class="w-full h-full object-cover">
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <h4 class="text-sm font-black text-slate-800 truncate">@${c.username}</h4>
-                                    <span class="text-[10px] font-bold text-slate-400 uppercase truncate block">${c.nome_completo || 'Identidade Pendente'}</span>
+                                    <h4 class="text-sm font-black text-slate-900 truncate">@${c.username}</h4>
+                                    <span class="text-[11px] font-extrabold text-slate-600 truncate block leading-tight">${c.nome_completo || 'Identidade Pendente'}</span>
                                 </div>
                                 <div class="text-right">
-                                    <span class="px-2 py-0.5 bg-slate-50 text-slate-500 rounded-full text-[8px] font-black">${c.estado || 'BR'}</span>
+                                    <span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full text-[8px] font-black">${c.estado || 'BR'}</span>
                                 </div>
                             </div>
                             <div class="grid grid-cols-2 gap-2 py-3 border-t border-slate-50">
                                 <div>
                                     <span class="text-[8px] text-slate-400 font-bold uppercase block">Seguidores</span>
-                                    <strong class="text-xs font-black text-slate-700">${formatCompactNumber(c.seguidores || 0)}</strong>
+                                    <strong class="text-xs font-black text-slate-800">${formatCompactNumber(c.seguidores || 0)}</strong>
                                 </div>
                                 <div class="text-right">
                                     <span class="text-[8px] text-slate-400 font-bold uppercase block">Risco PASA</span>
                                     <strong class="text-xs font-black" style="color:${c.color || 'var(--success)'}">${c.score_risco || 0}%</strong>
                                 </div>
                             </div>
-                            <button class="w-full mt-2 py-2 bg-slate-50 text-slate-400 group-hover:bg-blue-600 group-hover:text-white rounded-lg text-[10px] font-black uppercase tracking-widest transition-all">
-                                Ver Perícia
+                            <button class="w-full mt-2 py-2.5 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all hover:bg-blue-600 shadow-lg shadow-slate-200 group-hover:shadow-blue-100">
+                                Abrir Análise
                             </button>
                         </div>
                     `;
@@ -648,12 +723,12 @@ window.inspectTarget = (username) => {
 
 window.generateTargetDossier = async (username) => {
     if (state.stn_tokens < 50) {
-        alert("CRÉDITOS INSUFICIENTES (Mínimo: 50 STN). Adquira munição forense para gerar o levantamento.");
+        alert("CRÉDITOS INSUFICIENTES (Mínimo: 50 STN). Adquira mais créditos para gerar o levantamento.");
         window.location.hash = 'pricing';
         return;
     }
 
-    if (confirm(`Deseja gastar 50 STN para gerar um Dossiê Forense completo de @${username}?`)) {
+    if (confirm(`Deseja gastar 50 STN para gerar um Relatório Detalhado de @${username}?`)) {
         try {
             const resp = await fetch('/api/v1/dossiers/generate', {
                 method: 'POST',
@@ -664,10 +739,10 @@ window.generateTargetDossier = async (username) => {
                 body: JSON.stringify({ candidato_id: username })
             });
 
-            if (!resp.ok) throw new Error('Falha ao gerar dossiê');
+            if (!resp.ok) throw new Error('Falha ao gerar relatório');
             
             const result = await resp.json();
-            alert("DOSSIÊ GERADO COM SUCESSO! Você será redirecionado para o repositório.");
+            alert("RELATÓRIO GERADO COM SUCESSO! Você será redirecionado para o repositório.");
             state.stn_tokens -= 50;
             window.location.hash = 'dossie';
             renderAll();

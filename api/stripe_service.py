@@ -8,28 +8,29 @@ stripe.api_key = os.getenv("STRIPE_API_KEY")
 WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 
 class PaymentManager:
-    """Gerencia o fluxo de caixa interdimensional do Sentinela."""
-    
+    """Gerencia o fluxo de créditos do Sentinela."""
+
     @staticmethod
     def create_checkout_session(user_id: str, stn_amount: int):
         """Cria uma sessão de checkout para compra de tokens STN."""
         try:
-            # Tabela de preços dinâmica Rick-style (R$ 1,00 por 10 STN?)
+            # R$ 1,00 por 10 STN
             unit_amount = int((stn_amount / 10) * 100) # centavos
-            
+
             session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
                 line_items=[{
                     'price_data': {
                         'currency': 'brl',
                         'product_data': {
-                            'name': f'Pack {stn_amount} STN - Munição Forense',
-                            'description': 'Munição para desbloqueio de identidades e relatórios PDF.',
+                            'name': f'Pack {stn_amount} STN - Créditos de Inteligência',
+                            'description': 'Tokens para desbloqueio de dados e geração de relatórios detalhados.',
                         },
                         'unit_amount': unit_amount,
                     },
                     'quantity': 1,
                 }],
+
                 mode='payment',
                 success_url=f"{os.getenv('FRONTEND_URL')}/#monitor?success=true",
                 cancel_url=f"{os.getenv('FRONTEND_URL')}/#pricing?cancel=true",

@@ -7,13 +7,14 @@
 - **Monetização:** AdSense injetado no feed (a cada 5 posts) e na sidebar direita.
 
 ## ✅ Concluído (v20.5.5)
-- **STN-005: Diretório Global de Perfis**: Implementada interface de listagem e busca em tempo real para os 343+ candidatos monitorados, com cartões informativos, métricas de risco PASA e integração direta com o feed de perícia.
+- **STN-005: Diretório Global de Perfis**: Implementada interface de listagem e busca em tempo real para os 343+ candidatos monitorados, com cartões informativos premium, métricas de risco PASA e integração direta com o feed de análise.
+- **Limpeza Linguística Diamond**: Removida terminologia restrita (perícia, forense, prova) da UI e APIs, substituindo por termos estratégicos como 'Análise', 'Créditos' e 'Dados'.
 - **Refatoração Implacável (Pickle Rick Mode)**: 
   - `api/index.py`: Eliminado boilerplate de erro, implementada Injeção de Dependência para Supabase, e externalizadas constantes PASA/Risco.
   - `src/services/dataService.js`: Lógica de fetch simplificada com helper assíncrono e retry robusto.
   - `src/core/app.js` & `src/services/authService.js`: Removida duplicação de configurações sensíveis, centralizando tudo em `src/config.js`.
 - **Correção de Conectividade e KPIs**: Resolvido conflito de portas local (3000 vs 8000) via detecção dinâmica em `src/config.js`.
-- **STN-001: Repositório de Dossiês Forenses**: Implementada infraestrutura de persistência estruturada no Supabase com hash de integridade SHA-256 e metadados forenses automáticos.
+- **STN-001: Repositório de Relatórios Estratégicos**: Implementada infraestrutura de persistência estruturada no Supabase com hash de integridade SHA-256 e metadados estratégicos automáticos.
 - **Integração Meta Ad Library (Epico STN-003)**: Monitoramento de anúncios pagos via API oficial (Ads Archive).
   - Implementado `core/meta_ad_service.py` com busca assíncrona e normalização.
   - Implementado `processing/ad_processor.py` com classificação PASA v16.4.
