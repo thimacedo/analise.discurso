@@ -627,26 +627,15 @@ window.processReportGeneration = async () => {
 
     if (confirm(`Confirmar geração de relatório para @${config.target}? Custo: ${totalCost} STN.`)) {
         try {
-            // Simulamos a chamada de API de geração
-            const resp = await fetch('/api/v1/dossiers/generate', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authService.session?.access_token}`
-                },
-                body: JSON.stringify({ 
-                    candidato_id: config.target,
-                    modules: config.selectedIds 
-                })
+            // Usa o postJson resiliente com os módulos selecionados
+            await dataService.postJson('/dossiers/generate', { 
+                candidato_id: config.target,
+                modules: config.selectedIds 
             });
-
-            if (!resp.ok) throw new Error('Falha no processamento');
             
-            // Dedução real de tokens no estado local
             state.stn_tokens -= totalCost;
             alert("PROCESSAMENTO INICIADO! O relatório aparecerá no repositório em breve.");
             
-            // Reseta form
             state.currentReportConfig.target = null;
             state.currentReportConfig.selectedIds = ['base'];
             
@@ -863,18 +852,9 @@ window.generateTargetDossier = async (username) => {
 
     if (confirm(`Deseja gastar 50 STN para gerar um Relatório Detalhado de @${username}?`)) {
         try {
-            const resp = await fetch('/api/v1/dossiers/generate', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authService.session?.access_token}`
-                },
-                body: JSON.stringify({ candidato_id: username })
-            });
-
-            if (!resp.ok) throw new Error('Falha ao gerar relatório');
+            // Usa o postJson resiliente
+            const result = await dataService.postJson('/dossiers/generate', { candidato_id: username });
             
-            const result = await resp.json();
             alert("RELATÓRIO GERADO COM SUCESSO! Você será redirecionado para o repositório.");
             state.stn_tokens -= 50;
             window.location.hash = 'dossie';

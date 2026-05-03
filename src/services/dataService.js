@@ -74,6 +74,39 @@ class SentinelDataService {
         return this.fetchJson('/dossiers', { candidato_id });
     }
 
+    async postJson(endpoint, body = {}) {
+        const path = endpoint;
+        
+        const tryPost = async (baseUrl) => {
+            const headers = { 'Content-Type': 'application/json' };
+            if (authService.session?.access_token) {
+                headers['Authorization'] = `Bearer ${authService.session.access_token}`;
+            }
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(body)
+            });
+            if (!response.ok) throw new Error(`API Post Error: ${response.status}`);
+            return await response.json();
+        };
+
+        try {
+            // TENTATIVA 1: Prioridade Vercel
+            return await tryPost(window.SENTINELA_CONFIG.apiUrl);
+        } catch (error) {
+            // TENTATIVA 2: Fallback Local
+            console.warn(`[SentinelDataService] POST failed. Retrying fallback for ${endpoint}...`);
+            try {
+                return await tryPost(window.SENTINELA_CONFIG.localFallbackUrl);
+            } catch (fbError) {
+                console.error(`[SentinelDataService] All POST paths failed for ${endpoint}`);
+                throw fbError;
+            }
+        }
+    }
+
     // ── Alertas PASA ──
     async getAlerts(limit = 20, page = 1) {
         return this.fetchJson('/alerts/active', { limit, page });
@@ -81,16 +114,10 @@ class SentinelDataService {
 
     async markFalsePositive(id) {
         try {
-            const resp = await fetch(`${API_BASE}/alerts/false-positive`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id })
-            });
-            if (!resp.ok) throw new Error('Falha ao descartar alerta');
-            
+            const data = await this.postJson('/alerts/false-positive', { id });
             // Invalida cache local para refletir a mudança no feed
             this.cache.delete(`${API_BASE}/alerts/active`);
-            return await resp.json();
+            return data;
         } catch (e) {
             console.error('[DataService] Error marking false positive:', e);
             throw e;

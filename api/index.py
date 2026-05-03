@@ -172,24 +172,28 @@ def get_active_alerts(limit: int = 20, supa: Client = Depends(get_supa)):
         logger.error(f"Alerts Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+class FalsePositiveRequest(BaseModel):
+    id: str
+
 @app.post("/api/v1/alerts/false-positive")
-def mark_false_positive(payload: dict = Body(...), supa: Client = Depends(get_supa)):
+def mark_false_positive(payload: FalsePositiveRequest, supa: Client = Depends(get_supa)):
     """Marca um comentário como falso positivo e garante sua exclusão da timeline de ódio."""
     try:
-        cid = payload.get("id")
-        if not cid: raise HTTPException(status_code=400, detail="Invalid ID")
-        
         # Atualiza is_hate para False e marca como processado manualmente
-        supa.table('comentarios').update({
+        # Usamos o id validado pelo Pydantic
+        res = supa.table('comentarios').update({
             "is_hate": False, 
             "processado_ia": True, 
             "categoria_ia": "FALSO_POSITIVO_MANUAL"
-        }).eq('id', cid).execute()
+        }).eq('id', payload.id).execute()
         
-        return {"status": "success", "id": cid}
+        if not res.data:
+            logger.warning(f"Nenhum comentário encontrado com ID {payload.id} para descarte.")
+            
+        return {"status": "success", "id": payload.id}
     except Exception as e:
-        logger.error(f"False Positive Error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"False Positive Critical Error: {e}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail={"error": str(e), "id": payload.id})
 
 @app.post("/api/v1/checkout/create-session")
 def create_checkout(payload: CheckoutRequest):
