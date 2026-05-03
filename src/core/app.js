@@ -83,17 +83,19 @@ async function refreshData() {
         state.data = targets || [];
         state.alertas = alerts || [];
         
-        // CÁLCULO DE EMERGÊNCIA: Se o resumo vier vazio, calculamos no frontend
-        if (!summary || summary.total_monitorados === 0) {
-            const totalHate = state.alertas.filter(a => a.is_hate_speech || a.is_hate).length;
+        // PRIORIDADE: Dados reais da API. FALLBACK: Estado local limpo.
+        if (summary && !summary.error) {
+            state.summary = summary;
+        } else {
+            // Fallback robusto se a API falhar
+            const totalHate = state.alertas.length;
+            const totalAmostra = state.data.reduce((acc, curr) => acc + (curr.comentarios_totais_count || 0), 0) || 1000;
             state.summary = {
                 total_monitorados: state.data.length,
-                total_alertas: state.alertas.length,
-                total_amostra: state.data.reduce((acc, curr) => acc + (curr.comentarios_totais_count || 0), 0) || 5000,
-                resiliencia: state.data.length > 0 ? (100 - (totalHate / state.alertas.length * 100 || 0)).toFixed(1) : 100
+                total_alertas: totalHate,
+                total_amostra: totalAmostra,
+                resiliencia: totalAmostra > 0 ? ((totalAmostra - totalHate) / totalAmostra * 100).toFixed(1) : 100
             };
-        } else {
-            state.summary = summary;
         }
 
         state.currentPage = 1;

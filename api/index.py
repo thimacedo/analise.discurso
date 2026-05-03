@@ -94,24 +94,26 @@ def calculate_risk(item: Dict[str, Any]):
 def summary(supa: Client = Depends(get_supa)):
     """Retorna KPIs consolidados (Janela 24h) com performance Diamond."""
     try:
-        # Usa timezone-aware datetime para compatibilidade máxima
-        yesterday = (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()
+        now_utc = datetime.now(timezone.utc)
+        yesterday = (now_utc - timedelta(days=1)).isoformat()
         
-        # 1. Total de Alvos Ativos no Período (Contagem de alvos distintos com comentários)
-        # Hack: Contamos alvos únicos via RPC ou processando pequena amostra se o PostgREST limitar
-        c_res = supa.table('comentarios').select('candidato_id', count='exact').gte('data_coleta', yesterday).limit(1000).execute()
+        # 1. Amostra Total (24h) - Pegamos a contagem exata via cabeçalho HTTP (limit 0)
+        t_res = supa.table('comentarios').select('id', count='exact').gte('data_coleta', yesterday).limit(0).execute()
+        t = t_res.count if (t_res and t_res.count is not None) else 0
+        
+        # 2. Total de Alertas (24h)
+        h_res = supa.table('comentarios').select('id', count='exact').eq('is_hate', True).gte('data_coleta', yesterday).limit(0).execute()
+        h = h_res.count if (h_res and h_res.count is not None) else 0
+        
+        # 3. Total de Alvos Ativos no Período (que tiveram atividade)
+        # Como o PostgREST não faz DISTINCT, usamos uma amostragem rápida
+        c_res = supa.table('comentarios').select('candidato_id').gte('data_coleta', yesterday).limit(1000).execute()
         distinct_targets = set([item['candidato_id'] for item in c_res.data if item.get('candidato_id')])
         c = len(distinct_targets)
         
-        # 2. Amostra Total (24h)
-        t = c_res.count if c_res and c_res.count is not None else 0
-        
-        # 3. Total de Alertas (24h)
-        h_res = supa.table('comentarios').select('id', count='exact').eq('is_hate', True).gte('data_coleta', yesterday).limit(0).execute()
-        h = h_res.count if h_res and h_res.count is not None else 0
-        
-        # 4. Cálculo de Resiliência (24h)
-        res_val = round((t - h) / t * 100, 1) if t > 0 else 100
+        # 4. Cálculo de Resiliência (Saúde da rede)
+        # Se t=0, a rede está "limpa" (100% resiliente)
+        res_val = round(((t - h) / t) * 100, 1) if t > 0 else 100.0
         
         return {
             "total_monitorados": c, 
@@ -119,7 +121,7 @@ def summary(supa: Client = Depends(get_supa)):
             "total_amostra": t, 
             "resiliencia": res_val, 
             "periodo": "24h",
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": now_utc.isoformat()
         }
     except Exception as e:
         logger.error(f"Summary KPI Error: {e}\n{traceback.format_exc()}")
