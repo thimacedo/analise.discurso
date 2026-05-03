@@ -7,7 +7,10 @@
 - **Monetização:** AdSense injetado no feed (a cada 5 posts) e na sidebar direita.
 
 ## ⚠️ Pendências Críticas
-- [ ] Nenhuma. O sistema alcançou estabilidade total na UI e no orquestrador.
+- [ ] Diretório Global de Perfis, Repositório de Dossiês Forenses, Geopolítica UF - Mapa Integrado, Filtros de Inteligência
+
+
+
 
 ## 🛠 Plano de Ação
 - [ ] Iniciar captação de usuários reais e monitorar a receita do AdSense.

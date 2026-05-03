@@ -3,6 +3,7 @@ from playwright.async_api import async_playwright
 import os
 import sys
 import json
+import hashlib
 from datetime import datetime, UTC
 from core.db import db_client 
 
@@ -40,14 +41,18 @@ async def scrape_instagram_comments(username):
         for comment in comments:
             if len(comment) > 5:
                 try:
+                    hash_id = hashlib.md5(comment.encode()).hexdigest()
+                    id_externo = f"ig_{hash_id}"
+                    
                     comment_data = {
                         'candidato_id': username,
                         'texto_bruto': comment,
                         'plataforma': 'INSTAGRAM',
                         'data_coleta': datetime.now(UTC).isoformat(),
-                        'processado_ia': False
+                        'processado_ia': False,
+                        'id_externo': id_externo 
                     }
-                    await db_client.persist_comment(comment_data)
+                    db_client.client.table('comentarios').insert(comment_data).execute()
                     print(f"💾 Persistido: {comment[:30]}...")
                 except Exception as e:
                     print(f"⚠️ Erro ao persistir: {e}")
