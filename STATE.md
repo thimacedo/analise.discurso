@@ -6,7 +6,8 @@
 - **Frontend/UI:** Diamond Edition ativa. KPIs com design semântico e robustez garantida (fallbacks de API via dataService).
 - **Monetização:** AdSense injetado no feed (a cada 5 posts) e na sidebar direita.
 
-## ✅ Concluído (v20.5.4)
+## ✅ Concluído (v20.5.5)
+- **STN-005: Diretório Global de Perfis**: Implementada interface de listagem e busca em tempo real para os 343+ candidatos monitorados, com cartões informativos, métricas de risco PASA e integração direta com o feed de perícia.
 - **Refatoração Implacável (Pickle Rick Mode)**: 
   - `api/index.py`: Eliminado boilerplate de erro, implementada Injeção de Dependência para Supabase, e externalizadas constantes PASA/Risco.
   - `src/services/dataService.js`: Lógica de fetch simplificada com helper assíncrono e retry robusto.

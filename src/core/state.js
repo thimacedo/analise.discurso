@@ -17,6 +17,7 @@ export const state = {
     selectedAlvo: null,
     filterHateOnly: false,
     dashboardSearch: '',
+    directorySearchQuery: '',
     dossieGrouping: 'agressoes',
     dossieSearch: '',
     stn_tokens: 50,   // Amostra grátis de munição forense
