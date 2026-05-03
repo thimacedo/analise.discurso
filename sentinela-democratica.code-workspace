@@ -1,0 +1,21 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"terminal.integrated.defaultProfile.windows": "PowerShell",
+		"ollama-copilot.model": "qwen2.5:3b",
+		"ollama-copilot.chatModel": "qwen2.5:3b",
+		"ollama-copilot.maxTokens": 10000,
+		"chat.disableAIFeatures": true,
+		"workbench.editor.defaultBinaryEditor": "vscode.markdown.preview.editor",
+		"workbench.editor.pinnedTabSizing": "compact",
+		"workbench.editor.showIcons": true,
+		"workbench.editor.showTabIndex": true,
+		"workbench.editor.useModal": "all",
+		"workbench.editor.wrapTabs": true,
+		"window.density.editorTabHeight": "compact"
+	}
+}
