@@ -9,6 +9,7 @@
 ## ✅ Concluído (v20.5.5)
 - **STN-005: Diretório Global de Perfis**: Implementada interface de listagem e busca em tempo real para os 343+ candidatos monitorados, com cartões informativos premium, métricas de risco PASA e integração direta com o feed de análise.
 - **Limpeza Linguística Diamond**: Removida terminologia restrita (perícia, forense, prova) da UI e APIs, substituindo por termos estratégicos como 'Análise', 'Créditos' e 'Dados'.
+- **Correção de Falsos Positivos**: Implementada persistência real para descartes. O endpoint `/alerts/false-positive` agora atualiza o banco de dados (`is_hate = false`) e o frontend invalida o cache e remove o item do estado local, impedindo o retorno à timeline.
 - **Refatoração Implacável (Pickle Rick Mode)**: 
   - `api/index.py`: Eliminado boilerplate de erro, implementada Injeção de Dependência para Supabase, e externalizadas constantes PASA/Risco.
   - `src/services/dataService.js`: Lógica de fetch simplificada com helper assíncrono e retry robusto.

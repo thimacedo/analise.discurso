@@ -79,6 +79,24 @@ class SentinelDataService {
         return this.fetchJson('/alerts/active', { limit, page });
     }
 
+    async markFalsePositive(id) {
+        try {
+            const resp = await fetch(`${API_BASE}/alerts/false-positive`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id })
+            });
+            if (!resp.ok) throw new Error('Falha ao descartar alerta');
+            
+            // Invalida cache local para refletir a mudança no feed
+            this.cache.delete(`${API_BASE}/alerts/active`);
+            return await resp.json();
+        } catch (e) {
+            console.error('[DataService] Error marking false positive:', e);
+            throw e;
+        }
+    }
+
     async fetchMoreAlertas(page = 1, limit = 20) {
         return this.getAlerts(limit, page);
     }

@@ -756,6 +756,28 @@ window.generateTargetDossier = async (username) => {
     }
 };
 
+window.markFalsePositive = async (id) => {
+    try {
+        await dataService.markFalsePositive(id);
+        
+        // Remove do estado local para feedback imediato
+        state.alertas = state.alertas.filter(a => a.id !== id);
+        
+        // Se estiver no feed principal, remove o elemento com animação
+        const el = document.querySelector(`[data-alerta-id="${id}"]`);
+        if (el) {
+            el.style.opacity = '0';
+            el.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                el.remove();
+                if (state.alertas.length === 0) window.debouncedRender();
+            }, 300);
+        }
+    } catch (e) {
+        alert("Falha ao descartar sinal. Tente novamente.");
+    }
+};
+
 window.forceRefresh = () => window.location.reload();
 window.setNetworkView = (view) => { state.networkView = view; state.view = 'networks'; renderAll(); };
 
