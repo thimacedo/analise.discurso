@@ -107,7 +107,40 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         lucide.createIcons();
-        window.buy = (m, a) => alert(`Redirecionando para aquisição de Carga Nível ${a >= 2500 ? 'III' : (a >= 250 ? 'II' : 'I')} via ${m.toUpperCase()}...`);
+        
+        async function buy(method, amount) {
+            if (method === 'pix') {
+                alert("Simulação PIX: 00020126580014BR.GOV.BCB.PIX...");
+                return;
+            }
+
+            const packageSlug = amount >= 2500 ? 'stn_warroom' : (amount >= 250 ? 'stn_squad' : 'stn_starter');
+            
+            // Tenta obter tokens do authService se disponível (via window de index.html)
+            // Caso contrário, informa que precisa login
+            alert(`Redirecionando para aquisição de ${packageSlug.toUpperCase()} via STRIPE...`);
+            
+            try {
+                // Como esta é uma página estática, vamos redirecionar para a API
+                // Em produção, o ideal é ter o token de auth. 
+                // Para este MVP, vamos simular o fluxo.
+                const resp = await fetch('/api/v1/checkout/create-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        user_id: "anonymous_user", # TODO: Pegar do auth real
+                        package_slug: packageSlug
+                    })
+                });
+                
+                const { url } = await resp.json();
+                if (url) window.location.href = url;
+            } catch (e) {
+                console.error(e);
+                alert("Erro ao conectar com o terminal de pagamentos.");
+            }
+        }
+        window.buy = buy;
     </script>
 </body>
 </html>

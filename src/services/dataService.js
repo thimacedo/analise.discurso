@@ -68,6 +68,10 @@ class SentinelDataService {
         return this.fetchJson('/targets', { search, group_by: groupBy, limit });
     }
 
+    async getDossiers(candidato_id = null) {
+        return this.fetchJson('/dossiers', { candidato_id });
+    }
+
     // ── Alertas PASA ──
     async getAlerts(limit = 20, page = 1) {
         return this.fetchJson('/alerts/active', { limit, page });

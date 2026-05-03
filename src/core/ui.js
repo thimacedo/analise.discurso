@@ -114,9 +114,9 @@ function renderCandidateProfile(container) {
                     <span class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Risco</span>
                     <strong class="text-xs font-black" style="color:${a.color || 'var(--danger)'}">${a.score_risco}%</strong>
                 </div>
-                <div class="p-3 bg-blue-50 rounded-lg text-center cursor-pointer hover:bg-blue-100 transition-colors" onclick="window.inspectTarget('${a.username}')">
-                    <span class="block text-[9px] font-bold text-blue-600 uppercase mb-1">Dossiê</span>
-                    <i data-lucide="external-link" class="w-3 h-3 m-auto text-blue-600"></i>
+                <div class="p-3 bg-blue-50 rounded-lg text-center cursor-pointer hover:bg-blue-100 transition-colors" onclick="window.generateTargetDossier('${a.username}')">
+                    <span class="block text-[9px] font-bold text-blue-600 uppercase mb-1">Gerar PDF</span>
+                    <i data-lucide="file-down" class="w-3 h-3 m-auto text-blue-600"></i>
                 </div>
             </div>
         </div>
@@ -453,18 +453,79 @@ function renderNetworkIntelligence() {
         </div>`; 
 }
 
-function renderDossieGrid() { 
-    document.getElementById('view-dossie').innerHTML = `
-        <div class="p-12 text-center bg-white border border-slate-200 rounded-xl animate-in mt-4 flex flex-col items-center justify-center" style="min-height: 60vh;">
-            <div class="w-16 h-16 bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center mb-6 shadow-inner">
-                <i data-lucide="fingerprint" class="w-8 h-8"></i>
-            </div>
-            <h3 class="text-xl font-black text-slate-800 mb-2">Repositório de Dossiês Forenses</h3>
-            <p class="text-sm text-slate-500 max-w-md mx-auto mb-8">O acesso ao banco de PDF gerados (PASA v16.4) é restrito a administradores com verificação TOTP ativa. Solicite a chave de montagem.</p>
-            <button class="px-6 py-3 bg-blue-600 text-white rounded-lg text-[11px] font-black uppercase tracking-widest shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-colors">
-                Verificar Chave Local
+async function renderDossieGrid() { 
+    const container = document.getElementById('view-dossie');
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="flex justify-between items-center mb-6 px-4 pt-4">
+            <h2 class="text-xl font-black text-slate-800">Repositório de Dossiês</h2>
+            <button onclick="window.location.hash='pricing'" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
+                Novo Dossiê
             </button>
-        </div>`; 
+        </div>
+        <div id="dossie-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 px-4">
+            <div class="p-8 text-center bg-white border border-slate-200 rounded-xl col-span-full">
+                <div class="spinner m-auto mb-4"></div>
+                <span class="text-[10px] font-bold text-slate-400">BUSCANDO REGISTROS...</span>
+            </div>
+        </div>
+    `;
+
+    try {
+        const dossiers = await dataService.getDossiers();
+        const listContainer = document.getElementById('dossie-list');
+        
+        if (!dossiers || dossiers.length === 0) {
+            listContainer.innerHTML = `
+                <div class="p-12 text-center bg-white border border-slate-200 rounded-xl col-span-full">
+                    <i data-lucide="file-warning" class="w-12 h-12 text-slate-200 m-auto mb-4"></i>
+                    <p class="text-sm text-slate-400">Nenhum dossiê gerado no repositório.</p>
+                </div>
+            `;
+            if (window.lucide) lucide.createIcons();
+            return;
+        }
+
+        listContainer.innerHTML = dossiers.map(d => `
+            <div class="p-4 bg-white border border-slate-200 rounded-xl hover:shadow-md transition-all group">
+                <div class="flex justify-between items-start mb-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center">
+                            <i data-lucide="file-text" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-black text-slate-800">@${d.candidato_id}</h4>
+                            <span class="text-[9px] text-slate-400 font-bold">${new Date(d.data_geracao).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                    <span class="text-[8px] font-black px-2 py-0.5 bg-slate-100 rounded-full text-slate-500">${d.versao_pasa}</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <div class="p-2 bg-slate-50 rounded-lg">
+                        <span class="text-[8px] text-slate-400 block uppercase font-bold">Amostra</span>
+                        <strong class="text-xs font-black">${d.total_comentarios}</strong>
+                    </div>
+                    <div class="p-2 bg-red-50 rounded-lg">
+                        <span class="text-[8px] text-red-400 block uppercase font-bold">Hostis</span>
+                        <strong class="text-xs font-black text-red-600">${d.total_hate}</strong>
+                    </div>
+                </div>
+                <div class="border-t border-slate-100 pt-3 flex justify-between items-center">
+                    <div class="flex flex-col">
+                        <span class="text-[8px] text-slate-300 font-mono">HASH: ${d.hash_integridade.substring(0, 12)}...</span>
+                    </div>
+                    <a href="${d.arquivo_path}" target="_blank" class="p-2 bg-slate-900 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                        <i data-lucide="download" class="w-3 h-3"></i>
+                    </a>
+                </div>
+            </div>
+        `).join('');
+        
+        if (window.lucide) lucide.createIcons();
+    } catch (e) {
+        console.error('Error rendering dossier grid:', e);
+    }
 }
 
 function renderGeopolitica() { 
@@ -520,6 +581,38 @@ window.inspectTarget = (username) => {
         state.view = 'monitor';
         window.location.hash = 'monitor';
         refreshAndRender();
+    }
+};
+
+window.generateTargetDossier = async (username) => {
+    if (state.stn_tokens < 50) {
+        alert("CRÉDITOS INSUFICIENTES (Mínimo: 50 STN). Adquira munição forense para gerar o levantamento.");
+        window.location.hash = 'pricing';
+        return;
+    }
+
+    if (confirm(`Deseja gastar 50 STN para gerar um Dossiê Forense completo de @${username}?`)) {
+        try {
+            const resp = await fetch('/api/v1/dossiers/generate', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authService.session?.access_token}`
+                },
+                body: JSON.stringify({ candidato_id: username })
+            });
+
+            if (!resp.ok) throw new Error('Falha ao gerar dossiê');
+            
+            const result = await resp.json();
+            alert("DOSSIÊ GERADO COM SUCESSO! Você será redirecionado para o repositório.");
+            state.stn_tokens -= 50;
+            window.location.hash = 'dossie';
+            renderAll();
+        } catch (e) {
+            console.error(e);
+            alert("Erro no motor de inteligência. Tente novamente.");
+        }
     }
 };
 

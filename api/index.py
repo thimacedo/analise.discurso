@@ -1,5 +1,7 @@
-from fastapi import FastAPI, Query, HTTPException, Body
+from fastapi import FastAPI, Query, HTTPException, Body, Request
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import List, Dict, Any, Optional
 from supabase import create_client, Client
 import os
 from dotenv import load_dotenv
@@ -7,6 +9,8 @@ from collections import Counter
 import traceback
 import logging
 from datetime import datetime
+from api.stripe_service import payment_manager
+import stripe
 
 # Configuração de logs
 logging.basicConfig(level=logging.DEBUG)
@@ -18,6 +22,7 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 
 def get_supa():
     try:
@@ -27,6 +32,80 @@ def get_supa():
     except Exception as e:
         logger.error(f"Erro ao conectar com Supabase: {e}")
         return None
+
+# --- PAGAMENTOS & CHECKOUT ---
+
+class CheckoutRequest(BaseModel):
+    user_id: str
+    package_slug: str
+    price_id: Optional[str] = None
+
+@app.post("/api/v1/checkout/create-session")
+def create_checkout(payload: CheckoutRequest):
+    """Inicia fluxo de pagamento Stripe."""
+    try:
+        # Define valor baseado no slug se price_id não vier
+        stn_map = {"stn_starter": 50, "stn_squad": 250, "stn_warroom": 2500}
+        amount = stn_map.get(payload.package_slug, 50)
+        
+        url = payment_manager.create_checkout_session(payload.user_id, amount)
+        return {"url": url}
+    except Exception as e:
+        logger.error(f"Checkout error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v1/webhook/stripe")
+async def stripe_webhook(request: Request):
+    """Processa confirmação de pagamento do Stripe."""
+    payload = await request.body()
+    sig_header = request.headers.get("stripe-signature")
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, STRIPE_WEBHOOK_SECRET
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+        metadata = session.get("metadata", {})
+        user_id = metadata.get("user_id")
+        stn_amount = int(metadata.get("stn_amount", 0))
+        
+        # 1. Credita Tokens no Perfil do Usuário no Supabase
+        supa = get_supa()
+        if supa and user_id:
+            # Busca saldo atual
+            user_res = supa.table('profiles').select('stn_tokens').eq('id', user_id).single().execute()
+            current_stn = user_res.data.get('stn_tokens', 0) if user_res.data else 0
+            
+            # Atualiza saldo
+            supa.table('profiles').update({"stn_tokens": current_stn + stn_amount}).eq('id', user_id).execute()
+            logger.info(f"💰 [WEBHOOK] {stn_amount} STN creditados para {user_id}")
+
+    return {"status": "success"}
+
+# --- DOSSIÊS ---
+
+@app.get("/api/v1/dossiers")
+def list_dossiers(candidato_id: Optional[str] = None):
+    """Lista dossiês gerados e disponíveis."""
+    try:
+        supa = get_supa()
+        if not supa: return []
+        
+        query = supa.table('dossies').select('*')
+        if candidato_id:
+            query = query.eq('candidato_id', candidato_id)
+            
+        res = query.order('data_geracao', desc=True).execute()
+        return res.data
+    except Exception as e:
+        logger.error(f"Error listing dossiers: {e}")
+        return []
+
+# --- CORE API ---
 
 def calculate_risk(item):
     """Calcula score de risco dinâmico para a UI"""

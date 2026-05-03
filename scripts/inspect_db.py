@@ -11,20 +11,11 @@ HEADERS = {
     "Authorization": f"Bearer {SUPABASE_KEY}"
 }
 
-url = f"{SUPABASE_URL}/rest/v1/comentarios?select=processado_ia,is_hate,categoria_ia&limit=100"
-resp = httpx.get(url, headers=HEADERS)
-if resp.status_code == 200:
-    data = resp.json()
-    print(f"Total amostra: {len(data)}")
-    unprocessed = [d for d in data if not d.get('processado_ia')]
-    hate = [d for d in data if d.get('is_hate')]
-    print(f"Não processados: {len(unprocessed)}")
-    print(f"Com ódio: {len(hate)}")
-    
-    categories = {}
-    for d in data:
-        cat = d.get('categoria_ia', 'NULL')
-        categories[cat] = categories.get(cat, 0) + 1
-    print(f"Categorias: {categories}")
+# Verifica se a tabela profiles existe e tem stn_tokens
+url_profiles = f"{SUPABASE_URL}/rest/v1/profiles?select=stn_tokens&limit=1"
+resp_profiles = httpx.get(url_profiles, headers=HEADERS)
+if resp_profiles.status_code == 200:
+    print("✅ Tabela 'profiles' ok.")
+    print(f"Dados: {resp_profiles.json()}")
 else:
-    print(f"Erro: {resp.status_code} - {resp.text}")
+    print(f"❌ Tabela 'profiles' erro: {resp_profiles.status_code} - {resp_profiles.text}")
