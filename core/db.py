@@ -165,4 +165,30 @@ class DatabaseClient:
         except Exception as e:
             print(f"❌ [DB] Erro ao atualizar anúncio {ad_id}: {e}")
 
+    async def persist_dossier(self, data: Dict[str, Any]):
+        """Salva metadados de um novo dossiê forense."""
+        if not self.client: return
+        try:
+            res = self.client.table('dossies').insert(data).execute()
+            print(f"✅ [DB] Dossiê persistido: {data.get('hash_integridade')[:10]}...")
+            return res.data
+        except Exception as e:
+            print(f"❌ [DB] Erro ao persistir dossiê: {e}")
+            return None
+
+    async def fetch_dossier_history(self, candidato_id: str, limit: int = 20) -> List[Dict[str, Any]]:
+        """Recupera o histórico de dossiês estruturados de um candidato."""
+        if not self.client: return []
+        try:
+            res = self.client.table('dossies')\
+                .select('*')\
+                .eq('candidato_id', candidato_id)\
+                .order('data_geracao', ascending=False)\
+                .limit(limit)\
+                .execute()
+            return res.data
+        except Exception as e:
+            print(f"❌ [DB] Erro ao buscar histórico de dossiês: {e}")
+            return []
+
 db_client = DatabaseClient()
