@@ -1,6 +1,6 @@
 # Triagem de Estado e Pendências (Sentinela)
 
-## 📊 Estado Geral (v20.5.1)
+## 📊 Estado Geral (v20.5.2)
 - **Operacional:** Sim. Fullstack Estável.
 - **Backend/IA:** Integração Ollama (GGUF) unificada e com fallback inteligente. Latência rastreada.
 - **Frontend/UI:** Diamond Edition ativa. KPIs com design semântico e robustez garantida (fallbacks de API via dataService).
