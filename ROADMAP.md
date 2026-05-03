@@ -26,6 +26,12 @@ O Sentinela Democrática visa ser uma plataforma robusta para coleta, análise e
 
 ## Fase 2: Desenvolvimento do Motor de Inteligência (SOON)
 
+### Épico: STN-003 - Integração Meta Ad Library (ACTIVE)
+*   **Status:** Ticket Breakdown Concluído (Local).
+*   **Objetivo:** Capturar anúncios financiados para identificar fluxos de desinformação paga.
+*   **Componentes Principais:** `core/meta_ad_service.py`, Schema de banco `meta_ads`, Integração com `AIService` (PASA).
+*   **Foco:** Monitoramento proativo de financiamento político.
+
 ### Épico: STN-002 - Motor de Inteligência PASA v16.4
 *   **Status:** Pesquisa Concluída (aguardando definição externa da lógica PASA); Pesquisa e Revisão documentadas internamente.
 *   **Objetivo:** Integrar regras PASA v16.4 ao pipeline de processamento.
