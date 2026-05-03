@@ -34,9 +34,13 @@ class MetaAdScraper:
                 await page.mouse.wheel(0, 1000)
                 await asyncio.sleep(2)
 
-                # Seletores para os cards de anúncios (padrão 2026)
-                cards = await page.query_selector_all('div[role="main"] div.x1iyjqo2')
+                # Tentativa de seletor mais robusto, buscando por containers de cards de anúncio
+                cards = await page.query_selector_all('div[data-testid="ad-library-ad-card"], div.x1y1ht1m')
                 print(f"     📊 {len(cards)} cards de anúncios detectados visualmente.")
+
+                if len(cards) == 0:
+                    await page.screenshot(path="debug_meta_ads.png")
+                    print("📸 [DEBUG] Nenhum anúncio encontrado. Screenshot salvo em debug_meta_ads.png")
 
                 for card in cards:
                     try:
