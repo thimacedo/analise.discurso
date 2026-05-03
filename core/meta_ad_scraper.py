@@ -33,22 +33,30 @@ class MetaAdScraper:
                 Object.defineProperty(navigator, 'webdriver', {get: () => undefined})
             """)
             
-            # Carrega cookies se existirem
-            if os.path.exists("cookies.txt"):
-                with open("cookies.txt", "r") as f:
-                    cookies = json.load(f)
-                    await context.add_cookies(cookies)
+            # Carrega cookies se existirem e não estiverem vazios
+            if os.path.exists("cookies.txt") and os.path.getsize("cookies.txt") > 0:
+                try:
+                    with open("cookies.txt", "r") as f:
+                        cookies = json.load(f)
+                        await context.add_cookies(cookies)
+                except json.JSONDecodeError:
+                    print("⚠️ [DEBUG] cookies.txt está corrompido. Ignorando.")
+            else:
+                print("⚠️ [DEBUG] cookies.txt vazio ou inexistente. Raspando sem sessão.")
             
             try:
-                await page.goto(search_url, wait_until="domcontentloaded", timeout=60000)
-                await asyncio.sleep(5) # Aguarda renderização dos cards
+                # Acessa a página limpa
+                await page.goto("https://www.facebook.com/ads/library/?active_status=all&ad_type=all&country=BR", wait_until="networkidle")
                 
-                # Scroll para carregar mais anúncios
-                await page.mouse.wheel(0, 1000)
-                await asyncio.sleep(2)
-
-                # Tentativa de seletor mais robusto, buscando por containers de cards de anúncio
-                cards = await page.query_selector_all('div[data-testid="ad-library-ad-card"], div.x1y1ht1m')
+                # Digita na busca
+                search_input = page.get_by_placeholder("Pesquisar por palavra-chave ou anunciante")
+                await search_input.fill(username)
+                await search_input.press("Enter")
+                
+                await asyncio.sleep(8) # Espera a busca processar
+                
+                # Seletor de "desespero": busca por qualquer div que contenha a estrutura de um card
+                cards = await page.query_selector_all('div.x1iyjqo2, div[data-ad-preview="message"], div[class*="AdLibraryAdCard"]')
                 print(f"     📊 {len(cards)} cards de anúncios detectados visualmente.")
 
                 if len(cards) == 0:
