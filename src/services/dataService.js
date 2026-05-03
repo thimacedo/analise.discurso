@@ -13,38 +13,28 @@ class SentinelDataService {
     }
 
     async fetchJson(endpoint, params = {}) {
-        const url = new URL(`${API_BASE}${endpoint}`, window.location.origin);
-        Object.entries(params).forEach(([key, val]) => {
-            if (val !== undefined && val !== null) url.searchParams.set(key, val);
-        });
-
-        const cacheKey = url.toString();
+        const queryParams = new URLSearchParams(params).toString();
+        const path = `${endpoint}${queryParams ? '?' + queryParams : ''}`;
+        const cacheKey = `${API_BASE}${path}`;
+        
         const cached = this.cache.get(cacheKey);
-        if (cached && Date.now() - cached.timestamp < this.cacheTTL) {
-            return cached.data;
-        }
+        if (cached && Date.now() - cached.timestamp < this.cacheTTL) return cached.data;
+
+        const tryFetch = async (baseUrl) => {
+            const response = await fetch(`${baseUrl}${path}`);
+            if (!response.ok) throw new Error(`API Error: ${response.status}`);
+            return await response.json();
+        };
 
         try {
-            // TENTATIVA 1: Prioridade Vercel (Caminho Relativo)
-            const response = await fetch(url.toString());
-            if (!response.ok) throw new Error(`API Error: ${response.status}`);
-            const data = await response.json();
-
+            const data = await tryFetch(window.SENTINELA_CONFIG.apiUrl);
             state.lastSyncAt = new Date().toISOString();
             this.cache.set(cacheKey, { data, timestamp: Date.now() });
             return data;
         } catch (error) {
-            // TENTATIVA 2: Fallback Local (Porta 8000) caso Vercel falhe/não exista
+            console.warn(`[SentinelDataService] Primary path failed. Retrying fallback for ${endpoint}...`);
             try {
-                console.warn(`[SentinelDataService] Vercel path failed. Retrying local fallback for ${endpoint}...`);
-                const fallbackUrl = new URL(`${window.SENTINELA_CONFIG.localFallbackUrl}${endpoint}`, window.location.origin);
-                Object.entries(params).forEach(([key, val]) => {
-                    if (val !== undefined && val !== null) fallbackUrl.searchParams.set(key, val);
-                });
-                
-                const fbResponse = await fetch(fallbackUrl.toString());
-                if (!fbResponse.ok) throw new Error(`Fallback Error: ${fbResponse.status}`);
-                return await fbResponse.json();
+                return await tryFetch(window.SENTINELA_CONFIG.localFallbackUrl);
             } catch (fbError) {
                 console.warn(`[SentinelDataService] All paths failed for ${endpoint}`);
                 return this.getFallbackData(endpoint);

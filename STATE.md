@@ -6,9 +6,12 @@
 - **Frontend/UI:** Diamond Edition ativa. KPIs com design semântico e robustez garantida (fallbacks de API via dataService).
 - **Monetização:** AdSense injetado no feed (a cada 5 posts) e na sidebar direita.
 
-## ✅ Concluído (v20.5.3)
+## ✅ Concluído (v20.5.4)
+- **Refatoração Implacável (Pickle Rick Mode)**: 
+  - `api/index.py`: Eliminado boilerplate de erro, implementada Injeção de Dependência para Supabase, e externalizadas constantes PASA/Risco.
+  - `src/services/dataService.js`: Lógica de fetch simplificada com helper assíncrono e retry robusto.
+  - `src/core/app.js` & `src/services/authService.js`: Removida duplicação de configurações sensíveis, centralizando tudo em `src/config.js`.
 - **Correção de Conectividade e KPIs**: Resolvido conflito de portas local (3000 vs 8000) via detecção dinâmica em `src/config.js`.
-- **Otimização Diamond de KPIs**: Rota `/summary` refatorada para performance, utilizando contagens `limit(0)` e cache de counters na tabela `candidatos`, evitando sobrecarga na tabela `comentarios`.
 - **STN-001: Repositório de Dossiês Forenses**: Implementada infraestrutura de persistência estruturada no Supabase com hash de integridade SHA-256 e metadados forenses automáticos.
 - **Integração Meta Ad Library (Epico STN-003)**: Monitoramento de anúncios pagos via API oficial (Ads Archive).
   - Implementado `core/meta_ad_service.py` com busca assíncrona e normalização.
