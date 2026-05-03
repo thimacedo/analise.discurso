@@ -4,7 +4,7 @@ import os
 import sys
 import json
 from datetime import datetime, UTC
-from core.db import db_client # Importando o cliente real
+from core.db import db_client 
 
 # Garante que o diretório raiz está no path de forma absoluta e forçada
 sys.path.append(r"E:\Projetos\sentinela-democratica")
@@ -24,8 +24,10 @@ async def scrape_instagram_comments(username):
         page = await context.new_page()
         
         print(f"🌍 Navegando para: https://www.instagram.com/{username}/")
-        await page.goto(f"https://www.instagram.com/{username}/", wait_until="networkidle")
+        # Mudança cirúrgica: networkidle trava com telemetria, domcontentloaded é o caminho
+        await page.goto(f"https://www.instagram.com/{username}/", wait_until="domcontentloaded", timeout=60000)
         
+        # Espera forçada para o DOM renderizar
         await asyncio.sleep(15) 
         
         # Extração
