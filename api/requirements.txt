@@ -1,9 +1,10 @@
 fastapi
+uvicorn
 supabase
 python-dotenv
 httpx
-pyotp
-uvicorn
-mangum
+stripe
 pydantic
 pydantic-settings
+traceback-with-variables
+mangum
