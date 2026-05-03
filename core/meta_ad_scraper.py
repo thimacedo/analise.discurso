@@ -1,6 +1,7 @@
 import os
 import re
 import asyncio
+import json
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 from playwright.async_api import async_playwright, Browser, Page
@@ -26,10 +27,11 @@ class MetaAdScraper:
                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
             )
             
-            # Aplica stealth
-            from playwright_stealth import stealth_async
+            # Aplica stealth manualmente via script de inicialização
             page = await context.new_page()
-            await stealth_async(page)
+            await page.add_init_script("""
+                Object.defineProperty(navigator, 'webdriver', {get: () => undefined})
+            """)
             
             # Carrega cookies se existirem
             if os.path.exists("cookies.txt"):
