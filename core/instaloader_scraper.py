@@ -1,6 +1,7 @@
 import os
 import time
 import instaloader
+import random
 from supabase import create_client, Client
 from dotenv import load_dotenv
 from datetime import datetime, UTC
@@ -23,6 +24,11 @@ class InstagramFortress:
             request_timeout=30
         )
         self.session_file = "sentinela_ig_session"
+        
+    def _human_pause(self, min_sec=10, max_sec=30):
+        pause = random.uniform(min_sec, max_sec)
+        print(f"     ⏳ Pausa humana de {pause:.2f} segundos...")
+        time.sleep(pause)
         
     def login(self):
         """Faz login seguro e salva a sessão local para não precisar repetir."""
@@ -66,7 +72,6 @@ class InstagramFortress:
             return
             
         # 1. Busca alvos no banco que ainda não foram raspados
-        # Nota: Ajustado para usar .is_('last_scraped_at', 'null') conforme solicitado
         try:
             response = supabase.table('candidatos')\
                 .select('id, username')\
@@ -134,9 +139,9 @@ class InstagramFortress:
                     except Exception as e:
                         print(f"     ⚠️ Erro nos comentários do post {post.shortcode}: {e}")
                         
-                    time.sleep(3) # Pausa entre posts (Anti-Ban)
+                    self._human_pause(20, 60) # Pausa entre posts (Anti-Ban)
                     
-                time.sleep(5) # Pausa entre perfis (Anti-Ban)
+                self._human_pause(60, 180) # Pausa entre perfis (Anti-Ban)
                 
             except instaloader.exceptions.LoginRequiredException:
                 print("🚫 Sessão expirada. Delete o arquivo 'sentinela_ig_session' e rode novamente.")
