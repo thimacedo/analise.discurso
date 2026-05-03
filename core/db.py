@@ -137,4 +137,32 @@ class DatabaseClient:
         except Exception as e:
             print(f"❌ [DB] Erro ao persistir anúncio {data.get('ad_id')}: {e}")
 
+    async def persist_ads_batch(self, ads: List[Dict[str, Any]]):
+        """Persiste múltiplos anúncios em lote."""
+        if not self.client or not ads: return
+        try:
+            # Supabase permite upsert de lista
+            self.client.table('anuncios').upsert(ads, on_conflict='ad_id').execute()
+            print(f"✅ [DB] {len(ads)} anúncios processados em lote.")
+        except Exception as e:
+            print(f"❌ [DB] Erro ao persistir lote de anúncios: {e}")
+
+    async def fetch_unprocessed_ads(self, limit: int = 50) -> List[Dict[str, Any]]:
+        """Busca anúncios que ainda não foram processados pela IA."""
+        if not self.client: return []
+        try:
+            res = self.client.table('anuncios').select('*').eq('processado_ia', False).limit(limit).execute()
+            return res.data
+        except Exception as e:
+            print(f"❌ [DB] Erro ao buscar anúncios não processados: {e}")
+            return []
+
+    async def update_ad_classification(self, ad_id: str, data: Dict[str, Any]):
+        """Atualiza a classificação de um único anúncio."""
+        if not self.client: return
+        try:
+            self.client.table('anuncios').update(data).eq('id', ad_id).execute()
+        except Exception as e:
+            print(f"❌ [DB] Erro ao atualizar anúncio {ad_id}: {e}")
+
 db_client = DatabaseClient()
