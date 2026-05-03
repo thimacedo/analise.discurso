@@ -663,6 +663,9 @@ function renderDirectory() {
                                     <span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full text-[8px] font-black">${c.estado || 'BR'}</span>
                                 </div>
                             </div>
+                            <div class="py-2">
+                                <span class="text-[10px] font-black text-slate-800 uppercase block truncate">${c.nome_completo || 'Identidade Pendente'}</span>
+                            </div>
                             <div class="grid grid-cols-2 gap-2 py-3 border-t border-slate-50">
                                 <div>
                                     <span class="text-[8px] text-slate-400 font-bold uppercase block">Seguidores</span>
@@ -674,7 +677,7 @@ function renderDirectory() {
                                 </div>
                             </div>
                             <button class="w-full mt-2 py-2.5 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all hover:bg-blue-600 shadow-lg shadow-slate-200 group-hover:shadow-blue-100">
-                                Abrir Análise
+                                Abrir Timeline
                             </button>
                         </div>
                     `;
