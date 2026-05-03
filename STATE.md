@@ -7,6 +7,7 @@
 - **Monetização:** AdSense injetado no feed (a cada 5 posts) e na sidebar direita.
 
 ## ✅ Concluído (v20.5.2)
+- **STN-001: Repositório de Dossiês Forenses**: Implementada infraestrutura de persistência estruturada no Supabase com hash de integridade SHA-256 e metadados forenses automáticos.
 - **Integração Meta Ad Library (Epico STN-003)**: Monitoramento de anúncios pagos via API oficial (Ads Archive).
   - Implementado `core/meta_ad_service.py` com busca assíncrona e normalização.
   - Implementado `processing/ad_processor.py` com classificação PASA v16.4.
