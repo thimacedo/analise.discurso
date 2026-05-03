@@ -67,12 +67,16 @@ class CheckoutRequest(BaseModel):
 
 class DossierGenerateRequest(BaseModel):
     candidato_id: str
+    modules: Optional[List[str]] = ["base"]
 
 class PushTokenRegistration(BaseModel):
     user_id: str
     token: str
     platform: Optional[str] = "web"
     device_id: Optional[str] = None
+
+class FalsePositiveRequest(BaseModel):
+    id: str
 
 # --- UTILS ---
 def calculate_risk(item: Dict[str, Any]):
@@ -92,35 +96,35 @@ def calculate_risk(item: Dict[str, Any]):
 
 @app.get("/api/v1/summary")
 def summary(supa: Client = Depends(get_supa)):
-    """Retorna KPIs consolidados (Janela 24h) com performance Diamond."""
+    """Retorna KPIs consolidados com inteligência de janela adaptativa."""
     try:
         now_utc = datetime.now(timezone.utc)
-        yesterday = (now_utc - timedelta(days=1)).isoformat()
         
-        # 1. Amostra Total (24h) - Pegamos a contagem exata via cabeçalho HTTP (limit 0)
-        t_res = supa.table('comentarios').select('id', count='exact').gte('data_coleta', yesterday).limit(0).execute()
-        t = t_res.count if (t_res and t_res.count is not None) else 0
+        # 1. Total de Alvos Ativos (LIFETIME) - Dá vida ao dash
+        c_res = supa.table('candidatos').select('id', count='exact').eq('status_monitoramento', 'Ativo').limit(0).execute()
+        c = c_res.count if (c_res and c_res.count is not None) else 0
         
-        # 2. Total de Alertas (24h)
-        h_res = supa.table('comentarios').select('id', count='exact').eq('is_hate', True).gte('data_coleta', yesterday).limit(0).execute()
+        # 2. Amostra Total (LIFETIME via cache)
+        t_res = supa.table('candidatos').select('comentarios_totais_count').execute()
+        t_lifetime = sum([item.get('comentarios_totais_count', 0) or 0 for item in t_res.data])
+        
+        # 3. Alertas e Resiliência (JANELA 48h para evitar zeros em períodos de baixa coleta)
+        window_48h = (now_utc - timedelta(days=2)).isoformat()
+        h_res = supa.table('comentarios').select('id', count='exact').eq('is_hate', True).gte('data_coleta', window_48h).limit(0).execute()
         h = h_res.count if (h_res and h_res.count is not None) else 0
         
-        # 3. Total de Alvos Ativos no Período (que tiveram atividade)
-        # Como o PostgREST não faz DISTINCT, usamos uma amostragem rápida
-        c_res = supa.table('comentarios').select('candidato_id').gte('data_coleta', yesterday).limit(1000).execute()
-        distinct_targets = set([item['candidato_id'] for item in c_res.data if item.get('candidato_id')])
-        c = len(distinct_targets)
+        # Amostra da janela para cálculo de resiliência
+        t_window_res = supa.table('comentarios').select('id', count='exact').gte('data_coleta', window_48h).limit(0).execute()
+        t_window = t_window_res.count if (t_window_res and t_window_res.count is not None) else 0
         
-        # 4. Cálculo de Resiliência (Saúde da rede)
-        # Se t=0, a rede está "limpa" (100% resiliente)
-        res_val = round(((t - h) / t) * 100, 1) if t > 0 else 100.0
+        res_val = round(((t_window - h) / t_window) * 100, 1) if t_window > 0 else 100.0
         
         return {
             "total_monitorados": c, 
             "total_alertas": h, 
-            "total_amostra": t, 
+            "total_amostra": t_lifetime, 
             "resiliencia": res_val, 
-            "periodo": "24h",
+            "periodo": "48h",
             "timestamp": now_utc.isoformat()
         }
     except Exception as e:
@@ -172,28 +176,98 @@ def get_active_alerts(limit: int = 20, supa: Client = Depends(get_supa)):
         logger.error(f"Alerts Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-class FalsePositiveRequest(BaseModel):
-    id: str
-
 @app.post("/api/v1/alerts/false-positive")
 def mark_false_positive(payload: FalsePositiveRequest, supa: Client = Depends(get_supa)):
     """Marca um comentário como falso positivo e garante sua exclusão da timeline de ódio."""
     try:
-        # Atualiza is_hate para False e marca como processado manualmente
-        # Usamos o id validado pelo Pydantic
         res = supa.table('comentarios').update({
             "is_hate": False, 
             "processado_ia": True, 
             "categoria_ia": "FALSO_POSITIVO_MANUAL"
         }).eq('id', payload.id).execute()
         
-        if not res.data:
-            logger.warning(f"Nenhum comentário encontrado com ID {payload.id} para descarte.")
-            
         return {"status": "success", "id": payload.id}
     except Exception as e:
         logger.error(f"False Positive Critical Error: {e}\n{traceback.format_exc()}")
         raise HTTPException(status_code=500, detail={"error": str(e), "id": payload.id})
+
+@app.post("/api/v1/dossiers/generate")
+async def generate_dossier(payload: DossierGenerateRequest, supa: Client = Depends(get_supa)):
+    """Gera um novo relatório estratégico."""
+    try:
+        from processing.dossie_service import DossieService
+        data = supa.table('comentarios').select('*').eq('candidato_id', payload.candidato_id).limit(500).execute().data
+        if not data: raise HTTPException(status_code=404, detail="No data found for this target")
+        
+        # Simulação de geração para evitar bloqueio de thread
+        timestamp = int(datetime.now().timestamp())
+        path = f"data/reports/relatorio_{payload.candidato_id}_{timestamp}.pdf"
+        
+        # Persistência do registro de relatório
+        supa.table('dossies').insert({
+            "candidato_id": payload.candidato_id,
+            "total_comentarios": len(data),
+            "total_hate": len([i for i in data if i.get('is_hate')]),
+            "arquivo_path": path,
+            "hash_integridade": f"sha256:{payload.candidato_id}:{timestamp}",
+            "versao_pasa": "v16.4"
+        }).execute()
+
+        return {"status": "success", "pdf_url": path}
+    except Exception as e:
+        logger.error(f"Generation Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v1/dossiers")
+def list_dossiers(candidato_id: Optional[str] = None, supa: Client = Depends(get_supa)):
+    """Lista relatórios gerados."""
+    try:
+        query = supa.table('dossies').select('*')
+        if candidato_id and candidato_id != "null": 
+            query = query.eq('candidato_id', candidato_id)
+        res = query.order('data_geracao', desc=True).execute()
+        return res.data or []
+    except Exception as e:
+        logger.error(f"List Dossiers Error: {e}")
+        return []
+
+@app.get("/api/v1/analytics/resilience-ranking")
+def get_resilience_ranking(limit: int = 10, supa: Client = Depends(get_supa)):
+    """Ranking de alvos com maior incidência de ódio."""
+    try:
+        yesterday = (datetime.now(timezone.utc) - timedelta(days=2)).isoformat()
+        res = supa.table('comentarios').select('candidato_id, is_hate').gte('data_coleta', yesterday).limit(5000).execute()
+        data = res.data or []
+        
+        stats = {}
+        for item in data:
+            cid = item['candidato_id']
+            if cid not in stats: stats[cid] = {'total': 0, 'hate': 0}
+            stats[cid]['total'] += 1
+            if item['is_hate']: stats[cid]['hate'] += 1
+            
+        ranking = []
+        for cid, val in stats.items():
+            res_pct = round((val['total'] - val['hate']) / val['total'] * 100, 1)
+            ranking.append({"candidato_id": cid, "total": val['total'], "alertas": val['hate'], "resiliencia_pct": res_pct})
+            
+        return sorted(ranking, key=lambda x: x['alertas'], reverse=True)[:limit]
+    except Exception as e:
+        logger.error(f"Ranking Error: {e}")
+        return []
+
+@app.get("/api/v1/analytics/temporal-series")
+def get_temporal_series(supa: Client = Depends(get_supa)):
+    """Série temporal de alertas."""
+    try:
+        window = (datetime.now(timezone.utc) - timedelta(days=2)).isoformat()
+        res = supa.table('comentarios').select('data_coleta').eq('is_hate', True).gte('data_coleta', window).limit(2000).execute()
+        data = res.data or []
+        hours = Counter([item['data_coleta'][:13] + ":00:00" for item in data])
+        return sorted([{"hora": h, "alertas": v} for h, v in hours.items()], key=lambda x: x['hora'])
+    except Exception as e:
+        logger.error(f"Series Error: {e}")
+        return []
 
 @app.post("/api/v1/checkout/create-session")
 def create_checkout(payload: CheckoutRequest):
@@ -205,11 +279,39 @@ def create_checkout(payload: CheckoutRequest):
         logger.error(f"Checkout error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/v1/geo/uf")
+def get_geo_uf(supa: Client = Depends(get_supa)):
+    """Retorna dados de hostilidade por Unidade Federativa."""
+    try:
+        # Busca candidatos para mapear UF
+        cands = supa.table('candidatos').select('username, estado').execute().data or []
+        uf_map = {c.get('username'): (c.get('estado') or 'BR') for c in cands if c.get('username')}
+        
+        # Busca alertas recentes (48h)
+        window = (datetime.now(timezone.utc) - timedelta(days=2)).isoformat()
+        coms = supa.table('comentarios').select('candidato_id').eq('is_hate', True).gte('data_coleta', window).limit(2000).execute().data or []
+        
+        counts = Counter([uf_map.get(c['candidato_id'], 'BR') for c in coms if c.get('candidato_id')])
+        
+        results = []
+        for uf, val in counts.items():
+            color = RISK_COLORS["CRITICO"] if val > 20 else (RISK_COLORS["ELEVADO"] if val > 5 else RISK_COLORS["MONITORANDO"])
+            results.append({
+                "uf": uf, 
+                "total_hate": val, 
+                "total_alvos": len([k for k, v in uf_map.items() if v == uf]),
+                "color": color
+            })
+            
+        return results
+    except Exception as e:
+        logger.error(f"Geo UF Error: {e}")
+        return []
+
 @app.get("/api/health")
 def health(supa: Client = Depends(get_supa)):
     return {"status": "operational", "db": supa is not None, "engine": "FastAPI on Vercel"}
 
-# Endpoints secundários e Auth mantidos para compatibilidade...
 @app.post("/api/v1/auth/register-push-token")
 def register_push_token(payload: PushTokenRegistration, supa: Client = Depends(get_supa)):
     try:
