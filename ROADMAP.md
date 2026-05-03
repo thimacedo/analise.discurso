@@ -1,21 +1,22 @@
-# ROADMAP - Projeto Sentinela Democrática
+# ROADMAP - Projeto Sentinela Democrática (Diamond Edition)
 
 ## Visão Geral
-Refatoração e padronização do sistema de workers e agentes para garantir consistência técnica, segurança e conformidade forense (PASA v16.4).
+Monitoramento situacional de alto desempenho para as Eleições 2026. Foco em detecção de ódio, redes coordenadas e transparência democrática (PASA v16.4).
 
-## Status Atual
-- [x] Pesquisa técnica (Linguística Forense + Estratégia de Feed).
-- [ ] Implementação do Validador MCP (`validator_mcp.py`).
-- [ ] Criação e aplicação das System Instructions (SI) para os Workers.
-- [ ] Atualização dos scripts de coleta e classificação.
+## Status Atual (v20.5.4)
+- [x] **Conectividade Vercel**: Resolvido conflito de portas e priorizado caminho relativo `/api/v1`.
+- [x] **KPIs 24h**: Dashboard operando com janela móvel de 24 horas (Alvos, Alertas, Amostra).
+- [x] **Refatoração Implacável**: Backend e DataService limpos de 'AI Slop' e otimizados para performance.
+- [x] **Persistência de Dossiês**: Infraestrutura STN-001 concluída e testada.
+- [ ] **Segurança RLS**: Script de blindagem pronto, aguardando execução no DB.
 
-## Próximos Passos
-1. **Implementar Validador MCP:** Finalizar e colocar em produção o `validator_mcp.py`.
-2. **Treinar Workers:** Atualizar as System Instructions de cada worker para incluir a chamada obrigatória ao `validate_worker_standard`.
-3. **Refatoração Forense:** Ajustar os scripts de coleta para aplicar a lógica de severidade PASA e o cálculo de Relevância Diamond.
-4. **Governança:** Registrar todas as mudanças no histórico de commits seguindo o padrão definido.
+## Próximos Passos (Backlog Ativo)
+1. **STN-005: Diretório Global de Perfis**: Implementar visualização e busca para os 343+ candidatos mapeados.
+2. **STN-006: Geopolítica UF**: Integração do mapa vetorial D3.js com dados reais de hostilidade por estado.
+3. **STN-007: Refatoração AIService**: Consolidar lógica de cascata (Gemini/Groq/Ollama) e reduzir latência de inferência.
+4. **STN-003: Meta Ad Library**: Finalizar painel visual para anúncios detectados.
 
 ## Instruções de Execução
-- Use `npx @wonderwhy-er/desktop-commander@latest` para interagir.
-- Sempre verifique o `PWD` antes de rodar qualquer script em `E:\Projetos\sentinela-democratica`.
-- Validar código via `validate_worker_standard` antes de qualquer commit.
+- Priorizar arquitetura 'Local-First' com fallback para Nuvem.
+- Validar conformidade PASA em todas as mudanças de classificação.
+- Manter o `STATE.md` atualizado após cada ciclo de entrega.
