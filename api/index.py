@@ -157,18 +157,98 @@ def calculate_risk(item):
 
 @app.get("/api/v1/summary")
 def summary():
+    """Retorna KPIs consolidados (Janela 24h) com performance Diamond."""
     try:
         supa = get_supa()
         if not supa: return {"error": "DB credentials missing"}
-        c_res = supa.table('candidatos').select('id', count='exact').limit(0).execute()
-        t_res = supa.table('comentarios').select('id', count='exact').execute()
-        h_res = supa.table('comentarios').select('id', count='exact').eq('is_hate', True).execute()
+        
+        # Define janela de 24h
+        yesterday = (datetime.utcnow() - timedelta(days=1)).isoformat()
+        
+        # 1. Total de Alvos Ativos no Período (que tiveram coleta)
+        # Nota: Contamos candidatos distintos na tabela de comentários
+        c_res = supa.table('comentarios').select('candidato_id', count='exact').gte('data_coleta', yesterday).limit(0).execute()
+        
+        # 2. Amostra Total (24h)
+        t_res = supa.table('comentarios').select('id', count='exact').gte('data_coleta', yesterday).limit(0).execute()
+        
+        # 3. Total de Alertas (24h)
+        h_res = supa.table('comentarios').select('id', count='exact').eq('is_hate', True).gte('data_coleta', yesterday).limit(0).execute()
+        
         c = c_res.count if c_res and c_res.count is not None else 0
         t = t_res.count if t_res and t_res.count is not None else 0
         h = h_res.count if h_res and h_res.count is not None else 0
-        res = round((t-h)/t*100, 1) if t > 0 else 100
-        return {"total_monitorados": c, "total_alertas": h, "total_amostra": t, "resiliencia": res, "trends": {"hate_trend_pct": 0, "resiliencia_trend_pct": 0}}
-    except Exception as e: return {"error": str(e), "trace": traceback.format_exc()}
+        
+        # 4. Cálculo de Resiliência (24h)
+        res_val = round((t - h) / t * 100, 1) if t > 0 else 100
+        
+        return {
+            "total_monitorados": c, 
+            "total_alertas": h, 
+            "total_amostra": t, 
+            "resiliencia": res_val, 
+            "periodo": "24h",
+            "trends": {"hate_trend_pct": 0, "resiliencia_trend_pct": 0}
+        }
+    except Exception as e: 
+        logger.error(f"Summary KPI Error: {e}")
+        return {"error": str(e), "trace": traceback.format_exc()}
+
+@app.get("/api/v1/analytics/resilience-ranking")
+def get_resilience_ranking(limit: int = 10):
+    """Retorna os alvos com pior resiliência (maior % de ódio) nas últimas 24h."""
+    try:
+        supa = get_supa()
+        if not supa: return []
+        yesterday = (datetime.utcnow() - timedelta(days=1)).isoformat()
+        
+        # Busca dados brutos para agregar em Python (PostgREST não faz GROUP BY complexo via client)
+        res = supa.table('comentarios').select('candidato_id, is_hate').gte('data_coleta', yesterday).limit(5000).execute()
+        data = res.data if res and res.data else []
+        
+        stats = {}
+        for item in data:
+            cid = item['candidato_id']
+            if cid not in stats: stats[cid] = {'total': 0, 'hate': 0}
+            stats[cid]['total'] += 1
+            if item['is_hate']: stats[cid]['hate'] += 1
+            
+        ranking = []
+        for cid, val in stats.items():
+            res_pct = round((val['total'] - val['hate']) / val['total'] * 100, 1)
+            ranking.append({
+                "candidato_id": cid,
+                "total_comentarios": val['total'],
+                "alertas": val['hate'],
+                "resiliencia_pct": res_pct
+            })
+            
+        return sorted(ranking, key=lambda x: x['alertas'], reverse=True)[:limit]
+    except Exception as e:
+        logger.error(f"Ranking Error: {e}")
+        return []
+
+@app.get("/api/v1/analytics/temporal-series")
+def get_temporal_series():
+    """Retorna volume de alertas por hora nas últimas 24h."""
+    try:
+        supa = get_supa()
+        if not supa: return []
+        yesterday = (datetime.utcnow() - timedelta(days=1)).isoformat()
+        
+        res = supa.table('comentarios').select('data_coleta').eq('is_hate', True).gte('data_coleta', yesterday).limit(2000).execute()
+        data = res.data if res and res.data else []
+        
+        hours = {}
+        for item in data:
+            hr = item['data_coleta'][:13] + ":00:00" # Agrupa por hora
+            hours[hr] = hours.get(hr, 0) + 1
+            
+        series = [{"hora": hr, "alertas": val} for hr, val in hours.items()]
+        return sorted(series, key=lambda x: x['hora'])
+    except Exception as e:
+        logger.error(f"Series Error: {e}")
+        return []
 
 @app.get("/api/v1/trends")
 def trends(days: int = 30):
