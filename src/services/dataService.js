@@ -25,18 +25,30 @@ class SentinelDataService {
         }
 
         try {
+            // TENTATIVA 1: Prioridade Vercel (Caminho Relativo)
             const response = await fetch(url.toString());
             if (!response.ok) throw new Error(`API Error: ${response.status}`);
             const data = await response.json();
 
-            // Atualiza timestamp global no state para os KPIs
             state.lastSyncAt = new Date().toISOString();
-            
             this.cache.set(cacheKey, { data, timestamp: Date.now() });
             return data;
         } catch (error) {
-            console.warn(`[SentinelDataService] Falling back for ${endpoint}`);
-            return this.getFallbackData(endpoint);
+            // TENTATIVA 2: Fallback Local (Porta 8000) caso Vercel falhe/não exista
+            try {
+                console.warn(`[SentinelDataService] Vercel path failed. Retrying local fallback for ${endpoint}...`);
+                const fallbackUrl = new URL(`${window.SENTINELA_CONFIG.localFallbackUrl}${endpoint}`, window.location.origin);
+                Object.entries(params).forEach(([key, val]) => {
+                    if (val !== undefined && val !== null) fallbackUrl.searchParams.set(key, val);
+                });
+                
+                const fbResponse = await fetch(fallbackUrl.toString());
+                if (!fbResponse.ok) throw new Error(`Fallback Error: ${fbResponse.status}`);
+                return await fbResponse.json();
+            } catch (fbError) {
+                console.warn(`[SentinelDataService] All paths failed for ${endpoint}`);
+                return this.getFallbackData(endpoint);
+            }
         }
     }
 
