@@ -30,6 +30,7 @@ export function renderAll() {
         }
 
         if (window.lucide) lucide.createIcons();
+        initSwipeGestures(); // Blindagem: garantindo listeners pós-render
     } catch (e) {
         console.error('Render error:', e);
     }

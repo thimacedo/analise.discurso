@@ -29,6 +29,9 @@ class SentinelDataService {
             if (!response.ok) throw new Error(`API Error: ${response.status}`);
             const data = await response.json();
 
+            // Atualiza timestamp global no state para os KPIs
+            state.lastSyncAt = new Date().toISOString();
+            
             this.cache.set(cacheKey, { data, timestamp: Date.now() });
             return data;
         } catch (error) {
