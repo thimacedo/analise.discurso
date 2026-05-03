@@ -1,24 +1,31 @@
 """
-Election Monitor - Busca externa de notícias e pesquisas eleitorais
-Responsável por identificar novos candidatos e mudanças no cenário eleitoral
+Election Monitor - Busca externa de notícias e pesquisas eleitorais.
+Responsável por identificar novos candidatos e mudanças no cenário eleitoral.
 """
 
 import httpx
 import json
 import asyncio
+import logging
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 from core.config import settings
 from core.db import db_client
 from core.ai_service import ai_service
+from validator_mcp import validate_worker_standard
+
+# Configuração de logger
+logging.basicConfig(filename=r'error.log', level=logging.ERROR)
+logger = logging.getLogger(__name__)
 
 class ElectionMonitor:
     """
-    Monitora eleições através de fontes externas (notícias, pesquisas, redes sociais)
-    Identifica novos candidatos e atualiza o cenário eleitoral
+    Monitora eleições através de fontes externas (notícias, pesquisas, redes sociais).
+    Identifica novos candidatos e atualiza o cenário eleitoral.
     """
 
     def __init__(self):
+        """Inicializa o monitor com configurações do banco e fontes."""
         self.db = db_client
         self.rapidapi_key = settings.RAPIDAPI_KEY
         self.news_sources = [
@@ -28,7 +35,15 @@ class ElectionMonitor:
         ]
 
     async def fetch_election_news(self, days_back: int = 7) -> List[Dict]:
-        """Busca notícias sobre eleições nos últimos N dias."""
+        """
+        Busca notícias sobre eleições nos últimos N dias.
+
+        Args:
+            days_back (int): Número de dias retroativos para busca.
+
+        Returns:
+            List[Dict]: Lista de artigos encontrados.
+        """
         news_data = []
         for source in self.news_sources:
             try:
@@ -37,6 +52,7 @@ class ElectionMonitor:
                 news_data.extend(articles)
                 await asyncio.sleep(1)
             except Exception as e:
+                logger.error(f"Erro ao buscar notícias em {source}: {str(e)}")
                 print(f"⚠️ [ElectionMonitor] Erro em {source}: {e}")
         return news_data
 
