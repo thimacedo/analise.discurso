@@ -457,17 +457,75 @@ async function renderDossieGrid() {
     const container = document.getElementById('view-dossie');
     if (!container) return;
 
+    const config = state.currentReportConfig;
+    const totalCost = state.reportOptions
+        .filter(opt => config.selectedIds.includes(opt.id))
+        .reduce((sum, opt) => sum + opt.cost, 0);
+
     container.innerHTML = `
-        <div class="flex justify-between items-center mb-6 px-4 pt-4">
-            <h2 class="text-xl font-black text-slate-800">Repositório de Relatórios</h2>
-            <button onclick="window.location.hash='pricing'" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
-                Novo Relatório
-            </button>
-        </div>
-        <div id="dossie-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 px-4">
-            <div class="p-8 text-center bg-white border border-slate-200 rounded-xl col-span-full">
-                <div class="spinner m-auto mb-4"></div>
-                <span class="text-[10px] font-bold text-slate-400">BUSCANDO REGISTROS...</span>
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-2xl font-black text-slate-800 tracking-tighter">Gerador de Inteligência</h2>
+                <div class="px-4 py-2 bg-slate-900 text-white rounded-xl flex items-center gap-3 shadow-xl">
+                    <i data-lucide="zap" class="w-4 h-4 text-yellow-400 fill-yellow-400"></i>
+                    <span class="text-xs font-black uppercase tracking-widest" id="report-stn-balance">${state.stn_tokens} STN</span>
+                </div>
+            </div>
+
+            <!-- FORMULÁRIO DE CUSTOMIZAÇÃO -->
+            <div class="bg-white border border-slate-200 rounded-3xl p-6 mb-12 shadow-sm">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-sm font-black text-slate-400 uppercase tracking-widest mb-4">1. Selecionar Alvo</h3>
+                        <select id="report-target-select" onchange="window.updateReportConfig('target', this.value)" class="w-full p-4 bg-slate-50 border-none rounded-2xl text-sm font-bold text-slate-700 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                            <option value="">Selecione um perfil monitorado...</option>
+                            ${(state.data || []).map(c => `<option value="${c.username}" ${config.target === c.username ? 'selected' : ''}>@${c.username} (${c.nome_completo || 'Identidade Pendente'})</option>`).join('')}
+                        </select>
+                        <p class="mt-3 text-[10px] text-slate-400 font-bold uppercase tracking-tight">O levantamento será processado pelo motor PASA v16.4</p>
+                    </div>
+
+                    <div>
+                        <h3 class="text-sm font-black text-slate-400 uppercase tracking-widest mb-4">2. Configurar Módulos</h3>
+                        <div class="space-y-3">
+                            ${state.reportOptions.map(opt => `
+                                <label class="flex items-center justify-between p-4 ${config.selectedIds.includes(opt.id) ? 'bg-blue-50 border-blue-100' : 'bg-slate-50 border-transparent'} border rounded-2xl cursor-pointer hover:border-blue-200 transition-all group">
+                                    <div class="flex items-center gap-3">
+                                        <input type="checkbox" 
+                                               ${opt.required ? 'disabled checked' : ''} 
+                                               ${config.selectedIds.includes(opt.id) ? 'checked' : ''}
+                                               onchange="window.toggleReportModule('${opt.id}')"
+                                               class="w-5 h-5 rounded-lg border-slate-300 text-blue-600 focus:ring-blue-500">
+                                        <span class="text-sm font-black text-slate-700">${opt.label}</span>
+                                    </div>
+                                    <span class="text-[10px] font-black ${config.selectedIds.includes(opt.id) ? 'text-blue-600' : 'text-slate-400'} uppercase">${opt.cost} STN</span>
+                                </label>
+                            `).join('')}
+                        </div>
+
+                        <div class="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between">
+                            <div>
+                                <span class="text-[10px] font-black text-slate-400 uppercase block tracking-widest">Custo do Levantamento</span>
+                                <strong class="text-2xl font-black text-slate-900">${totalCost} STN</strong>
+                            </div>
+                            <button onclick="window.processReportGeneration()" 
+                                    class="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-blue-200 hover:bg-blue-700 transition-all flex items-center gap-3 ${!config.target ? 'opacity-50 cursor-not-allowed' : ''}">
+                                <i data-lucide="wand-2" class="w-5 h-5"></i> Gerar Levantamento
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LISTAGEM DE HISTÓRICO -->
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-black text-slate-800 tracking-tight">Repositório de Relatórios</h2>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest" id="dossie-count-label">Buscando...</span>
+            </div>
+            <div id="dossie-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="p-8 text-center bg-white border border-slate-200 rounded-3xl col-span-full">
+                    <div class="spinner m-auto mb-4"></div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Acessando registros criptografados...</span>
+                </div>
             </div>
         </div>
     `;
@@ -475,12 +533,15 @@ async function renderDossieGrid() {
     try {
         const dossiers = await dataService.getDossiers();
         const listContainer = document.getElementById('dossie-list');
+        const countLabel = document.getElementById('dossie-count-label');
         
+        if (countLabel) countLabel.innerText = `${dossiers?.length || 0} REGISTROS`;
+
         if (!dossiers || dossiers.length === 0) {
             listContainer.innerHTML = `
-                <div class="p-12 text-center bg-white border border-slate-200 rounded-xl col-span-full">
+                <div class="p-12 text-center bg-white border border-slate-200 rounded-3xl col-span-full">
                     <i data-lucide="file-warning" class="w-12 h-12 text-slate-200 m-auto mb-4"></i>
-                    <p class="text-sm text-slate-400">Nenhum relatório gerado no repositório.</p>
+                    <p class="text-sm text-slate-400 font-bold uppercase tracking-tight">Nenhum relatório encontrado no repositório.</p>
                 </div>
             `;
             if (window.lucide) lucide.createIcons();
@@ -488,35 +549,39 @@ async function renderDossieGrid() {
         }
 
         listContainer.innerHTML = dossiers.map(d => `
-            <div class="p-4 bg-white border border-slate-200 rounded-xl hover:shadow-md transition-all group">
-                <div class="flex justify-between items-start mb-3">
-                    <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center">
-                            <i data-lucide="file-text" class="w-4 h-4"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-xs font-black text-slate-800">@${d.candidato_id}</h4>
-                            <span class="text-[9px] text-slate-400 font-bold">${new Date(d.data_geracao).toLocaleDateString()}</span>
-                        </div>
-                    </div>
-                    <span class="text-[8px] font-black px-2 py-0.5 bg-slate-100 rounded-full text-slate-500">${d.versao_pasa}</span>
+            <div class="p-5 bg-white border border-slate-200 rounded-3xl hover:shadow-xl transition-all group relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-3">
+                    <span class="px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full text-[8px] font-black uppercase tracking-tighter">${d.versao_pasa || 'v16.4'}</span>
                 </div>
-                <div class="grid grid-cols-2 gap-2 mb-4">
-                    <div class="p-2 bg-slate-50 rounded-lg">
-                        <span class="text-[8px] text-slate-400 block uppercase font-bold">Amostra</span>
-                        <strong class="text-xs font-black">${d.total_comentarios}</strong>
+                
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-inner">
+                        <i data-lucide="file-text" class="w-6 h-6"></i>
                     </div>
-                    <div class="p-2 bg-red-50 rounded-lg">
-                        <span class="text-[8px] text-red-400 block uppercase font-bold">Hostis</span>
-                        <strong class="text-xs font-black text-red-600">${d.total_hate}</strong>
+                    <div class="min-w-0">
+                        <h4 class="text-sm font-black text-slate-800 truncate leading-none mb-1">@${d.candidato_id}</h4>
+                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-tight">${new Date(d.data_geracao).toLocaleDateString('pt-BR')}</span>
                     </div>
                 </div>
-                <div class="border-t border-slate-100 pt-3 flex justify-between items-center">
+
+                <div class="grid grid-cols-2 gap-3 mb-6">
+                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100/50">
+                        <span class="text-[9px] text-slate-400 block uppercase font-black tracking-widest mb-1">Amostra</span>
+                        <strong class="text-base font-black text-slate-800">${d.total_comentarios}</strong>
+                    </div>
+                    <div class="p-3 bg-red-50 rounded-2xl border border-red-100/50">
+                        <span class="text-[9px] text-red-400 block uppercase font-black tracking-widest mb-1">Hostis</span>
+                        <strong class="text-base font-black text-red-600">${d.total_hate}</strong>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-4 border-t border-slate-50">
                     <div class="flex flex-col">
-                        <span class="text-[8px] text-slate-300 font-mono">HASH: ${d.hash_integridade.substring(0, 12)}...</span>
+                        <span class="text-[9px] text-slate-300 font-mono tracking-tighter uppercase">Integridade Selada</span>
+                        <span class="text-[8px] text-slate-200 font-mono">${d.hash_integridade ? d.hash_integridade.substring(0, 16) : '---'}</span>
                     </div>
-                    <a href="${d.arquivo_path}" target="_blank" class="p-2 bg-slate-900 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
-                        <i data-lucide="download" class="w-3 h-3"></i>
+                    <a href="${d.arquivo_path}" target="_blank" class="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i> Abrir
                     </a>
                 </div>
             </div>
@@ -524,9 +589,74 @@ async function renderDossieGrid() {
         
         if (window.lucide) lucide.createIcons();
     } catch (e) {
-        console.error('Error rendering dossier grid:', e);
+        console.error('Error rendering report grid:', e);
     }
 }
+
+window.updateReportConfig = (key, val) => {
+    state.currentReportConfig[key] = val;
+    renderDossieGrid();
+};
+
+window.toggleReportModule = (id) => {
+    const ids = state.currentReportConfig.selectedIds;
+    if (ids.includes(id)) {
+        state.currentReportConfig.selectedIds = ids.filter(i => i !== id);
+    } else {
+        state.currentReportConfig.selectedIds.push(id);
+    }
+    renderDossieGrid();
+};
+
+window.processReportGeneration = async () => {
+    const config = state.currentReportConfig;
+    if (!config.target) {
+        alert("SELECIONE UM ALVO PARA O LEVANTAMENTO.");
+        return;
+    }
+
+    const totalCost = state.reportOptions
+        .filter(opt => config.selectedIds.includes(opt.id))
+        .reduce((sum, opt) => sum + opt.cost, 0);
+
+    if (state.stn_tokens < totalCost) {
+        alert(`CRÉDITOS INSUFICIENTES. Este levantamento custa ${totalCost} STN, você possui ${state.stn_tokens} STN.`);
+        window.location.hash = 'pricing';
+        return;
+    }
+
+    if (confirm(`Confirmar geração de relatório para @${config.target}? Custo: ${totalCost} STN.`)) {
+        try {
+            // Simulamos a chamada de API de geração
+            const resp = await fetch('/api/v1/dossiers/generate', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authService.session?.access_token}`
+                },
+                body: JSON.stringify({ 
+                    candidato_id: config.target,
+                    modules: config.selectedIds 
+                })
+            });
+
+            if (!resp.ok) throw new Error('Falha no processamento');
+            
+            // Dedução real de tokens no estado local
+            state.stn_tokens -= totalCost;
+            alert("PROCESSAMENTO INICIADO! O relatório aparecerá no repositório em breve.");
+            
+            // Reseta form
+            state.currentReportConfig.target = null;
+            state.currentReportConfig.selectedIds = ['base'];
+            
+            renderDossieGrid();
+        } catch (e) {
+            console.error(e);
+            alert("Erro no motor estratégico. Tente novamente.");
+        }
+    }
+};
 
 async function renderGeopolitica() { 
     const container = document.getElementById('view-map');

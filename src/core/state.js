@@ -22,6 +22,17 @@ export const state = {
     dossieSearch: '',
     stn_tokens: 50,   // Amostra grátis de munição forense
     userPlan: 'free', // Começa no Free pra forçar o gasto
+    reportOptions: [
+        { id: 'base', label: 'Sumário Executivo', cost: 10, required: true },
+        { id: 'networks', label: 'Mapeamento de Redes', cost: 20 },
+        { id: 'sentiment', label: 'Análise de Sentimento Profunda', cost: 15 },
+        { id: 'history', label: 'Histórico Completo (30 dias)', cost: 15 },
+        { id: 'export', label: 'Exportação PDF Premium', cost: 10 }
+    ],
+    currentReportConfig: {
+        target: null,
+        selectedIds: ['base']
+    },
     loading: true,
     isLoading: false, // Controle de load do scroll infinito
     currentPage: 1,   // Página atual do feed
