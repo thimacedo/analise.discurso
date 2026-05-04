@@ -208,9 +208,9 @@ function buildPostCard(alerta) {
     
     const avatarAgressor = isLocked 
         ? 'https://ui-avatars.com/api/?name=?&background=334155&color=fff'
-        : `https://ui-avatars.com/api/?name=${agressor}&background=random&color=fff&size=64`;
+        : `https://unavatar.io/instagram/${agressor.replace('@','')}`;
         
-    const avatarTarget = targetData.avatar_url || `https://ui-avatars.com/api/?name=${targetId}&background=0D8ABC&color=fff`;
+    const avatarTarget = `https://unavatar.io/instagram/${targetId}`;
     
     return `
         <div class="post-card-container relative mb-6 rounded-3xl overflow-hidden bg-slate-900" data-alerta-id="${alerta.id}">
@@ -223,15 +223,15 @@ function buildPostCard(alerta) {
 
             <article class="post-card-surface animate-in ${isLocked ? 'is-locked' : ''} relative bg-white border border-slate-200 rounded-3xl p-6 shadow-sm z-10 w-full h-full transition-all hover:shadow-xl hover:-translate-y-1">
                 <div class="absolute top-4 left-6 z-20">
-                    <span class="px-3 py-1 ${platColor} text-white rounded-full text-[9px] font-black tracking-widest shadow-sm uppercase">
-                        ${platLabel} Source
+                    <span class="px-3 py-1 bg-slate-900 text-white rounded-full text-[9px] font-black tracking-widest shadow-sm uppercase border border-slate-800">
+                        Suspeito
                     </span>
                 </div>
 
                 <div class="post-header flex justify-between items-center gap-4 mb-6">
                     <div class="flex items-center gap-4 mt-2">
                         <div class="post-avatar relative">
-                            <img src="${avatarAgressor}" alt="Agressor" class="w-12 h-12 rounded-2xl ${isLocked ? 'blur-[4px]' : ''} object-cover border border-slate-100 shadow-sm" loading="lazy">
+                            <img src="${avatarAgressor}" alt="Suspeito" class="w-12 h-12 rounded-2xl ${isLocked ? 'blur-[4px]' : ''} object-cover border border-slate-100 shadow-sm" loading="lazy" onerror="this.src='https://ui-avatars.com/api/?name=${agressor}&background=random&color=fff'">
                             <div class="absolute -right-2 -bottom-2 bg-white rounded-full p-1.5 shadow-md border border-slate-50">
                                 <i data-lucide="user" class="w-3 h-3 text-slate-500"></i>
                             </div>
@@ -253,7 +253,7 @@ function buildPostCard(alerta) {
                             <div class="text-[9px] font-black text-slate-700 uppercase truncate w-full mt-1">${targetData.nome_completo || 'Alvo Monitorado'}</div>
                         </div>
                         <div class="w-12 h-12 rounded-2xl overflow-hidden border-2 border-slate-50 shadow-sm transition-transform group-hover:scale-110">
-                            <img src="${avatarTarget}" alt="Alvo" class="w-full h-full object-cover">
+                            <img src="${avatarTarget}" alt="Alvo" class="w-full h-full object-cover" onerror="this.src='https://ui-avatars.com/api/?name=${targetId}&background=0D8ABC&color=fff'">
                         </div>
                     </div>
                 </div>
