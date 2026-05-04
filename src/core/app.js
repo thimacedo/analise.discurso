@@ -42,7 +42,7 @@ window.clearDashboardSearch = () => {
 };
 
 async function init() {
-    console.log('🌟 SENTINELA | Diamond Edition v20.5.2 [STABLE]');
+    console.log('🌟 SENTINELA | Diamond Edition v20.5.6 [STABLE]');
 
     try {
         await authService.init();
