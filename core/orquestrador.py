@@ -10,6 +10,7 @@ from typing import List, Dict, Any
 from core.config import settings
 from core.db import db_client
 from core.ai_service import ai_service
+from core.predictive_service import predictive_service
 from core.firebase_alerter import send_alert_summary
 
 # Specialized processing modules
@@ -182,6 +183,19 @@ class Orchestrator:
                 "palavras_chave": c['keywords']
             })
 
+    async def run_predictive_cycle(self):
+        print("📈 [2.5/5] Executando análise de TENDÊNCIAS PREDITIVAS...")
+        try:
+            status = await predictive_service.analyze_trends(days=7)
+            if status.get('status') == 'insufficient_data':
+                print("ℹ️ Dados insuficientes para análise preditiva confiável.")
+            elif status.get('is_anomaly'):
+                print(f"⚠️ ALERTA: Anomalia detectada! Tendência de {status['trend']}.")
+            else:
+                print(f"✅ Tendência estável ({status.get('trend')}).")
+        except Exception as e:
+            print(f"⚠️ Erro no ciclo preditivo: {e}")
+
     async def run_full_pipeline(self):
         print(f"\n🛡️ SENTINELA DEMOCRÁTICA - PIPELINE v{settings.VERSION}")
         print(f"📅 Data: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
@@ -195,6 +209,7 @@ class Orchestrator:
         await self.run_repericia_cycle()
         await self.run_meta_ads_cycle()
         await self.run_ia_classification()
+        await self.run_predictive_cycle()
         
         df = await self.fetch_and_normalize()
         if df.empty:

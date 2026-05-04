@@ -19,6 +19,7 @@ class SentinelAuthService {
         this.session = session;
         if (session) {
             this.user = await this.getProfile(session.user.id);
+            await this.fetchOrganizations();
         }
         
         // Listener para mudanças de estado (Login/Logout)
@@ -27,8 +28,12 @@ class SentinelAuthService {
             this.session = session;
             if (session) {
                 this.user = await this.getProfile(session.user.id);
+                await this.fetchOrganizations();
             } else {
                 this.user = null;
+                const { state } = await import('../core/state.js');
+                state.organizations = [];
+                state.currentOrganizationId = null;
             }
             // Apenas recarrega a página em mudanças reais de login/logout, não na inicialização
             if (window.forceRefresh && (event === 'SIGNED_IN' || event === 'SIGNED_OUT')) {
@@ -37,6 +42,32 @@ class SentinelAuthService {
         });
 
         return this.user;
+    }
+
+    async fetchOrganizations() {
+        if (!this.session?.user) return;
+        try {
+            const { data, error } = await this.client
+                .from('organization_members')
+                .select('role, organizations(*)')
+                .eq('profile_id', this.session.user.id);
+
+            if (error) throw error;
+            
+            const orgs = data.map(m => ({ ...m.organizations, user_role: m.role }));
+            
+            // Import dinâmico do state para evitar dependência circular pesada
+            const { state } = await import('../core/state.js');
+            state.organizations = orgs;
+            
+            // Se não tiver org selecionada, pega a primeira
+            if (!state.currentOrganizationId && orgs.length > 0) {
+                state.currentOrganizationId = orgs[0].id;
+                localStorage.setItem('sentinela_org_id', orgs[0].id);
+            }
+        } catch (e) {
+            console.error('[AuthService] Error fetching organizations:', e);
+        }
     }
 
     async getProfile(userId) {

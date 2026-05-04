@@ -21,7 +21,15 @@ class SentinelDataService {
         if (cached && Date.now() - cached.timestamp < this.cacheTTL) return cached.data;
 
         const tryFetch = async (baseUrl) => {
-            const response = await fetch(`${baseUrl}${path}`);
+            const headers = {};
+            if (state.currentOrganizationId) {
+                headers['X-Organization-Id'] = state.currentOrganizationId;
+            }
+            if (authService.session?.access_token) {
+                headers['Authorization'] = `Bearer ${authService.session.access_token}`;
+            }
+
+            const response = await fetch(`${baseUrl}${path}`, { headers });
             if (!response.ok) throw new Error(`API Error: ${response.status}`);
             return await response.json();
         };
@@ -83,6 +91,9 @@ class SentinelDataService {
         
         const tryPost = async (baseUrl) => {
             const headers = { 'Content-Type': 'application/json' };
+            if (state.currentOrganizationId) {
+                headers['X-Organization-Id'] = state.currentOrganizationId;
+            }
             if (authService.session?.access_token) {
                 headers['Authorization'] = `Bearer ${authService.session.access_token}`;
             }

@@ -15,18 +15,22 @@ class DatabaseClient:
         }
         self.client: Client = create_client(self.url, self.key) if self.url and self.key else None
 
-    async def fetch_unprocessed_comments(self, limit: int = 200) -> List[Dict[str, Any]]:
-        """Busca comentários que ainda não foram processados pela IA."""
+    async def fetch_unprocessed_comments(self, limit: int = 200, org_id: str = None) -> List[Dict[str, Any]]:
+        """Busca comentários que ainda não foram processados pela IA, filtrados por org opcional."""
         url = f"{self.url}/rest/v1/comentarios?processado_ia=not.eq.true&limit={limit}"
+        if org_id:
+            url += f"&organization_id=eq.{org_id}"
         async with httpx.AsyncClient() as client:
             resp = await client.get(url, headers=self.headers)
             if resp.status_code == 200:
                 return resp.json()
             return []
 
-    async def fetch_all_data(self) -> List[Dict[str, Any]]:
-        """Busca todos os comentários processados."""
+    async def fetch_all_data(self, org_id: str = None) -> List[Dict[str, Any]]:
+        """Busca todos os comentários processados de uma organização."""
         url = f"{self.url}/rest/v1/comentarios?select=*"
+        if org_id:
+            url += f"&organization_id=eq.{org_id}"
         async with httpx.AsyncClient() as client:
             resp = await client.get(url, headers=self.headers)
             if resp.status_code == 200:

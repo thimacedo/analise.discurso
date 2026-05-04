@@ -37,7 +37,9 @@ export const state = {
     isLoading: false, // Controle de load do scroll infinito
     currentPage: 1,   // Página atual do feed
     error: null,
-    lastSyncAt: null
+    lastSyncAt: null,
+    organizations: [],
+    currentOrganizationId: localStorage.getItem('sentinela_org_id') || null
 };
 
 export function setViewState(view) {

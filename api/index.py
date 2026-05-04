@@ -95,26 +95,34 @@ def calculate_risk(item: Dict[str, Any]):
 # --- ENDPOINTS ---
 
 @app.get("/api/v1/summary")
-def summary(supa: Client = Depends(get_supa)):
-    """Retorna KPIs consolidados com inteligência de janela adaptativa."""
+def summary(request: Request, supa: Client = Depends(get_supa)):
+    """Retorna KPIs consolidados com inteligência de janela adaptativa e escopo de organização."""
     try:
+        org_id = request.headers.get("X-Organization-Id")
         now_utc = datetime.now(timezone.utc)
         
-        # 1. Total de Alvos Ativos (LIFETIME) - Dá vida ao dash
-        c_res = supa.table('candidatos').select('id', count='exact').eq('status_monitoramento', 'Ativo').limit(0).execute()
+        # 1. Total de Alvos Ativos (Escopado por Org se fornecido)
+        query_c = supa.table('candidatos').select('id', count='exact').eq('status_monitoramento', 'Ativo')
+        if org_id: query_c = query_c.eq('organization_id', org_id)
+        c_res = query_c.limit(0).execute()
         c = c_res.count if (c_res and c_res.count is not None) else 0
         
-        # 2. Amostra Total (LIFETIME via cache)
-        t_res = supa.table('candidatos').select('comentarios_totais_count').execute()
+        # 2. Amostra Total
+        query_t = supa.table('candidatos').select('comentarios_totais_count')
+        if org_id: query_t = query_t.eq('organization_id', org_id)
+        t_res = query_t.execute()
         t_lifetime = sum([item.get('comentarios_totais_count', 0) or 0 for item in t_res.data])
         
-        # 3. Alertas e Resiliência (JANELA 48h para evitar zeros em períodos de baixa coleta)
+        # 3. Alertas e Resiliência (JANELA 48h)
         window_48h = (now_utc - timedelta(days=2)).isoformat()
-        h_res = supa.table('comentarios').select('id', count='exact').eq('is_hate', True).gte('data_coleta', window_48h).limit(0).execute()
+        query_h = supa.table('comentarios').select('id', count='exact').eq('is_hate', True).gte('data_coleta', window_48h)
+        if org_id: query_h = query_h.eq('organization_id', org_id)
+        h_res = query_h.limit(0).execute()
         h = h_res.count if (h_res and h_res.count is not None) else 0
         
-        # Amostra da janela para cálculo de resiliência
-        t_window_res = supa.table('comentarios').select('id', count='exact').gte('data_coleta', window_48h).limit(0).execute()
+        query_win = supa.table('comentarios').select('id', count='exact').gte('data_coleta', window_48h)
+        if org_id: query_win = query_win.eq('organization_id', org_id)
+        t_window_res = query_win.limit(0).execute()
         t_window = t_window_res.count if (t_window_res and t_window_res.count is not None) else 0
         
         res_val = round(((t_window - h) / t_window) * 100, 1) if t_window > 0 else 100.0
@@ -125,21 +133,28 @@ def summary(supa: Client = Depends(get_supa)):
             "total_amostra": t_lifetime, 
             "resiliencia": res_val, 
             "periodo": "48h",
+            "org_id": org_id,
             "timestamp": now_utc.isoformat()
         }
     except Exception as e:
-        logger.error(f"Summary KPI Error: {e}\n{traceback.format_exc()}")
+        logger.error(f"Summary KPI Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/v1/targets")
-def get_targets(limit: int = 50, supa: Client = Depends(get_supa)):
+def get_targets(request: Request, limit: int = 50, supa: Client = Depends(get_supa)):
     try:
-        # Busca candidatos ativos
-        candidates_res = supa.table('candidatos').select('*').eq('status_monitoramento', 'Ativo').execute()
+        org_id = request.headers.get("X-Organization-Id")
+        
+        # Busca candidatos ativos escopados
+        query_cand = supa.table('candidatos').select('*').eq('status_monitoramento', 'Ativo')
+        if org_id: query_cand = query_cand.eq('organization_id', org_id)
+        candidates_res = query_cand.execute()
         candidates = candidates_res.data or []
         
-        # Busca ódio recente para enriquecer
-        h_res = supa.table('comentarios').select('candidato_id, categoria_ia').eq('is_hate', True).limit(2000).execute()
+        # Busca ódio recente escopado
+        query_h = supa.table('comentarios').select('candidato_id, categoria_ia').eq('is_hate', True)
+        if org_id: query_h = query_h.eq('organization_id', org_id)
+        h_res = query_h.limit(2000).execute()
         h_data = h_res.data or []
         
         counts = Counter([h['candidato_id'] for h in h_data])

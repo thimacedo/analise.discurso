@@ -3,7 +3,7 @@
 ## Visão Geral
 Monitoramento situacional de alto desempenho para as Eleições 2026. Foco em detecção de ódio, redes coordenadas e transparência democrática (PASA v16.4).
 
-## Status Atual (v20.5.6)
+## Status Atual (v20.5.9)
 - [x] **Conectividade Vercel**: Resolvido conflito de portas e priorizado caminho relativo `/api/v1`.
 - [x] **KPIs 24h**: Dashboard operando com janela móvel adaptativa (48h fallback).
 - [x] **Refatoração Implacável**: Backend e DataService limpos de 'AI Slop' e otimizados para performance.
@@ -13,11 +13,14 @@ Monitoramento situacional de alto desempenho para as Eleições 2026. Foco em de
 - [x] **STN-006: Geopolítica UF**: Mapa vetorial interativo com ranking de hostilidade por estado.
 - [x] **STN-007: Refatoração AIService**: Cascata de IA resiliente (Gemini/Groq/Ollama) com latência zero.
 - [x] **STN-003: Meta Ad Library**: Painel visual de anúncios detectados integrado ao motor PASA.
+- [x] **STN-008: Alertas Preditivos**: Motor de análise de séries temporais concluído (v20.5.7).
+- [x] **STN-009: Exportação Executiva**: Geração de dossiês PDF com gráficos automáticos (v20.5.8).
+- [x] **STN-010: Multi-Tenancy**: Infraestrutura de isolamento por organização e membros (v20.5.9).
 
 ## Próximos Passos (Evolução Contínua)
-1. **Alertas Preditivos**: Uso de séries temporais para prever picos de hostilidade.
-2. **Exportação Executiva**: Geração de relatórios PDF com gráficos D3.js embarcados.
-3. **Multi-Tenancy**: Sistema de sub-organizações para gestão de campanhas independentes.
+1. **Interface de Gestão de Organização**: UI para convite de membros e troca de contexto.
+2. **App Mobile Native**: Interface em Compose Multiplatform para alertas em tempo real.
+3. **Módulo de Resposta Rápida**: Sugestão de contra-narrativas via IA.
 
 
 ## Instruções de Execução
