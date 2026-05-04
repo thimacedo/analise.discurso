@@ -93,26 +93,41 @@ class MetaAdScraper:
         
         # Procura por "Pago por" ou "Paid by"
         pagador_match = re.search(r'(?:Pago por|Paid by)\s+([^\n]+)', text)
-        pagador = pagador_match.group(1) if pagador_match else "Desconhecido"
+        paid_by = pagador_match.group(1).strip() if pagador_match else "Privado"
         
         # Procura por valores (ex: R$ 100 - R$ 499)
-        valor_match = re.search(r'R\$\s*([\d\.]+)\s*-\s*R\$\s*([\d\.]+)', text)
-        v_min, v_max = 0, 0
-        if valor_match:
-            v_min = float(valor_match.group(1).replace('.', '').replace(',', '.'))
-            v_max = float(valor_match.group(2).replace('.', '').replace(',', '.'))
+        # Mantemos a extração numérica mas formatamos para a string spend_range esperada no DB
+        valor_match = re.search(r'(R\$\s*[\d\.]+\s*-\s*R\$\s*[\d\.]+)', text)
+        spend_range = valor_match.group(1) if valor_match else "N/A"
 
         # Status
-        status = "active" if "Ativo" in text or "Active" in text else "inactive"
+        status = "Active" if "Ativo" in text or "Active" in text else "Inactive"
+
+        # Ad URL (tenta encontrar link para o anúncio)
+        ad_url = f"https://www.facebook.com/ads/library/?id={ad_id}"
+
+        # Page Name (tenta extrair o nome da página que geralmente é a primeira linha ou perto do topo)
+        # No inner_text do card, o nome da página costuma vir antes do ID
+        lines = [l.strip() for l in text.split('\n') if l.strip()]
+        page_name = lines[0] if lines else "Página Oculta"
+
+        # Creative Body (simplificado: procura por um bloco de texto que não seja meta-informação)
+        creative_body = ""
+        for line in lines[2:8]: # Pula nome da página e status/ID
+            if len(line) > 20: # Provavelmente o corpo do anúncio
+                creative_body = line
+                break
 
         return {
             "ad_id": ad_id,
             "candidato_id": candidato_id,
-            "pagador": pagador,
-            "valor_min": v_min,
-            "valor_max": v_max,
+            "page_name": page_name,
+            "paid_by": paid_by,
+            "spend_range": spend_range,
             "status": status,
-            "updated_at": datetime.now().isoformat()
+            "ad_url": ad_url,
+            "creative_body": creative_body,
+            "data_coleta": datetime.now().isoformat()
         }
 
 meta_ad_scraper = MetaAdScraper()
