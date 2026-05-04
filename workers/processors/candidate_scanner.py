@@ -155,12 +155,12 @@ class CandidateScannerWorker(BaseWorker):
             "username": username,
             "nome_completo": nome,
             "cargo": cargo,
-            "intencao_voto": intencao,
+            "intenção_voto": intencao,
             "nota_relevancia": nota,
             "prioridade_coleta": prioridade,
             "ultima_pesquisa_id": pesquisa_id,
             "status_monitoramento": "Ativo" if prioridade >= 3 else "Observação",
-            "updated_at": datetime.now(UTC).isoformat()
+            "atualizado_em": datetime.now(UTC).isoformat()
         }, on_conflict="username").execute()
 
         # 4. Adicionar à Fila de Coleta do Dia se for relevante
