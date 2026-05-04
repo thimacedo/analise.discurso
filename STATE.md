@@ -6,16 +6,12 @@
 - **Frontend/UI:** Diamond Edition ativa. KPIs com design semântico e robustez garantida (fallbacks de API via dataService).
 - **Monetização:** AdSense injetado no feed (a cada 5 posts) e na sidebar direita.
 
-## ✅ Concluído (v20.5.5)
-- **STN-005: Diretório Global de Perfis**: Implementada interface de listagem e busca em tempo real para os 343+ candidatos monitorados, com cartões informativos premium, métricas de risco PASA e integração direta com o feed de análise.
-- **Limpeza Linguística Diamond**: Removida terminologia restrita (perícia, forense, prova) da UI e APIs, substituindo por termos estratégicos como 'Análise', 'Créditos' e 'Dados'.
-- **Correção de Falsos Positivos**: Implementada persistência real para descartes. O endpoint `/alerts/false-positive` agora possui tipagem rigorosa (Pydantic) e logs detalhados. O frontend utiliza o novo método `postJson` resiliente, garantindo que o descarte funcione tanto no Vercel quanto no Localhost via fallback automático.
-- **Padronização de Escrita Resiliente**: Todos os fluxos de POST (descarte de alertas e geração de relatórios) foram migrados para o método `postJson` do `dataService`, que herda a inteligência de dupla tentativa (Vercel + Localhost).
-- **Refatoração Implacável (Pickle Rick Mode)**: 
-  - `api/index.py`: Eliminado boilerplate de erro, implementada Injeção de Dependência para Supabase, e externalizadas constantes PASA/Risco.
-  - `src/services/dataService.js`: Lógica de fetch simplificada com helper assíncrono e retry robusto.
-  - `src/core/app.js` & `src/services/authService.js`: Removida duplicação de configurações sensíveis, centralizando tudo em `src/config.js`.
-- **Correção de Conectividade e KPIs**: Resolvido conflito de portas local (3000 vs 8000) via detecção dinâmica em `src/config.js`.
+## ✅ Concluído (v20.5.6)
+- **STN-003: Meta Ad Library**: Implementado painel de monitoramento de anúncios pagos com integração ao motor de inteligência e links diretos para a biblioteca oficial.
+- **STN-007: Refatoração AIService**: Motor de inteligência consolidado com arquitetura de cascata resiliente e logs de telemetria integrados.
+- **STN-006: Geopolítica UF**: Mapa vetorial interativo D3-style integrado com ranking de hostilidade por estado em tempo real.
+- **STN-005: Diretório Global de Perfis**: Interface premium de perfis com busca e métricas PASA integradas.
+- **Limpeza Linguística Diamond**: Removida terminologia restrita da UI/API.
 - **STN-001: Repositório de Relatórios Estratégicos**: Implementada infraestrutura de persistência estruturada no Supabase com hash de integridade SHA-256 e metadados estratégicos automáticos.
 - **Integração Meta Ad Library (Epico STN-003)**: Monitoramento de anúncios pagos via API oficial (Ads Archive).
   - Implementado `core/meta_ad_service.py` com busca assíncrona e normalização.

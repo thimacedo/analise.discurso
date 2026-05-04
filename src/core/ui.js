@@ -1,6 +1,7 @@
 import { state, setViewState, setNetworkView } from './state.js';
 import { dataService, planService } from '../services/dataService.js';
 import { authService } from '../services/authService.js';
+import { renderBrazilMap } from '../components/BrazilMap.js';
 
 export function renderAll() {
     try {
@@ -9,7 +10,7 @@ export function renderAll() {
         renderTopbar();
         renderSTN();
 
-        const views = ['monitor', 'networks', 'dossie', 'map', 'directory'];
+        const views = ['monitor', 'networks', 'dossie', 'map', 'directory', 'ads'];
         views.forEach((view) => {
             const el = document.getElementById(`view-${view}`);
             if (el) {
@@ -23,6 +24,8 @@ export function renderAll() {
             renderNetworkIntelligence();
         } else if (state.view === 'dossie') {
             renderDossieGrid();
+        } else if (state.view === 'ads') {
+            renderAds();
         } else if (state.view === 'map') {
             renderGeopolitica();
         } else if (state.view === 'directory') {
@@ -655,52 +658,40 @@ async function renderGeopolitica() {
         <div class="p-6">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
-                    <h2 class="text-2xl font-black text-slate-800">Geopolítica da Hostilidade</h2>
-                    <p class="text-xs text-slate-400 font-bold uppercase tracking-tighter">Mapeamento de ódio por unidade federativa</p>
+                    <h2 class="text-2xl font-black text-slate-800 tracking-tighter">Geopolítica da Hostilidade</h2>
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-tighter">Mapeamento situacional por Unidade Federativa</p>
                 </div>
-                <div class="bg-white border border-slate-200 p-2 rounded-xl flex gap-2">
-                    <button class="px-4 py-1.5 bg-slate-900 text-white rounded-lg text-[10px] font-black uppercase tracking-widest">Mapa de Calor</button>
-                    <button class="px-4 py-1.5 bg-white text-slate-400 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-slate-50">Ranking UF</button>
+                <div class="flex gap-2">
+                    <div class="px-4 py-2 bg-white border border-slate-200 rounded-xl flex items-center gap-2 shadow-sm">
+                        <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-600">Dados em Tempo Real</span>
+                    </div>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-2 bg-white border border-slate-200 rounded-3xl p-8 shadow-sm relative overflow-hidden" style="min-height: 600px;">
-                    <div id="map-canvas" class="w-full h-full flex items-center justify-center">
-                        <!-- O D3.js injetará o SVG aqui -->
-                        <div class="flex flex-col items-center opacity-20">
+                <div class="lg:col-span-2 bg-white border border-slate-200 rounded-3xl p-8 shadow-sm relative overflow-hidden flex items-center justify-center" style="min-height: 600px;">
+                    <div id="map-canvas" class="w-full max-w-lg h-full">
+                        <!-- O SVG será injetado aqui pelo BrazilMap.js -->
+                        <div class="flex flex-col items-center justify-center h-full opacity-20">
                             <i data-lucide="map" class="w-24 h-24 mb-4"></i>
-                            <span class="text-xs font-mono uppercase tracking-[0.2em]">Processando Topologia Vetorial...</span>
+                            <span class="text-xs font-mono uppercase tracking-[0.2em]">Desenhando Topologia...</span>
                         </div>
                     </div>
                     
-                    <!-- LEGENDA -->
-                    <div class="absolute bottom-8 right-8 p-4 bg-white/80 backdrop-blur border border-slate-100 rounded-2xl shadow-xl">
-                        <span class="text-[9px] font-black text-slate-400 uppercase block mb-2 tracking-widest">Nível de Hostilidade</span>
-                        <div class="flex items-center gap-3">
-                            <div class="flex flex-col items-center gap-1">
-                                <div class="w-4 h-4 rounded bg-slate-100"></div>
-                                <span class="text-[8px] font-bold">Baixo</span>
-                            </div>
-                            <div class="flex flex-col items-center gap-1">
-                                <div class="w-4 h-4 rounded bg-blue-400"></div>
-                                <span class="text-[8px] font-bold">Médio</span>
-                            </div>
-                            <div class="flex flex-col items-center gap-1">
-                                <div class="w-4 h-4 rounded bg-red-500"></div>
-                                <span class="text-[8px] font-bold">Crítico</span>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- TOOLTIP FLUTUANTE -->
+                    <div id="map-tooltip" class="absolute pointer-events-none opacity-0 transition-opacity bg-slate-900 text-white p-3 rounded-xl shadow-2xl z-50 border border-slate-700"></div>
                 </div>
 
-                <div class="bg-slate-900 rounded-3xl p-6 shadow-2xl">
-                    <h3 class="text-white font-black text-sm uppercase tracking-widest mb-6">Focos de Alerta por Estado</h3>
-                    <div id="geo-ranking-list" class="space-y-4">
-                        <div class="animate-pulse flex flex-col gap-4">
-                            <div class="h-12 bg-slate-800 rounded-xl"></div>
-                            <div class="h-12 bg-slate-800 rounded-xl"></div>
-                            <div class="h-12 bg-slate-800 rounded-xl"></div>
+                <div class="bg-slate-900 rounded-3xl p-6 shadow-2xl overflow-hidden flex flex-col">
+                    <div class="flex items-center gap-2 mb-6">
+                        <i data-lucide="list-ordered" class="w-4 h-4 text-blue-400"></i>
+                        <h3 class="text-white font-black text-sm uppercase tracking-widest">Focos de Hostilidade</h3>
+                    </div>
+                    <div id="geo-ranking-list" class="space-y-3 overflow-y-auto custom-scrollbar pr-2 flex-1" style="max-height: 500px;">
+                        <!-- Preenchido via API -->
+                        <div class="animate-pulse space-y-4">
+                            ${Array(6).fill(0).map(() => `<div class="h-16 bg-slate-800 rounded-2xl"></div>`).join('')}
                         </div>
                     </div>
                 </div>
@@ -711,29 +702,74 @@ async function renderGeopolitica() {
     try {
         const geoData = await dataService.getGeoUF();
         const rankingList = document.getElementById('geo-ranking-list');
+        const tooltip = document.getElementById('map-tooltip');
+        
+        // Converte para objeto para o componente de mapa
+        const ufStats = geoData.reduce((acc, item) => {
+            acc[item.uf] = { alvos: item.total_alvos, odio: item.total_hate, color: item.color };
+            return acc;
+        }, {});
+
+        // Renderiza o mapa SVG
+        renderBrazilMap('map-canvas', ufStats, (name, data, ufId) => {
+            state.selectedUF = { id: ufId, name, ...data };
+            window.debouncedRender();
+        });
+
+        // Preenche o Ranking Lateral
         if (rankingList) {
-            rankingList.innerHTML = geoData.map(item => `
-                <div class="flex items-center justify-between p-3 bg-slate-800/50 border border-slate-700 rounded-xl hover:bg-slate-800 transition-all cursor-pointer group">
+            const sorted = [...geoData].sort((a, b) => b.total_hate - a.total_hate);
+            rankingList.innerHTML = sorted.map(item => `
+                <div class="flex items-center justify-between p-4 bg-slate-800/40 border border-slate-800 rounded-2xl hover:bg-slate-800 hover:border-slate-700 transition-all cursor-pointer group" onclick="window.handleUFClick('${item.uf}', '${item.uf}')">
                     <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center text-white font-black text-xs">${item.uf}</div>
-                        <div>
-                            <span class="text-[9px] font-bold text-slate-500 uppercase block">${item.total_alvos} Alvos</span>
-                            <strong class="text-white text-xs">${item.uf === 'BR' ? 'Brasil (Geral)' : item.uf}</strong>
+                        <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-white font-black text-sm border border-slate-700 group-hover:border-blue-500 transition-colors">${item.uf}</div>
+                        <div class="min-w-0">
+                            <span class="text-[9px] font-bold text-slate-500 uppercase block leading-none mb-1">${item.total_alvos} Alvos Ativos</span>
+                            <strong class="text-white text-sm truncate block">${item.uf === 'BR' ? 'Brasil (Geral)' : 'Território ' + item.uf}</strong>
                         </div>
                     </div>
                     <div class="text-right">
-                        <span class="text-[10px] font-black text-red-500 block">${item.total_hate}</span>
-                        <div class="w-12 h-1 bg-slate-700 rounded-full mt-1 overflow-hidden">
-                            <div class="h-full" style="width: ${Math.min(100, item.total_hate * 5)}%; background: ${item.color}"></div>
+                        <span class="text-[12px] font-black text-red-500 block leading-none">${item.total_hate} <span class="text-[8px] opacity-50">SINAIS</span></span>
+                        <div class="w-16 h-1.5 bg-slate-800 rounded-full mt-2 overflow-hidden border border-slate-700">
+                            <div class="h-full rounded-full" style="width: ${Math.min(100, (item.total_hate / (sorted[0].total_hate || 1)) * 100)}%; background: ${item.color}"></div>
                         </div>
                     </div>
                 </div>
-            `).join('') || '<p class="text-slate-500 text-center text-xs">Aguardando dados geográficos...</p>';
+            `).join('') || '<p class="text-slate-600 text-center text-xs font-black uppercase py-8 opacity-30">Aguardando telemetria...</p>';
+        }
+        
+        // Listener de Tooltip para o mapa
+        const mapCanvas = document.getElementById('map-canvas');
+        if (mapCanvas) {
+            mapCanvas.addEventListener('mousemove', (e) => {
+                const target = e.target.closest('.uf-path');
+                if (target) {
+                    const ufId = target.id.replace('uf-', '');
+                    const data = ufStats[ufId];
+                    if (data) {
+                        tooltip.style.opacity = '1';
+                        tooltip.style.left = (e.clientX + 20) + 'px';
+                        tooltip.style.top = (e.clientY + 20) + 'px';
+                        tooltip.innerHTML = `
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center font-black text-xs border border-slate-700">${ufId}</div>
+                                <div>
+                                    <div class="text-[10px] font-black uppercase text-slate-400 leading-none mb-1">Hostilidade Detectada</div>
+                                    <div class="text-sm font-black text-white">${data.odio} Alertas</div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                } else {
+                    tooltip.style.opacity = '0';
+                }
+            });
+            mapCanvas.addEventListener('mouseleave', () => tooltip.style.opacity = '0');
         }
         
         if (window.lucide) lucide.createIcons();
     } catch (e) {
-        console.error('Error rendering geopolitica:', e);
+        console.error('[UI] Map render failed:', e);
     }
 }
 
@@ -889,6 +925,92 @@ window.markFalsePositive = async (id) => {
 };
 
 window.forceRefresh = () => window.location.reload();
+
+async function renderAds() {
+    const container = document.getElementById('view-ads');
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="p-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-800 tracking-tighter">Meta Ad Library</h2>
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-tighter">Monitoramento de anúncios pagos detectados</p>
+                </div>
+                <div class="flex gap-2">
+                    <div class="px-4 py-2 bg-blue-50 text-blue-700 rounded-xl flex items-center gap-2 shadow-sm">
+                        <i data-lucide="megaphone" class="w-4 h-4"></i>
+                        <span class="text-[10px] font-black uppercase tracking-widest">Rastreamento Ativo</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="ads-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div class="p-12 text-center bg-white border border-slate-200 rounded-3xl col-span-full">
+                    <div class="spinner m-auto mb-4"></div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Varrendo Biblioteca de Anúncios...</span>
+                </div>
+            </div>
+        </div>
+    `;
+
+    try {
+        const ads = await dataService.getAds();
+        const listContainer = document.getElementById('ads-list');
+        
+        if (!ads || ads.length === 0) {
+            listContainer.innerHTML = `
+                <div class="p-12 text-center bg-white border border-slate-200 rounded-3xl col-span-full">
+                    <i data-lucide="info" class="w-12 h-12 text-slate-200 m-auto mb-4"></i>
+                    <p class="text-sm text-slate-400 font-bold uppercase tracking-tight">Nenhum anúncio suspeito detectado nesta janela.</p>
+                </div>
+            `;
+            if (window.lucide) lucide.createIcons();
+            return;
+        }
+
+        listContainer.innerHTML = ads.map(ad => `
+            <div class="p-5 bg-white border border-slate-200 rounded-3xl hover:shadow-xl transition-all group flex flex-col h-full">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-lg">
+                            <i data-lucide="facebook" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-black text-slate-800 leading-none mb-1">${ad.page_name || 'Página Oculta'}</h4>
+                            <span class="text-[10px] text-blue-600 font-black uppercase tracking-tighter">@${ad.candidato_id}</span>
+                        </div>
+                    </div>
+                    <span class="px-2 py-1 ${ad.status === 'Active' ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-500'} rounded-lg text-[8px] font-black uppercase tracking-widest">${ad.status || 'OFF'}</span>
+                </div>
+
+                <div class="flex-1">
+                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 mb-4 italic text-sm text-slate-700 leading-relaxed min-h-[100px]">
+                        "${ad.creative_body ? ad.creative_body.substring(0, 200) + '...' : 'Sem conteúdo textual.'}"
+                    </div>
+                </div>
+
+                <div class="space-y-3 pt-4 border-t border-slate-50">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Investimento</span>
+                        <strong class="text-xs font-black text-slate-800">${ad.spend_range || 'N/A'}</strong>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Pago por</span>
+                        <span class="text-[9px] font-bold text-slate-600 truncate max-w-[120px]">${ad.paid_by || 'Privado'}</span>
+                    </div>
+                    <a href="${ad.ad_url}" target="_blank" class="w-full mt-2 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all flex items-center justify-center gap-2 shadow-lg">
+                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Ver na Biblioteca
+                    </a>
+                </div>
+            </div>
+        `).join('');
+        
+        if (window.lucide) lucide.createIcons();
+    } catch (e) {
+        console.error('Error rendering ads grid:', e);
+    }
+}
 window.setNetworkView = (view) => { state.networkView = view; state.view = 'networks'; renderAll(); };
 
 // --- GESTOS DE SWIPE (Tinder do Ódio) ---

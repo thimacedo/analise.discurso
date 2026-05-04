@@ -308,6 +308,19 @@ def get_geo_uf(supa: Client = Depends(get_supa)):
         logger.error(f"Geo UF Error: {e}")
         return []
 
+@app.get("/api/v1/ads")
+def list_ads(candidato_id: Optional[str] = None, supa: Client = Depends(get_supa)):
+    """Lista anúncios detectados na Meta Ad Library."""
+    try:
+        query = supa.table('anuncios').select('*')
+        if candidato_id and candidato_id != "null":
+            query = query.eq('candidato_id', candidato_id)
+        res = query.order('data_coleta', desc=True).limit(100).execute()
+        return res.data or []
+    except Exception as e:
+        logger.error(f"List Ads Error: {e}")
+        return []
+
 @app.get("/api/health")
 def health(supa: Client = Depends(get_supa)):
     return {"status": "operational", "db": supa is not None, "engine": "FastAPI on Vercel"}

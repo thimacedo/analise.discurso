@@ -74,6 +74,10 @@ class SentinelDataService {
         return this.fetchJson('/dossiers', { candidato_id });
     }
 
+    async getAds(candidato_id = null) {
+        return this.fetchJson('/ads', { candidato_id });
+    }
+
     async postJson(endpoint, body = {}) {
         const path = endpoint;
         
