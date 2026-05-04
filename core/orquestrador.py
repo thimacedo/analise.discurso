@@ -55,8 +55,8 @@ class Orchestrator:
 
     async def run_ia_classification(self):
         print("🧠 [2/5] Iniciando Perícia PASA v16.4...")
-        from core.ai_service import run_batch_classification
-        await run_batch_classification(limit=200)
+        # Chamando o método da instância singleton ai_service
+        await ai_service.run_batch_classification(limit=200)
         print("✅ Classificação concluída.")
 
     async def run_repericia_cycle(self):
@@ -199,7 +199,7 @@ class Orchestrator:
     async def run_full_pipeline(self):
         print(f"\n🛡️ SENTINELA DEMOCRÁTICA - PIPELINE v{settings.VERSION}")
         print(f"📅 Data: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
-        print(f"🧠 Intelligence: Provider={settings.IA_PROVIDER} (Engine={ai_service.current_engine})")
+        print(f"🧠 Intelligence: Provider={settings.IA_PROVIDER} (Cascade={ai_service.cascade_order})")
         print("="*50 + "\n")
         
         if settings.IA_PROVIDER == "ollama":
