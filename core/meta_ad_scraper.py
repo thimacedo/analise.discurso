@@ -112,11 +112,7 @@ class MetaAdScraper:
         page_name = lines[0] if lines else "Página Oculta"
 
         # Creative Body (simplificado: procura por um bloco de texto que não seja meta-informação)
-        creative_body = ""
-        for line in lines[2:8]: # Pula nome da página e status/ID
-            if len(line) > 20: # Provavelmente o corpo do anúncio
-                creative_body = line
-                break
+        creative_body = next((l for l in lines[2:8] if len(l) > 20), "")
 
         return {
             "ad_id": ad_id,
