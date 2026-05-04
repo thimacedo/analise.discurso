@@ -1,30 +1,29 @@
 # Triagem de Estado e Pendências (Sentinela)
 
 ## 📊 Estado Geral (v20.5.2)
-- **Operacional:** Sim. Fullstack Estável.
-- **Backend/IA:** Integração Ollama (GGUF) unificada e com fallback inteligente. Latência rastreada.
-- **Frontend/UI:** Diamond Edition ativa. KPIs com design semântico e robustez garantida (fallbacks de API via dataService).
-- **Monetização:** AdSense injetado no feed (a cada 5 posts) e na sidebar direita.
+- **Operacional:** Parcial. Infraestrutura base estabelecida, mas épicos de dados estão em refatoração.
+- **Backend/IA:** Integração Ollama (GGUF) operante. Refatoração de IA pendente (STN-007).
+- **Frontend/UI:** Diamond Edition base. Módulos avançados voltaram para design.
+- **Monetização:** AdSense injetado.
 
-## ✅ Concluído (v20.5.6)
-- **STN-003: Meta Ad Library**: Implementado painel de monitoramento de anúncios pagos com integração ao motor de inteligência e links diretos para a biblioteca oficial.
-- **STN-007: Refatoração AIService**: Motor de inteligência consolidado com arquitetura de cascata resiliente e logs de telemetria integrados.
-- **STN-006: Geopolítica UF**: Mapa vetorial interativo D3-style integrado com ranking de hostilidade por estado em tempo real.
-- **STN-005: Diretório Global de Perfis**: Interface premium de perfis com busca e métricas PASA integradas.
+## ✅ Concluído (Infraestrutura)
+- **Organização de Workers (Diamond Protocol):** Workers reorganizados em `core`, `scrapers` e `processors`. Classe `BaseWorker` criada.
 - **Limpeza Linguística Diamond**: Removida terminologia restrita da UI/API.
-- **STN-001: Repositório de Relatórios Estratégicos**: Implementada infraestrutura de persistência estruturada no Supabase com hash de integridade SHA-256 e metadados estratégicos automáticos.
-- **Integração Meta Ad Library (Epico STN-003)**: Monitoramento de anúncios pagos via API oficial (Ads Archive).
-  - Implementado `core/meta_ad_service.py` com busca assíncrona e normalização.
-  - Implementado `processing/ad_processor.py` com classificação PASA v16.4.
-  - Persistência em lote no Supabase via `DatabaseClient`.
+
+## 🔄 Em Planejamento e Refatoração (Reabertos)
+- **STN-003: Meta Ad Library** (Integração e painel visual inoperantes/sem dados reais)
+- **STN-007: Refatoração AIService** (Falhas de integração/latência ou resiliência)
+- **STN-006: Geopolítica UF** (Mapa vetorial e ranking incompletos)
+- **STN-005: Diretório Global de Perfis** (Busca e métricas inoperantes)
+- **STN-001: Repositório de Relatórios Estratégicos** (Persistência e geração estruturada falhando)
 
 ## ⚠️ Pendências Críticas
-- [ ] Diretório Global de Perfis, Repositório de Dossiês Forenses, Geopolítica UF - Mapa Integrado, Filtros de Inteligência
+- [ ] Rever arquitetura de extração e visualização para STN-001, STN-003, STN-005, STN-006 e STN-007.
 
 ## 🛠 Plano de Ação (Resumido)
-1. **STN-003.1:** Implementar `core/meta_ad_service.py` para busca na API da Meta.
-2. **STN-003.2:** Persistência de anúncios no Supabase via `DatabaseClient`.
-3. **STN-003.3:** Classificação PASA v16.4 para anúncios detectados.
+1. **STN-003:** Auditoria da coleta da Meta API e persistência via novos scrapers `workers/scrapers/`.
+2. **STN-007:** Estabilizar conectividade Ollama e pipeline de IA em `workers/processors/`.
+3. **STN-005 & 006:** Consertar frontend (UI) e conectar com os endpoints de dados reais.
 
 
 ---
