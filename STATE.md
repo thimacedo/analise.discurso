@@ -8,9 +8,11 @@
 
 ## ✅ Concluído (Infraestrutura)
 - **Organização de Workers (Diamond Protocol):** Workers reorganizados em `core`, `scrapers` e `processors`. Classe `BaseWorker` criada.
+- **Motor de Inteligência de Alvos (STN-012):** Implementado `workers/processors/candidate_scanner.py` com extração de PDFs, cálculo de relevância e agendamento automático na fila de coleta.
 - **Limpeza Linguística Diamond**: Removida terminologia restrita da UI/API.
 
 ## 🔄 Em Planejamento e Refatoração (Reabertos)
+- **STN-012: Ativação do Motor de Alvos** (Aguardando aplicação de migração SQL `v26.0`)
 - **STN-003: Meta Ad Library** (Integração e painel visual inoperantes/sem dados reais)
 - **STN-007: Refatoração AIService** (Falhas de integração/latência ou resiliência)
 - **STN-006: Geopolítica UF** (Mapa vetorial e ranking incompletos)

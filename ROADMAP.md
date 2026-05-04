@@ -12,6 +12,7 @@ Monitoramento situacional de alto desempenho para as Eleições 2026. Foco em de
 - [x] **STN-009: Exportação Executiva**: Geração de dossiês PDF com gráficos automáticos (v20.5.8).
 - [x] **STN-010: Multi-Tenancy**: Infraestrutura de isolamento por organização e membros (v20.5.9).
 - [x] **Arquitetura de Workers**: Workers modulares baseados em contratos (Diamond Protocol).
+- [x] **STN-012: Motor de Inteligência de Alvos**: Varredura automática de pesquisas PDF e priorização.
 
 ## Em Planejamento e Refatoração (Reabertos)
 - [ ] **STN-001: Repositório de Relatórios Estratégicos** (Inoperante/Dados inconsistentes)
