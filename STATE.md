@@ -10,6 +10,8 @@
 - **Organização de Workers (Diamond Protocol):** Workers reorganizados em `core`, `scrapers` e `processors`. Classe `BaseWorker` criada.
 - **Motor de Inteligência de Alvos (STN-012):** Implementado `workers/processors/candidate_scanner.py` com extração de PDFs, cálculo de relevância e agendamento automático na fila de coleta.
 - **Limpeza Linguística Diamond**: Removida terminologia restrita da UI/API.
+- **Camada de Segurança (cqrs-001):** Implementado `core/security_scanner.py` com PII masking e detecção de segredos, integrado ao pipeline de processamento de texto.
+- **Auditoria de Linguagem Forense (cqrs-002):** Implementado `core/pasa_auditor.py` garantindo alinhamento rigoroso com PASA v16.4 e substituição de terminologia proibida nas saídas da IA.
 
 ## 🔄 Em Planejamento e Refatoração (Reabertos)
 - **STN-012: Ativação do Motor de Alvos** (Aguardando aplicação de migração SQL `v26.0`)
