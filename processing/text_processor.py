@@ -4,6 +4,7 @@ import spacy
 import emoji
 from nltk.corpus import stopwords
 import nltk
+from core.security_scanner import SecurityScanner
 
 nltk.download('stopwords', quiet=True)
 
@@ -17,6 +18,9 @@ class TextProcessor:
             os.system(f"python -m spacy download {modelo_spacy}")
             self.nlp = spacy.load(modelo_spacy)
         
+        # Injetando o scanner de segurança do Rick
+        self.scanner = SecurityScanner()
+
         # Preserva negações para contexto de ódio (ex: "não é corrupto")
         base_stopwords = set(stopwords.words('portuguese'))
         negativas = {'não', 'nem', 'nunca', 'jamais', 'nada', 'ninguém'}
@@ -29,6 +33,9 @@ class TextProcessor:
 
     def limpar_texto(self, texto):
         if pd.isna(texto) or not isinstance(texto, str): return ""
+        # Primeiro, higienização de segurança do Rick
+        texto = self.scanner.mask_sensitive_data(texto)
+        
         texto = self.converter_emojis(texto)
         texto = texto.lower()
         texto = re.sub(r'http\S+|www\S+|@\S+', '', texto) # Remove URLs e menções
@@ -47,7 +54,7 @@ class TextProcessor:
     
     def processar_dataframe(self, df, coluna_texto='text'):
         """Pipeline principal. Recebe o DF do scraper e retorna processado."""
-        print("🤖 text_processor.py: Iniciando pipeline forense...")
+        print("[INFO] text_processor.py: Iniciando pipeline forense com blindagem de seguranca...")
         df_proc = df.copy()
         
         df_proc['texto_limpo'] = df_proc[coluna_texto].apply(self.limpar_texto)
