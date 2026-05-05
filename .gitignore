@@ -45,3 +45,5 @@ test-results/
 
 # Dossies gerados (muito pesados para git)
 data/reports/*.pdf
+
+browser_profile_tmp/
