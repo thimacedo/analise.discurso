@@ -26,22 +26,21 @@ class Orchestrator:
         self.rg = ReportGenerator()
         self.tm = TargetManager(hours_threshold=48)
 
-    async def run_scraper(self):
-        print("🚀 [1/5] Preparando Alvos e Extração (Centralizado - Diamond)...")
+    async def run_scraper(self, limit=200, cooldown=300):
+        print(f"🚀 [1/5] Preparando Alvos e Extração (Centralizado - Diamond) - Limite: {limit}...")
         
-        # 1. Dispara o QueueManager para atualizar a fila no banco com rotação ponderada
         from workers.processors.queue_manager import QueueManagerWorker
         qm = QueueManagerWorker()
+        qm.batch_size = limit 
         await qm.execute()
 
-        # 2. Busca alvos agendados para hoje que ainda estão PENDENTES
         today = datetime.now(UTC).date().isoformat()
         res = db_client.client.table('fila_coleta')\
             .select('candidato_id')\
             .eq('data_agendada', today)\
             .eq('status', 'PENDENTE')\
             .order('prioridade', desc=True)\
-            .limit(30)\
+            .limit(limit)\
             .execute()
         
         targets = [item['candidato_id'] for item in res.data]
@@ -50,10 +49,28 @@ class Orchestrator:
             print("✅ Fila central de hoje já processada ou vazia.")
             return
 
-        print(f"🤖 Disparando Scraper Headless (Diamond Edition) para {len(targets)} alvos...")
+        print(f"🤖 Iniciando Ciclo de Coleta Intercalada para {len(targets)} alvos...")
         from core.instagram_headless import InstagramHeadlessScraper
         scraper = InstagramHeadlessScraper()
-        await scraper.run(targets=targets)
+        
+        for i, target in enumerate(targets):
+            print(f"\n🎯 [{i+1}/{len(targets)}] Raspando @{target}...")
+            try:
+                await scraper.run(targets=[target])
+                
+                # Pickle Rick: Se houver mais alvos, aproveita o cooldown para classificar
+                if i < len(targets) - 1:
+                    print(f"⏳ Cooldown de {cooldown}s. Iniciando Limpeza de FALHA_IA e Classificação pendente...")
+                    # 1. Tenta recuperar falhas anteriores
+                    await ai_service.run_batch_classification(limit=50, force_retry_failures=True)
+                    # 2. Processa o que acabou de ser coletado
+                    await ai_service.run_batch_classification(limit=100)
+                    
+                    print(f"🛌 Descansando o restante do tempo...")
+                    await asyncio.sleep(max(0, cooldown - 60)) # Deduz o tempo da classificação
+            except Exception as e:
+                print(f"❌ Erro ao processar @{target}: {e}")
+                continue
 
     async def run_ia_classification(self):
         print("🧠 [2/5] Iniciando Perícia PASA v16.4...")

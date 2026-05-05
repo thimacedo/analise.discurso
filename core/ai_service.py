@@ -174,13 +174,20 @@ class AIService:
             "latency": time.perf_counter() - start_time
         }
 
-    async def run_batch_classification(self, limit: int = 200):
+    async def run_batch_classification(self, limit: int = 200, force_retry_failures: bool = False):
         """Processamento em lote com persistência via DB injetado."""
         if not self.db:
             from core.db import db_client
             self.db = db_client
 
-        comentarios = await self.db.fetch_unprocessed_comments(limit=limit)
+        if force_retry_failures:
+            logger.info("🔍 [AI] Iniciando limpeza de FALHA_IA...")
+            # Busca especificamente o que deu errado antes
+            res = db_client.client.table('comentarios').select('*').eq('categoria_ia', 'FALHA_IA').limit(limit).execute()
+            comentarios = res.data
+        else:
+            comentarios = await self.db.fetch_unprocessed_comments(limit=limit)
+            
         if not comentarios: return 0
 
         logger.info(f"🧠 [AI] Processando lote de {len(comentarios)} sinais...")
@@ -193,7 +200,7 @@ class AIService:
                 "is_hate": result['is_hate'],
                 "categoria_ia": result['category'],
                 "confianza_ia": result['confidence'],
-                "processado_ia": True
+                "processado_ia": True if result['engine'] != 'fail' else False
             })
 
         if updates:
