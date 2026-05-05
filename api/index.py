@@ -122,24 +122,15 @@ def summary(request: Request, supa: Client = Depends(get_supa)):
                 "timestamp": m['updated_at']
             }
             
-    @app.get("/api/v1/summary")
-    def summary(request: Request, supa: Client = Depends(get_supa)):
-         try:
-             # Puxa a métrica diária mais recente
-             res = supa.table('metricas_diarias').select('*').order('data', desc=True).limit(1).execute()
-             if res.data:
-                 m = res.data[0]
-                 return {
-                     "total_monitorados": 40, # Ou puxe de candidatos ativos
-                    "total_alertas": m['total_hate'],
-                    "total_amostra": m['total_coletado'],
-                    "resiliencia": m['resiliencia'],
-                    "periodo": "24h",
-                    "timestamp": m['updated_at']
-                }
-            return {"error": "Sem dados"}
-        # ...
-   
+        return {
+            "total_monitorados": c, 
+            "total_alertas": 0, 
+            "total_amostra": 0, 
+            "resiliencia": 100.0, 
+            "periodo": "Hoje",
+            "org_id": org_id,
+            "timestamp": now_utc.isoformat()
+        }
     except Exception as e:
         logger.error(f"Summary KPI Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))

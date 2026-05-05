@@ -442,18 +442,117 @@ export function initInfiniteScroll() {
 }
 
 // Outras views básicas e Gated
-function renderNetworkIntelligence() { 
-    document.getElementById('view-networks').innerHTML = `
-        <div class="p-12 text-center bg-white border border-slate-200 rounded-xl animate-in mt-4 flex flex-col items-center justify-center" style="min-height: 60vh;">
-            <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center mb-6 shadow-inner">
-                <i data-lucide="network" class="w-8 h-8"></i>
-            </div>
-            <h3 class="text-xl font-black text-slate-800 mb-2">Mapeamento de Redes Coordenadas</h3>
-            <p class="text-sm text-slate-500 max-w-md mx-auto mb-8">Esta funcionalidade requer calibração dos motores de processamento em grafo para gerar os clusters visuais. Módulo operando em background.</p>
-            <button class="px-6 py-3 bg-slate-900 text-white rounded-lg text-[11px] font-black uppercase tracking-widest shadow-lg shadow-slate-900/20 opacity-50 cursor-not-allowed">
-                Processamento Pendente
-            </button>
-        </div>`; 
+async function renderNetworkIntelligence() { 
+    const container = document.getElementById('view-networks');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div class="p-12 text-center">
+            <div class="skeleton w-16 h-16 rounded-2xl mx-auto mb-4 bg-slate-100"></div>
+            <p class="text-slate-400 text-sm font-bold animate-pulse">Detectando redes coordenadas...</p>
+        </div>`;
+        
+    try {
+        const networks = await dataService.getNetworks();
+        
+        if (!networks || networks.length === 0) {
+            container.innerHTML = `
+                <div class="p-12 text-center bg-white border border-slate-200 rounded-xl animate-in mt-4 flex flex-col items-center justify-center" style="min-height: 60vh;">
+                    <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center mb-6 shadow-inner">
+                        <i data-lucide="network" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-xl font-black text-slate-800 mb-2">Mapeamento de Redes Coordenadas</h3>
+                    <p class="text-sm text-slate-500 max-w-md mx-auto mb-8">Nenhuma rede coordenada detectada no momento. O sistema continua monitorando os fluxos forenses.</p>
+                </div>`;
+            if (window.lucide) lucide.createIcons();
+            return;
+        }
+
+        let html = `
+        <div class="p-6 animate-in">
+            <h2 class="text-2xl font-black text-slate-800 tracking-tighter mb-8">Redes Coordenadas Detectadas</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        `;
+        
+        networks.forEach(net => {
+            const dateStr = new Date(net.created_at).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+            
+            const isAtiva = net.status === 'ATIVA';
+            const badgeClasses = isAtiva ? 'bg-red-50 text-red-600 border-red-100' : 'bg-amber-50 text-amber-600 border-amber-100';
+            const stripeClass = isAtiva ? 'bg-red-500' : 'bg-amber-500';
+            
+            const keywords = (net.palavras_chave || []).slice(0, 10).map(k => 
+                `<span class="inline-block px-2 py-1 bg-slate-100 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 mr-1.5 mb-1.5 shadow-sm hover:bg-slate-200 transition-colors cursor-default">#${k}</span>`
+            ).join('');
+            
+            html += `
+            <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-lg transition-all relative overflow-hidden group">
+                <div class="absolute top-0 left-0 w-1.5 h-full ${stripeClass}"></div>
+                <div class="absolute top-4 right-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <i data-lucide="network" class="w-24 h-24 text-slate-900"></i>
+                </div>
+                
+                <div class="relative z-10">
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <span class="px-2.5 py-1 ${badgeClasses} rounded-md text-[9px] font-black uppercase tracking-widest border shadow-sm">${net.status}</span>
+                            <h3 class="text-lg font-black text-slate-800 mt-3 tracking-tight">${net.nome}</h3>
+                        </div>
+                        <div class="text-right flex flex-col items-end">
+                            <div class="text-3xl font-black ${isAtiva ? 'text-red-500' : 'text-amber-500'} leading-none">${net.severidade}</div>
+                            <div class="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1">Severidade</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-5 mb-6 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shadow-inner">
+                                <i data-lucide="users" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <div class="text-sm font-black text-slate-800 leading-none">${net.eventos_count}</div>
+                                <div class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Conexões</div>
+                            </div>
+                        </div>
+                        
+                        <div class="w-px h-8 bg-slate-200"></div>
+                        
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center shadow-inner">
+                                <i data-lucide="clock" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs font-bold text-slate-800 leading-none mt-0.5">${dateStr}</div>
+                                <div class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">Detecção</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="pt-5 border-t border-slate-100">
+                        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1">
+                            <i data-lucide="hash" class="w-3 h-3"></i> Vetor Lexical Forense
+                        </div>
+                        <div class="flex flex-wrap">${keywords}</div>
+                    </div>
+                </div>
+            </div>`;
+        });
+        
+        html += `</div></div>`;
+        container.innerHTML = html;
+        if (window.lucide) lucide.createIcons();
+    } catch (e) {
+        console.error("Erro ao carregar redes:", e);
+        container.innerHTML = `
+            <div class="p-12 text-center">
+                <div class="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="alert-triangle" class="w-8 h-8"></i>
+                </div>
+                <h3 class="text-lg font-black text-slate-800 mb-2">Erro de Conexão</h3>
+                <p class="text-sm text-slate-500">Falha ao buscar dados do motor de análise forense.</p>
+            </div>`;
+        if (window.lucide) lucide.createIcons();
+    }
 }
 
 async function renderDossieGrid() { 
