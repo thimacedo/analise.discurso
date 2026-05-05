@@ -22,18 +22,9 @@ class MetaAdService:
     async def search_ads(self, query: str, country: str = 'BR', limit: int = 25, max_pages: int = 3) -> List[Dict[str, Any]]:
         """
         Busca anúncios na Meta Ad Library API com suporte a paginação.
-        
-        Args:
-            query: Termo de busca (nome do candidato ou palavra-chave)
-            country: Sigla do país (Padrão: BR)
-            limit: Limite de resultados por página
-            max_pages: Número máximo de páginas a percorrer (Diamond Safety)
-            
-        Returns:
-            Lista de anúncios normalizados de todas as páginas percorridas.
         """
         if not self.access_token:
-            logger.warning("⚠️ [MetaService] META_ACCESS_TOKEN não configurado. Abortando busca via API.")
+            logger.warning(f"⚠️ [MetaService] META_ACCESS_TOKEN ausente. Ignorando API para '{query}'.")
             return []
 
         all_normalized_ads = []
@@ -48,35 +39,38 @@ class MetaAdService:
             'limit': limit
         }
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            page_count = 0
-            while current_url and page_count < max_pages:
-                try:
-                    # Na primeira página usamos params, nas subsequentes a URL já vem com eles
-                    response = await client.get(current_url, params=params if page_count == 0 else None)
-                    response.raise_for_status()
-                    data = response.json()
-                    
-                    ads = data.get('data', [])
-                    logger.info(f"   📄 [MetaService] Página {page_count + 1}: {len(ads)} anúncios encontrados para '{query}'.")
-                    
-                    all_normalized_ads.extend([self._normalize_ad(ad, query) for ad in ads])
-                    
-                    # Verifica próxima página
-                    current_url = data.get('paging', {}).get('next')
-                    page_count += 1
-                    
-                    if not current_url:
-                        break
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                page_count = 0
+                while current_url and page_count < max_pages:
+                    try:
+                        response = await client.get(current_url, params=params if page_count == 0 else None)
+                        response.raise_for_status()
+                        data = response.json()
                         
-                except httpx.HTTPStatusError as e:
-                    logger.error(f"❌ [MetaService] Erro na API da Meta ({e.response.status_code}): {e.response.text}")
-                    break
-                except Exception as e:
-                    logger.error(f"❌ [MetaService] Erro inesperado ao buscar anúncios: {e}")
-                    break
+                        ads = data.get('data', [])
+                        logger.info(f"   📄 [MetaService] Página {page_count + 1}: {len(ads)} anúncios encontrados para '{query}'.")
+                        
+                        all_normalized_ads.extend([self._normalize_ad(ad, query) for ad in ads])
+                        
+                        current_url = data.get('paging', {}).get('next')
+                        page_count += 1
+                        
+                        if not current_url:
+                            break
+                            
+                    except httpx.HTTPStatusError as e:
+                        logger.error(f"❌ [MetaService] Erro na API da Meta ({e.response.status_code}): {e.response.text}")
+                        break
+                    except Exception as e:
+                        logger.error(f"❌ [MetaService] Erro na página {page_count+1}: {e}")
+                        break
 
-        logger.info(f"✅ [MetaService] Total final: {len(all_normalized_ads)} anúncios para '{query}' ({page_count} páginas).")
+            logger.info(f"✅ [MetaService] Total final: {len(all_normalized_ads)} anúncios para '{query}'.")
+        except Exception as e:
+            logger.error(f"❌ [MetaService] Falha crítica na busca via API: {e}")
+            return []
+            
         return all_normalized_ads
 
     def _normalize_ad(self, raw_ad: Dict[str, Any], candidato_id: str) -> Dict[str, Any]:

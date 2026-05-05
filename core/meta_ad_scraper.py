@@ -55,8 +55,8 @@ class MetaAdScraper:
                 
                 await asyncio.sleep(8) # Espera a busca processar
                 
-                # Seletor de "desespero": busca por qualquer div que contenha a estrutura de um card
-                cards = await page.query_selector_all('div.x1iyjqo2, div[data-ad-preview="message"], div[class*="AdLibraryAdCard"]')
+                # Seletores robustos: Prioridade para data-testid, depois classes comuns
+                cards = await page.query_selector_all('div[data-testid="ad_library_ad_card"], div.x1iyjqo2, div[data-ad-preview="message"]')
                 print(f"     📊 {len(cards)} cards de anúncios detectados visualmente.")
 
                 if len(cards) == 0:
@@ -70,8 +70,12 @@ class MetaAdScraper:
                     try:
                         ad_data = await self._extract_card_data(card, username)
                         if ad_data:
-                            await db_client.persist_ad(ad_data)
-                            print(f"     ✅ Anúncio {ad_data['ad_id']} persistido.")
+                            # Tenta persistir via db_client se disponível, senão apenas loga
+                            if hasattr(db_client, 'persist_ad'):
+                                await db_client.persist_ad(ad_data)
+                                print(f"     ✅ Anúncio {ad_data['ad_id']} persistido.")
+                            else:
+                                print(f"     ✅ Anúncio {ad_data['ad_id']} extraído (DB offline).")
                     except Exception as e:
                         print(f"     ⚠️ Erro ao extrair card: {e}")
 
@@ -81,49 +85,76 @@ class MetaAdScraper:
                 await browser.close()
 
     async def _extract_card_data(self, card, candidato_id: str) -> Optional[Dict[str, Any]]:
-        """Extrai dados de um card individual de anúncio."""
+        """Extrai dados de um card individual de anúncio com seletores mais granulares."""
         text = await card.inner_text()
         
-        # Procura pelo ID do anúncio
+        # ID do Anúncio (Fundamental)
         id_match = re.search(r'ID: (\d+)', text)
         if not id_match:
-            return None
+            # Tenta buscar em atributos se não achou no texto
+            id_attr = await card.get_attribute("id")
+            if id_attr and id_attr.isdigit():
+                ad_id = id_attr
+            else:
+                return None
+        else:
+            ad_id = id_match.group(1)
         
-        ad_id = id_match.group(1)
+        # Pagador (Funding Entity)
+        pagador_match = re.search(r'(?:Pago por|Paid by|Patrocinado por|Sponsored by)\s+([^\n]+)', text, re.IGNORECASE)
+        paid_by = pagador_match.group(1).strip() if pagador_match else "Privado/Não informado"
         
-        # Procura por "Pago por" ou "Paid by"
-        pagador_match = re.search(r'(?:Pago por|Paid by)\s+([^\n]+)', text)
-        paid_by = pagador_match.group(1).strip() if pagador_match else "Privado"
-        
-        # Procura por valores (ex: R$ 100 - R$ 499)
-        # Mantemos a extração numérica mas formatamos para a string spend_range esperada no DB
-        valor_match = re.search(r'(R\$\s*[\d\.]+\s*-\s*R\$\s*[\d\.]+)', text)
-        spend_range = valor_match.group(1) if valor_match else "N/A"
+        # Spend Range (Valores) - Extração Numérica para o DB
+        valor_match = re.findall(r'R\$\s*([\d\.]+)', text)
+        v_min, v_max = 0.0, 0.0
+        try:
+            if len(valor_match) >= 2:
+                v_min = float(valor_match[0].replace('.', '').replace(',', '.'))
+                v_max = float(valor_match[1].replace('.', '').replace(',', '.'))
+            elif len(valor_match) == 1:
+                v_min = float(valor_match[0].replace('.', '').replace(',', '.'))
+        except: pass
 
-        # Status
-        status = "Active" if "Ativo" in text or "Active" in text else "Inactive"
+        # Alcance (Impressões)
+        impressions_match = re.search(r'([\d\.]+)\s*-\s*([\d\.]+)\s*(?:impressões|impressions)', text)
+        a_min, a_max = 0, 0
+        if impressions_match:
+            try:
+                a_min = int(impressions_match.group(1).replace('.', ''))
+                a_max = int(impressions_match.group(2).replace('.', ''))
+            except: pass
 
-        # Ad URL (tenta encontrar link para o anúncio)
+        # Status do anúncio
+        status = "active" if any(x in text for x in ["Ativo", "Active", "Em veiculação"]) else "inactive"
+
+        # URL do anúncio
         ad_url = f"https://www.facebook.com/ads/library/?id={ad_id}"
 
-        # Page Name (tenta extrair o nome da página que geralmente é a primeira linha ou perto do topo)
-        # No inner_text do card, o nome da página costuma vir antes do ID
+        # Nome da Página
         lines = [l.strip() for l in text.split('\n') if l.strip()]
         page_name = lines[0] if lines else "Página Oculta"
 
-        # Creative Body (simplificado: procura por um bloco de texto que não seja meta-informação)
-        creative_body = next((l for l in lines[2:8] if len(l) > 20), "")
+        # Creative Body (Corpo do texto)
+        creative_body = ""
+        for line in lines[1:10]:
+            if len(line) > 30 and "ID:" not in line and "Pago por" not in line:
+                creative_body = line
+                break
 
         return {
             "ad_id": ad_id,
             "candidato_id": candidato_id,
             "page_name": page_name,
-            "paid_by": paid_by,
-            "spend_range": spend_range,
+            "pagador": paid_by,
+            "valor_min": v_min,
+            "valor_max": v_max,
+            "alcance_min": a_min,
+            "alcance_max": a_max,
             "status": status,
             "ad_url": ad_url,
-            "creative_body": creative_body,
-            "data_coleta": datetime.now().isoformat()
+            "corpo_anuncio": creative_body,
+            "processado_ia": False,
+            "updated_at": datetime.now().isoformat()
         }
 
 meta_ad_scraper = MetaAdScraper()
