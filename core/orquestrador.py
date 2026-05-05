@@ -3,7 +3,7 @@ import sys
 import asyncio
 import subprocess
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import List, Dict, Any
 
 # Core imports
@@ -25,33 +25,35 @@ class Orchestrator:
         self.tp = TextProcessor()
         self.rg = ReportGenerator()
         self.tm = TargetManager(hours_threshold=48)
-        self.queue_path = os.path.join(os.getcwd(), 'data', 'priority_queue.json')
 
     async def run_scraper(self):
-        print("🚀 [1/5] Preparando Alvos e Extração...")
+        print("🚀 [1/5] Preparando Alvos e Extração (Centralizado - Diamond)...")
         
-        current_targets = []
-        if os.path.exists(self.queue_path):
-            try:
-                with open(self.queue_path, 'r') as f:
-                    current_targets = json.load(f)
-            except Exception as e:
-                print(f"⚠️ Erro ao ler fila: {e}")
+        # 1. Dispara o QueueManager para atualizar a fila no banco com rotação ponderada
+        from workers.processors.queue_manager import QueueManagerWorker
+        qm = QueueManagerWorker()
+        await qm.execute()
 
-        await self.tm.ensure_competitor_coverage()
-        filtered_targets = self.tm.build_dynamic_queue(static_targets=current_targets)
+        # 2. Busca alvos agendados para hoje que ainda estão PENDENTES
+        today = datetime.now(UTC).date().isoformat()
+        res = db_client.client.table('fila_coleta')\
+            .select('candidato_id')\
+            .eq('data_agendada', today)\
+            .eq('status', 'PENDENTE')\
+            .order('prioridade', desc=True)\
+            .limit(30)\
+            .execute()
+        
+        targets = [item['candidato_id'] for item in res.data]
 
-        if not filtered_targets:
-            print("✅ Alvos atualizados. Pulando extração.")
+        if not targets:
+            print("✅ Fila central de hoje já processada ou vazia.")
             return
 
-        with open(self.queue_path, 'w') as f:
-            json.dump(filtered_targets, f)
-
-        print(f"🤖 Disparando Scraper Headless (Diamond Edition) para {len(filtered_targets[:30])} alvos...")
+        print(f"🤖 Disparando Scraper Headless (Diamond Edition) para {len(targets)} alvos...")
         from core.instagram_headless import InstagramHeadlessScraper
         scraper = InstagramHeadlessScraper()
-        await scraper.run(targets=filtered_targets[:30])
+        await scraper.run(targets=targets)
 
     async def run_ia_classification(self):
         print("🧠 [2/5] Iniciando Perícia PASA v16.4...")

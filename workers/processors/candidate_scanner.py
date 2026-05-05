@@ -90,26 +90,39 @@ class CandidateScannerWorker(BaseWorker):
     def _extract_candidates(self, text: str) -> List[Dict]:
         """
         Regex robusto para capturar: Nome do Candidato e Intenção de Voto.
-        Exemplo esperado no texto: "Lula 45,5%", "Bolsonaro 38%", "Ciro Gomes (10,2%)"
         """
         results = []
-        # Padrão: Nome seguido de um número decimal ou inteiro com %
-        # Tenta capturar nomes próprios capitulares
-        pattern = r"([A-Z][a-zà-ú]+(?:\s+[A-Z][a-zà-ú]+)*)\s*\(?(\d+(?:[,\.]\d+)?)\s*%\)?"
+        # Padrão: Palavra Capitular seguida de outras palavras capitulares e uma porcentagem
+        pattern = r"([A-Z][a-zà-ú]+(?:\s+[A-Z][a-zà-ú]+)+)\s*\(?(\d+(?:[,\.]\d+)?)\s*%\)?"
         matches = re.findall(pattern, text)
 
-        # Filtro de Stopwords e validação mínima
-        stopwords = ["Pesquisa", "Instituto", "Margem", "Erro", "Total", "Votos", "Brancos", "Nulos"]
+        blacklist = [
+            "Pesquisa", "Instituto", "Margem", "Erro", "Total", "Votos", "Brancos", "Nulos",
+            "Sexo", "Masculino", "Feminino", "Branca", "Negra", "Amarela", "Parda", "Indígena",
+            "Bom", "Regular", "Ruim", "Péssimo", "Aprova", "Desaprova", "Sim", "Não", "Perfil",
+            "Esquerda", "Direita", "Centro", "Indecisos", "Ninguém", "Nenhum", "Espontânea", "Estimulada",
+            "Religião", "Católica", "Evangélica", "Outras", "Renda", "Salários", "Escolaridade", "Idade",
+            "Anos", "Analfabeto", "Superior", "Fundamental", "Médio", "Entrevistados", "Válidos", "Nível",
+            "Instrução", "Região", "Capital", "Interior", "Pública", "Privada", "Renda Familiar", "Salário"
+        ]
         
         for name, value in matches:
-            if name in stopwords or len(name) < 3:
+            clean_name = name.replace('\n', ' ')
+            clean_name = re.sub(r'\s+', ' ', clean_name).strip()
+            
+            words = clean_name.split()
+            if len(words) < 2 or len(words) > 5:
+                continue
+                
+            is_noise = any(sw.lower() in clean_name.lower() for sw in blacklist)
+            if is_noise:
                 continue
             
             val_float = float(value.replace(",", "."))
             results.append({
-                "nome": name.strip(),
+                "nome": clean_name,
                 "intencao": val_float,
-                "cargo": self._infer_cargo(text, name)
+                "cargo": self._infer_cargo(text, clean_name)
             })
         
         # Remove duplicatas mantendo o maior valor
@@ -163,17 +176,7 @@ class CandidateScannerWorker(BaseWorker):
             "atualizado_em": datetime.now(UTC).isoformat()
         }, on_conflict="username").execute()
 
-        # 4. Adicionar à Fila de Coleta do Dia se for relevante
-        if prioridade >= 3:
-            try:
-                db_client.client.table(self.queue_table).upsert({
-                    "candidato_id": username,
-                    "prioridade": prioridade,
-                    "status": "PENDENTE",
-                    "data_agendada": datetime.now(UTC).date().isoformat()
-                }, on_conflict="candidato_id,data_agendada").execute()
-            except Exception as e:
-                self.logger.warning(f"⚠️ Não foi possível agendar coleta para {username}: {e}")
+        self.logger.info(f"✨ Alvo @{username} atualizado no banco de dados.")
 
     def _generate_handle(self, nome: str) -> str:
         """Gera um handle provisório. Em produção, isso usaria uma busca real."""
