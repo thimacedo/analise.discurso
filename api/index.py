@@ -96,7 +96,7 @@ def calculate_risk(item: Dict[str, Any]):
 
 @app.get("/api/v1/summary")
 def summary(request: Request, supa: Client = Depends(get_supa)):
-    """Retorna KPIs consolidados lendo diretamente da tabela de metricas_diarias (Solenya Edition)."""
+    """Retorna KPIs consolidados com o ACUMULADO (Solenya Edition)."""
     try:
         org_id = request.headers.get("X-Organization-Id")
         now_utc = datetime.now(timezone.utc)
@@ -107,29 +107,28 @@ def summary(request: Request, supa: Client = Depends(get_supa)):
         c_res = query_c.limit(0).execute()
         c = c_res.count if (c_res and c_res.count is not None) else 0
         
-        # 2. Busca Métrica Diária mais recente
-        res = supa.table('metricas_diarias').select('*').order('data', desc=True).limit(1).execute()
+        # 2. Busca Métrica Diária mais recente para o timestamp
+        res_diaria = supa.table('metricas_diarias').select('updated_at').order('data', desc=True).limit(1).execute()
+        last_update = res_diaria.data[0]['updated_at'] if res_diaria.data else now_utc.isoformat()
+
+        # 3. Calcula o Acumulado (Lifetime)
+        query_t = supa.table('candidatos').select('comentarios_totais_count, comentarios_odio_count')
+        if org_id: query_t = query_t.eq('organization_id', org_id)
+        t_res = query_t.execute()
         
-        if res.data:
-            m = res.data[0]
-            return {
-                "total_monitorados": c, 
-                "total_alertas": m['total_hate'], 
-                "total_amostra": m['total_coletado'], 
-                "resiliencia": m['resiliencia'], 
-                "periodo": "Hoje",
-                "org_id": org_id,
-                "timestamp": m['updated_at']
-            }
-            
+        t_lifetime = sum([item.get('comentarios_totais_count', 0) or 0 for item in t_res.data])
+        h_lifetime = sum([item.get('comentarios_odio_count', 0) or 0 for item in t_res.data])
+        
+        res_val = round(((t_lifetime - h_lifetime) / t_lifetime) * 100, 1) if t_lifetime > 0 else 100.0
+        
         return {
             "total_monitorados": c, 
-            "total_alertas": 0, 
-            "total_amostra": 0, 
-            "resiliencia": 100.0, 
-            "periodo": "Hoje",
+            "total_alertas": h_lifetime, 
+            "total_amostra": t_lifetime, 
+            "resiliencia": res_val, 
+            "periodo": "Acumulado",
             "org_id": org_id,
-            "timestamp": now_utc.isoformat()
+            "timestamp": last_update
         }
     except Exception as e:
         logger.error(f"Summary KPI Error: {e}")
