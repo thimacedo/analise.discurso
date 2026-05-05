@@ -96,48 +96,62 @@ def calculate_risk(item: Dict[str, Any]):
 
 @app.get("/api/v1/summary")
 def summary(request: Request, supa: Client = Depends(get_supa)):
-    """Retorna KPIs consolidados com inteligência de janela adaptativa e escopo de organização."""
+    """Retorna KPIs consolidados lendo diretamente da tabela de metricas_diarias (Solenya Edition)."""
     try:
         org_id = request.headers.get("X-Organization-Id")
         now_utc = datetime.now(timezone.utc)
         
-        # 1. Total de Alvos Ativos (Escopado por Org se fornecido)
+        # 1. Total de Alvos Ativos (Continua dinâmico)
         query_c = supa.table('candidatos').select('id', count='exact').eq('status_monitoramento', 'Ativo')
         if org_id: query_c = query_c.eq('organization_id', org_id)
         c_res = query_c.limit(0).execute()
         c = c_res.count if (c_res and c_res.count is not None) else 0
         
-        # 2. Amostra Total
-        query_t = supa.table('candidatos').select('comentarios_totais_count')
-        if org_id: query_t = query_t.eq('organization_id', org_id)
-        t_res = query_t.execute()
-        t_lifetime = sum([item.get('comentarios_totais_count', 0) or 0 for item in t_res.data])
+        # 2. Busca Métrica Diária mais recente
+        res = supa.table('metricas_diarias').select('*').order('data', desc=True).limit(1).execute()
         
-        # 3. Alertas e Resiliência (JANELA 48h)
-        window_48h = (now_utc - timedelta(days=2)).isoformat()
-        query_h = supa.table('comentarios').select('id', count='exact').eq('is_hate', True).gte('data_coleta', window_48h)
-        if org_id: query_h = query_h.eq('organization_id', org_id)
-        h_res = query_h.limit(0).execute()
-        h = h_res.count if (h_res and h_res.count is not None) else 0
-        
-        query_win = supa.table('comentarios').select('id', count='exact').gte('data_coleta', window_48h)
-        if org_id: query_win = query_win.eq('organization_id', org_id)
-        t_window_res = query_win.limit(0).execute()
-        t_window = t_window_res.count if (t_window_res and t_window_res.count is not None) else 0
-        
-        res_val = round(((t_window - h) / t_window) * 100, 1) if t_window > 0 else 100.0
-        
-        return {
-            "total_monitorados": c, 
-            "total_alertas": h, 
-            "total_amostra": t_lifetime, 
-            "resiliencia": res_val, 
-            "periodo": "48h",
-            "org_id": org_id,
-            "timestamp": now_utc.isoformat()
-        }
+        if res.data:
+            m = res.data[0]
+            return {
+                "total_monitorados": c, 
+                "total_alertas": m['total_hate'], 
+                "total_amostra": m['total_coletado'], 
+                "resiliencia": m['resiliencia'], 
+                "periodo": "Hoje",
+                "org_id": org_id,
+                "timestamp": m['updated_at']
+            }
+            
+    @app.get("/api/v1/summary")
+    def summary(request: Request, supa: Client = Depends(get_supa)):
+         try:
+             # Puxa a métrica diária mais recente
+             res = supa.table('metricas_diarias').select('*').order('data', desc=True).limit(1).execute()
+             if res.data:
+                 m = res.data[0]
+                 return {
+                     "total_monitorados": 40, # Ou puxe de candidatos ativos
+                    "total_alertas": m['total_hate'],
+                    "total_amostra": m['total_coletado'],
+                    "resiliencia": m['resiliencia'],
+                    "periodo": "24h",
+                    "timestamp": m['updated_at']
+                }
+            return {"error": "Sem dados"}
+        # ...
+   
     except Exception as e:
         logger.error(f"Summary KPI Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v1/networks")
+def get_networks(request: Request, supa: Client = Depends(get_supa)):
+    """Busca as redes coordenadas (clusters) mais recentes."""
+    try:
+        res = supa.table('redes_coordenadas').select('*').order('created_at', desc=True).limit(10).execute()
+        return res.data if res.data else []
+    except Exception as e:
+        logger.error(f"Networks Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/v1/targets")

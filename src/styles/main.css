@@ -87,7 +87,7 @@ body {
 
 .views-container {
     width: 100%;
-    max-width: 600px; /* LARGURA IDEAL FEED */
+    max-width: 800px; /* LARGURA IDEAL FEED EXPANDIDA */
     padding: 20px 16px;
 }
 
