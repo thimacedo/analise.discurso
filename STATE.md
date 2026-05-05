@@ -11,6 +11,7 @@
 - **Motor de Inteligência de Alvos (STN-012):** Implementado `workers/processors/candidate_scanner.py` com extração de PDFs, cálculo de relevância e agendamento automático na fila de coleta.
 - **Limpeza Linguística Diamond**: Removida terminologia restrita da UI/API.
 - **Camada de Segurança (cqrs-001):** Implementado `core/security_scanner.py` com PII masking e detecção de segredos, integrado ao pipeline de processamento de texto.
+- **Auditoria Forense (cqrs-002):** Implementado `core/pasa_auditor.py` para garantir 100% de conformidade da IA com o Protocolo PASA v16.4.
 - **Auditoria de Linguagem Forense (cqrs-002):** Implementado `core/pasa_auditor.py` garantindo alinhamento rigoroso com PASA v16.4 e substituição de terminologia proibida nas saídas da IA.
 
 ## 🔄 Em Planejamento e Refatoração (Reabertos)
