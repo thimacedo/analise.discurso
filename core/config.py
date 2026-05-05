@@ -25,7 +25,7 @@ class Settings:
     # External APIs
     RAPIDAPI_KEY: str = os.getenv("RAPIDAPI_KEY", "")
     META_ACCESS_TOKEN: str = os.getenv("META_ACCESS_TOKEN", "")
-    META_API_VERSION: str = os.getenv("META_API_VERSION", "v20.0")
+    META_API_VERSION: str = os.getenv("META_API_VERSION", "v19.0")
     
     # Security
     DASHBOARD_PIN: str = os.getenv("DASHBOARD_PIN", "1234")
