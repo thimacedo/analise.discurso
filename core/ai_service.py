@@ -176,14 +176,13 @@ class AIService:
 
     async def run_batch_classification(self, limit: int = 200, force_retry_failures: bool = False):
         """Processamento em lote com persistência via DB injetado."""
-        if not self.db:
-            from core.db import db_client
-            self.db = db_client
+        from core.db import db_client
+        self.db = db_client
 
         if force_retry_failures:
             logger.info("🔍 [AI] Iniciando limpeza de FALHA_IA...")
             # Busca especificamente o que deu errado antes
-            res = db_client.client.table('comentarios').select('*').eq('categoria_ia', 'FALHA_IA').limit(limit).execute()
+            res = self.db.client.table('comentarios').select('*').eq('categoria_ia', 'FALHA_IA').limit(limit).execute()
             comentarios = res.data
         else:
             comentarios = await self.db.fetch_unprocessed_comments(limit=limit)
