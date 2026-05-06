@@ -116,7 +116,7 @@ class Orchestrator:
         
         # Processamento de IA (PASA v16.4)
         print("⛏️ [1.8/5] Classificando Anúncios Meta...")
-        await ad_processor.process_pending_ads(limit=10)
+        await ad_processor.run_once(limit=10)
         
         print("✅ Ciclo de anúncios concluído.")
 

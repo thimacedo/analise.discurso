@@ -67,10 +67,11 @@ async def test_full_meta_cycle():
                 "category": "ATAQUE_INSTITUCIONAL",
                 "confidence": 0.98,
                 "is_hate": True,
-                "reason": "Detecção de ódio contra instituições em teste"
+                "reason": "Detecção de ódio contra instituições em teste",
+                "engine": "gemini"
             }
             
-            await ad_processor.process_pending_ads(limit=1)
+            await ad_processor.run_once(limit=1)
             print("✅ Processamento (Mock) OK.")
 
     print("\n✨ [Sentinela] Teste Integrador Finalizado com Sucesso!\n")

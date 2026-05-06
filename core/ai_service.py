@@ -247,29 +247,6 @@ class AIService:
                 logger.info(f"💾 [AI] Persistidos {len(updates)} comentários.")
                 total_processed += len(updates)
 
-        # Processar Anúncios
-        try:
-            anuncios = await self.db.fetch_unprocessed_ads(limit=limit)
-            if anuncios:
-                logger.info(f"🧠 [AI] Processando lote de {len(anuncios)} anúncios...")
-                for ad in anuncios:
-                    text_to_audit = ad.get('corpo_anuncio') or ""
-                    result = await pasa_auditor.process(text_to_audit)
-                    engine = result["classification"].get("engine", "none") if result.get("classification") else "none"
-                    
-                    update_data = {
-                        "is_hate": result['is_hate'],
-                        "categoria_ia": result['category'],
-                        "confianza_ia": result["classification"].get('confidence', 0) if result.get("classification") else 0,
-                        "processado_ia": True if engine != 'fail' else False
-                    }
-                    await self.db.update_ad_classification(ad['id'], update_data)
-                
-                logger.info(f"💾 [AI] Persistidos {len(anuncios)} anúncios.")
-                total_processed += len(anuncios)
-        except Exception as e:
-            logger.error(f"❌ [AI] Erro processando anúncios: {e}")
-        
         return total_processed
 
 # Singleton para uso global, mas permite injeção via construtor

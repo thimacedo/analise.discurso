@@ -60,3 +60,16 @@ class BaseWorker(ABC):
         """Solicita a parada graciosa do worker."""
         self.logger.info(f"🛑 Solicitando parada do worker {self.name}...")
         self.is_running = False
+
+    async def run_once(self, limit: int = None):
+        """Executa um único ciclo de processamento."""
+        target_limit = limit or self.batch_size
+        try:
+            items = await self.fetch_pending_items(limit=target_limit)
+            if items:
+                await self.process_item_batch(items)
+                return len(items)
+            return 0
+        except Exception as e:
+            self.logger.error(f"❌ Erro em run_once: {e}", exc_info=True)
+            return 0
