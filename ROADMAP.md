@@ -5,9 +5,13 @@
 - [x] Integração da `MonetizationEngine` ao `MetaAdScraper` com alertas Firebase.
 - [x] Remoção do submódulo indesejado `pickle-rick` e limpeza do repositório.
 - [x] Normalização de finais de linha e normalização do Git.
-- [x] Refatoração do `DataMiner` para `BaseWorker` (Ticket rm01).
+- [x] Implementação da abstração `BaseWorker` (bw01).
+- [x] Implementação de operações de banco em lote (db01).
+- [x] Refatoração do `AdProcessor` para `BaseWorker` (ra01).
+- [x] Refatoração do `DataMiner` para `BaseWorker` (rm01).
+- [x] Centralização da lógica PASA v16.4 e logs de auditoria (cp01).
+- [x] **Refatoração Épica: Arquitetura de Processamento v2.0 completa.**
 
 ## Próximos Passos
-- [x] Implementar pipeline de processamento de discurso forense (Ticket `forensics-20`).
-- [x] Aplicar migrações de banco de dados da tabela `anuncios`.
-- [ ] Refatoração Épica (Epic Refactor) de todo o sistema de processamento de dados.
+- [ ] Implementar dashboard de métricas de latência dos workers.
+- [ ] Expansão da cobertura para vídeos do TikTok/YouTube (Pipeline v21.0).
