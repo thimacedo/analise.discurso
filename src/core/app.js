@@ -98,6 +98,62 @@ async function refreshData() {
             };
         }
 
+        // Atualizar a Sidebar Dinamicamente
+        const nowStr = new Date().toLocaleTimeString('pt-BR');
+        
+        const elMonitorados = document.getElementById('kpi-monitorados');
+        if(elMonitorados) elMonitorados.textContent = state.summary.total_monitorados;
+        const elTimeMonitorados = document.getElementById('kpi-time-monitorados');
+        if(elTimeMonitorados) elTimeMonitorados.textContent = nowStr;
+
+        const elHate = document.getElementById('kpi-hate');
+        if(elHate) elHate.textContent = state.summary.total_alertas;
+        const elTimeHate = document.getElementById('kpi-time-hate');
+        if(elTimeHate) elTimeHate.textContent = nowStr;
+
+        const elTotal = document.getElementById('kpi-total');
+        if(elTotal) elTotal.textContent = state.summary.total_amostra.toLocaleString('pt-BR');
+        const elTimeTotal = document.getElementById('kpi-time-total');
+        if(elTimeTotal) elTimeTotal.textContent = nowStr;
+
+        const elRes = document.getElementById('kpi-res');
+        if(elRes) elRes.textContent = `${state.summary.resiliencia}%`;
+        const elTimeRes = document.getElementById('kpi-time-res');
+        if(elTimeRes) elTimeRes.textContent = nowStr;
+        
+        // Atualizar lista de Triagem na Sidebar
+        const chartMain = document.getElementById('chartMain');
+        if (chartMain && state.data.length > 0) {
+            const topTargets = [...state.data]
+                .sort((a, b) => (b.prioridade_coleta || 0) - (a.prioridade_coleta || 0))
+                .slice(0, 15);
+                
+            chartMain.innerHTML = topTargets.map(alvo => {
+                const priorityScore = alvo.prioridade_coleta || 0;
+                const percent = Math.min(100, (priorityScore / 100) * 100);
+                let color = '#10b981'; // green
+                if(percent > 60) color = '#f59e0b'; // yellow
+                if(percent > 80) color = '#ef4444'; // red
+                
+                return `
+                <div onclick="window.setFiltroAlvo('${alvo.username}')" class="monitor-row p-3 rounded-xl border border-transparent hover:bg-white hover:shadow-sm cursor-pointer transition-all flex items-center gap-3">
+                    <div class="monitor-avatar w-10 h-10 border-2 border-slate-100">
+                        <img src="https://ui-avatars.com/api/?name=${alvo.username}&background=0D8ABC&color=fff" alt="${alvo.username}" loading="lazy" width="40" height="40">
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center mb-1">
+                            <strong class="text-xs font-black text-slate-800">@${alvo.username}</strong>
+                            <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-red-50 text-red-500">${priorityScore}</span>
+                        </div>
+                        <div class="w-full bg-slate-100 h-1 rounded-full overflow-hidden">
+                            <div class="h-full" style="width:${percent}%; background:${color}"></div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
         state.currentPage = 1;
         state.loading = false;
         state.lastSyncAt = new Date().toISOString();
