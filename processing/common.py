@@ -1,12 +1,14 @@
 import asyncio
 import logging
+import time
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any
+from .workers_metrics import metrics_collector
 
 class BaseWorker(ABC):
     """
     Abstract Base Class for all Sentinel data processing workers.
-    Provides a unified execution loop, standard logging, and error handling structure.
+    Provides a unified execution loop, standard logging, error handling, and performance metrics.
     """
 
     def __init__(self, name: str, batch_size: int = 50, poll_interval: int = 10):
@@ -15,6 +17,7 @@ class BaseWorker(ABC):
         self.poll_interval = poll_interval
         self.logger = logging.getLogger(self.name)
         self.is_running = False
+        self.metrics_collector = metrics_collector
 
     @abstractmethod
     async def fetch_pending_items(self, limit: int) -> List[Dict[str, Any]]:
@@ -32,7 +35,7 @@ class BaseWorker(ABC):
         pass
 
     async def run(self):
-        """Loop de execução unificado."""
+        """Loop de execução unificado com captura de métricas."""
         self.is_running = True
         self.logger.info(f"🚀 Iniciando worker {self.name} (Batch: {self.batch_size}, Intervalo: {self.poll_interval}s)")
 
@@ -42,12 +45,34 @@ class BaseWorker(ABC):
                 
                 if items:
                     self.logger.info(f"⛏️ Processando lote de {len(items)} itens...")
+                    start_time = time.time()
                     try:
                         await self.process_item_batch(items)
+                        end_time = time.time()
+                        
+                        # Record successful execution
+                        await self.metrics_collector.record_execution(
+                            worker_name=self.name,
+                            batch_size=self.batch_size,
+                            start_time=start_time,
+                            end_time=end_time,
+                            items_processed=len(items),
+                            success=True
+                        )
                     except Exception as batch_error:
+                        end_time = time.time()
                         self.logger.error(f"❌ Falha crítica ao processar o lote: {batch_error}", exc_info=True)
-                        # Depending on implementation, subclasses might handle individual errors.
-                        # This catch prevents the whole worker from crashing on a batch-level exception.
+                        
+                        # Record failed execution
+                        await self.metrics_collector.record_execution(
+                            worker_name=self.name,
+                            batch_size=self.batch_size,
+                            start_time=start_time,
+                            end_time=end_time,
+                            items_processed=len(items),
+                            success=False,
+                            error_msg=str(batch_error)
+                        )
                 else:
                     self.logger.debug(f"💤 Nenhum item pendente. Aguardando {self.poll_interval}s...")
                     await asyncio.sleep(self.poll_interval)
@@ -62,14 +87,48 @@ class BaseWorker(ABC):
         self.is_running = False
 
     async def run_once(self, limit: int = None):
-        """Executa um único ciclo de processamento."""
+        """Executa um único ciclo de processamento com captura de métricas."""
         target_limit = limit or self.batch_size
+        start_time = time.time()
         try:
             items = await self.fetch_pending_items(limit=target_limit)
             if items:
                 await self.process_item_batch(items)
+                end_time = time.time()
+                
+                # Record successful execution
+                await self.metrics_collector.record_execution(
+                    worker_name=self.name,
+                    batch_size=self.batch_size,
+                    start_time=start_time,
+                    end_time=end_time,
+                    items_processed=len(items),
+                    success=True
+                )
                 return len(items)
+            
+            end_time = time.time()
+            await self.metrics_collector.record_execution(
+                worker_name=self.name,
+                batch_size=self.batch_size,
+                start_time=start_time,
+                end_time=end_time,
+                items_processed=0,
+                success=True
+            )
             return 0
         except Exception as e:
+            end_time = time.time()
             self.logger.error(f"❌ Erro em run_once: {e}", exc_info=True)
+            
+            # Record failed execution
+            await self.metrics_collector.record_execution(
+                worker_name=self.name,
+                batch_size=self.batch_size,
+                start_time=start_time,
+                end_time=end_time,
+                items_processed=0,
+                success=False,
+                error_msg=str(e)
+            )
             return 0

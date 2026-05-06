@@ -21,7 +21,7 @@
     "ollama-copilot.model": "qwen2.5:3b",
     "ollama-copilot.chatModel": "qwen2.5:3b",
     "ollama-copilot.maxTokens": 10000,
-    "chat.disableAIFeatures": true,
+    "chat.disableAIFeatures": false,
     "sentinela.ai_provider": "gemini",
     "github.copilot.enable": {
         "*": false,

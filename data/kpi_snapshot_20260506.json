@@ -1,0 +1,123 @@
+{
+  "timestamp": "2026-05-06T00:00:00Z",
+  "sistema": {
+    "versao": "v18.5",
+    "protocolo_pasa": "v16.4",
+    "status": "operacional"
+  },
+  "cobertura": {
+    "alvos_ativos": 46,
+    "alvos_monitorados": [
+      "lulaoficial",
+      "vereadoriraniguedes",
+      "vereadorederqueiroz",
+      "michaelborgesrn",
+      "rodrigocruz_rn",
+      "cctv.parnamirim",
+      "thiagofernandesrn",
+      "drjonasgodeiro",
+      "vereadoreuricodajapao",
+      "binhodeambrosio",
+      "vereadorafraniobezerra",
+      "eudianemacedorn",
+      "rafaelmottarn",
+      "vereadorarhalessarn",
+      "ver.chicao",
+      "michaeldinizrn",
+      "annelagartixa",
+      "rafaeladenilda",
+      "vereadorleolima",
+      "professordiegoamerico",
+      "sargentofahur",
+      "nikolasferreirainfo",
+      "geraldoalckmin_",
+      "professor_italo",
+      "drcesarmaia",
+      "antenorroberto65",
+      "vereadora_nina",
+      "zedirceuoficial",
+      "gleisihoffmann",
+      "dilmarousseff",
+      "marleidecunharn",
+      "alexandreramagem22",
+      "lindberghfarias",
+      "sorayavieiraf",
+      "janjalula",
+      "mineiroptrn",
+      "alexandremottacamara",
+      "lucaspavanato",
+      "pastorhenriquevieira",
+      "divaneidebasilio",
+      "bolsonaro_jr",
+      "simonetebet",
+      "sf_moro",
+      "glauberbraga_oficial",
+      "flaviobolsonaro",
+      "pedroponciosp"
+    ]
+  },
+  "coleta": {
+    "plataformas": [
+      "Instagram"
+    ],
+    "periodo_monitoramento": {
+      "inicio": "2026-04-19T08:39:18Z",
+      "ultimo_evento": "2026-05-05T01:30:47Z"
+    },
+    "metodo": "Scrapy nativo (API REST)",
+    "ciclo_dias": 48
+  },
+  "processamento": {
+    "motor_ia": "PASA v16.4 + Qwen 2.5",
+    "batch_size": 200,
+    "categorias": [
+      "NEUTRO",
+      "ODIO",
+      "POLITICO",
+      "OUTROS"
+    ],
+    "faixa_confianca": "0.0 - 1.0",
+    "idempotencia": "UPSERTS Supabase",
+    "retry_automatico": true
+  },
+  "infraestrutura": {
+    "banco_dados": "Supabase",
+    "alertas": "Firebase",
+    "tabelas_principais": [
+      "candidatos",
+      "comentarios",
+      "metricas_diarias",
+      "redes_coordenadas",
+      "alertas_ativos",
+      "anuncios"
+    ],
+    "rls_seguranca": "v25.0",
+    "clustering": "KMeans + Z-Score"
+  },
+  "qualidade": {
+    "taxa_resiliencia": "dinâmica",
+    "formula_resiliencia": "((Total - Ódio) / Total) * 100",
+    "recuperacao_falhas": "automática",
+    "threads_mineracao": "multithreaded"
+  },
+  "componentes_status": {
+    "scrapy": "online",
+    "supabase": "online",
+    "pasa": "online",
+    "data_miner": "online",
+    "firebase": "online",
+    "text_processor": "online",
+    "dashboard": "em_desenvolvimento"
+  },
+  "roadmap": {
+    "imediato": "Validar performance em carga real",
+    "proximo_ciclo": "Dashboard de latência de workers",
+    "futuro": "Expansão TikTok/YouTube (Pipeline v21.0)"
+  },
+  "conformidade": {
+    "tse_2026": "conforme",
+    "transparencia": "dados_publicos",
+    "governanca": "v18.5_estavel",
+    "seguranca_admin": "TOTP_configurado"
+  }
+}

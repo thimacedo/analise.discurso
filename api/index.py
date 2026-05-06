@@ -14,11 +14,20 @@ import stripe
 
 # Ajuste de path para imports locais (Vercel compliance)
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+
 try:
     from stripe_service import payment_manager
 except ImportError:
     # Fallback se rodar da raiz
     from api.stripe_service import payment_manager
+
+# Import Workers Metrics
+try:
+    from processing.workers_metrics import metrics_collector
+except ImportError:
+    # Fallback if running from root
+    metrics_collector = None
 
 # Configuração de logs
 logging.basicConfig(level=logging.DEBUG)
@@ -381,4 +390,70 @@ def register_push_token(payload: PushTokenRegistration, supa: Client = Depends(g
         supa.table('user_push_tokens').upsert({**payload.dict(), "updated_at": datetime.now(timezone.utc).isoformat()}, on_conflict="user_id,token").execute()
         return {"status": "success"}
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# --- WORKERS METRICS ENDPOINTS (v20.1+) ---
+
+@app.get("/api/v1/workers/dashboard")
+async def workers_dashboard():
+    """Dashboard consolidado de saúde e desempenho dos workers."""
+    if not metrics_collector:
+        raise HTTPException(status_code=503, detail="Metrics collector not initialized")
+    
+    try:
+        summary = await metrics_collector.get_dashboard_summary()
+        return summary
+    except Exception as e:
+        logger.error(f"Workers Dashboard Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v1/workers/stats")
+async def workers_stats():
+    """Estatísticas de todos os workers."""
+    if not metrics_collector:
+        raise HTTPException(status_code=503, detail="Metrics collector not initialized")
+    
+    try:
+        all_stats = await metrics_collector.get_all_workers_stats()
+        return {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "workers": all_stats,
+            "total_workers": len(all_stats)
+        }
+    except Exception as e:
+        logger.error(f"Workers Stats Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v1/workers/{worker_name}/stats")
+async def worker_stats(worker_name: str):
+    """Estatísticas de um worker específico."""
+    if not metrics_collector:
+        raise HTTPException(status_code=503, detail="Metrics collector not initialized")
+    
+    try:
+        stats = await metrics_collector.get_worker_stats(worker_name)
+        if stats.get("status") == "no_data":
+            raise HTTPException(status_code=404, detail=f"No metrics found for worker '{worker_name}'")
+        return stats
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Worker Stats Error ({worker_name}): {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v1/workers/export-metrics")
+async def export_metrics(filepath: str = "data/workers_metrics_export.json"):
+    """Export metrics to JSON file for analysis."""
+    if not metrics_collector:
+        raise HTTPException(status_code=503, detail="Metrics collector not initialized")
+    
+    try:
+        await metrics_collector.export_metrics_json(filepath)
+        return {
+            "status": "success",
+            "filepath": filepath,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Export Metrics Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
