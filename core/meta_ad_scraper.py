@@ -101,3 +101,5 @@ class MetaAdScraper(SentinelaScraper):
 if __name__ == "__main__":
     scraper = MetaAdScraper()
     scraper.scrape("exemplo_perfil")
+
+meta_ad_scraper = MetaAdScraper()

@@ -9,7 +9,7 @@ from core.meta_ad_service import meta_ad_service
 from core.meta_ad_scraper import meta_ad_scraper
 from core.config import settings
 
-async def test_hybrid_collection(target_query: str):
+async def run_hybrid_collection(target_query: str):
     print(f"\n🚀 [Sentinela] Iniciando teste de coleta híbrida para: '{target_query}'")
     
     # 1. Tenta via API (Resiliência Refatorada no Passo 1)
@@ -40,7 +40,7 @@ async def main():
     if not settings.META_ACCESS_TOKEN:
         print("💡 [DICA] META_ACCESS_TOKEN não detectado no .env. O script deve ir direto para o Scraper.")
     
-    await test_hybrid_collection(target)
+    await run_hybrid_collection(target)
 
 if __name__ == "__main__":
     asyncio.run(main())

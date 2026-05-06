@@ -45,20 +45,32 @@ class DatabaseClient:
 
     async def batch_update_comments(self, updates: List[Dict[str, Any]]):
         """
-        Executa atualizações em lote. 
-        Nota: O Supabase REST API não suporta batch PATCH nativo com IDs diferentes de forma trivial.
-        Usaremos RPC ou enviaremos individualmente via pool de conexões se necessário.
-        Para Diamond Edition, usaremos uma RPC customizada se disponível, ou loop otimizado.
+        Executa atualizações em lote para comentários usando upsert do Supabase.
+        Cada dicionário em 'updates' deve conter a chave 'id'.
         """
-        # Se tivéssemos a RPC 'upsert_comentarios' seria ideal.
-        # Por enquanto, loop assíncrono controlado.
-        tasks = []
-        for update in updates:
-            comment_id = update.pop('id')
-            tasks.append(self.update_comment_classification(comment_id, update))
-        
-        import asyncio
-        await asyncio.gather(*tasks)
+        if not self.client or not updates:
+            return
+
+        try:
+            # O upsert no Supabase funciona como merge se o ID estiver presente
+            self.client.table('comentarios').upsert(updates).execute()
+            print(f"✅ [DB] {len(updates)} comentários atualizados em lote.")
+        except Exception as e:
+            print(f"❌ [DB] Erro no batch_update_comments: {e}")
+
+    async def batch_update_ad_classification(self, updates: List[Dict[str, Any]]):
+        """
+        Executa atualizações em lote para classificações de anúncios.
+        Cada dicionário em 'updates' deve conter a chave 'id'.
+        """
+        if not self.client or not updates:
+            return
+
+        try:
+            self.client.table('anuncios').upsert(updates).execute()
+            print(f"✅ [DB] {len(updates)} anúncios atualizados em lote.")
+        except Exception as e:
+            print(f"❌ [DB] Erro no batch_update_ad_classification: {e}")
 
     async def upsert_daily_metrics(self, payload: Dict[str, Any]):
         """Salva ou atualiza métricas diárias via RPC."""

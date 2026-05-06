@@ -188,7 +188,9 @@ class ReportGenerator(FPDF):
         self.cell(0, 10, 'DETALHAMENTO DE EVIDÊNCIAS (TOP SINAIS)', ln=True)
         self.ln(5)
         
-        df_report = df_final[df_final['is_hate_speech'] == True].head(50)
+        is_hate_col = 'is_hate_speech' if 'is_hate_speech' in df_final.columns else 'is_hate'
+        df_report = df_final[df_final[is_hate_col] == True].head(50) if is_hate_col in df_final.columns else df_final.head(10)
+        
         if df_report.empty:
             df_report = df_final.head(10)
 

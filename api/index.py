@@ -82,14 +82,18 @@ class FalsePositiveRequest(BaseModel):
 def calculate_risk(item: Dict[str, Any]):
     totais = item.get('comentarios_totais_count', 0) or 0
     odio = item.get('comentarios_odio_count', 0) or 0
-    if totais == 0: return 0, 'CONTROLADO', RISK_COLORS["CONTROLADO"]
+    if totais == 0:
+        return 0, 'CONTROLADO', RISK_COLORS["CONTROLADO"]
     
     ratio = odio / totais
     score = min(100, int(ratio * 150) + min(50, odio))
     
-    if score > 80 or ratio > 0.25: return score, 'CRITICO', RISK_COLORS["CRITICO"]
-    if score > 50 or ratio > 0.15: return score, 'ELEVADO', RISK_COLORS["ELEVADO"]
-    if score > 20 or ratio > 0.05: return score, 'MONITORANDO', RISK_COLORS["MONITORANDO"]
+    if score > 80 or ratio > 0.25:
+        return score, 'CRITICO', RISK_COLORS["CRITICO"]
+    if score > 50 or ratio > 0.15:
+        return score, 'ELEVADO', RISK_COLORS["ELEVADO"]
+    if score > 20 or ratio > 0.05:
+        return score, 'MONITORANDO', RISK_COLORS["MONITORANDO"]
     return score, 'CONTROLADO', RISK_COLORS["CONTROLADO"]
 
 # --- ENDPOINTS ---
@@ -103,7 +107,8 @@ def summary(request: Request, supa: Client = Depends(get_supa)):
         
         # 1. Total de Alvos Ativos (Continua dinâmico)
         query_c = supa.table('candidatos').select('id', count='exact').eq('status_monitoramento', 'Ativo')
-        if org_id: query_c = query_c.eq('organization_id', org_id)
+        if org_id:
+            query_c = query_c.eq('organization_id', org_id)
         c_res = query_c.limit(0).execute()
         c = c_res.count if (c_res and c_res.count is not None) else 0
         
@@ -113,7 +118,8 @@ def summary(request: Request, supa: Client = Depends(get_supa)):
 
         # 3. Calcula o Acumulado (Lifetime)
         query_t = supa.table('candidatos').select('comentarios_totais_count, comentarios_odio_count')
-        if org_id: query_t = query_t.eq('organization_id', org_id)
+        if org_id:
+            query_t = query_t.eq('organization_id', org_id)
         t_res = query_t.execute()
         
         t_lifetime = sum([item.get('comentarios_totais_count', 0) or 0 for item in t_res.data])
@@ -151,13 +157,15 @@ def get_targets(request: Request, limit: int = 50, supa: Client = Depends(get_su
         
         # Busca candidatos ativos escopados
         query_cand = supa.table('candidatos').select('*').eq('status_monitoramento', 'Ativo')
-        if org_id: query_cand = query_cand.eq('organization_id', org_id)
+        if org_id:
+            query_cand = query_cand.eq('organization_id', org_id)
         candidates_res = query_cand.execute()
         candidates = candidates_res.data or []
         
         # Busca ódio recente escopado
         query_h = supa.table('comentarios').select('candidato_id, categoria_ia').eq('is_hate', True)
-        if org_id: query_h = query_h.eq('organization_id', org_id)
+        if org_id:
+            query_h = query_h.eq('organization_id', org_id)
         h_res = query_h.limit(2000).execute()
         h_data = h_res.data or []
         
@@ -165,7 +173,8 @@ def get_targets(request: Request, limit: int = 50, supa: Client = Depends(get_su
         breakdowns = {}
         for h in h_data:
             cid, cat = h['candidato_id'], h['categoria_ia'] or 'OUTROS'
-            if cid not in breakdowns: breakdowns[cid] = Counter()
+            if cid not in breakdowns:
+                breakdowns[cid] = Counter()
             breakdowns[cid][cat] += 1
         
         enriched = []
@@ -216,7 +225,8 @@ async def generate_dossier(payload: DossierGenerateRequest, supa: Client = Depen
     try:
         from processing.dossie_service import DossieService
         data = supa.table('comentarios').select('*').eq('candidato_id', payload.candidato_id).limit(500).execute().data
-        if not data: raise HTTPException(status_code=404, detail="No data found for this target")
+        if not data:
+            raise HTTPException(status_code=404, detail="No data found for this target")
         
         # Simulação de geração para evitar bloqueio de thread
         timestamp = int(datetime.now().timestamp())
@@ -261,9 +271,11 @@ def get_resilience_ranking(limit: int = 10, supa: Client = Depends(get_supa)):
         stats = {}
         for item in data:
             cid = item['candidato_id']
-            if cid not in stats: stats[cid] = {'total': 0, 'hate': 0}
+            if cid not in stats:
+                stats[cid] = {'total': 0, 'hate': 0}
             stats[cid]['total'] += 1
-            if item['is_hate']: stats[cid]['hate'] += 1
+            if item['is_hate']:
+                stats[cid]['hate'] += 1
             
         ranking = []
         for cid, val in stats.items():
@@ -287,6 +299,22 @@ def get_temporal_series(supa: Client = Depends(get_supa)):
     except Exception as e:
         logger.error(f"Series Error: {e}")
         return []
+
+# --- COMPATIBILITY ALIASES FOR TESTS ---
+@app.get("/api/v1/trends")
+def trends(supa: Client = Depends(get_supa)):
+    return get_temporal_series(supa)
+
+@app.get("/api/v1/pasa/breakdown")
+def pasa_breakdown(supa: Client = Depends(get_supa)):
+    """Retorna o breakdown de categorias PASA (Compatibility Mode)."""
+    try:
+        res = supa.table('comentarios').select('categoria_ia').eq('is_hate', True).execute()
+        counts = Counter([item.get('categoria_ia') or 'OUTROS' for item in res.data])
+        return dict(counts)
+    except Exception as e:
+        logger.error(f"PASA Breakdown Error: {e}")
+        return {}
 
 @app.post("/api/v1/checkout/create-session")
 def create_checkout(payload: CheckoutRequest):
@@ -326,6 +354,9 @@ def get_geo_uf(supa: Client = Depends(get_supa)):
     except Exception as e:
         logger.error(f"Geo UF Error: {e}")
         return []
+
+# Alias for tests
+geo_uf = get_geo_uf
 
 @app.get("/api/v1/ads")
 def list_ads(candidato_id: Optional[str] = None, supa: Client = Depends(get_supa)):

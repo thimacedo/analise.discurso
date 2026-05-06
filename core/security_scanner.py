@@ -25,7 +25,7 @@ class SecurityScanner:
             # Chaves de API mais específicas (Stripe, AWS, Google, etc)
             'Secret_Key': re.compile(r'\b(?:sk|pk|ak)_(?:live|test)_[a-zA-Z0-9]{20,}\b|'
                                     r'\bAKIA[A-Z0-9]{16}\b|'
-                                    r'\bAIza[a-zA-Z0-9_-]{35}\b'),
+                                    r'\bAIza[a-zA-Z0-9_-]{30,45}\b'),
             'SSH_Private_Key': re.compile(r'-----BEGIN (?:RSA|OPENSSH|DSA|EC) PRIVATE KEY-----'),
         }
 
