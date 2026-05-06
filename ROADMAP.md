@@ -7,5 +7,6 @@
 - [x] Normalização de finais de linha e normalização do Git.
 
 ## Próximos Passos
-- [ ] Implementar pipeline de processamento de discurso forense (Ticket `forensics-20`).
+- [x] Implementar pipeline de processamento de discurso forense (Ticket `forensics-20`).
+- [ ] Aplicar migrações de banco de dados da tabela `anuncios`.
 - [ ] Refatoração Épica (Epic Refactor) de todo o sistema de processamento de dados.

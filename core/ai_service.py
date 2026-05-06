@@ -177,36 +177,63 @@ class AIService:
     async def run_batch_classification(self, limit: int = 200, force_retry_failures: bool = False):
         """Processamento em lote com persistência via DB injetado."""
         from core.db import db_client
+        from core.pasa_auditor import PASAAuditor
         self.db = db_client
+        pasa_auditor = PASAAuditor(ai_service_instance=self)
 
+        total_processed = 0
+
+        # Processar comentários
         if force_retry_failures:
-            logger.info("🔍 [AI] Iniciando limpeza de FALHA_IA...")
-            # Busca especificamente o que deu errado antes
+            logger.info("🔍 [AI] Iniciando limpeza de FALHA_IA em comentários...")
             res = self.db.client.table('comentarios').select('*').eq('categoria_ia', 'FALHA_IA').limit(limit).execute()
             comentarios = res.data
         else:
             comentarios = await self.db.fetch_unprocessed_comments(limit=limit)
             
-        if not comentarios: return 0
+        if comentarios:
+            logger.info(f"🧠 [AI] Processando lote de {len(comentarios)} comentários...")
+            updates = []
+            for c in comentarios:
+                result = await pasa_auditor.process(c.get('texto_bruto', ''))
+                engine = result["classification"].get("engine", "none") if result.get("classification") else "none"
+                updates.append({
+                    "id": c['id'],
+                    "is_hate": result['is_hate'],
+                    "categoria_ia": result['category'],
+                    "confianza_ia": result["classification"].get('confidence', 0) if result.get("classification") else 0,
+                    "processado_ia": True if engine != 'fail' else False
+                })
 
-        logger.info(f"🧠 [AI] Processando lote de {len(comentarios)} sinais...")
-        updates = []
-        
-        for c in comentarios:
-            result = await self.classify(c.get('texto_bruto', ''))
-            updates.append({
-                "id": c['id'],
-                "is_hate": result['is_hate'],
-                "categoria_ia": result['category'],
-                "confianza_ia": result['confidence'],
-                "processado_ia": True if result['engine'] != 'fail' else False
-            })
+            if updates:
+                await self.db.batch_update_comments(updates)
+                logger.info(f"💾 [AI] Persistidos {len(updates)} comentários.")
+                total_processed += len(updates)
 
-        if updates:
-            await self.db.batch_update_comments(updates)
-            logger.info(f"💾 [AI] Persistidos {len(updates)} resultados.")
+        # Processar Anúncios
+        try:
+            anuncios = await self.db.fetch_unprocessed_ads(limit=limit)
+            if anuncios:
+                logger.info(f"🧠 [AI] Processando lote de {len(anuncios)} anúncios...")
+                for ad in anuncios:
+                    text_to_audit = ad.get('corpo_anuncio') or ""
+                    result = await pasa_auditor.process(text_to_audit)
+                    engine = result["classification"].get("engine", "none") if result.get("classification") else "none"
+                    
+                    update_data = {
+                        "is_hate": result['is_hate'],
+                        "categoria_ia": result['category'],
+                        "confianza_ia": result["classification"].get('confidence', 0) if result.get("classification") else 0,
+                        "processado_ia": True if engine != 'fail' else False
+                    }
+                    await self.db.update_ad_classification(ad['id'], update_data)
+                
+                logger.info(f"💾 [AI] Persistidos {len(anuncios)} anúncios.")
+                total_processed += len(anuncios)
+        except Exception as e:
+            logger.error(f"❌ [AI] Erro processando anúncios: {e}")
         
-        return len(updates)
+        return total_processed
 
 # Singleton para uso global, mas permite injeção via construtor
 ai_service = AIService()
