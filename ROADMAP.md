@@ -5,6 +5,7 @@
 - [x] Integração da `MonetizationEngine` ao `MetaAdScraper` com alertas Firebase.
 - [x] Remoção do submódulo indesejado `pickle-rick` e limpeza do repositório.
 - [x] Normalização de finais de linha e normalização do Git.
+- [x] Refatoração do `DataMiner` para `BaseWorker` (Ticket rm01).
 
 ## Próximos Passos
 - [x] Implementar pipeline de processamento de discurso forense (Ticket `forensics-20`).

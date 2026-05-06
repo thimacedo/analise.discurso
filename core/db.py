@@ -207,4 +207,32 @@ class DatabaseClient:
             print(f"❌ [DB] Erro ao buscar histórico de dossiês: {e}")
             return []
 
+    async def fetch_unmined_comments(self, limit: int = 100) -> List[Dict[str, Any]]:
+        """Busca comentários processados pela IA mas ainda não minerados."""
+        if not self.client: return []
+        try:
+            # Tenta filtrar pela coluna 'mined' se existir, caso contrário busca processados
+            res = self.client.table('comentarios').select('*').eq('processado_ia', True).eq('mined', False).limit(limit).execute()
+            return res.data
+        except Exception as e:
+            if "column" in str(e) and "mined" in str(e):
+                # Fallback se a coluna não existir ainda
+                res = self.client.table('comentarios').select('*').eq('processado_ia', True).limit(limit).execute()
+                return res.data
+            print(f"❌ [DB] Erro ao buscar comentários não minerados: {e}")
+            return []
+
+    async def fetch_unmined_ads(self, limit: int = 100) -> List[Dict[str, Any]]:
+        """Busca anúncios processados pela IA mas ainda não minerados."""
+        if not self.client: return []
+        try:
+            res = self.client.table('anuncios').select('*').eq('processado_ia', True).eq('mined', False).limit(limit).execute()
+            return res.data
+        except Exception as e:
+            if "column" in str(e) and "mined" in str(e):
+                res = self.client.table('anuncios').select('*').eq('processado_ia', True).limit(limit).execute()
+                return res.data
+            print(f"❌ [DB] Erro ao buscar anúncios não minerados: {e}")
+            return []
+
 db_client = DatabaseClient()
