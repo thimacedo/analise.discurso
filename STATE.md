@@ -1,4 +1,4 @@
 # STATE
-**Status Atual:** Pipeline PASA v16.4 (Diamond Edition) implementado com sucesso. O `PASAAuditor` foi refatorado como um processo assíncrono acoplado ao `AIService`, escaneando tanto comentários quanto anúncios e detectando infrações terminológicas forenses simultaneamente à classificação de risco (Groq/Gemini/Ollama). Testes específicos (test_pasa_v16_4.py) aprovados 100%. Tabela `anuncios` pendente de migração no Supabase.
-**Foco:** Refatoração Épica (Epic Refactor) do sistema de processamento de dados.
-**Próximo Passo:** Aplicar migrações SQL pendentes (anúncios) e preparar o Epic Refactor.
+**Status Atual:** Migrações SQL aplicadas (`anuncios`). O pipeline PASA v16.4 (Diamond Edition) está 100% operacional no banco de dados, escaneando comentários e anúncios com punição de latência para os motores de IA.
+**Foco:** Iniciar a Refatoração Épica (Epic Refactor) da arquitetura de processamento.
+**Próximo Passo:** Mapear os gargalos arquiteturais e iniciar a refatoração.

@@ -8,5 +8,5 @@
 
 ## Próximos Passos
 - [x] Implementar pipeline de processamento de discurso forense (Ticket `forensics-20`).
-- [ ] Aplicar migrações de banco de dados da tabela `anuncios`.
+- [x] Aplicar migrações de banco de dados da tabela `anuncios`.
 - [ ] Refatoração Épica (Epic Refactor) de todo o sistema de processamento de dados.
