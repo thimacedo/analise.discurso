@@ -6,28 +6,13 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional, List
 from core.config import settings
+from core.forensics_service import forensics_service
 
 # --- SENTINELA | Diamond Intelligence Engine v16.4 ---
 # Refatoração Implacável: Cascata Resiliente e Latência Zero.
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("sentinela-ai")
-
-SYSTEM_PROMPT_PASA = """
-Você é um analista forense do sistema Sentinela Democrática. Classifique o texto segundo o Protocolo PASA v16.4.
-
-CATEGORIAS EXATAS:
-- NEUTRO (Críticas, protestos, debates ideológicos NÃO são ódio).
-- ODIO_IDENTITARIO (Xenofobia, racismo, regionalismo).
-- VIOLENCIA_GENERO (Misoginia, ofensas à condição feminina).
-- AMEACA (Incitação a dano físico ou morte).
-- INSULTO_AD_HOMINEM (Desumanização: lixo, rato, verme, escória).
-- ATAQUE_INSTITUCIONAL (Deslegitimação de órgãos como STF/TSE).
-- RIGOR_CRIMINAL (Imputação de crime sem prova: ladrão, corrupto).
-
-SAÍDA: JSON VÁLIDO.
-{"category": "CATEGORIA", "confidence": 0.95, "is_hate": true, "reason": "motivo"}
-"""
 
 class AIEngine(ABC):
     """Classe base para motores de IA do Sentinela."""
@@ -36,43 +21,13 @@ class AIEngine(ABC):
     async def classify(self, text: str) -> Optional[Dict[str, Any]]:
         pass
 
-    def _parse_response(self, text: str) -> Dict[str, Any]:
-        """Parser resiliente para respostas de IA (Diamond Pattern)."""
-        try:
-            # Limpeza de markdown e ruídos
-            clean = text.strip()
-            if clean.startswith("```"):
-                clean = clean.split("\n", 1)[-1]
-            if clean.endswith("```"):
-                clean = clean.rsplit("\n", 1)[0]
-            clean = clean.replace('```json', '').replace('```', '').strip()
-            
-            data = json.loads(clean)
-            cat = str(data.get("category", "NEUTRO")).upper().replace("ODEIO", "ODIO").strip()
-            
-            valid_categories = [
-                "NEUTRO", "ODIO_IDENTITARIO", "VIOLENCIA_GENERO", 
-                "AMEACA", "INSULTO_AD_HOMINEM", "ATAQUE_INSTITUCIONAL", "RIGOR_CRIMINAL"
-            ]
-            if cat not in valid_categories: 
-                cat = "NEUTRO"
-            
-            return {
-                "category": cat,
-                "confidence": float(data.get("confidence", 0.0)),
-                "is_hate": bool(data.get("is_hate", False)),
-                "reason": data.get("reason", "Análise automatizada v16.4")
-            }
-        except Exception as e:
-            logger.debug(f"[AI Parse] Erro ao decodificar JSON: {e} | Raw: {text[:100]}...")
-            return {"category": "NEUTRO", "confidence": 0.0, "is_hate": False, "reason": "Erro de parser PASA"}
-
 class GeminiEngine(AIEngine):
     async def classify(self, text: str) -> Optional[Dict[str, Any]]:
         if not settings.GEMINI_API_KEY: return None
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={settings.GEMINI_API_KEY}"
+        system_prompt = forensics_service.get_system_prompt()
         payload = {
-            "contents": [{"parts": [{"text": f"{SYSTEM_PROMPT_PASA}\n\nTEXTO: \"{text}\""}]}],
+            "contents": [{"parts": [{"text": f"{system_prompt}\n\nTEXTO: \"{text}\""}]}],
             "generationConfig": {"response_mime_type": "application/json"}
         }
         async with httpx.AsyncClient() as client:
@@ -80,7 +35,7 @@ class GeminiEngine(AIEngine):
                 resp = await client.post(url, json=payload, timeout=15.0)
                 if resp.status_code == 200:
                     raw_text = resp.json()['candidates'][0]['content']['parts'][0]['text']
-                    return self._parse_response(raw_text)
+                    return forensics_service.parse_verdict(raw_text)
             except Exception as e:
                 logger.warning(f"⚠️ [AI] Gemini failure: {e}")
         return None
@@ -90,10 +45,11 @@ class GroqEngine(AIEngine):
         if not settings.GROQ_API_KEY: return None
         url = "https://api.groq.com/openai/v1/chat/completions"
         headers = {"Authorization": f"Bearer {settings.GROQ_API_KEY}"}
+        system_prompt = forensics_service.get_system_prompt()
         payload = {
             "model": "llama-3.3-70b-versatile",
             "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT_PASA},
+                {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"TEXTO: \"{text}\""}
             ],
             "response_format": {"type": "json_object"}
@@ -103,7 +59,7 @@ class GroqEngine(AIEngine):
                 resp = await client.post(url, headers=headers, json=payload, timeout=15.0)
                 if resp.status_code == 200:
                     raw_text = resp.json()['choices'][0]['message']['content']
-                    return self._parse_response(raw_text)
+                    return forensics_service.parse_verdict(raw_text)
             except Exception as e:
                 logger.warning(f"⚠️ [AI] Groq failure: {e}")
         return None
@@ -111,11 +67,12 @@ class GroqEngine(AIEngine):
 class OllamaEngine(AIEngine):
     async def classify(self, text: str) -> Optional[Dict[str, Any]]:
         url = f"{settings.OLLAMA_BASE_URL}/api/chat"
+        system_prompt = forensics_service.get_system_prompt()
         # Forçando o uso do Gemma local disponível na máquina (gemma:2b) ao invés do default qwen2.5:3b
         payload = {
             "model": "gemma:2b",
             "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT_PASA},
+                {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"TEXTO: \"{text}\""}
             ],
             "stream": False,
@@ -127,7 +84,7 @@ class OllamaEngine(AIEngine):
                 resp = await client.post(url, json=payload, timeout=30.0)
                 if resp.status_code == 200:
                     raw_text = resp.json().get("message", {}).get("content", "")
-                    return self._parse_response(raw_text)
+                    return forensics_service.parse_verdict(raw_text)
             except Exception as e:
                 logger.warning(f"⚠️ [AI] Ollama failure: {e}")
         return None
@@ -175,6 +132,9 @@ class AIService:
             result = await engine.classify(text)
             if result:
                 latency = time.perf_counter() - start_time
+                
+                # Registro de auditoria PASA
+                forensics_service.log_audit(text, result, engine_name, latency)
                 
                 if self.engine_scores[engine_name] >= 100:
                     last_latency = self.engine_latencies.get(engine_name, float('inf'))
