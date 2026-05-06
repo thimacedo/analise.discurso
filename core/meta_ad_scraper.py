@@ -10,6 +10,7 @@ from core.db import db_client
 from core.config import settings
 from core.base_scraper import SentinelaScraper
 from processing.monetization_engine import MonetizationEngine
+from core.firebase_alerter import send_alert_summary
 
 class MetaAdScraper(SentinelaScraper):
     def __init__(self):
@@ -43,7 +44,6 @@ class MetaAdScraper(SentinelaScraper):
             
             try:
                 await page.goto("https://www.facebook.com/ads/library/?active_status=all&ad_type=all&country=BR", wait_until="networkidle")
-                
                 search_input = page.get_by_placeholder("Pesquisar por palavra-chave ou anunciante")
                 await search_input.fill(username)
                 await search_input.press("Enter")
@@ -60,6 +60,12 @@ class MetaAdScraper(SentinelaScraper):
                             if hasattr(db_client, 'persist_ad'):
                                 await db_client.persist_ad(ad_data)
                                 self.logger.info(f"Anúncio {ad_data['ad_id']} persistido.")
+                                
+                                # Lógica de alerta de monetização
+                                if ad_data.get('risco_monetizacao') == 'High':
+                                    send_alert_summary(f"ALERTA: Alta atividade de monetização para @{username}. Ad ID: {ad_data['ad_id']}")
+                                    self.logger.warning(f"Alerta disparado para anúncio de risco: {ad_data['ad_id']}")
+
                     except Exception as e:
                         self.logger.warning(f"Erro ao extrair card: {e}")
 
@@ -70,22 +76,25 @@ class MetaAdScraper(SentinelaScraper):
 
     async def _extract_card_data(self, card, candidato_id: str) -> Optional[Dict[str, Any]]:
         text = await card.inner_text()
-        
         id_match = re.search(r'ID: (\d+)', text)
         ad_id = id_match.group(1) if id_match else (await card.get_attribute("id") or "0")
         
         pagador_match = re.search(r'(?:Pago por|Paid by|Patrocinado por|Sponsored by)\s+([^\n]+)', text, re.IGNORECASE)
         paid_by = pagador_match.group(1).strip() if pagador_match else "Privado/Não informado"
         
-        # Uso do MonetizationEngine para padronizar extração de valores
-        finance_data = self.monetization_engine.extract_financials(text)
+        finance_data = self.monetization_engine.extract_monetization_data({
+            'ad_id': ad_id,
+            'pagador': paid_by,
+            'valor_min': 0.0,
+            'valor_max': 0.0
+        })
 
         return {
             "ad_id": ad_id,
             "candidato_id": candidato_id,
             "pagador": paid_by,
-            "valor_min": finance_data.get('v_min', 0.0),
-            "valor_max": finance_data.get('v_max', 0.0),
+            "valor_min": finance_data.get('valor_estimado', 0.0),
+            "risco_monetizacao": finance_data.get('risco_monetizacao', 'Low'),
             "updated_at": datetime.now().isoformat()
         }
 
