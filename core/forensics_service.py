@@ -131,7 +131,7 @@ FORMATO DE SAÍDA (JSON ESTRITAMENTE):
             "confidence": verdict["confidence"],
             "text_preview": text[:100] + "..." if len(text) > 100 else text,
             "reason": verdict["reason"],
-            "pasa_version": verdict["pasa_version"]
+            "pasa_version": verdict.get("pasa_version", self.VERSION)
         }
         logger.info(f"⚖️ [PASA AUDIT] {engine.upper()} | {verdict['category']} | {latency:.2f}s | {verdict['reason']}")
         return log_entry
