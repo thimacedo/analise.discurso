@@ -31,31 +31,61 @@ class DataMiner(BaseWorker):
         df = pd.DataFrame(items)
         # Filtra apenas o que é ódio para clusterização temática
         is_hate_col = 'is_hate' if 'is_hate' in df.columns else 'is_hate_speech'
+
+        # Garante que a coluna de ódio existe e é booleana
+        if is_hate_col not in df.columns:
+            df[is_hate_col] = False
+        else:
+            df[is_hate_col] = df[is_hate_col].fillna(False).astype(bool)
+
         hate_df = df[df[is_hate_col] == True].copy()
 
-        if len(hate_df) < 10:
-            self.logger.info("⚠️ Dados insuficientes no lote para clusterização temática.")
-            # Marca como minerado mesmo assim para não re-processar
+        if len(hate_df) < 5:
+            self.logger.info("⚠️ Dados insuficientes no lote para clusterização temática real. Marcando apenas como minerados.")
             updates = [{"id": item['id'], "mined": True} for item in items]
             await db_client.batch_update_comments(updates)
             return
 
-        # Simulação de clusterização (lógica simplificada para o worker)
-        # Em produção, usaria TfidfVectorizer + KMeans
         try:
-            # Marca como minerado
-            updates = []
-            for _, row in df.iterrows():
-                updates.append({
-                    "id": row['id'],
-                    "mined": True
-                })
-            
+            # Mineração Real: TF-IDF + KMeans
+            # Usamos o 'texto_limpo' se disponível, caso contrário 'text'
+            text_col = 'texto_limpo' if 'texto_limpo' in hate_df.columns else 'text'
+            textos = hate_df[text_col].fillna('').astype(str)
+
+            if textos.str.strip().replace('', np.nan).dropna().empty:
+                self.logger.warning("⚠️ Textos vazios no lote de ódio. Pulando clusterização.")
+                updates = [{"id": item['id'], "mined": True} for item in items]
+                await db_client.batch_update_comments(updates)
+                return
+
+            vectorizer = TfidfVectorizer(max_features=100, stop_words=None) # Stopwords já tratadas no TextProcessor
+            X = vectorizer.fit_transform(textos)
+
+            # Define clusters (mínimo 2, máximo 5)
+            n_clusters = min(5, max(2, len(hate_df) // 3))
+            kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
+            hate_df['cluster'] = kmeans.fit_predict(X)
+
+            # Prepara updates para o banco
+            updates_map = {item['id']: {"id": item['id'], "mined": True, "cluster_id": None} for item in items}
+
+            for _, row in hate_df.iterrows():
+                item_id = row['id']
+                if item_id in updates_map:
+                    updates_map[item_id]["cluster_id"] = int(row['cluster'])
+
+            updates = list(updates_map.values())
+
             if updates:
                 await db_client.batch_update_comments(updates)
-                self.logger.info(f"✅ {len(updates)} itens minerados e atualizados no DB.")
+                self.logger.info(f"✅ {len(updates)} itens minerados ({len(hate_df)} clusterizados em {n_clusters} grupos) e atualizados no DB.")
+
         except Exception as e:
-            self.logger.error(f"❌ Erro na persistência da mineração: {e}")
+            self.logger.error(f"❌ Erro na mineração temática real: {e}", exc_info=True)
+            # Fallback: marca como minerado para não travar a fila
+            updates = [{"id": item['id'], "mined": True} for item in items]
+            await db_client.batch_update_comments(updates)
+
 
     async def handle_failure(self, item: Dict[str, Any], error: Exception) -> None:
         self.logger.error(f"❌ Falha ao minerar item {item.get('id')}: {error}")
