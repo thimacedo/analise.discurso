@@ -259,7 +259,7 @@ function buildPostCard(alerta) {
                 </div>
 
                 <div class="post-content mt-4 p-5 bg-slate-50 rounded-2xl text-[15px] leading-relaxed text-slate-800 font-medium border-l-8 border-blue-500 shadow-inner italic">
-                    "${alerta.texto_bruto || 'Conteúdo indisponível para esta perícia manual.'}"
+                    "${(alerta.texto_bruto && alerta.texto_bruto.trim()) || (alerta.text && alerta.text.trim()) || alerta.comentario || 'Conteúdo indisponível para esta perícia manual.'}"
                 </div>
                 
                 ${isLocked ? `
