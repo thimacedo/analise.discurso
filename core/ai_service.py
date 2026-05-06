@@ -135,7 +135,12 @@ class AIService:
     def __init__(self, db_client=None):
         self.db = db_client
         self.engines: Dict[str, AIEngine] = {}
-        self.cascade_order: List[str] = ["gemini", "groq", "ollama"]
+        # Lista inicial. Usaremos um sistema de pontuação para ordenar dinamicamente.
+        self.engine_scores: Dict[str, int] = {
+            "gemini": 100,
+            "groq": 90,
+            "ollama": 80
+        }
         
         # Auto-registro padrão
         self.register_engine("gemini", GeminiEngine())
@@ -145,25 +150,43 @@ class AIService:
     def register_engine(self, name: str, engine: AIEngine):
         """Registra um novo motor de IA."""
         self.engines[name] = engine
+        if name not in self.engine_scores:
+            self.engine_scores[name] = 50
         logger.debug(f"[AI] Motor registrado: {name}")
 
+    def _get_cascade_order(self) -> List[str]:
+        """Retorna a ordem dos motores baseada em pontuação."""
+        return sorted(self.engines.keys(), key=lambda k: self.engine_scores.get(k, 0), reverse=True)
+
     async def classify(self, text: str) -> Dict[str, Any]:
-        """Classifica texto usando cascata de motores registrada."""
+        """Classifica texto usando cascata de motores com sistema de recompensa."""
         if not text or not text.strip():
             return {"category": "NEUTRO", "confidence": 1.0, "is_hate": False, "reason": "Input vazio", "engine": "none"}
 
         start_time = time.perf_counter()
+        cascade_order = self._get_cascade_order()
         
-        for engine_name in self.cascade_order:
+        for engine_name in cascade_order:
             engine = self.engines.get(engine_name)
             if not engine: continue
             
             result = await engine.classify(text)
             if result:
+                # Recompensa por sucesso
+                self.engine_scores[engine_name] = min(100, self.engine_scores[engine_name] + 2)
+                
                 result["latency"] = time.perf_counter() - start_time
                 result["engine"] = engine_name
-                logger.info(f"📊 [AI] {engine_name.upper()} | {result['category']} | {result['latency']:.2f}s")
+                logger.info(f"📊 [AI] {engine_name.upper()} | {result['category']} | {result['latency']:.2f}s | Score: {self.engine_scores[engine_name]}")
                 return result
+            else:
+                # Penalidade pesada por falha (ex: 429 ou 404)
+                self.engine_scores[engine_name] = max(0, self.engine_scores[engine_name] - 15)
+                logger.warning(f"📉 [AI] Penalizando {engine_name.upper()} por falha. Novo score: {self.engine_scores[engine_name]}")
+
+        # Se todos falharem, tentar recuperar um pouco a pontuação de todos para não travarem no 0 para sempre
+        for k in self.engine_scores.keys():
+             self.engine_scores[k] = min(100, self.engine_scores[k] + 5)
 
         return {
             "category": "NEUTRO", 
