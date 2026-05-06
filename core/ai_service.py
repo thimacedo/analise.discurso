@@ -111,8 +111,9 @@ class GroqEngine(AIEngine):
 class OllamaEngine(AIEngine):
     async def classify(self, text: str) -> Optional[Dict[str, Any]]:
         url = f"{settings.OLLAMA_BASE_URL}/api/chat"
+        # Forçando o uso do Gemma local disponível na máquina (gemma:2b) ao invés do default qwen2.5:3b
         payload = {
-            "model": settings.OLLAMA_MODEL,
+            "model": "gemma:2b",
             "messages": [
                 {"role": "system", "content": SYSTEM_PROMPT_PASA},
                 {"role": "user", "content": f"TEXTO: \"{text}\""}
