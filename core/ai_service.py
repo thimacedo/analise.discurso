@@ -141,6 +141,7 @@ class AIService:
             "groq": 90,
             "ollama": 80
         }
+        self.engine_latencies: Dict[str, float] = {}
         
         # Auto-registro padrão
         self.register_engine("gemini", GeminiEngine())
@@ -159,7 +160,7 @@ class AIService:
         return sorted(self.engines.keys(), key=lambda k: self.engine_scores.get(k, 0), reverse=True)
 
     async def classify(self, text: str) -> Dict[str, Any]:
-        """Classifica texto usando cascata de motores com sistema de recompensa."""
+        """Classifica texto usando cascata de motores com sistema de recompensa e penalidade de latência."""
         if not text or not text.strip():
             return {"category": "NEUTRO", "confidence": 1.0, "is_hate": False, "reason": "Input vazio", "engine": "none"}
 
@@ -172,10 +173,22 @@ class AIService:
             
             result = await engine.classify(text)
             if result:
-                # Recompensa por sucesso
-                self.engine_scores[engine_name] = min(100, self.engine_scores[engine_name] + 2)
+                latency = time.perf_counter() - start_time
                 
-                result["latency"] = time.perf_counter() - start_time
+                if self.engine_scores[engine_name] >= 100:
+                    last_latency = self.engine_latencies.get(engine_name, float('inf'))
+                    if latency >= last_latency:
+                        # Penalidade de latência se estiver no topo mas não for mais rápido
+                        self.engine_scores[engine_name] -= 5
+                        logger.warning(f"📉 [AI] {engine_name.upper()} penalizado por lentidão ({latency:.2f}s >= {last_latency:.2f}s). Novo score: {self.engine_scores[engine_name]}")
+                    else:
+                        logger.info(f"⚡ [AI] {engine_name.upper()} bateu recorde de velocidade ({latency:.2f}s < {last_latency:.2f}s). Mantendo 100.")
+                else:
+                    # Recompensa normal por sucesso
+                    self.engine_scores[engine_name] = min(100, self.engine_scores[engine_name] + 2)
+                
+                self.engine_latencies[engine_name] = latency
+                result["latency"] = latency
                 result["engine"] = engine_name
                 logger.info(f"📊 [AI] {engine_name.upper()} | {result['category']} | {result['latency']:.2f}s | Score: {self.engine_scores[engine_name]}")
                 return result
