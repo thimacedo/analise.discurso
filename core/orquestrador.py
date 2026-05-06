@@ -143,18 +143,18 @@ class Orchestrator:
         return df
 
     async def process_and_mine(self, df: pd.DataFrame):
-        print("⛏️ [4/5] NLP & Mineração de Tendências...")
+        print("⛏️ [4/5] NLP & Mineração de Tendências (Modo Worker)...")
+        from processing.data_miner import data_miner
+        
+        # O novo DataMiner agora é um worker que processa incrementalmente.
+        # Aqui no Orquestrador, podemos apenas rodar um ciclo para processar o que acabou de chegar.
+        count = await data_miner.run_once(limit=self.batch_size if hasattr(self, 'batch_size') else 200)
+        print(f"✅ Ciclo de mineração concluído: {count} itens processados.")
+        
+        # Para compatibilidade com a geração de relatório legada no final da pipeline, 
+        # ainda processamos o dataframe para limpeza textual.
         df_proc = self.tp.processar_dataframe(df)
-        
-        miner = DataMiner(df_proc)
-        temporal_results = miner.analise_temporal()
-        df_clustered, topics, clusters = miner.thematic_clustering()
-        
-        # Persistência de Inteligência
-        await self.persist_intelligence(df_clustered, clusters, temporal_results)
-        
-        miner.gerar_nuvem_palavras()
-        return df_clustered
+        return df_proc
 
     async def persist_intelligence(self, df: pd.DataFrame, clusters: List[Dict], temporal: Dict):
         print("💾 [4.5/5] Persistindo Inteligência Forense...")
