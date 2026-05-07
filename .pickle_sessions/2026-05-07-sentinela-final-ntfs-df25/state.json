@@ -1,0 +1,16 @@
+{
+  "active": true,
+  "working_dir": "E:\\Projetos\\sentinela-democratica",
+  "step": "prd",
+  "iteration": 0,
+  "max_iterations": 30,
+  "max_time_minutes": 60,
+  "worker_timeout_seconds": 1200,
+  "start_time_epoch": 1778173323,
+  "completion_promise": null,
+  "original_prompt": "[TOKEN_SAVER: Ativado. O comando CLI REAL é 'powershell.exe -ExecutionPolicy Bypass -File C:\\Users\\THIAGO\\AppData\\Roaming\\npm\\gemini.ps1'. Use este comando para todas as execuções do worker. Pule RESEARCH e vá direto para IMPLEMENT no instagram_scraper.py usando core/.] [STATE_VIS: Ativado.]",
+  "current_ticket": null,
+  "history": [],
+  "started_at": "2026-05-07T17:02:03.896Z",
+  "session_dir": "E:\\Projetos\\sentinela-democratica\\.pickle_sessions\\2026-05-07-sentinela-final-ntfs-df25"
+}

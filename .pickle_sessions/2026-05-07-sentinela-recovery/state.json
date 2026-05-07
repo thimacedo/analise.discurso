@@ -1,0 +1,16 @@
+{
+  "active": true,
+  "working_dir": "E:\\Projetos\\sentinela-democratica",
+  "step": "prd",
+  "iteration": 0,
+  "max_iterations": 50,
+  "max_time_minutes": 60,
+  "worker_timeout_seconds": 1200,
+  "start_time_epoch": 1778143999,
+  "completion_promise": null,
+  "original_prompt": "FORCE_IMPLEMENT: Ignorar fase de research. Utilizar os módulos existentes em core/ para finalizar a integração do IntegratedInstagramScraper no arquivo instagram_scraper.py. O plano já foi definido: usar StealthBrowser e BehaviorEngine. Vá direto para WriteFile.",
+  "current_ticket": null,
+  "history": [],
+  "started_at": "2026-05-07T08:53:19.853Z",
+  "session_dir": "E:\\Projetos\\sentinela-democratica\\.pickle_sessions\\2026-05-07-sentinela-recovery"
+}

@@ -1,0 +1,16 @@
+{
+  "active": true,
+  "working_dir": "E:\\Projetos\\sentinela-democratica",
+  "step": "prd",
+  "iteration": 0,
+  "max_iterations": 20,
+  "max_time_minutes": 60,
+  "worker_timeout_seconds": 1200,
+  "start_time_epoch": 1778145013,
+  "completion_promise": null,
+  "original_prompt": "[WRITE_ATOMIC: NTFS Ativado. Token-Saver: Máximo. Reconstrua o IntegratedInstagramScraper com a Tríade Stealth completa no arquivo instagram_scraper.py. Sem pesquisas, apenas código.]",
+  "current_ticket": null,
+  "history": [],
+  "started_at": "2026-05-07T09:10:13.646Z",
+  "session_dir": "E:\\Projetos\\sentinela-democratica\\.pickle_sessions\\2026-05-07-sentinela-final-ntfs"
+}
