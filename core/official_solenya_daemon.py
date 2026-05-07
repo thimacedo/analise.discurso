@@ -1,35 +1,35 @@
-import logging
-import asyncio
-from core.main_orchestrator import MainOrchestrator
+# Daemon Solenya Completo com PSR-1 e PASA
 
-# Configuração PSR-1 de logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger("solenya-daemon")
+import time
+import logging
+from core.instagram_scraper import InstagramScraperAuditor
 
 class OfficialSolenyaDaemon:
-    """
-    Daemon principal de automação Solenya.
-    Execução PSR-1 estrita.
-    """
-    def __init__(self):
-        self.orchestrator = MainOrchestrator()
+    """Daemon de processamento Solenya (Auditoria PASA integrada)"""
+    _instance = None
 
-    async def run(self):
-        logger.info("Iniciando Solenya Daemon v20.6...")
-        try:
-            # Simulação do loop de execução
-            while True:
-                logger.info("Daemon rodando, aguardando eventos...")
-                await asyncio.sleep(10)
-        except KeyboardInterrupt:
-            logger.info("Daemon encerrado pelo usuário.")
-        except Exception as e:
-            logger.error(f"Erro fatal no Daemon: {e}")
-            raise e
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance.auditor = InstagramScraperAuditor("daemon_core")
+            cls._instance.logger = logging.getLogger("Sentinela.Daemon")
+        return cls._instance
 
-if __name__ == "__main__":
-    daemon = OfficialSolenyaDaemon()
-    asyncio.run(daemon.run())
+    def start(self):
+        """Inicia o daemon com verificação constante."""
+        self.logger.info("Daemon Solenya iniciado.")
+        
+        while True:
+            try:
+                # Verificação de integridade antes do processamento
+                if self.auditor.validate_dataset({"heartbeat": "active"}):
+                    self.logger.info("Estado forense validado. Processando lote...")
+                    # Simulação de processamento de lote
+                    time.sleep(5)
+                else:
+                    self.logger.error("Falha na auditoria PASA. Aguardando...")
+            
+            except Exception as e:
+                self.logger.error(f"Erro fatal no Daemon: {e}")
+            
+            time.sleep(1)

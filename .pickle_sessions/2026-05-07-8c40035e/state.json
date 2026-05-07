@@ -2,7 +2,7 @@
   "active": true,
   "working_dir": "E:\\Projetos\\sentinela-democratica",
   "step": "prd",
-  "iteration": 5,
+  "iteration": 6,
   "max_iterations": 150,
   "max_time_minutes": 180,
   "worker_timeout_seconds": 1200,
