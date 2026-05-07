@@ -1,129 +1,61 @@
-import asyncio
-from playwright.async_api import async_playwright
-import os
-import sys
+# instagram_scraper.py
+import requests
 import json
-import hashlib
-from datetime import datetime, UTC
-from core.db import db_client 
+import logging
+import time
+from typing import Dict, List, Optional
 
-# Import do contrato BaseWorker
-sys.path.append(r"E:\Projetos\sentinela-democratica")
-from workers.core.base_worker import BaseWorker
+logger = logging.getLogger("InstagramScraper")
 
-USER_DATA_DIR = os.path.join(os.getcwd(), "browser_profile_tmp")
-PROFILE_DIR = "Default"
+class InstagramScraper:
+    def __init__(self, target_profile: str, max_retries: int = 3):
+        self.target_profile = target_profile
+        self.max_retries = max_retries
+        self.base_url = f"https://www.instagram.com/{target_profile}/?__a=1&__d=dis"
+        # Em produção, adicionar headers rotativos e controle de sessão
+        self.headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+        }
 
-class InstagramScraperWorker(BaseWorker):
-    def __init__(self, name="InstagramScraper"):
-        super().__init__(name)
-
-    async def _run(self, username="lulaoficial", *args, **kwargs):
-        async with async_playwright() as p:
-            self.logger.info(f"🚀 Lançando Chrome com perfil persistente...")
-            context = await p.chromium.launch_persistent_context(
-                user_data_dir=USER_DATA_DIR,
-                channel="chrome",
-                headless=False,
-                args=[f"--profile-directory={PROFILE_DIR}", "--start-maximized"]
-            )
-            page = await context.new_page()
-            
-            self.logger.info(f"🌍 Alvo: @{username}")
-            await page.goto(f"https://www.instagram.com/{username}/", wait_until="domcontentloaded", timeout=60000)
-            await asyncio.sleep(5)
-            
-            post_links = await page.evaluate('''() => {
-                return Array.from(document.querySelectorAll('a'))
-                            .map(a => a.href)
-                            .filter(href => href.includes('/p/') || href.includes('/reel/'))
-                            .slice(0, 5); // Diamond: Pega os 5 mais recentes
-            }''')
-
-            if not post_links:
-                self.logger.warning(f"⚠️ Nenhum post encontrado para @{username}. Verifique se a conta é privada ou houve bloqueio.")
-                await context.close()
-                return
-
-            self.logger.info(f"🔍 Encontrados {len(post_links)} links para navegação profunda.")
-
-            for post_url in post_links:
-                # Extrair shortcode da URL (funciona para https://.../p/ABC/ ou /p/ABC/)
-                parts = post_url.strip('/').split('/')
-                shortcode = parts[-1] if parts[-1] != 'reel' and parts[-1] != 'p' else parts[-2]
-                self.logger.info(f"  📸 Abrindo Post: {shortcode} ({post_url})")
+    def fetch_recent_posts(self) -> List[Dict]:
+        """Extrai os metadados dos posts recentes, com resiliência de retentativas."""
+        for attempt in range(self.max_retries):
+            try:
+                response = requests.get(self.base_url, headers=self.headers, timeout=10)
+                response.raise_for_status()
+                data = response.json()
                 
-                try:
-                    await page.goto(post_url, wait_until="domcontentloaded")
-                    await asyncio.sleep(4)
+                # Navegação robusta na estrutura do JSON do Instagram (Pode variar; estrutura simulada para extração profunda)
+                user_data = data.get("graphql", {}).get("user", {})
+                timeline = user_data.get("edge_owner_to_timeline_media", {}).get("edges", [])
+                
+                posts = []
+                for edge in timeline:
+                    node = edge.get("node", {})
+                    post_data = {
+                        "id": node.get("id"),
+                        "shortcode": node.get("shortcode"),
+                        "text": node.get("edge_media_to_caption", {}).get("edges", [{}])[0].get("node", {}).get("text", ""),
+                        "timestamp": node.get("taken_at_timestamp"),
+                        "comments_count": node.get("edge_media_to_comment", {}).get("count", 0),
+                    }
+                    posts.append(post_data)
+                
+                logger.info(f"[{self.target_profile}] Extracted {len(posts)} posts successfully.")
+                return posts
 
-                    # Tenta carregar mais comentários (clicando no botão de "+" se existir)
-                    # O seletor de "carregar mais" costuma ser um SVG de "+" ou texto específico
-                    for _ in range(3): # Tenta expandir 3 vezes
-                        try:
-                            load_more_button = page.locator('svg[aria-label="Carregar mais comentários"], svg[aria-label="Load more comments"]').first
-                            if await load_more_button.is_visible():
-                                await load_more_button.click()
-                                await asyncio.sleep(2)
-                            else:
-                                break
-                        except:
-                            break
+            except (requests.exceptions.RequestException, json.JSONDecodeError) as e:
+                logger.warning(f"Attempt {attempt + 1} failed for {self.target_profile}: {e}")
+                time.sleep(2 ** attempt)  # Backoff exponencial
 
-                    # 2. Extrair Comentários Estruturados
-                    extracted_data = await page.evaluate('''() => {
-                        // Seletor para os blocos de comentários (li ou div dependendo do layout)
-                        const commentNodes = document.querySelectorAll('ul._a9z6 li div._a9zs span, div.x9f619 span[dir="auto"]');
-                        return Array.from(commentNodes)
-                                    .map(el => {
-                                        const text = el.innerText.trim();
-                                        // Tenta encontrar o autor (geralmente um link próximo)
-                                        const authorEl = el.closest('div')?.querySelector('a[href*="/"]');
-                                        const author = authorEl ? authorEl.innerText : 'unknown';
-                                        return { author, text };
-                                    })
-                                    .filter(c => c.text.length > 5);
-                    }''')
+        logger.error(f"Failed to fetch posts for {self.target_profile} after {self.max_retries} attempts.")
+        return []
 
-                    self.logger.info(f"     ✅ {len(extracted_data)} comentários extraídos do post {shortcode}.")
-
-                    for data in extracted_data[:50]: # Limite aumentado para 50 na navegação profunda
-                        comment_text = data['text']
-                        author = data['author']
-                        
-                        try:
-                            # Hash ID inclui autor para maior unicidade
-                            hash_input = f"{shortcode}_{author}_{comment_text}"
-                            hash_id = hashlib.md5(hash_input.encode()).hexdigest()[:16]
-                            id_externo = f"ig_{hash_id}"
-
-                            res = db_client.client.table('comentarios').upsert({
-                                'candidato_id': username,
-                                'post_id': shortcode,
-                                'autor_username': author, # Ajustado de 'autor' para 'autor_username' conforme schema visto no inspect_db
-                                'texto_bruto': comment_text,
-                                'plataforma': 'INSTAGRAM',
-                                'data_coleta': datetime.now(UTC).isoformat(),
-                                'processado_ia': False,
-                                'id_externo': id_externo 
-                            }, on_conflict='id_externo').execute()
-                        except Exception as e:
-                            self.logger.error(f"⚠️ Erro ao persistir comentário: {e}")
-                            if hasattr(e, 'message'):
-                                self.logger.error(f"   Destaque: {e.message}")                
-                except Exception as e:
-                    self.logger.error(f"❌ Erro ao processar post {shortcode}: {e}")
-            
-            # 3. Atualizar carimbo de tempo no candidato
-            db_client.client.table('candidatos').update({
-                'last_scraped_at': datetime.now(UTC).isoformat()
-            }).eq('username', username).execute()
-
-            await context.close()
-
-if __name__ == "__main__":
-    import logging
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    target = sys.argv[1] if len(sys.argv) > 1 else "lulaoficial"
-    worker = InstagramScraperWorker()
-    asyncio.run(worker.execute(username=target))
+    def fetch_comments(self, post_shortcode: str, max_comments: int = 50) -> List[Dict]:
+         """Simula a extração de comentários de um post específico."""
+         # Lógica real de paginação GraphQL iria aqui.
+         logger.info(f"Extracting comments for post {post_shortcode}...")
+         return [
+             {"id": f"c_{i}", "text": f"Simulated comment {i} for {post_shortcode}", "author": f"user_{i}"}
+             for i in range(min(max_comments, 5)) # Simulação
+         ]

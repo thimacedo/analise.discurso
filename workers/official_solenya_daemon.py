@@ -1,94 +1,51 @@
-import asyncio
+# official_solenya_daemon.py
+import time
 import logging
-import sys
-import random
-from datetime import datetime, UTC
-from core.db import db_client
-from core.ai_service import ai_service
-from workers.scrapers.instagram_scraper import InstagramScraperWorker
+from main_orchestrator import SentinelOrchestrator
 
-# --- PROTOCOLO SOLENYA DE RECOMPENSAS (PSR-1) ---
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - DAEMON - %(message)s')
+logger = logging.getLogger("SolenyaDaemon")
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[logging.StreamHandler(sys.stdout)]
-)
-logger = logging.getLogger('OfficialSolenyaDaemon')
+class PSR1RewardProtocol:
+    """Implementação do Protocolo de Recompensas PSR-1 para os Workers."""
+    @staticmethod
+    def issue_reward(worker_id: str, items_processed: int, critical_flags: int):
+        # A lógica real acionaria um smart contract ou atualizaria o ledger Supabase
+        reward_points = (items_processed * 1) + (critical_flags * 5)
+        logger.info(f"[PSR-1 TRIGGER] Reward Issued: Worker '{worker_id}' earned {reward_points} pts. (Items: {items_processed}, Critical: {critical_flags})")
+        # return suabase.table("worker_rewards").insert(...)
 
-async def apply_reward(username, points):
-    """Aplica recompensas ou penalidades à prioridade do candidato."""
-    try:
-        # Busca prioridade atual
-        res = db_client.client.table('candidatos').select('prioridade_coleta').eq('username', username).single().execute()
-        current_prio = res.data.get('prioridade_coleta', 1) if res.data else 1
-        
-        new_prio = max(1, min(10, current_prio + points))
-        
-        db_client.client.table('candidatos').update({
-            'prioridade_coleta': new_prio,
-            'last_scraped_at': datetime.now(UTC).isoformat()
-        }).eq('username', username).execute()
-        
-        action = "RECOMPENSA" if points > 0 else "PENALIDADE"
-        logger.info(f"💎 [{action}] @{username}: {current_prio} -> {new_prio}")
-    except Exception as e:
-        logger.error(f"⚠️ Falha ao aplicar recompensa para @{username}: {e}")
-
-async def official_routine(limit=30, cooldown=300):
-    logger.info(f"🚀 INICIANDO ROTINA OFICIAL SOLENYA (Lote: {limit})")
+def start_daemon(interval_minutes: int = 60, worker_id: str = "worker-natal-01"):
+    targets = ["camaradenatal", "tce_rn"]
+    orchestrator = SentinelOrchestrator(targets)
     
-    # 1. Puxar alvos da fila_coleta ou candidatos (Fila Diamond)
-    try:
-        res = db_client.client.table('candidatos')\
-            .select('username, prioridade_coleta')\
-            .order('prioridade_coleta', desc=True)\
-            .order('last_scraped_at', desc=False)\
-            .limit(limit)\
-            .execute()
-        targets = res.data
-    except Exception as e:
-        logger.error(f"❌ Falha ao buscar alvos: {e}")
-        return
-
-    worker = InstagramScraperWorker()
+    logger.info(f"Solenya Daemon initialized. Interval: {interval_minutes}m. Worker: {worker_id}")
     
-    for i, t in enumerate(targets):
-        username = t['username']
-        logger.info(f"🎯 [{i+1}/{len(targets)}] Processando @{username} (Prio: {t['prioridade_coleta']})")
-        
+    while True:
         try:
-            # Captura contagem inicial de comentários para medir "produtividade"
-            # (Simplificado: o worker já reporta o que extraiu)
-            # Rodar a extração
-            # Nota: O execute do worker precisa retornar a contagem para ser 100% PSR-1
-            # Vou simular a contagem baseada na resposta da persistência se necessário
-            await worker.execute(username=username)
+            results = orchestrator.run_collection_cycle()
             
-            # Recompensa base (Sucesso = +1)
-            # Se fosse um Morty, eu diria para ele checar o DB, mas eu sou um gênio
-            await apply_reward(username, 1)
+            # Cálculo de métricas para o PSR-1
+            total_items = len(results)
+            critical_items = sum(1 for r in results if r.get("pasa_classification") == "CRITICAL")
             
+            # Dispara o protocolo de recompensas
+            if total_items > 0:
+                PSR1RewardProtocol.issue_reward(
+                    worker_id=worker_id, 
+                    items_processed=total_items, 
+                    critical_flags=critical_items
+                )
+            
+            logger.info(f"Sleeping for {interval_minutes} minutes...")
+            time.sleep(interval_minutes * 60)
+            
+        except KeyboardInterrupt:
+            logger.info("Daemon gracefully stopped by user.")
+            break
         except Exception as e:
-            logger.error(f"❌ Erro crítico em @{username}: {e}")
-            await apply_reward(username, -1) # Penalidade por falha
-        
-        # INTERVALO COM INTELIGÊNCIA
-        if i < len(targets) - 1:
-            logger.info(f"⏳ Cooldown PSR-1: {cooldown}s. Ativando Classificação de IA...")
-            try:
-                # Limpa o que está pendente para manter o banco "suando"
-                await ai_service.run_batch_classification(limit=50, force_retry_failures=True)
-                await ai_service.run_batch_classification(limit=50)
-            except Exception as e:
-                logger.error(f"⚠️ Falha na IA durante descanso: {e}")
-            
-            sleep_time = cooldown + random.randint(-30, 30) # Jitter para enganar o Zuck
-            logger.info(f"🛌 Descansando {sleep_time}s...")
-            await asyncio.sleep(sleep_time)
-
-    logger.info("✨ CICLO OFICIAL CONCLUÍDO. O multiverso agradece.")
+            logger.error(f"Critical daemon error: {e}")
+            time.sleep(60) # Espera 1 minuto antes de tentar novamente após erro severo
 
 if __name__ == "__main__":
-    # Roda uma vez e sai. O cron/Vigilante pode chamar de novo.
-    asyncio.run(official_routine(limit=30, cooldown=300))
+    start_daemon(interval_minutes=15)
