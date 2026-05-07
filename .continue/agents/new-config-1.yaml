@@ -1,0 +1,15 @@
+mcpServers:
+  - name: "Filesystem Server"
+    command: "npx"
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-filesystem"
+      - "E:/Projetos/sentinela-democratica"
+    env: {}
+  - name: "Postgres Server"
+    command: "npx"
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-postgres"
+      - "postgresql://usuario:senha@localhost:5432/sentinela"
+    env: {}
