@@ -259,7 +259,14 @@ function buildPostCard(alerta) {
                 </div>
 
                 <div class="post-content mt-4 p-5 bg-slate-50 rounded-2xl text-[15px] leading-relaxed text-slate-800 font-medium border-l-8 border-blue-500 shadow-inner italic">
-                    "${(alerta.texto_bruto && alerta.texto_bruto.trim()) || (alerta.text && alerta.text.trim()) || alerta.comentario || 'Conteúdo indisponível para esta perícia manual.'}"
+                    "${(() => {
+                        const raw = (alerta.texto_bruto || "").trim();
+                        const user = (alerta.autor_username || "").trim().replace('@','').toLowerCase();
+                        const rawLower = raw.toLowerCase();
+                        
+                        if (raw && rawLower !== user && rawLower !== `@${user}`) return raw;
+                        return (alerta.text || alerta.comentario || 'Conteúdo indisponível').trim();
+                    })()}"
                 </div>
                 
                 ${isLocked ? `

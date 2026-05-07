@@ -7,6 +7,7 @@ from typing import List, Optional, Dict, Any
 from dotenv import load_dotenv
 from supabase import create_client
 from playwright.async_api import async_playwright, Browser, Page, TimeoutError as PlaywrightTimeoutError
+from processing.text_processor import clean_comment
 
 load_dotenv()
 
@@ -159,7 +160,7 @@ class InstagramHeadlessScraper:
             await asyncio.sleep(5)
             
             # Detecção de Shadowban: Se a página carrega mas não tem posts/seguidores
-            shortcodes = await self.page.evaluate("() => Array.from(document.querySelectorAll('a[href^=\"/p/\"]')).map(a => a.getAttribute('href').split('/')[2])")
+            shortcodes = await self.page.evaluate("() => Array.from(document.querySelectorAll('article a[href^=\"/p/\"]')).map(a => a.getAttribute('href').split('/')[2])")
             if not shortcodes: return False
 
             for sc in shortcodes[:MAX_POSTS_PER_PROFILE]:
@@ -170,16 +171,25 @@ class InstagramHeadlessScraper:
     async def _scrape_post(self, username: str, shortcode: str):
         try:
             await self.page.goto(f"https://www.instagram.com/p/{shortcode}/")
-            await asyncio.sleep(3)
-            comments = await self.page.evaluate("() => Array.from(document.querySelectorAll('div[role=\"button\"] span')).map(s => s.innerText).filter(t => t.length > 5)")
+            await asyncio.sleep(4)
+            
+            comments = await self.page.evaluate("""() => {
+                return Array.from(document.querySelectorAll('div.x9f619 span[dir="auto"], span._ap30'))
+                    .map(el => el.innerText.trim())
+                    .filter(txt => txt.length > 2);
+            }""")
+            
             for cmd in comments[:MAX_COMMENTS_PER_POST]:
                 self._save_comment(username, shortcode, cmd)
         except: pass
 
     def _save_comment(self, username: str, shortcode: str, text: str):
+        valid_text = clean_comment(text, username)
+        if not valid_text: return
+
         data = {
             'candidato_id': username, 'post_id': shortcode,
-            'texto_bruto': text, 'plataforma': 'INSTAGRAM',
+            'texto_bruto': valid_text, 'plataforma': 'INSTAGRAM',
             'data_coleta': datetime.now(timezone.utc).isoformat(),
             'processado_ia': False
         }
