@@ -1,29 +1,48 @@
-# Integrando PASA v16.4 e PSR-1 em instagram_scraper.py
-
+# instagram_scraper.py - Integração Final Stealth + Behavior
+import asyncio
 import logging
-from typing import Dict, Any
+from playwright.async_api import async_playwright
+from core.stealth_playwright import StealthBrowser
+from core.session_manager import SessionManager
+from core.behavior_engine import BehaviorEngine
 
-class InstagramScraperAuditor:
-    """Implementação do Auditor Forense PASA v16.4 (PSR-1 compliant)"""
+class IntegratedInstagramScraper:
+    """Scraper de elite integrado com Camada Stealth e PASA v16.4"""
     def __init__(self, target_profile: str):
         self.target_profile = target_profile
-        self.logger = logging.getLogger("Sentinela.PASA")
+        self.logger = logging.getLogger("Sentinela.IntegratedScraper")
+        self.session_mgr = SessionManager()
+        self.stealth = StealthBrowser(headless=True)
 
-    def validate_dataset(self, data: Dict[str, Any]) -> bool:
-        """Validação de integridade forense."""
-        if not data:
-            self.logger.error("Falha na integridade: dataset vazio.")
-            return False
-        return True
-
-class InstagramScraper:
-    def __init__(self, username: str):
-        self.username = username
-        self.auditor = InstagramScraperAuditor(username)
-
-    def scrape(self) -> Dict[str, Any]:
-        # Implementação refatorada para PSR-1
-        data = {"profile": self.username, "status": "scraped"}
-        if self.auditor.validate_dataset(data):
-            return data
-        return {}
+    async def run(self):
+        async with async_playwright() as p:
+            proxy = self.session_mgr.get_proxy_config()
+            context = await self.stealth.get_stealth_context(p, proxy=proxy)
+            
+            cookies = self.session_mgr.load_session(self.target_profile)
+            if cookies:
+                await context.add_cookies(cookies)
+                
+            page = await context.new_page()
+            behavior = BehaviorEngine(page)
+            
+            try:
+                url = f"https://www.instagram.com/{self.target_profile}/"
+                self.logger.info(f"Navegando para {url}...")
+                await page.goto(url, wait_until="networkidle")
+                
+                await behavior.simulate_idle()
+                await behavior.random_scroll()
+                
+                content = await page.title()
+                self.logger.info(f"Conteúdo capturado: {content}")
+                
+                updated_cookies = await context.cookies()
+                self.session_mgr.save_session(self.target_profile, updated_cookies)
+                
+                return {"status": "success", "data": content}
+            except Exception as e:
+                self.logger.error(f"Erro na extração: {e}")
+                return {"status": "error", "message": str(e)}
+            finally:
+                await context.close()
