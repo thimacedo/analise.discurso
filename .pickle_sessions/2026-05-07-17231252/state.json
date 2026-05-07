@@ -1,0 +1,18 @@
+{
+  "active": false,
+  "working_dir": "C:\\Projetos\\sentinela-democratica",
+  "step": "research",
+  "iteration": 6,
+  "max_iterations": 5,
+  "max_time_minutes": 60,
+  "worker_timeout_seconds": 1200,
+  "start_time_epoch": 1778180850,
+  "completion_promise": null,
+  "original_prompt": "Analise o arquivo ROADMAP.md e execute o primeiro item da seção 'Próximos Passos': Implementar dashboard de métricas de latência dos workers. Considere a arquitetura v2.0 já concluída (BaseWorker) e crie a estrutura necessária (endpoints, serviços ou páginas) para exibir essas métricas.",
+  "current_ticket": "4a2b",
+  "history": [],
+  "started_at": "2026-05-07T19:07:30.782Z",
+  "session_dir": "C:\\Projetos\\sentinela-democratica\\.pickle_sessions\\2026-05-07-17231252",
+  "jar_complete": false,
+  "worker": false
+}

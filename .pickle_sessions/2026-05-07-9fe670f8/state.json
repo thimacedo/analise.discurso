@@ -1,0 +1,18 @@
+{
+  "active": true,
+  "working_dir": "C:\\Projetos\\sentinela-democratica",
+  "step": "research",
+  "iteration": 4,
+  "max_iterations": 5,
+  "max_time_minutes": 60,
+  "worker_timeout_seconds": 1200,
+  "start_time_epoch": 1778146593,
+  "completion_promise": null,
+  "original_prompt": "verifique o source control para ver se algo precisa ser commitado ou se é lixo",
+  "current_ticket": "e071d404",
+  "history": [],
+  "started_at": "2026-05-07T09:36:33.077Z",
+  "session_dir": "C:\\Projetos\\sentinela-democratica\\.pickle_sessions\\2026-05-07-9fe670f8",
+  "jar_complete": false,
+  "worker": false
+}

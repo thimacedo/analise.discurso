@@ -1,0 +1,18 @@
+{
+  "active": false,
+  "working_dir": "C:\\Projetos\\sentinela-democratica",
+  "step": "implement",
+  "iteration": 9,
+  "max_iterations": 30,
+  "max_time_minutes": 60,
+  "worker_timeout_seconds": 1200,
+  "start_time_epoch": 1778173256,
+  "completion_promise": null,
+  "original_prompt": "[TOKEN_SAVER: Ativado. O comando da CLI é 'gemini'. Pule RESEARCH e PLAN. Vá direto para IMPLEMENT no instagram_scraper.py.] [STATE_VIS: Ativado. Garante atualização do state.json para o Dashboard.]",
+  "current_ticket": "9add3067",
+  "history": [],
+  "started_at": "2026-05-07T17:00:56.698Z",
+  "session_dir": "C:\\Projetos\\sentinela-democratica\\.pickle_sessions\\2026-05-07-sentinela-final-ntfs-2646",
+  "jar_complete": false,
+  "worker": false
+}
