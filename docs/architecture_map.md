@@ -1,29 +1,49 @@
-# 🏛️ Mapa Arquitetural - Sentinela Democrática
+# 🗺️ Mapa de Arquitetura: Sentinela Democrática v18.5+
 
-Este documento mapeia a arquitetura, o fluxo de dados e os principais componentes do sistema Sentinela Democrática.
+## 1. Visão Geral
+O Sentinela Democrática é uma plataforma de inteligência cibernética para monitoramento de desinformação e discurso de ódio em contextos eleitorais.
 
-## 🔄 Fluxo de Dados (Pipeline)
+## 2. Diagrama de Fluxo de Dados (DFD)
 
-A plataforma opera através de um pipeline assíncrono rigoroso:
+```mermaid
+graph TD
+    A[Alvos/Candidatos] --> B[Scrapers]
+    B -->|Dados Brutos| C[Supabase DB]
+    C -->|Fila de Processamento| D[Orquestrador Central]
+    D --> E[Processamento Forense PASA v16.4]
+    E --> F[Classificação IA & Clustering]
+    F -->|Dados Enriquecidos| C
+    C --> G[FastAPI Central]
+    G --> H[Dashboard UI]
+    E --> I[Alertas Firebase/WhatsApp]
+```
 
-1. **Scraper (Coleta)**: Módulo `sentinela_scraper/instagram.py` - Coleta bruta do Instagram.
-2. **Armazenamento Inicial**: Supabase (Tabela `comentarios`).
-3. **Processamento**: `processing/text_processor.py` - Limpeza e lematização.
-4. **Classificação PASA**: `AIService` - Motor de IA PASA v16.4 (Qwen 2.5) avalia comentários para ódio, político, neutro, etc.
-5. **Mineração**: `DataMiner` (`processing/data_miner.py`) - Clusterização (KMeans) e alertas de redes coordenadas.
-6. **Interface / API**: Endpoint `api/index.py` e Dashboard Web.
+## 3. Componentes Principais
 
-## 🧩 Componentes Principais
+### 3.1 Camada de Coleta (Scrapers)
+- **Instagram Headless**: `core/instagram_headless.py` (Playwright) - Extração dinâmica de comentários.
+- **Instagram Scrapy**: `sentinela_scraper/spiders/instagram.py` - Coleta massiva baseada em spiders.
+- **Meta Ads**: `core/meta_ad_scraper.py` - Monitoramento de anúncios políticos.
 
-- **Frontend / UI**: Dashboard interativo.
-- **Backend / API**: Proxy FastAPI para todas as conexões seguras.
-- **Banco de Dados**: Supabase (RLS ativado v25.0).
-- **Notificações**: Firebase + Supabase (Tempo Real).
-- **Workers**: Scripts em `processing/` que rodam em ciclo contínuo.
+### 3.2 Camada de Inteligência (PASA & Workers)
+- **Orquestrador**: `core/orquestrador.py` - Coordena o fluxo entre coleta e análise.
+- **PASA Auditor**: `core/pasa_auditor.py` - Implementa o rigor criminal na análise de ódio.
+- **Data Miner**: `processing/data_miner.py` - Detecção de picos de agressividade e clusters de coordenação.
 
-## 📐 Padrões de Código
+### 3.3 Camada de API (Backend)
+- **FastAPI**: `api/index.py` - Interface REST para consumo de dados e métricas.
+- **Admin**: `api/v1/admin/` - Gerenciamento de alvos e triagem manual.
 
-- **Isolamento de Estado**: Alterações de arquitetura documentadas em `STATE.md`.
-- **Commits Locais**: Mensagens descritivas baseadas no Conventional Commits.
-- **Tolerância a Falhas**: Operações de BD devem ser idempotentes (UPSERTS) para prevenir duplicatas.
-- **Classificação Estrita**: Toda avaliação de discurso DEVE passar pelo protocolo PASA.
+### 3.4 Interface (Frontend)
+- **Dashboard**: `src/core/ui.js` - Renderização de cards de alerta e métricas de impacto.
+- **Métricas**: `src/components/WorkersMetricsDashboard.jsx` - Monitoramento de performance em tempo real.
+
+## 4. Pilha Tecnológica
+- **Linguagem**: Python 3.12+, JavaScript (ES6+).
+- **Banco de Dados**: Supabase (PostgreSQL).
+- **Framework Web**: FastAPI, React.
+- **Automação**: Playwright, Scrapy.
+- **Cloud/Infra**: Firebase (Alertas).
+
+## 5. Governança Forense
+O sistema opera sob o **Protocolo PASA v16.4**, garantindo que toda classificação de ódio siga critérios jurídicos e forenses estritos para uso em perícias oficiais.
