@@ -1,27 +1,29 @@
-# Sentinela Democrática - Architecture Map
+# 🏛️ Mapa Arquitetural - Sentinela Democrática
 
-## 1. System Overview
-The "Sentinela Democrática" project is a monorepo consisting of:
-- **Frontend (SPA)**: React-based web interface.
-- **Backend (API Proxy)**: FastAPI application deployed on Vercel.
-- **Processing Workers**: Python-based background workers for data collection and analysis.
-- **Database**: Supabase PostgreSQL.
+Este documento mapeia a arquitetura, o fluxo de dados e os principais componentes do sistema Sentinela Democrática.
 
-The system is designed to monitor, classify (via PASA v16.4 protocol), and report hate speech and political violence.
+## 🔄 Fluxo de Dados (Pipeline)
 
-## 2. Directory Structure
-- `api/`: FastAPI endpoints (`index.py`, `v1/`). Functions as an API proxy. Must remain Vercel-compatible (serverless).
-- `core/`: Core shared libraries, including the `db.py` Supabase client (`DatabaseClient`).
-- `processing/`: Background python workers unified under a `BaseWorker` abstraction, with metrics collection via `workers_metrics.py`.
-- `src/`: React Frontend, containing `components/`, `services/`, and `styles/`.
+A plataforma opera através de um pipeline assíncrono rigoroso:
 
-## 3. Data Flow
-1. **Scraping/Processing**: Background Python workers extract data from social networks (e.g., Meta Ad Library).
-2. **Storage**: Data is processed using the PASA protocol and saved into Supabase via `core/db.py` (utilizing batch `upsert` operations for performance).
-3. **Serving**: The FastAPI application queries Supabase to dynamically calculate risks and compile KPIs.
-4. **Consumption**: The React frontend (`src/services/apiService.js`) fetches data from the FastAPI endpoints to render the dashboard.
+1. **Scraper (Coleta)**: Módulo `sentinela_scraper/instagram.py` - Coleta bruta do Instagram.
+2. **Armazenamento Inicial**: Supabase (Tabela `comentarios`).
+3. **Processamento**: `processing/text_processor.py` - Limpeza e lematização.
+4. **Classificação PASA**: `AIService` - Motor de IA PASA v16.4 (Qwen 2.5) avalia comentários para ódio, político, neutro, etc.
+5. **Mineração**: `DataMiner` (`processing/data_miner.py`) - Clusterização (KMeans) e alertas de redes coordenadas.
+6. **Interface / API**: Endpoint `api/index.py` e Dashboard Web.
 
-## 4. Key Conventions
-- **Database Access**: Frontend never interacts directly with Supabase. All data flows through FastAPI. Processing workers use `core/db.py`.
-- **Background Processing**: Use the `BaseWorker` class for all background tasks to ensure standard error handling and metrics collection.
-- **Serverless API**: Avoid long-running processes in the `api/` endpoints as they are subject to Vercel timeout constraints. Heavy processing must be offloaded.
+## 🧩 Componentes Principais
+
+- **Frontend / UI**: Dashboard interativo.
+- **Backend / API**: Proxy FastAPI para todas as conexões seguras.
+- **Banco de Dados**: Supabase (RLS ativado v25.0).
+- **Notificações**: Firebase + Supabase (Tempo Real).
+- **Workers**: Scripts em `processing/` que rodam em ciclo contínuo.
+
+## 📐 Padrões de Código
+
+- **Isolamento de Estado**: Alterações de arquitetura documentadas em `STATE.md`.
+- **Commits Locais**: Mensagens descritivas baseadas no Conventional Commits.
+- **Tolerância a Falhas**: Operações de BD devem ser idempotentes (UPSERTS) para prevenir duplicatas.
+- **Classificação Estrita**: Toda avaliação de discurso DEVE passar pelo protocolo PASA.
