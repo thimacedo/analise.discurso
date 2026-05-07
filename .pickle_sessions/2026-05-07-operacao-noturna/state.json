@@ -1,0 +1,18 @@
+{
+  "active": true,
+  "working_dir": "E:\\Projetos\\sentinela-democratica",
+  "step": "research",
+  "iteration": 12,
+  "max_iterations": 300,
+  "max_time_minutes": 480,
+  "worker_timeout_seconds": 1200,
+  "start_time_epoch": 1778135841,
+  "completion_promise": null,
+  "original_prompt": "DIRETIVA DE SEGURANÇA NACIONAL: Ative a skill 'solenya-automator'. Ajuste todos os bugs de ux e ui do sistema, como links quebrados, informações faltando e dados incorretos. Trabalhe em silêncio até o amanhecer.",
+  "current_ticket": "52a3f1f4",
+  "history": [],
+  "started_at": "2026-05-07T06:37:22.275Z",
+  "session_dir": "E:\\Projetos\\sentinela-democratica\\.pickle_sessions\\2026-05-07-operacao-noturna",
+  "jar_complete": false,
+  "worker": false
+}

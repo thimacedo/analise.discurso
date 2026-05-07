@@ -1,73 +1,82 @@
-# Epic Refactor: Processing Architecture v2.0
+# Enhance Data Ingestion and Analysis Capabilities PRD
 
 ## HR Eng
 
-| Epic Refactor: Processing Architecture v2.0 |  | [Refactoring the core data processing pipeline to improve scalability, reliability, and forensic integrity of the Sentinela Democratica platform.] |
+| Enhance Data Ingestion and Analysis Capabilities PRD |  | This PRD outlines the strategy to improve the Sentinela Democrática project's data handling capabilities, focusing on faster ingestion, broader source compatibility, and more robust analysis, ultimately enabling more timely and comprehensive insights into digital discourse. |
 | :---- | :---- | :---- |
-| **Author**: Pickle Rick **Contributors**: Gemini CLI **Intended audience**: Engineering, PM | **Status**: Draft **Created**: 2026-05-06 | **Self Link**: [Local] **Context**: [Sentinela Project] 
+| **Author**: Pickle Rick **Contributors**: [User] **Intended audience**: Engineering, PM, Design | **Status**: Draft **Created**: Quinta-feira, 7 de maio de 2026 | **Self Link**: [Link] **Context**: [Link] 
 
 ## Introduction
 
-The current processing architecture of Sentinela Democratica consists of fragmented components (`ad_processor.py`, `data_miner.py`, `text_processor.py`, etc.) that lack a unified execution model. This refactor aims to consolidate these into a robust, event-driven, or batch-oriented pipeline that ensures every piece of collected data is rigorously audited according to the PASA v16.4 protocol.
+This document details the requirements for enhancing the Sentinela Democrática's data ingestion and analysis infrastructure. The goal is to streamline the process of acquiring, processing, and analyzing various data sources relevant to forensic discourse analysis, ensuring the platform remains cutting-edge and efficient.
 
 ## Problem Statement
 
-**Current Process:** Processing is triggered manually or via basic loops that pull from the database. Each processor handles its own logic, error handling, and DB interactions.
-**Primary Users:** Backend Engineers, Forensic Analysts.
-**Pain Points:** 
-- **Inconsistency:** Different processors handle metadata and classification differently.
-- **Scalability:** Hard to scale horizontally without duplicate processing risks.
-- **Resilience:** If one processing step fails, it's hard to resume without reprocessing everything.
-- **Slop:** Existing code has boilerplate and lacks a clear "Worker" abstraction.
-**Importance:** As we scale to thousands of ads and comments per hour for the 2026 elections, the current system will choke. We need "God Mode" efficiency.
+**Current Process:** The existing data ingestion and analysis pipeline may be encountering bottlenecks, potentially leading to delays in processing new information and limiting the types of data that can be effectively analyzed. Manual intervention might be required for certain data sources or analysis steps, reducing overall efficiency.
+**Primary Users:** Data analysts, forensic investigators, and project managers who rely on timely and accurate analysis of digital discourse.
+**Pain Points:** Slow processing times, limited support for emerging data sources, potential for manual errors, and challenges in scaling analysis efforts.
+**Importance:** To maintain Sentinela Democrática's effectiveness in monitoring and analyzing digital discourse, especially in critical periods like elections, it is crucial to have a robust, scalable, and efficient data pipeline. This upgrade is needed now to stay ahead of evolving digital communication methods and to ensure comprehensive coverage.
 
 ## Objective & Scope
 
-**Objective:** Consolidate all processing logic into a unified `CoreProcessor` or `Worker` system.
-**Ideal Outcome:** A single entry point for processing any data type (Ad, Comment, Post) with automated retry logic, unified logging, and 100% PASA compliance.
+**Objective:** To significantly improve the efficiency, scalability, and scope of data ingestion and analysis capabilities.
+**Ideal Outcome:** A near real-time, comprehensive data analysis platform capable of ingesting diverse data sources with minimal manual intervention, providing deeper and faster insights.
 
 ### In-scope or Goals
-- Create a `BaseWorker` abstraction for all processing tasks.
-- Implement a `Queue-based` or `Poll-based` orchestration system.
-- Refactor `ad_processor.py` and `data_miner.py` to use the new architecture.
-- Centralize PASA classification logic.
-- Optimize database interactions (batch updates).
+-   Implement support for new, identified data sources (e.g., emerging social media platforms, specific forum types).
+-   Optimize existing ingestion processes for performance and reliability.
+-   Enhance the data normalization and cleaning stages to handle a wider variety of data formats.
+-   Improve the scalability of analytical processing to handle larger data volumes.
+-   Develop or integrate tools for more advanced forensic discourse analysis (e.g., sentiment analysis, hate speech detection refinement).
 
 ### Not-in-scope or Non-Goals
-- Changing the Scraping logic (Scrapers remain as is for now).
-- Frontend changes (Dashboard remains unchanged, just receives better data).
-- Replacing Supabase (We stay on the current DB).
+-   Development of entirely new machine learning models for novel forms of analysis (focus is on enhancing existing or integrating known techniques).
+-   Retroactive reprocessing of all historical data unless specifically required for a new analysis feature.
+-   User interface redesign for the analysis results presentation (focus is on backend processing).
 
 ## Product Requirements
 
+[Detailed requirements. Include Clear CUJs here.]
+
 ### Critical User Journeys (CUJs)
-1. **Unified Processing**: When a scraper dumps raw data into the DB, the `ProcessingWorker` picks it up, runs cleaning, PASA classification, and thematic clustering in a single transactional flow.
-2. **Error Recovery**: If an IA provider fails, the worker marks the item for "Retry" and backs off, preventing data loss or partial processing.
+1.  **Ingest New Social Media Feed:**
+    1.  A new data source (e.g., a niche social media platform) is identified as relevant.
+    2.  The system is configured to ingest data from this new source.
+    3.  The data is successfully ingested, normalized, and stored.
+    4.  The ingested data is available for analysis within a specified timeframe (e.g., < 1 hour).
+2.  **Perform Enhanced Hate Speech Analysis:**
+    1.  A dataset (new or existing) is selected for analysis.
+    2.  The enhanced hate speech detection module is applied.
+    3.  A detailed report, including confidence scores and evidence, is generated.
+    4.  The report is accessible to authorized users within a timely manner (e.g., < 30 minutes for a standard dataset).
 
 ### Functional Requirements
 
 | Priority | Requirement | User Story |
 | :---- | :---- | :---- |
-| P0 | Unified Worker Abstraction | As a developer, I want a base class to handle processing boilerplate so I only write logic. |
-| P0 | Batch Database Operations | As a system, I want to update multiple records at once to save IO and API costs. |
-| P1 | Forensic Audit Logging | As an analyst, I want a log of WHY a piece of content was classified as it was (PASA trace). |
-| P1 | Performance Monitoring | As an engineer, I want to know the processing latency per item. |
-| P2 | Dynamic Clustering | As an analyst, I want thematic clusters to update automatically as new data arrives. |
+| P0 | Support ingestion of X new data sources identified in Q2. | As a data analyst, I want to easily configure and ingest data from new platforms so that our analysis is comprehensive and up-to-date. |
+| P0 | Optimize existing scraping and ingestion scripts for a 25% reduction in processing time. | As a system operator, I want ingestion processes to be faster and more efficient so that data is available for analysis sooner. |
+| P1 | Implement improved data validation and cleaning to reduce data quality issues by 15%. | As a data analyst, I want cleaner data so that my analysis is more accurate and reliable. |
+| P1 | Enhance the hate speech detection module with refined algorithms and confidence scoring. | As a forensic investigator, I want more accurate hate speech detection with clear confidence levels so that I can trust the findings. |
+| P2 | Develop a mechanism for monitoring and alerting on ingestion failures. | As a system operator, I want to be notified immediately of ingestion failures so that I can resolve them quickly. |
 
 ## Assumptions
 
-- The Supabase connection is stable and can handle batch operations.
-- The `AIService` (local or Gemini) has sufficient throughput.
+-   The project has access to the necessary APIs or data extraction methods for new data sources.
+-   Sufficient compute resources are available to handle increased data volumes and processing demands.
+-   Existing infrastructure (database, APIs) can accommodate potential increases in data storage and query load.
 
 ## Risks & Mitigations
 
-- **Risk**: Refactoring might break existing classification logic. -> **Mitigation**: Implement unit tests for PASA classification before and after refactor.
-- **Risk**: Batch updates might exceed Supabase/PostgreSQL limits. -> **Mitigation**: Use controlled chunking (e.g., 100 records per batch).
+-   **Risk**: Difficulty in obtaining API access or reliable data extraction methods for new sources. -> **Mitigation**: Prioritize sources with well-documented APIs or publicly accessible data; develop alternative scraping strategies as a fallback.
+-   **Risk**: Performance degradation due to increased data volume or complexity. -> **Mitigation**: Implement robust monitoring, optimize database queries, and consider caching strategies or more powerful compute instances.
+-   **Risk**: Incompatibility issues with existing analysis modules. -> **Mitigation**: Thoroughly test new data formats and ingestion pipelines against current analysis tools; refactor analysis modules if necessary.
 
 ## Tradeoff
 
-- **Option Considered**: Moving to a dedicated Queue (RabbitMQ/Redis).
-- **Decision**: Stay with DB-polling for now to minimize infrastructure complexity, but design the architecture to be "Queue-ready".
+-   **Option 1**: Focus solely on optimizing existing ingestion for current sources. (Pro: Faster implementation. Con: Missed opportunity to expand coverage.)
+-   **Option 2**: Broadly expand to new sources and optimize existing ones. (Pro: Comprehensive improvement. Con: Higher complexity and longer development time.)
+-   **Chosen**: Option 2, as comprehensive coverage is critical for Sentinela Democrática's mission. We will prioritize key new sources while optimizing existing ones.
 
 ## Business Benefits/Impact/Metrics
 
@@ -75,13 +84,15 @@ The current processing architecture of Sentinela Democratica consists of fragmen
 
 | Metric | Current State (Benchmark) | Future State (Target) | Savings/Impacts |
 | :---- | :---- | :---- | :---- |
-| Processing Throughput | ~10 items/sec | >100 items/sec | 10x scalability |
-| Error Rate | Unmonitored | < 1% | Higher data reliability |
-| Dev Speed (New Processor) | 2-3 hours | < 30 mins | Faster feature delivery |
+| Average data ingestion time per source | TBD (Requires measurement) | Reduce by 50% for key sources | Faster access to critical data |
+| Number of supported data sources | TBD (Requires audit) | Increase by 25% | Broader analysis coverage |
+| Hate speech detection accuracy (F1-score) | TBD (Requires testing) | Improve by 10% | More reliable identification of harmful content |
+| System uptime for ingestion pipeline | TBD (Requires measurement) | Maintain >99.9% uptime | Continuous data flow |
 
 ## Stakeholders / Owners
 
 | Name | Team/Org | Role | Note |
 | :---- | :---- | :---- | :---- |
-| Pickle Rick | Engineering | God Emperor | Refactor Lead |
-| Forensic Team | Analysts | Consumers | Accuracy Verification |
+| [User] | Sentinela Team | Project Lead | Approves final PRD and requirements. |
+| Data Analysts | Sentinela Team | Users of the system | Provide feedback on data quality and analysis needs. |
+| DevOps/Infra Team | Sentinela Team | Infrastructure Support | Ensure adequate resources and deployment. |
