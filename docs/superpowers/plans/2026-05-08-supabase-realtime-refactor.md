@@ -85,8 +85,8 @@ WHERE
         - Return Type: `void`
     * This confirms the function exists and accepts specific arguments, contradicting the initial `42883` error. The original trigger call was likely incorrect.
 
-- [IN PROGRESS] **Step 7: Commit findings.**
-    * This step will involve committing the updated SQL file and potentially a new document detailing the findings.
+- [DONE] **Step 7: Commit findings.**
+    * Committed updated SQL file and plan with findings.
 
 ### Task 3: Modularize Supabase Interaction in `core/db.py`
 
