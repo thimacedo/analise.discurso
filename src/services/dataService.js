@@ -163,6 +163,15 @@ class SentinelDataService {
         return this.fetchJson('/geo/uf');
     }
 
+    // ── Worker Metrics & Credits ──
+    async getWorkersMetrics() {
+        return this.fetchJson('/workers/dashboard');
+    }
+
+    async getWorkersCredits() {
+        return this.fetchJson('/workers/credits');
+    }
+
     // ── Invalidação Manual de Cache ──
     invalidateCache() {
         this.cache.clear();
