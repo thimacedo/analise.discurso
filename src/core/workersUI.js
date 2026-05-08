@@ -50,7 +50,11 @@ export const workersUI = {
             'red': { color: 'text-rose-500', bg: 'bg-rose-500', label: 'Crítico' }
         };
         const health = healthMap[data.system_health] || healthMap['yellow'];
-        const avgLatency = data.workers.reduce((acc, w) => acc + w.avg_duration_ms, 0) / (data.workers.length || 1);
+        
+        // Cálculo de latência média global (ms)
+        const avgLatency = data.workers.length > 0 
+            ? data.workers.reduce((acc, w) => acc + (w.avg_duration_ms || 0), 0) / data.workers.length 
+            : 0;
 
         container.innerHTML = `
             <div class="p-6 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -59,18 +63,18 @@ export const workersUI = {
                     <div>
                         <div class="flex items-center gap-2 mb-1">
                             <div class="w-2 h-2 rounded-full ${health.bg} animate-pulse"></div>
-                            <span class="text-[10px] font-black uppercase tracking-widest ${health.color}">System Health: ${health.label}</span>
+                            <span class="text-[10px] font-black uppercase tracking-widest ${health.color}">Saúde do Sistema: ${health.label}</span>
                         </div>
                         <h2 class="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
-                            Worker Dashboard
-                            <span class="text-xs font-medium px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full border border-slate-200">v20.1</span>
+                            Workers Telemetry
+                            <span class="text-xs font-medium px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full border border-slate-200">v20.2</span>
                         </h2>
                     </div>
                     
                     <div class="flex items-center gap-4">
                         <div class="flex flex-col items-end">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Última Sincronização</span>
-                            <span class="text-xs font-mono font-bold text-slate-600">${new Date(data.timestamp).toLocaleTimeString()}</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sincronizado em</span>
+                            <span class="text-xs font-mono font-bold text-slate-600">${new Date(data.timestamp).toLocaleTimeString('pt-BR')}</span>
                         </div>
                         <button id="refresh-workers" class="p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all shadow-sm active:scale-95 group">
                             <i data-lucide="refresh-cw" class="w-5 h-5 text-slate-500 group-hover:rotate-180 transition-all duration-500"></i>
@@ -79,7 +83,7 @@ export const workersUI = {
                 </div>
 
                 <!-- Summary Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <!-- Taxa de Sucesso -->
                     <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:shadow-blue-100 transition-all group border-b-4 border-b-emerald-500">
                         <div class="flex items-center justify-between mb-4">
@@ -94,7 +98,7 @@ export const workersUI = {
                         <div class="w-full h-1.5 bg-slate-50 rounded-full overflow-hidden">
                             <div class="h-full bg-emerald-500 transition-all duration-1000" style="width: ${data.overall_success_rate}%"></div>
                         </div>
-                        <p class="text-[10px] text-slate-400 font-bold mt-2 uppercase">${data.total_successful} de ${data.total_executions} tarefas concluídas</p>
+                        <p class="text-[10px] text-slate-400 font-bold mt-2 uppercase">${data.total_successful} de ${data.total_executions} tarefas</p>
                     </div>
 
                     <!-- Latência Média -->
@@ -109,10 +113,10 @@ export const workersUI = {
                             </div>
                         </div>
                         <div class="flex items-center gap-1">
+                            <div class="h-1 flex-1 bg-blue-500 rounded-full"></div>
+                            <div class="h-1 flex-1 bg-blue-300 rounded-full"></div>
                             <div class="h-1 flex-1 bg-blue-100 rounded-full"></div>
-                            <div class="h-1 flex-1 bg-blue-200 rounded-full"></div>
-                            <div class="h-1 flex-1 bg-blue-400 rounded-full"></div>
-                            <div class="h-1 flex-1 bg-slate-100 rounded-full"></div>
+                            <div class="h-1 flex-1 bg-slate-50 rounded-full"></div>
                         </div>
                         <p class="text-[10px] text-slate-400 font-bold mt-2 uppercase">Tempo médio de resposta global</p>
                     </div>
@@ -128,8 +132,23 @@ export const workersUI = {
                                 <div class="text-2xl font-black text-slate-800">${data.avg_system_throughput_items_per_sec} <span class="text-xs font-normal text-slate-400">it/s</span></div>
                             </div>
                         </div>
-                        <p class="text-xl font-black text-slate-800">${(data.total_items_processed / 1000).toFixed(1)}k</p>
-                        <p class="text-[10px] text-slate-400 font-bold uppercase">Total de itens processados</p>
+                        <p class="text-xl font-black text-slate-800">${(data.total_items_processed / 1000).toFixed(1)}k <span class="text-xs text-slate-400">itens</span></p>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase">Volume total processado</p>
+                    </div>
+
+                    <!-- Healthy Workers -->
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:shadow-blue-100 transition-all group border-b-4 border-b-amber-500">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="p-3 bg-amber-50 rounded-2xl group-hover:scale-110 transition-transform">
+                                <i data-lucide="activity" class="w-6 h-6 text-amber-600"></i>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Workers</span>
+                                <div class="text-2xl font-black text-slate-800">${data.healthy_workers}/${data.total_workers}</div>
+                            </div>
+                        </div>
+                        <p class="text-sm font-black text-slate-700 uppercase tracking-tighter">Instâncias Ativas</p>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase">Status de saúde operacional</p>
                     </div>
                 </div>
 
@@ -139,7 +158,7 @@ export const workersUI = {
                         <h3 class="font-black text-slate-800 uppercase tracking-widest text-xs">Processadores em Execução</h3>
                         <div class="flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${data.workers.length} Workers Ativos</span>
+                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${data.workers.length} Ativos</span>
                         </div>
                     </div>
                     
@@ -147,14 +166,17 @@ export const workersUI = {
                         <table class="w-full text-left">
                             <thead>
                                 <tr class="bg-slate-50/50">
-                                    <th class="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Identificação</th>
+                                    <th class="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Worker</th>
                                     <th class="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Status</th>
-                                    <th class="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Itens Totais</th>
-                                    <th class="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Última Atividade</th>
+                                    <th class="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Itens</th>
+                                    <th class="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Throughput</th>
+                                    <th class="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Latência/Erros</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-50">
-                                ${data.workers.map(w => `
+                                ${data.workers.map(w => {
+                                    const hasErrors = w.recent_errors && w.recent_errors.length > 0;
+                                    return `
                                     <tr class="hover:bg-blue-50/30 transition-colors group">
                                         <td class="px-8 py-5">
                                             <div class="flex items-center gap-3">
@@ -173,18 +195,43 @@ export const workersUI = {
                                             </span>
                                         </td>
                                         <td class="px-8 py-5 text-right font-mono text-xs font-black text-slate-600">
-                                            ${w.total_items_processed.toLocaleString()}
+                                            ${w.total_items_processed.toLocaleString('pt-BR')}
                                         </td>
                                         <td class="px-8 py-5 text-right">
-                                            <div class="text-xs font-black text-slate-700 font-mono">${new Date(w.last_execution.timestamp).toLocaleTimeString()}</div>
-                                            <div class="text-[10px] text-slate-400 font-bold uppercase">${w.avg_duration_ms.toFixed(0)}ms avg</div>
+                                            <div class="text-xs font-black text-slate-700 font-mono">${w.avg_throughput_items_per_sec || 0} it/s</div>
+                                            <div class="text-[9px] text-slate-400 font-bold uppercase">Média em 24h</div>
+                                        </td>
+                                        <td class="px-8 py-5 text-right">
+                                            <div class="text-xs font-black ${hasErrors ? 'text-rose-600' : 'text-slate-700'} font-mono">${w.avg_duration_ms.toFixed(0)}ms</div>
+                                            <div class="text-[9px] ${hasErrors ? 'text-rose-400' : 'text-slate-400'} font-bold uppercase">${hasErrors ? w.recent_errors.length + ' falhas' : 'Estável'}</div>
                                         </td>
                                     </tr>
-                                `).join('')}
+                                `;}).join('')}
                             </tbody>
                         </table>
                     </div>
                 </div>
+
+                <!-- Recent Errors Feed -->
+                ${data.workers.some(w => w.recent_errors && w.recent_errors.length > 0) ? `
+                    <div class="bg-rose-50 border border-rose-100 rounded-3xl p-6 animate-in">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i data-lucide="alert-circle" class="w-5 h-5 text-rose-600"></i>
+                            <h4 class="text-xs font-black text-rose-800 uppercase tracking-widest">Logs de Erros Críticos</h4>
+                        </div>
+                        <div class="space-y-3">
+                            ${data.workers.filter(w => w.recent_errors && w.recent_errors.length > 0).map(w => `
+                                <div class="p-4 bg-white/60 rounded-2xl border border-rose-100 text-xs">
+                                    <div class="flex justify-between mb-1">
+                                        <span class="font-black text-rose-700 uppercase tracking-tighter">${w.worker}</span>
+                                        <span class="text-slate-400 font-mono">${new Date(w.recent_errors[w.recent_errors.length-1].timestamp).toLocaleTimeString()}</span>
+                                    </div>
+                                    <p class="text-slate-600 italic">"${w.recent_errors[w.recent_errors.length-1].error}"</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
             </div>
         `;
 

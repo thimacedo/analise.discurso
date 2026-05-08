@@ -1,13 +1,16 @@
 # STATE
-**Status Atual:** Refatoração Épica (Epic Refactor v2.0) CONCLUÍDA. A arquitetura de processamento foi unificada sob a abstração `BaseWorker`, com suporte nativo a operações em lote (Supabase upsert) e centralização rigorosa do Protocolo PASA v16.4 no `PasaForensicsService`.
+**Status Atual:** Refatoração Épica (Epic Refactor v2.0) CONCLUÍDA. Sistema de IA estabilizado.
 
-**Foco:** Dashboard de Métricas de Workers (v20.1+) - EM PROGRESSO.
+**Foco:** Dashboard de Métricas de Workers (v20.1+) e Estabilidade de IA - CONCLUÍDO.
 
 **Implementação Atual:** 
-- ✅ Sistema de coleta de métricas (`processing/workers_metrics.py`)
-- ✅ Integração ao BaseWorker (captura automática de latência, throughput, taxas de sucesso)
-- ✅ Endpoints de API: `/api/v1/workers/dashboard`, `/api/v1/workers/stats`, `/api/v1/workers/{name}/stats`
-- ✅ Componente React: `WorkersMetricsDashboard.jsx` (visualização em tempo real)
-- ✅ Infraestrutura HTML: Link "Workers" e container `#view-workers` adicionados ao `index.html`.
+- ✅ Sistema de IA Resiliente (`core/ai_service.py`):
+    - Cascata de motores corrigida (Gemini -> Groq -> Ollama).
+    - Proteção contra chaves inválidas (Gemini AIza prefix check).
+    - Fallback local (Ollama) funcional com modelo dinâmico.
+    - Timeouts otimizados (60s para local, 30s para cloud).
+- ✅ Configurações Dinâmicas: `load_dotenv(override=True)` no `core/config.py`.
+- ✅ Monitoramento PASA: Auditoria forense v16.4 centralizada.
+- ✅ Dashboard de Workers: Coleta de métricas e API prontas.
 
-**Próximo Passo:** Implementar a lógica de renderização JS no frontend para carregar o dashboard.
+**Próximo Passo:** Monitorar a performance do Ollama local em batches grandes e finalizar a integração visual do dashboard.

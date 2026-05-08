@@ -263,12 +263,24 @@ function buildPostCard(alerta) {
 
                 <div class="post-content mt-4 p-5 bg-slate-50 rounded-2xl text-[15px] leading-relaxed text-slate-800 font-medium border-l-8 border-blue-500 shadow-inner italic">
                     "${(() => {
-                        const raw = (alerta.texto_bruto || "").trim();
-                        const user = (alerta.autor_username || "").trim().replace('@','').toLowerCase();
-                        const rawLower = raw.toLowerCase();
+                        // PRIORIDADE 1: texto_limpo
+                        const cleanedText = alerta?.texto_limpo?.trim();
+                        if (cleanedText) {
+                            return cleanedText;
+                        }
+
+                        // PRIORIDADE 2: texto_bruto, SE for diferente do username do autor
+                        const rawText = alerta?.texto_bruto?.trim();
+                        const authorUsername = alerta?.autor_username?.trim().toLowerCase().replace('@', '');
+                        const cleanedRawText = rawText ? rawText.trim() : '';
+                        const cleanedAuthorUsername = authorUsername ? authorUsername : '';
                         
-                        if (raw && rawLower !== user && rawLower !== `@${user}`) return raw;
-                        return (alerta.text || alerta.comentario || 'Conteúdo indisponível').trim();
+                        if (cleanedRawText && cleanedRawText.toLowerCase() !== cleanedAuthorUsername) {
+                            return cleanedRawText;
+                        }
+                        
+                        // FALLBACK: Conteúdo indisponível
+                        return '<span class="italic text-slate-400 text-[10px]">(Conteúdo indisponível na coleta original)</span>';
                     })()}"
                 </div>
                 
@@ -1181,4 +1193,3 @@ export function initSwipeGestures() {
     container.addEventListener('mouseup', endDrag);
     container.addEventListener('mouseleave', endDrag);
 }
-
