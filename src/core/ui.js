@@ -121,10 +121,7 @@ export function renderFeed(alertas, containerId = 'feed-alertas') {
     }
 }
 
-/**
- * Inicialização dos gestos de swipe e interações de interface.
- */
-export function initSwipeGestures() {
+export function initInfiniteScroll() {
     const container = document.querySelector('.main-feed-container');
     if (!container) return;
 

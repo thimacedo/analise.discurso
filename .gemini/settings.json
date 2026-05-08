@@ -38,5 +38,11 @@
   "security": {
     "autoAddToPolicyByDefault": true,
     "enablePermanentToolApproval": true
+  },
+  "mcpServers": {
+    "supabase": {
+      "url": "https://mcp.supabase.com/mcp?project_ref=vhamejkldzxbeibqeqpk",
+      "type": "http"
+    }
   }
 }

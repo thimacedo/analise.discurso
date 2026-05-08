@@ -252,7 +252,7 @@ class SupabaseService:
             print(f"❌ [SupabaseService] Erro ao atualizar classificação do anúncio {ad_id}: {e}")
 
     async def persist_dossier(self, data: Dict[str, Any]):
-        """Salva metadados de um novo dossiê forense."""
+        """Salva metadadados de um novo dossiê forense."""
         if not self.client: 
             print("⚠️ [SupabaseService] Cliente Supabase não inicializado.")
             return None
@@ -288,13 +288,20 @@ class SupabaseService:
             return []
         try:
             # Tenta filtrar pela coluna 'mined' se existir, caso contrário busca processados
-            res = self.client.table('comentarios').select('*').eq('processado_ia', True).eq('mined', False).limit(limit).execute()
+            query = self.client.table('comentarios').select('*')
+            query = query.eq('processado_ia', True)
+            query = query.eq('mined', False)
+            query = query.limit(limit)
+            res = query.execute()
             return res.data
         except Exception as e:
             if "column" in str(e) and "mined" in str(e):
                 # Fallback se a coluna não existir ainda
                 print(f"[SupabaseService] Coluna 'mined' não encontrada. Buscando apenas comentários processados.")
-                res = self.client.table('comentarios').select('*').eq('processado_ia', True).limit(limit).execute()
+                query = self.client.table('comentarios').select('*')
+                query = query.eq('processado_ia', True)
+                query = query.limit(limit)
+                res = query.execute()
                 return res.data
             print(f"❌ [SupabaseService] Erro ao buscar comentários não minerados: {e}")
             return []
@@ -353,4 +360,3 @@ try:
 except Exception as e:
     print(f"⚠️ [SupabaseService] Falha ao criar instância global do SupabaseService: {e}. Verifique as configurações do Supabase.")
     supabase_client_instance = None
-

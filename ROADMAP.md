@@ -13,5 +13,7 @@
 - [x] **Refatoração Épica: Arquitetura de Processamento v2.0 completa.**
 
 ## Próximos Passos
-- [ ] Implementar dashboard de métricas de latência dos workers.
+# (Nenhuma tarefa definida no momento)
+
+## Tarefas Adicionais / A Posteriori
 - [ ] Expansão da cobertura para vídeos do TikTok/YouTube (Pipeline v21.0).

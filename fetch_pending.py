@@ -66,8 +66,7 @@ async def fetch_and_process_pending():
                 # Se cair aqui, é porque texto_limpo e texto_bruto estão vazios/null
                 ignorados_vazios += 1
 
-        print("
---- Resumo do Processamento ---")
+        print("\n--- Resumo do Processamento ---")
         print(f"Lote total analisado: {len(registros)} comentários")
         print(f"Atualizados com sucesso: {processados_com_sucesso}")
         print(f"Ignorados (sem texto): {ignorados_vazios}")
