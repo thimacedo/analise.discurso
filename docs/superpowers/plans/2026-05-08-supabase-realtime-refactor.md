@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Documentar o erro de Supabase Realtime, modularizar a interação com o Supabase, e melhorar a documentação geral do código relacionado.
+**Goal:** Documentar o erro de Supabase Realtime, modularizar a interação com o Supabase, e melhorar a documentação geral do código relacionado. Adicionalmente, investigar problemas de frontend relacionados à timeline e KPIs.
 
-**Architecture:** A refatoração focará em isolar as interações com o Supabase em módulos dedicados, melhorar o tratamento de erros no script `fetch_pending.py`, e documentar a configuração do Realtime.
+**Architecture:** A refatoração focará em isolar as interações com o Supabase em módulos dedicados, melhorar o tratamento de erros no script `fetch_pending.py`, e documentar a configuração do Realtime. Investigaremos também a lógica frontend para timeline e KPIs.
 
-**Tech Stack:** Python, Supabase CLI, PostgREST, PostgreSQL.
+**Tech Stack:** Python, Supabase CLI, PostgREST, PostgreSQL, JavaScript/HTML (Frontend).
 
 ---
 
@@ -87,6 +87,30 @@ WHERE
 
 - [DONE] **Step 7: Commit findings.**
     * Committed updated SQL file and plan with findings.
+
+### Task 2.5: Investigate Frontend Issue (Timeline/KPIs Not Opening)
+
+**Files:**
+- Read: `src/**/*.js` (focus on files related to KPIs and dashboard)
+- Read: `public/**/*.html` (templates related to dashboard/reports)
+- Read: `services/dataService.js` (for data fetching)
+
+- [IN PROGRESS] **Step 1: Search for "timeline" and "kpi" in all JS/TS files within `src/` and `public/`.**
+    * **Result:** Found references to "kpi", "dashboard", "workers" in `src/core/app.js` (though file access failed), `src/core/state.js`, `src/core/workersUI.js`, and `src/services/dataService.js`. No direct "timeline" references found. References to "dashboard" found in `public/` HTML templates.
+    * **Conclusion:** KPIs are likely rendered by JS in `src/` (e.g., `core/app.js`) interacting with data from `services/dataService.js`. Timeline might be part of the dashboard or dynamically loaded.
+
+- [IN PROGRESS] **Step 2: Attempt to read `core/app.js` and `services/dataService.js`.**
+    * **Result:** Failed to read both files directly due to "File not found" errors, despite `grep_search` indicating their presence and content. This suggests potential path resolution issues or file access problems.
+
+- [IN PROGRESS] **Step 3: Infer problem based on available information.**
+    * **Problem Summary:** Cannot directly access `core/app.js` or `services/dataService.js` for detailed code analysis. However, search results suggest KPIs are managed via JS (likely `core/app.js` or similar) and data fetched via `services/dataService.js` (e.g., `/workers/dashboard` endpoint). Timeline might be part of the dashboard or dynamically loaded.
+    * **Likely Causes:**
+        1.  **Data Fetching:** Data for KPIs/timeline not retrieved (e.g., `services/dataService.js` issue or backend endpoint problem).
+        2.  **Rendering Logic:** JS code in `core/app.js` (or similar) failing to execute or populate elements.
+        3.  **HTML Structure:** Missing JS hooks or incorrect linking in `public/` HTML templates.
+
+- [ ] **Step 4: Commit findings and current status of frontend investigation.**
+    * Add a note to `docs/supase-realtime-troubleshooting.md` or a new file detailing this frontend investigation and the file access limitations.
 
 ### Task 3: Modularize Supabase Interaction in `core/db.py`
 
