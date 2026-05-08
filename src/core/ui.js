@@ -10,7 +10,7 @@ export function renderAll() {
         renderTopbar();
         renderSTN();
 
-        const views = ['monitor', 'networks', 'dossie', 'map', 'directory', 'ads'];
+        const views = ['monitor', 'networks', 'dossie', 'map', 'directory', 'ads', 'workers'];
         views.forEach((view) => {
             const el = document.getElementById(`view-${view}`);
             if (el) {
