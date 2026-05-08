@@ -4,6 +4,7 @@ import { dataService } from '../services/dataService.js';
 import { authService } from '../services/authService.js';
 import { fcmService } from '../services/fcmService.js';
 import { renderAll, initInfiniteScroll, initSwipeGestures } from './ui.js';
+import { workersUI } from './workersUI.js';
 
 // DEBOUNCED RENDER PARA PERFORMANCE
 let renderTimeout;

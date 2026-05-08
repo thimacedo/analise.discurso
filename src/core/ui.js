@@ -2,6 +2,7 @@ import { state, setViewState, setNetworkView } from './state.js';
 import { dataService, planService } from '../services/dataService.js';
 import { authService } from '../services/authService.js';
 import { renderBrazilMap } from '../components/BrazilMap.js';
+import { workersUI } from './workersUI.js';
 
 export function renderAll() {
     try {
@@ -30,6 +31,8 @@ export function renderAll() {
             renderGeopolitica();
         } else if (state.view === 'directory') {
             renderDirectory();
+        } else if (state.view === 'workers') {
+            workersUI.renderWorkersDashboard('view-workers');
         }
 
         if (window.lucide) lucide.createIcons();
