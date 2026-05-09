@@ -8,22 +8,27 @@
 export function buildPostCard(alerta) {
     let safeCommentText = null;
 
-    // Sanitização de dados de entrada
+    // Sanitização e validação de dados de entrada com múltiplos fallbacks
     const textoLimpo = alerta?.texto_limpo?.trim();
     const textoBruto = alerta?.texto_bruto?.trim();
+    const textoNormalizado = alerta?.text?.trim();
+    const comentarioAlternativo = alerta?.comentario?.trim();
     const autorUsername = alerta?.autor_username?.trim().toLowerCase();
 
-    // Regra de Validação
+    // Lógica de Fallback Agressiva
     if (textoLimpo && textoLimpo.length >= 3) {
         safeCommentText = textoLimpo;
-    } else if (textoBruto) {
-        const textoBrutoLower = textoBruto.toLowerCase();
-        if (textoBrutoLower !== autorUsername && textoBruto.length >= 3) {
-            safeCommentText = textoBruto;
-        }
+    } else if (textoBruto && textoBruto.toLowerCase() !== autorUsername && textoBruto.length >= 3) {
+        safeCommentText = textoBruto;
+    } else if (textoNormalizado && textoNormalizado.toLowerCase() !== autorUsername && textoNormalizado.length >= 3) {
+        safeCommentText = textoNormalizado;
+    } else if (comentarioAlternativo && comentarioAlternativo.toLowerCase() !== autorUsername && comentarioAlternativo.length >= 3) {
+        safeCommentText = comentarioAlternativo;
+    } else {
+        safeCommentText = "[Conteúdo do comentário não pôde ser recuperado]";
     }
 
-    // Renderização Condicional da div de comentário. Oculta o bloco se for nulo.
+    // Renderização Condicional da div de comentário.
     const commentHtml = safeCommentText
         ? `<div class="post-content mt-4 p-5 bg-slate-50 rounded-2xl text-[15px] leading-relaxed text-slate-800 font-medium border-l-8 border-blue-500 shadow-inner italic">
             "${safeCommentText}"

@@ -112,8 +112,7 @@ postgrest
 realtime
 storage3
 StrEnum
-strict-yaml
-stubs
+scrapy
 tenacity
 tqdm
 typer
