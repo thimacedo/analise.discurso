@@ -77,8 +77,8 @@ async function refreshData() {
         const [summary, targets, alerts] = await Promise.all([
             dataService.getSummary(),
             dataService.getTargets(),
-            // Puxa 200 itens para garantir que a busca local tenha massa de dados suficiente
-            dataService.getAlerts(200, 1)
+            // Puxa 20 itens para o carregamento inicial ser instantâneo
+            dataService.getAlerts(20, 1)
         ]);
 
         state.data = targets || [];
