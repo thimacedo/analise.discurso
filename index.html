@@ -20,7 +20,7 @@
     <!-- Performance Optimization -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+
     <link rel="preconnect" href="https://unpkg.com">
     <link rel="preconnect" href="https://d3js.org">
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
@@ -29,7 +29,7 @@
     <link rel="icon" type="image/png" href="/assets/sentinela_small.png">
     
     <!-- Critical Scripts -->
-    <script src="https://cdn.tailwindcss.com" defer></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest" defer></script>
     <link rel="stylesheet" href="/src/styles/main.css?v=20.5.1">
@@ -64,6 +64,7 @@
             <a href="#dossie" class="nav-item" id="nav-dossie"><i data-lucide="fingerprint" class="w-5 h-5"></i> <span>Relatórios</span></a>
             <a href="#ads" class="nav-item" id="nav-ads"><i data-lucide="megaphone" class="w-5 h-5"></i> <span>Anúncios</span></a>
             <a href="#map" class="nav-item" id="nav-map"><i data-lucide="globe" class="w-5 h-5"></i> <span>Mapa</span></a>
+            <a href="#workers" class="nav-item" id="nav-workers"><i data-lucide="activity" class="w-5 h-5"></i> <span>Workers</span></a>
             
             <div class="mt-8 pt-6 border-t border-slate-200">
                 <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-3 mb-3 block">Filtros de Inteligência</span>
@@ -97,6 +98,7 @@
             <section id="view-dossie" class="view-content"></section>
             <section id="view-ads" class="view-content"></section>
             <section id="view-map" class="view-content"></section>
+            <section id="view-workers" class="view-content"></section>
         </div>
     </main>
 
@@ -191,8 +193,6 @@
     </aside>
 
     <!-- Scripts de Terceiros e Core -->
-    <script src="https://unpkg.com/lucide@latest" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <script type="module" src="./src/core/app.js?v=20.5.0"></script>
     <script type="module" src="./src/core/payments.js?v=20.5.0"></script>
 </body>

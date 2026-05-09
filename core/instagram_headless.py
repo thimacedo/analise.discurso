@@ -329,31 +329,59 @@ class InstagramHeadlessScraper:
 
     async def _scrape_post(self, username: str, shortcode: str):
         try:
-            await self.page.goto(f"https://www.instagram.com/p/{shortcode}/")
-            await asyncio.sleep(4)
+            await self.page.goto(f"https://www.instagram.com/p/{shortcode}/", timeout=60000)
+            await asyncio.sleep(5)
             
-            comments = await self.page.evaluate("""() => {
-                return Array.from(document.querySelectorAll('div.x9f619 span[dir="auto"], span._ap30'))
-                    .map(el => el.innerText.trim())
-                    .filter(txt => txt.length > 2);
+            # Tenta rolar um pouco para carregar comentários se necessário
+            await self.page.mouse.wheel(0, 1000)
+            await asyncio.sleep(2)
+
+            comments_data = await self.page.evaluate("""() => {
+                // Seleciona os containers de comentário (li dentro de ul)
+                const items = Array.from(document.querySelectorAll('ul li'));
+                return items.map(li => {
+                    // O autor geralmente está em um h3, h4 ou o primeiro link
+                    const authorEl = li.querySelector('h3 a, h4 a, a[role="link"]');
+                    // O texto do comentário costuma estar em um span com classes específicas ou dentro de um div
+                    const textEl = li.querySelector('span._ap30, span[dir="auto"], div.x1n2onr6 span');
+                    
+                    const author = authorEl ? authorEl.innerText.trim() : null;
+                    const text = textEl ? textEl.innerText.trim() : null;
+                    
+                    // Filtra para garantir que não pegamos o nome do autor como texto
+                    if (author && text && author !== text) {
+                        return { author, text };
+                    }
+                    return null;
+                }).filter(i => i !== null);
             }""")
             
-            for cmd in comments[:MAX_COMMENTS_PER_POST]:
-                self._save_comment(username, shortcode, cmd)
-        except: pass
+            print(f"💬 [Headless] Encontrados {len(comments_data)} comentários potenciais para {shortcode}.")
+            
+            for cmd in comments_data[:MAX_COMMENTS_PER_POST]:
+                self._save_comment(username, shortcode, cmd['text'], cmd['author'])
+        except Exception as e:
+            print(f"⚠️ [Headless] Erro ao raspar post {shortcode}: {e}")
 
-    def _save_comment(self, username: str, shortcode: str, text: str):
-        valid_text = clean_comment(text, username)
+    def _save_comment(self, candidato_username: str, shortcode: str, text: str, author: str):
+        valid_text = clean_comment(text, candidato_username)
         if not valid_text: return
 
+        # Se o autor for igual ao candidato, provavelmente é uma resposta ou erro de extração
+        # Mas vamos salvar mesmo assim para fins forenses
         data = {
-            'candidato_id': username, 'post_id': shortcode,
-            'texto_bruto': valid_text, 'plataforma': 'INSTAGRAM',
+            'candidato_id': candidato_username, 
+            'post_id': shortcode,
+            'autor_username': author,
+            'texto_bruto': valid_text, 
+            'plataforma': 'INSTAGRAM',
             'data_coleta': datetime.now(timezone.utc).isoformat(),
             'processado_ia': False
         }
-        try: supabase.table('comentarios').insert(data).execute()
-        except: pass
+        try:
+            supabase.table('comentarios').insert(data).execute()
+        except Exception as e:
+            print(f"❌ [Headless] Erro ao persistir comentário de @{author}: {e}")
 
 if __name__ == '__main__':
     asyncio.run(InstagramHeadlessScraper().run())

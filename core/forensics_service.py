@@ -49,6 +49,8 @@ REGRAS DE OURO:
 2. PERFORMATIVIDADE: Analise se o discurso busca anular a cidadania ou desumanizar o alvo.
 3. RIGOR: Imputação de crimes (ladrão, corrupto) sem contexto jornalístico é RIGOR_CRIMINAL e deve ser marcado como is_hate: true.
 4. DESUMANIZAÇÃO: Termos como 'lixo', 'escória', 'rato' são INSULTO_AD_HOMINEM e SEMPRE são is_hate: true.
+5. AMEAÇA FÍSICA: Promessas de morte, agressão física (ex: "levar tiro", "paredão") DEVEM ser categorizadas estritamente como AMEACA, NUNCA como VIOLENCIA_GENERO.
+6. VIOLÊNCIA DE GÊNERO: Reserve a categoria VIOLENCIA_GENERO APENAS para misoginia ou ofensas diretas à condição feminina.
 
 QUALQUER classificação em categorias PASA (exceto NEUTRO) deve, por padrão, resultar em "is_hate": true.
 

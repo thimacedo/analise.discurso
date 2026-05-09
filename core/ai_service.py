@@ -14,6 +14,43 @@ from core.forensics_service import forensics_service
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("sentinela-ai")
 
+class GeminiAgentAdapter:
+    """
+    Adaptador de API para agentes Gemini (Protocolo de Assinatura de Pensamento).
+    Captura thought_signatures de chamadas de ferramentas e injeta-as em respostas futuras.
+    """
+    def __init__(self):
+        self.pending_signatures: Dict[str, str] = {}
+
+    def process_response_parts(self, parts: List[Dict[str, Any]]):
+        """Captura assinaturas de pensamento de partes da resposta do modelo."""
+        for part in parts:
+            if "functionCall" in part:
+                tool_name = part["functionCall"]["name"]
+                # Se o modelo fornecer uma assinatura para esta chamada, guardamos
+                if "thought_signature" in part:
+                    self.pending_signatures[tool_name] = part["thought_signature"]
+                    logger.debug(f"🔑 [AI] Assinatura capturada para ferramenta: {tool_name}")
+
+    def build_tool_response(self, tool_name: str, result: Any) -> Dict[str, Any]:
+        """Constrói o payload de resposta da ferramenta injetando a assinatura se disponível."""
+        part_payload = {
+            "functionResponse": {
+                "name": tool_name,
+                "response": result
+            }
+        }
+        
+        # Injeção automática da assinatura para evitar Erro 400
+        if tool_name in self.pending_signatures:
+            part_payload["thought_signature"] = self.pending_signatures.pop(tool_name)
+            logger.debug(f"💉 [AI] Assinatura injetada na resposta da ferramenta: {tool_name}")
+            
+        return {
+            "role": "function",
+            "parts": [part_payload]
+        }
+
 class AIEngine(ABC):
     """Classe base para motores de IA do Sentinela."""
     
@@ -22,8 +59,16 @@ class AIEngine(ABC):
         pass
 
 class GeminiEngine(AIEngine):
+    def __init__(self):
+        self.adapter = GeminiAgentAdapter()
+
     async def classify(self, text: str) -> Optional[Dict[str, Any]]:
         if not settings.GEMINI_API_KEY: return None
+        # Proteção básica contra chaves inválidas (chaves Gemini reais geralmente começam com AIza)
+        if not settings.GEMINI_API_KEY.startswith("AIza"):
+            logger.warning(f"⚠️ [AI] Gemini Key parece inválida (não inicia com AIza). Pulando.")
+            return None
+            
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={settings.GEMINI_API_KEY}"
         system_prompt = forensics_service.get_system_prompt()
         payload = {
@@ -32,10 +77,27 @@ class GeminiEngine(AIEngine):
         }
         async with httpx.AsyncClient() as client:
             try:
-                resp = await client.post(url, json=payload, timeout=15.0)
+                resp = await client.post(url, json=payload, timeout=30.0)
+                
+                # Auto-Healing: Se houver erro de assinatura ausente, logamos e tratamos
+                if resp.status_code == 400 and "thought_signature" in resp.text:
+                    logger.error(f"🚨 [AI] Falha de Assinatura Detectada: {resp.text}")
+                    # Aqui poderíamos implementar um fallback para uma versão estável
+                    return None
+
                 if resp.status_code == 200:
-                    raw_text = resp.json()['candidates'][0]['content']['parts'][0]['text']
+                    data = resp.json()
+                    candidates = data.get('candidates', [])
+                    if not candidates: return None
+                    
+                    parts = candidates[0].get('content', {}).get('parts', [])
+                    # O Adaptador processa a resposta para capturar assinaturas se houver tool calling
+                    self.adapter.process_response_parts(parts)
+                    
+                    raw_text = parts[0]['text']
                     return forensics_service.parse_verdict(raw_text)
+                else:
+                    logger.warning(f"⚠️ [AI] Gemini status {resp.status_code}: {resp.text}")
             except Exception as e:
                 logger.warning(f"⚠️ [AI] Gemini failure: {e}")
         return None
@@ -56,10 +118,12 @@ class GroqEngine(AIEngine):
         }
         async with httpx.AsyncClient() as client:
             try:
-                resp = await client.post(url, headers=headers, json=payload, timeout=15.0)
+                resp = await client.post(url, headers=headers, json=payload, timeout=30.0)
                 if resp.status_code == 200:
                     raw_text = resp.json()['choices'][0]['message']['content']
                     return forensics_service.parse_verdict(raw_text)
+                else:
+                    logger.warning(f"⚠️ [AI] Groq status {resp.status_code}: {resp.text}")
             except Exception as e:
                 logger.warning(f"⚠️ [AI] Groq failure: {e}")
         return None
@@ -68,9 +132,8 @@ class OllamaEngine(AIEngine):
     async def classify(self, text: str) -> Optional[Dict[str, Any]]:
         url = f"{settings.OLLAMA_BASE_URL}/api/chat"
         system_prompt = forensics_service.get_system_prompt()
-        # Forçando o uso do Gemma local disponível na máquina (gemma:2b) ao invés do default qwen2.5:3b
         payload = {
-            "model": "gemma:2b",
+            "model": settings.OLLAMA_MODEL,
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"TEXTO: \"{text}\""}
@@ -81,10 +144,12 @@ class OllamaEngine(AIEngine):
         }
         async with httpx.AsyncClient() as client:
             try:
-                resp = await client.post(url, json=payload, timeout=30.0)
+                resp = await client.post(url, json=payload, timeout=60.0)
                 if resp.status_code == 200:
                     raw_text = resp.json().get("message", {}).get("content", "")
                     return forensics_service.parse_verdict(raw_text)
+                else:
+                    logger.warning(f"⚠️ [AI] Ollama status {resp.status_code}: {resp.text}")
             except Exception as e:
                 logger.warning(f"⚠️ [AI] Ollama failure: {e}")
         return None

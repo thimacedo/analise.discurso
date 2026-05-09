@@ -54,26 +54,26 @@ class InstagramSpider(scrapy.Spider):
         return []
 
     def _fetch_dynamic_targets(self):
-        print("🕷️ [Scrapy] Buscando alvos na priority_queue local...")
-        queue_path = 'E:/projetos/sentinela-democratica/data/priority_queue.json'
+        print("[Scrapy] Buscando alvos na priority_queue local...")
+        queue_path = os.path.join(os.getcwd(), 'data', 'priority_queue.json')
         try:
             if os.path.exists(queue_path):
                 with open(queue_path, 'r') as f:
                     targets = json.load(f)
                     if targets:
-                        print(f"🎯 [Scrapy] Alvos carregados do arquivo: {len(targets)} perfis.")
+                        print(f"[Scrapy] Alvos carregados do arquivo: {len(targets)} perfis.")
                         return targets
         except Exception as e:
-            print(f"⚠️ [Scrapy] Erro ao ler priority_queue: {e}")
+            print(f"[Scrapy] Erro ao ler priority_queue: {e}")
 
-        print("🕷️ [Scrapy] Buscando fila dinâmica de perfis no Supabase...")
+        print("[Scrapy] Buscando fila dinâmica de perfis no Supabase...")
         try:
             url = f"{self.supabase_url}/rest/v1/candidatos?select=username&last_scraped_at=is.null&limit=15"
             resp = httpx.get(url, headers=self.headers_supa)
             if resp.status_code == 200:
                 targets = [item['username'] for item in resp.json()]
                 if targets:
-                    print(f"🎯 [Scrapy] Alvos sem raspagem anterior: {len(targets)} perfis.")
+                    print(f"[Scrapy] Alvos sem raspagem anterior: {len(targets)} perfis.")
                     return targets
 
             cutoff = (datetime.utcnow() - timedelta(hours=48)).isoformat()
@@ -82,18 +82,18 @@ class InstagramSpider(scrapy.Spider):
             if resp.status_code == 200:
                 targets = [item['username'] for item in resp.json()]
                 if targets:
-                    print(f"⏳ [Scrapy] Perfis antigos sem raspagem recente: {len(targets)} perfis.")
+                    print(f"[Scrapy] Perfis antigos sem raspagem recente: {len(targets)} perfis.")
                     return targets
 
             high_activity = self._fetch_active_candidates(limit=15)
             if high_activity:
-                print(f"🚀 [Scrapy] Alvos de maior movimentação: {len(high_activity)} perfis.")
+                print(f"[Scrapy] Alvos de maior movimentação: {len(high_activity)} perfis.")
                 return high_activity
 
-            print("⚠️ [Scrapy] Usando alvos estáticos como fallback final.")
+            print("[Scrapy] Usando alvos estáticos como fallback final.")
             return ["lulaoficial", "flaviobolsonaro", "nikolasferreirainfo", "erikahiltonoficial"]
         except Exception as e:
-            print(f"⚠️ [Scrapy] Erro ao buscar fila dinâmica: {e}")
+            print(f"[Scrapy] Erro ao buscar fila dinâmica: {e}")
             return ["lulaoficial", "flaviobolsonaro"]
 
     def _build_request_headers(self, username: str) -> dict:
@@ -196,8 +196,10 @@ class InstagramSpider(scrapy.Spider):
                     'candidato_username': response.meta['candidato_username']
                 }
                 
-                if not item['text'] or item['owner_username'] == 'desconhecido':
-                    self.logger.warning(f"⚠️ Dados incompletos no comentário {item['id']} de {item['candidato_username']}")
+                if not item['text']:
+                    self.logger.warning(f"⚠️ Texto de comentário vazio para o ID {item['id']} do post {response.meta['post_shortcode']} do {item['candidato_username']}. Verifique a API do Instagram ou o seletor.")
+                if item['owner_username'] == 'desconhecido':
+                    self.logger.warning(f"⚠️ Username do comentário {item['id']} de {item['candidato_username']} é 'desconhecido'.")
                 
                 yield item
         except Exception as e:

@@ -39,7 +39,8 @@ export const state = {
     error: null,
     lastSyncAt: null,
     organizations: [],
-    currentOrganizationId: localStorage.getItem('sentinela_org_id') || null
+    currentOrganizationId: localStorage.getItem('sentinela_org_id') || null,
+    workersMetrics: null
 };
 
 export function setViewState(view) {
