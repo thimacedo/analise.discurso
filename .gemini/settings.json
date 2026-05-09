@@ -10,7 +10,7 @@
     },
     "modelSteering": true,
     "directWebFetch": true,
-    "memoryV2": true,
+    "memoryV2": false,
     "autoMemory": true,
     "generalistProfile": true,
     "contextManagement": true
@@ -18,16 +18,28 @@
   "general": {
     "defaultApprovalMode": "auto_edit",
     "enableAutoUpdate": true,
-    "enableNotifications": true,
+    "enableNotifications": false,
     "notificationMethod": "auto"
   },
   "ui": {
     "hideBanner": true,
-    "loadingPhrases": "all",
-    "errorVerbosity": "full",
+    "loadingPhrases": "off",
+    "errorVerbosity": "low",
     "accessibility": {
       "screenReader": false
-    }
+    },
+    "hideWindowTitle": false,
+    "inlineThinkingMode": "off",
+    "dynamicWindowTitle": true,
+    "showStatusInTitle": true,
+    "hideTips": true,
+    "hideContextSummary": true,
+    "footer": {
+      "hideSandboxStatus": true
+    },
+    "showMemoryUsage": true,
+    "showLineNumbers": false,
+    "showModelInfoInChat": true
   },
   "ide": {
     "enabled": true
@@ -44,5 +56,8 @@
       "url": "https://mcp.supabase.com/mcp?project_ref=vhamejkldzxbeibqeqpk",
       "type": "http"
     }
+  },
+  "billing": {
+    "overageStrategy": "never"
   }
 }

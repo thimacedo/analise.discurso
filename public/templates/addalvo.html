@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Painel de Controle Sentinela - Gerenciamento de alvos e configuração de monitoramento em tempo real.">
+    <!-- Google Tools -->
+    <meta name="google-site-verification" content="ALWjqhKFnwzKBPGcQPsygASHuoRaJmrXxhuCuxCorgI" />
+    <meta name="google-adsense-account" content="ca-pub-1827611269042960">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1827611269042960" crossorigin="anonymous"></script>
+    <!-- Google Analytics (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1899XV142N"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-1899XV142N');
+    </script>
+    
+    <!-- Performance Optimization -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://unpkg.com">
+
+    <title>Painel de Controle | Sentinela</title>
+    <link rel="icon" type="image/png" href="/sentinela_small.png">
+    
+    <!-- Critical Scripts -->
+    <script src="https://cdn.tailwindcss.com" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest" defer></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #020617; color: #f8fafc; }
+        .glass-card { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 24px; }
+        .input-dark { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); color: white; border-radius: 12px; padding: 10px 16px; outline: none; transition: all 0.2s; font-size: 13px; }
+        .input-dark:focus { border-color: #3b82f6; box-shadow: 0 0 15px rgba(59, 130, 246, 0.1); }
+        .btn-primary { background: #2563eb; color: white; font-weight: 800; border-radius: 12px; padding: 12px 24px; transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.1em; font-size: 11px; }
+        .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
+        .tab-btn { padding: 10px 20px; font-weight: 800; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; border-radius: 12px; transition: all 0.2s; color: #64748b; }
+        .tab-btn.active { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.2); }
+    </style>
+</head>
+<body class="p-4 md:p-10 antialiased">
+    <!-- MODAL DE SEGURANÇA -->
+    <div id="auth-modal" class="fixed inset-0 bg-slate-950 z-[100] flex items-center justify-center p-4">
+        <div class="glass-card p-8 max-w-sm w-full space-y-6 text-center">
+            <div class="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="shield-check" class="w-8 h-8 text-blue-500"></i>
+            </div>
+            <h2 class="text-xl font-800 uppercase tracking-tight">Acesso Restrito</h2>
+            <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest">Insira o código do Authenticator ou PIN para prosseguir</p>
+            <input type="password" id="auth-pin" placeholder="••••••" class="input-dark w-full text-center text-2xl tracking-[0.5em] font-mono">
+            <button onclick="verifyAuth()" class="btn-primary w-full">Validar Acesso</button>
+            <p id="auth-error" class="text-rose-500 text-[9px] font-black uppercase hidden">Código Inválido ou Expirado</p>
+        </div>
+    </div>
+
+    <div id="main-content" class="max-w-6xl mx-auto space-y-10 blur-xl pointer-events-none transition-all duration-700">
+        <!-- HEADER -->
+        <header class="flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <img src="/assets/sentinela_small.webp" alt="Logo" class="w-10 h-10" fetchpriority="high">
+                <div>
+                    <h1 class="text-2xl font-800 text-white uppercase tracking-tight">Sentinela <span class="text-blue-500">Controle</span></h1>
+                    <p class="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em] mt-1">Configuração de Alvos e Auditoria de Dados</p>
+                </div>
+            </div>
+            <a href="/" class="text-[10px] font-black text-slate-500 hover:text-white uppercase tracking-widest transition-colors flex items-center gap-2">
+                <i data-lucide="layout-grid" class="w-4 h-4"></i> Dashboard
+            </a>
+        </header>
+
+        <!-- ABAS -->
+        <div class="flex gap-2 border-b border-white/5 pb-4">
+            <button onclick="switchTab('targets')" id="tab-targets" class="tab-btn active">Alvos Monitorados</button>
+            <button onclick="switchTab('review')" id="tab-review" class="tab-btn">Auditoria de Alertas</button>
+        </div>
+
+        <!-- ABA 1: ALVOS -->
+        <section id="content-targets" class="space-y-8">
+            <div class="glass-card p-8">
+                <h2 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-6">Adicionar Novo Perfil</h2>
+                <form id="add-target-form" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <input type="text" id="username" placeholder="Usuário (ex: lulaoficial)" class="input-dark">
+                    <input type="text" id="estado" placeholder="Estado (ex: RN, SP ou BR)" class="input-dark">
+                    <input type="email" id="email" placeholder="E-mail de Contato" class="input-dark">
+                    <button type="submit" class="btn-primary">Ativar Coleta</button>
+                </form>
+            </div>
+            <div id="targets-list" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+        </section>
+
+        <!-- ABA 2: AUDITORIA -->
+        <section id="content-review" class="hidden space-y-8">
+            <div class="glass-card p-8">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-xs font-black text-slate-400 uppercase tracking-widest">Revisão de Classificações</h2>
+                    <div class="flex gap-2">
+                        <button onclick="loadReview('hate')" class="px-4 py-2 bg-rose-500/10 text-rose-500 text-[9px] font-black rounded-lg border border-rose-500/20">Alertas</button>
+                        <button onclick="loadReview('neutral')" class="px-4 py-2 bg-emerald-500/10 text-emerald-500 text-[9px] font-black rounded-lg border border-emerald-500/20">Neutros</button>
+                    </div>
+                </div>
+                <div id="review-list" class="space-y-4"></div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // AUTH LOGIC
+        async function verifyAuth() {
+            const code = document.getElementById('auth-pin').value;
+            const res = await fetch('/api/v1/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code })
+            });
+            
+            const data = await res.json();
+
+            if (res.ok) {
+                localStorage.setItem('sentinela_token', data.token);
+                document.getElementById('auth-modal').classList.add('hidden');
+                document.getElementById('main-content').classList.remove('blur-xl', 'pointer-events-none');
+                loadTargets();
+            } else {
+                document.getElementById('auth-error').innerText = data.detail || 'Código Inválido';
+                document.getElementById('auth-error').classList.remove('hidden');
+            }
+        }
+
+        function getAuthHeader() {
+            return localStorage.getItem('sentinela_token');
+        }
+
+        async function apiFetch(url, options = {}) {
+            const token = getAuthHeader();
+            const headers = { ...options.headers, 'Authorization': token };
+            const res = await fetch(url, { ...options, headers });
+            
+            if (res.status === 401) {
+                // Sessão expirada ou inválida
+                localStorage.removeItem('sentinela_token');
+                document.getElementById('auth-modal').classList.remove('hidden');
+                document.getElementById('main-content').classList.add('blur-xl', 'pointer-events-none');
+                return null;
+            }
+            return res;
+        }
+
+        // Auto-check session
+        window.onload = () => {
+            const savedToken = localStorage.getItem('sentinela_token');
+            if (savedToken) {
+                document.getElementById('auth-modal').classList.add('hidden');
+                document.getElementById('main-content').classList.remove('blur-xl', 'pointer-events-none');
+                loadTargets();
+            }
+            lucide.createIcons();
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            document.getElementById('content-targets').classList.add('hidden');
+            document.getElementById('content-review').classList.add('hidden');
+            document.getElementById(`content-${tab}`).classList.remove('hidden');
+            if(tab === 'review') loadReview('hate');
+        }
+
+        async function loadReview(filter) {
+            const container = document.getElementById('review-list');
+            container.innerHTML = '<p class="text-center py-20 text-[10px] animate-pulse uppercase">Buscando registros...</p>';
+            
+            const res = await apiFetch(`/api/v1/admin/comments/review?is_hate=${filter === 'hate'}`);
+            if(!res) return;
+
+            const data = await res.json();
+            container.innerHTML = data.map(c => `
+                <div class="p-6 bg-white/[0.02] border border-white/5 rounded-2xl flex justify-between gap-6">
+                    <div>
+                        <span class="text-[9px] font-black text-blue-400 uppercase">@${c.candidato_id}</span>
+                        <p class="text-[11px] text-slate-300 italic">"${c.texto_bruto}"</p>
+                    </div>
+                    <button onclick="updateStatus(${c.id}, ${!c.is_hate})" class="px-4 py-2 bg-white/5 text-[9px] font-black rounded-xl border border-white/10">Inverter</button>
+                </div>
+            `).join('');
+        }
+
+        async function updateStatus(id, newHate) {
+            await apiFetch(`/api/v1/admin/comments/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ is_hate: newHate })
+            });
+            loadReview(newHate ? 'neutral' : 'hate');
+        }
+
+        async function loadTargets() {
+            const res = await fetch('/api/v1/candidatos');
+            const data = await res.json();
+            const container = document.getElementById('targets-list');
+            container.innerHTML = data.map(t => `
+                <div class="glass-card p-6 flex flex-col justify-between h-full">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="px-2 py-1 bg-blue-500/10 text-blue-500 text-[8px] font-black rounded uppercase">${t.estado}</span>
+                            <span class="text-[8px] text-slate-500 font-bold uppercase tracking-widest">${t.status_monitoramento}</span>
+                        </div>
+                        <h3 class="text-lg font-800 text-white mb-1">@${t.username}</h3>
+                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-tight">${t.nome || 'Perfil em Coleta'}</p>
+                    </div>
+                    <div class="mt-6 pt-6 border-t border-white/5 flex gap-4">
+                        <div class="flex-1">
+                            <span class="text-[8px] text-slate-500 font-black uppercase block mb-1">Total</span>
+                            <span class="text-xs font-mono font-bold">${t.comentarios_totais_count || 0}</span>
+                        </div>
+                        <div class="flex-1">
+                            <span class="text-[8px] text-rose-500/50 font-black uppercase block mb-1">Hate</span>
+                            <span class="text-xs font-mono font-bold text-rose-500">${t.comentarios_odio_count || 0}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('add-target-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const payload = {
+                username: document.getElementById('username').value,
+                estado: document.getElementById('estado').value
+            };
+            
+            const res = await apiFetch('/api/v1/admin/targets', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            
+            if(res && res.ok) {
+                alert('Alvo adicionado com sucesso!');
+                loadTargets();
+                e.target.reset();
+            } else if(res) {
+                alert('Erro ao adicionar alvo. Verifique sua sessão.');
+            }
+        };
+
+        lucide.createIcons();
+    </script>
+</body>
+</html>

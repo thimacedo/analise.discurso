@@ -3,7 +3,7 @@ import { SENTINELA_CONFIG } from '../config.js';
 import { dataService } from '../services/dataService.js';
 import { authService } from '../services/authService.js';
 import { fcmService } from '../services/fcmService.js';
-import { renderAll, initInfiniteScroll, initSwipeGestures } from './ui.js';
+import { renderAll, initInfiniteScroll, initSwipeGestures } from './ui.js?v=20.5.1';
 import { workersUI } from './workersUI.js';
 
 // DEBOUNCED RENDER PARA PERFORMANCE
