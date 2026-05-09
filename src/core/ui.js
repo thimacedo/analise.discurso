@@ -118,7 +118,24 @@ export function renderFeed(alertas, containerId = 'feed-alertas') {
         return;
     }
 
-    container.innerHTML = alertas.map(alerta => buildPostCard(alerta)).join('');
+    container.innerHTML = alertas.map((alerta, index) => {
+        let html = buildPostCard(alerta);
+        
+        // Injetar anúncio a cada 5 cards
+        if ((index + 1) % 5 === 0) {
+            html += `
+            <div class="ad-feed-container my-6 p-4 bg-slate-50 rounded-3xl border border-dashed border-slate-200 overflow-hidden min-h-[250px] flex items-center justify-center">
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-format="fluid"
+                     data-ad-layout-key="-fb+5w+4e-db+86"
+                     data-ad-client="ca-pub-1827611269042960"
+                     data-ad-slot="XXXXXX"></ins>
+                <script>(window.adsbygoogle = window.adsbygoogle || []).push({});</script>
+            </div>`;
+        }
+        return html;
+    }).join('');
     
     // Re-inicialização da biblioteca de ícones
     if (window.lucide) {
