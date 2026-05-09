@@ -176,3 +176,9 @@ export function initInfiniteScroll() {
     container.addEventListener('mouseup', endDrag);
     container.addEventListener('mouseleave', endDrag);
 }
+
+export function renderAll(summary = {}, targets = [], alerts = []) {
+    console.log('??? [UI] Render All v20.5.2');
+    renderFeed(alerts || []);
+    if (window.lucide) window.lucide.createIcons();
+}

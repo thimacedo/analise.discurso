@@ -3,7 +3,7 @@ import { SENTINELA_CONFIG } from '../config.js';
 import { dataService } from '../services/dataService.js';
 import { authService } from '../services/authService.js';
 import { fcmService } from '../services/fcmService.js';
-import { renderAll, initInfiniteScroll, initSwipeGestures } from './ui.js?v=20.5.1';
+import { renderAll, initInfiniteScroll, initSwipeGestures } from './ui.js?v=20.5.2';
 import { workersUI } from './workersUI.js';
 
 // DEBOUNCED RENDER PARA PERFORMANCE
@@ -159,11 +159,11 @@ async function refreshData() {
         state.loading = false;
         state.lastSyncAt = new Date().toISOString();
         
-        window.debouncedRender();
+        renderAll(summary || {}, targets || [], alerts || []);
     } catch (e) {
         console.error('Refresh failure:', e);
         state.loading = false;
-        window.debouncedRender();
+        renderAll({}, [], []);
     }
 }
 
