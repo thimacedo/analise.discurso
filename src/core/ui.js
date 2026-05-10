@@ -46,13 +46,13 @@ export function buildPostCard(alerta) {
             <div class="post-header flex justify-between items-center gap-4 mb-6">
                 <div class="flex items-center gap-4 mt-2">
                     <div class="post-avatar relative">
-                        <img src="https://ui-avatars.com/api/?name=?&background=334155&color=fff" alt="Suspeito" class="w-12 h-12 rounded-2xl blur-[4px] select-none pointer-events-none object-cover border border-slate-100 shadow-sm" loading="lazy">
+                        <img src="https://ui-avatars.com/api/?name=?&background=334155&color=fff" alt="Suspeito" class="w-12 h-12 rounded-2xl select-none pointer-events-none object-cover border border-slate-100 shadow-sm" loading="lazy">
                         <div class="absolute -right-2 -bottom-2 bg-white rounded-full p-1.5 shadow-md border border-slate-50">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 text-slate-500"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                         </div>
                     </div>
                     <div class="flex flex-col">
-                        <div class="post-username text-[13px] font-black text-slate-900 blur-[6px] select-none pointer-events-none opacity-50">agressor_protegido</div>
+                        <div class="post-username text-[13px] font-black text-slate-900 select-none pointer-events-none opacity-50">agressor_protegido</div>
                         <div class="text-[10px] font-bold text-slate-400 flex items-center gap-1">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-2.5 h-2.5"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg> ${alerta?.hora || '00:00:00'}
                         </div>
