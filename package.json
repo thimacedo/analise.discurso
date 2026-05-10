@@ -8,6 +8,7 @@
     "doc": "docs"
   },
   "scripts": {
+    "build": "npm run build:css",
     "build:css": "postcss ./src/styles/main.css -o ./src/styles/main.css --watch",
     "test": "playwright test tests/",
     "api": "uvicorn api.index:app --reload --host 0.0.0.0 --port 8000",
