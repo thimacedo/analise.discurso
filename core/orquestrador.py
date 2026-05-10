@@ -17,6 +17,7 @@ from processing.text_processor import clean_comment
 from processing.data_miner import data_miner
 from processing.report_generator import ReportGenerator
 from processing.ad_processor import ad_processor
+from processing.workers_metrics import WorkerValidator
 from tools.target_manager import TargetManager
 from workers.processors.queue_manager import QueueManagerWorker
 
@@ -24,6 +25,7 @@ class Orchestrator:
     def __init__(self):
         self.rg = ReportGenerator()
         self.tm = TargetManager(hours_threshold=48)
+        self.validator = WorkerValidator()
         self.batch_size = 200
         self.error_counts = {} # Rastreia erros repetidos para evitar loops infinitos
 
@@ -50,6 +52,9 @@ class Orchestrator:
 
         print(f"🤖 Iniciando Coleta para {len(targets)} alvos...")
         scraper = InstagramHeadlessScraper()
+        # Injeta o validador no scraper
+        if hasattr(scraper, 'set_validator'):
+            scraper.set_validator(self.validator)
         
         for i, target in enumerate(targets):
             print(f"\n🎯 [{i+1}/{len(targets)}] @{target}...")
@@ -85,7 +90,12 @@ class Orchestrator:
         if not targets: return
         for target in targets[:5]:
             ads = await meta_ad_service.search_ads(target)
-            if ads: await db_client.persist_ads_batch(ads)
+            if ads: 
+                # Quality Gate para Meta Ads
+                if self.validator.evaluate_payload("MetaAdWorker", ads):
+                    await db_client.persist_ads_batch(ads)
+                else:
+                    print(f"⚠️ [Orquestrador] Payload de Meta Ads para @{target} descartado pelo Quality Gate.")
         
         await ad_processor.run_once(limit=10)
 

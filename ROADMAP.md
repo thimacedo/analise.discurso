@@ -19,6 +19,7 @@
     - [ ] **[STN-X01]** Zombie Process Killer: Script para limpar portas 8000/8080.
 
 ## ✅ Concluído
+- [x] **Sistema Central de Recompensas e Quality Gate**: Validação de workers e sistema de ledger de performance.
 - [x] **Gatilhos de IA Removidos do Frontend**: Otimização para evitar travamentos de UI.
 - [x] **Estrutura Base Diamond**: Dashboard, KPIs e Monitoramento.
 

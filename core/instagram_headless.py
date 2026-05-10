@@ -83,6 +83,10 @@ class InstagramHeadlessScraper:
         self.page: Optional[Page] = None
         self.im = IdentityManager()
         self.active_account: Optional[Dict] = None
+        self.validator = None
+
+    def set_validator(self, validator):
+        self.validator = validator
 
     async def run(self, limit: int = 15, targets: List[Dict] = None, test_username: str = None):
         print("🧠 [Headless] Iniciando Instagram Headless Scraper (Rotation Mode)...")
@@ -372,8 +376,6 @@ class InstagramHeadlessScraper:
         valid_text = clean_comment(text, candidato_username)
         if not valid_text: return
 
-        # Se o autor for igual ao candidato, provavelmente é uma resposta ou erro de extração
-        # Mas vamos salvar mesmo assim para fins forenses
         data = {
             'candidato_id': candidato_username, 
             'post_id': shortcode,
@@ -383,6 +385,13 @@ class InstagramHeadlessScraper:
             'data_coleta': datetime.now(timezone.utc).isoformat(),
             'processado_ia': False
         }
+
+        # Quality Gate Check
+        if self.validator:
+            if not self.validator.evaluate_payload("InstagramHeadlessScraper", data):
+                print(f"⚠️ [Headless] Comentário de @{author} descartado pelo Quality Gate.")
+                return
+
         try:
             supabase.table('comentarios').insert(data).execute()
         except Exception as e:
