@@ -1,7 +1,7 @@
 import re
 import asyncio
 from typing import List, Dict, Tuple, Any
-from core.ai_service import AIService 
+from core.ai_service import AIService
 from core.forensics_service import forensics_service
 
 class PASAAuditor:
