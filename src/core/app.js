@@ -77,37 +77,26 @@ async function refreshData() {
     try {
         state.loading = true;
         const [summary, targets, alerts] = await Promise.all([
-            dataService.getSummary().catch(() => ({ error: true })),
-            dataService.getTargets().catch(() => []),
-            dataService.getAlerts(20, 1).catch(() => [])
+            dataService.getSummary().catch(() => ({})), // Retorna objeto vazio em caso de erro
+            dataService.getTargets().catch(() => []),   // Retorna array vazio em caso de erro
+            dataService.getAlerts(20, 1).catch(() => [])       // Retorna array vazio em caso de erro
         ]);
 
-        state.data = Array.isArray(targets) ? targets : [];
-        state.alertas = Array.isArray(alerts) ? alerts : [];
-        
-        if (summary && !summary.error) {
-            state.summary = { ...summary };
-        } else {
-            const totalAmostra = state.data.reduce((acc, curr) => acc + (curr?.comentarios_totais_count || 0), 0);
-            state.summary = {
-                total_monitorados: state.data.length,
-                total_alertas: state.alertas.length,
-                total_amostra: totalAmostra,
-                resiliencia: totalAmostra > 0 ? ((totalAmostra - state.alertas.length) / totalAmostra * 100).toFixed(1) : 100
-            };
-        }
+        state.data = targets;
+        state.alertas = alerts;
+        state.summary = summary;
 
         const now = new Date().toLocaleTimeString('pt-BR');
         const updateEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
         
-        updateEl('kpi-monitorados', state.summary.total_monitorados);
-        updateEl('kpi-time-monitorados', now);
-        updateEl('kpi-hate', state.summary.total_alertas);
-        updateEl('kpi-time-hate', now);
-        updateEl('kpi-total', state.summary.total_amostra.toLocaleString('pt-BR'));
-        updateEl('kpi-time-total', now);
-        updateEl('kpi-res', `${state.summary.resiliencia}%`);
-        updateEl('kpi-time-res', now);
+        updateEl('kpi-monitorados', state.summary?.total_monitorados ?? '---');
+        updateEl('kpi-time-monitorados', 'agora');
+        updateEl('kpi-hate', state.summary?.total_alertas ?? '---');
+        updateEl('kpi-time-hate', 'agora');
+        updateEl('kpi-total', state.summary?.total_amostra?.toLocaleString('pt-BR') ?? '---');
+        updateEl('kpi-time-total', 'agora');
+        updateEl('kpi-res', `${state.summary?.resiliencia ?? 0}%`);
+        updateEl('kpi-time-res', 'agora');
         
         const chartMain = document.getElementById('chartMain');
         if (chartMain && state.data.length > 0) {
