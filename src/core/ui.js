@@ -1,5 +1,10 @@
 // src/core/ui.js
+// SENTINELA | Diamond Edition - UI Engine v20.6.0 [ROBUST]
 
+/**
+ * Constrói o HTML do card de alerta com sanitização agressiva de texto.
+ * @param {Object} alerta Objeto de dados do comentário
+ */
 export function buildPostCard(alerta) {
     let safeCommentText = null;
     const textoLimpo = alerta?.texto_limpo?.trim();
@@ -80,28 +85,86 @@ export function buildPostCard(alerta) {
     </div>`;
 }
 
+/**
+ * Renderiza o feed de alertas no container especificado.
+ * @param {Array} alertas Lista de objetos de alerta
+ * @param {string} containerId ID do container DOM
+ * @param {boolean} append Se deve adicionar ao final ou substituir
+ */
 export function renderFeed(alertas, containerId = 'feed-alertas', append = false) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    if (!Array.isArray(alertas) || alertas.length === 0) {
-        if (!append) container.innerHTML = `<div class="flex flex-col items-center justify-center p-12 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-200 mt-10"><div class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-4"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300 w-8 h-8"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></div><h3 class="text-slate-900 font-black text-sm uppercase tracking-widest">Silêncio no Horizonte</h3><p class="text-slate-500 text-[10px] font-bold uppercase tracking-tighter mt-1 max-w-[200px]">Nenhum alerta detectado.</p></div>`;
+    const safeAlerts = Array.isArray(alertas) ? alertas : [];
+
+    if (safeAlerts.length === 0 && !append) {
+        container.innerHTML = `
+            <div class="flex flex-col items-center justify-center p-12 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-200 mt-10">
+                <div class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300 w-8 h-8"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                </div>
+                <h3 class="text-slate-900 font-black text-sm uppercase tracking-widest">Silêncio no Horizonte</h3>
+                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-tighter mt-1 max-w-[200px]">Nenhum alerta detectado ou sistema offline.</p>
+            </div>`;
+        if (window.lucide) window.lucide.createIcons();
         return;
     }
 
-    const htmlContent = alertas.map((alerta, index) => {
+    const htmlContent = safeAlerts.map((alerta, index) => {
         let html = buildPostCard(alerta);
-        if ((index + 1) % 5 === 0) html += `<div class="ad-feed-container my-6 p-4 bg-slate-50 rounded-3xl border border-dashed border-slate-200 min-h-[250px] flex items-center justify-center"><ins class="adsbygoogle" style="display:block" data-ad-format="fluid" data-ad-layout-key="-fb+5w+4e-db+86" data-ad-client="ca-pub-1827611269042960" data-ad-slot="1779104226"></ins><script>(window.adsbygoogle = window.adsbygoogle || []).push({});</script></div>`;
+        
+        // Injetar anúncio a cada 5 cards (IDs reais aplicados)
+        if ((index + 1) % 5 === 0) {
+            html += `
+            <div class="ad-feed-container my-6 p-4 bg-slate-50 rounded-3xl border border-dashed border-slate-200 min-h-[250px] flex items-center justify-center relative">
+                <span class="absolute top-2 right-4 text-[8px] font-black text-slate-300 uppercase tracking-widest">Publicidade Estratégica</span>
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-format="fluid"
+                     data-ad-layout-key="-fb+5w+4e-db+86"
+                     data-ad-client="ca-pub-1827611269042960"
+                     data-ad-slot="1779104226"></ins>
+            </div>`;
+        }
         return html;
     }).join('');
 
-    if (append) container.insertAdjacentHTML('beforeend', htmlContent);
-    else container.innerHTML = htmlContent;
+    if (append) {
+        container.insertAdjacentHTML('beforeend', htmlContent);
+    } else {
+        container.innerHTML = htmlContent;
+    }
     
+    // Inicialização segura do AdSense
+    try {
+        const adElements = container.querySelectorAll('.adsbygoogle');
+        adElements.forEach(el => {
+            if (!el.dataset.adInitialized) {
+                (window.adsbygoogle = window.adsbygoogle || []).push({});
+                el.dataset.adInitialized = "true";
+            }
+        });
+    } catch (error) {
+        console.error('⚠️ [UI] Falha AdSense:', error);
+    }
+
     if (window.lucide) window.lucide.createIcons();
 }
 
+/**
+ * Ponto de entrada para renderização completa.
+ */
 export function renderAll(summary = {}, targets = [], alerts = []) {
-    renderFeed(alerts || []);
-    if (window.lucide) window.lucide.createIcons();
+    const safeSummary = summary || {};
+    const safeTargets = Array.isArray(targets) ? targets : [];
+    const safeAlerts = Array.isArray(alerts) ? alerts : [];
+
+    renderFeed(safeAlerts);
+}
+
+/**
+ * Placeholder para compatibilidade.
+ */
+export function initInfiniteScroll() {
+    console.info('🚀 [UI] Infinite Scroll operacional.');
 }
