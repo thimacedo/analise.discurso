@@ -1,82 +1,78 @@
-# Enhance Data Ingestion and Analysis Capabilities PRD
+# Sentinela Democrática Enterprise Upgrade (Arquitetura & UI/UX) PRD
 
 ## HR Eng
 
-| Enhance Data Ingestion and Analysis Capabilities PRD |  | This PRD outlines the strategy to improve the Sentinela Democrática project's data handling capabilities, focusing on faster ingestion, broader source compatibility, and more robust analysis, ultimately enabling more timely and comprehensive insights into digital discourse. |
+| Sentinela Enterprise PRD |  | O Sentinela atual processa dados de forma robusta, mas a interface e a arquitetura precisam de esteroides para suportar 10k+ alertas sem fritar os cérebros dos analistas ou travar a main thread. Menos gargalos, mais telemetria e zero sobrecarga cognitiva. |
 | :---- | :---- | :---- |
-| **Author**: Pickle Rick **Contributors**: [User] **Intended audience**: Engineering, PM, Design | **Status**: Draft **Created**: Quinta-feira, 7 de maio de 2026 | **Self Link**: [Link] **Context**: [Link] 
+| **Author**: Pickle Rick **Contributors**: Thiago **Intended audience**: Engineering, PM, Design | **Status**: Draft **Created**: 09/05/2026 | **Self Link**: N/A **Context**: Integração de arquitetura de alta resiliência e UX avançada para analistas. 
 
 ## Introduction
 
-This document details the requirements for enhancing the Sentinela Democrática's data ingestion and analysis infrastructure. The goal is to streamline the process of acquiring, processing, and analyzing various data sources relevant to forensic discourse analysis, ensuring the platform remains cutting-edge and efficient.
+A infraestrutura e o front-end do Sentinela Democrática estão prestes a deixar a idade da pedra. Estamos implementando um pipeline de qualidade automatizado (CI/CD), processamento assíncrono blindado (Mensageria/DLQ) e uma Interface Gráfica voltada para alta produtividade sob estresse (War Room). Não há espaço para telas em branco, falhas silenciosas ou desenvolvedores subindo código quebrado na master.
 
 ## Problem Statement
 
-**Current Process:** The existing data ingestion and analysis pipeline may be encountering bottlenecks, potentially leading to delays in processing new information and limiting the types of data that can be effectively analyzed. Manual intervention might be required for certain data sources or analysis steps, reducing overall efficiency.
-**Primary Users:** Data analysts, forensic investigators, and project managers who rely on timely and accurate analysis of digital discourse.
-**Pain Points:** Slow processing times, limited support for emerging data sources, potential for manual errors, and challenges in scaling analysis efforts.
-**Importance:** To maintain Sentinela Democrática's effectiveness in monitoring and analyzing digital discourse, especially in critical periods like elections, it is crucial to have a robust, scalable, and efficient data pipeline. This upgrade is needed now to stay ahead of evolving digital communication methods and to ensure comprehensive coverage.
+**Current Process:** 
+Builds manuais de front-end com versionamento tosco de cache (`?v=2`), processamento síncrono vulnerável a gargalos, logs difíceis de parsear por máquinas e uma interface (UI) que causa fadiga visual e desorientação em análises massivas de dados (10k+ alertas).
+**Primary Users:** Analistas de Dados / Investigadores Forenses Digitais, Engenheiros de DevOps.
+**Pain Points:** 
+- Risco de regressão no código de raspagem (sem Quality Gates).
+- Interface bloqueia ou exibe telas vazias durante latência da API.
+- Sobrecarga de informações (textos longos) na análise de discurso de ódio.
+- Fadiga visual em ambientes de monitoramento contínuo.
+**Importance:** Se o sistema cair ou o analista ficar cego lendo logs crus durante o pico das eleições, falhamos na nossa missão principal. Precisamos de robustez a nível Enterprise agora.
 
 ## Objective & Scope
 
-**Objective:** To significantly improve the efficiency, scalability, and scope of data ingestion and analysis capabilities.
-**Ideal Outcome:** A near real-time, comprehensive data analysis platform capable of ingesting diverse data sources with minimal manual intervention, providing deeper and faster insights.
+**Objective:** 
+Eliminar gargalos arquiteturais, introduzir telemetria/observabilidade total, e criar uma interface ergonômica, resiliente e escalável.
+**Ideal Outcome:** 
+O código não entra na master se não passar no linter. Se o Supabase demorar, a UI mostra um Skeleton elegante. Se um scraper falhar, o job vai pra DLQ. O analista usa atalhos de teclado e Dark Mode, visualizando dados complexos (PASA) apenas sob demanda (Progressive Disclosure).
 
 ### In-scope or Goals
--   Implement support for new, identified data sources (e.g., emerging social media platforms, specific forum types).
--   Optimize existing ingestion processes for performance and reliability.
--   Enhance the data normalization and cleaning stages to handle a wider variety of data formats.
--   Improve the scalability of analytical processing to handle larger data volumes.
--   Develop or integrate tools for more advanced forensic discourse analysis (e.g., sentiment analysis, hate speech detection refinement).
+- Configuração de CI/CD rigoroso (Ruff/Black, ESLint, GitHub Actions).
+- Migração de logs de texto para JSON estruturado e Distributed Tracing.
+- Implementação de Filas (Redis/RabbitMQ) e Dead Letter Queues (DLQ).
+- Refatoração do Front-end: Build automatizado (Vite/Webpack), State Management isolado.
+- Upgrades de UX/UI: Skeleton Screens, Dark Mode nativo, Hotkeys, Progressive Disclosure, Toasts informativos.
 
 ### Not-in-scope or Non-Goals
--   Development of entirely new machine learning models for novel forms of analysis (focus is on enhancing existing or integrating known techniques).
--   Retroactive reprocessing of all historical data unless specifically required for a new analysis feature.
--   User interface redesign for the analysis results presentation (focus is on backend processing).
+- Migração para outro banco de dados (Supabase continua sendo a fonte de verdade).
+- Alteração no algoritmo central do PASA v16.4 (apenas a forma como ele é exibido muda).
+- Mudança para Native Apps (foco exclusivo em Web SPA).
 
 ## Product Requirements
 
-[Detailed requirements. Include Clear CUJs here.]
-
 ### Critical User Journeys (CUJs)
-1.  **Ingest New Social Media Feed:**
-    1.  A new data source (e.g., a niche social media platform) is identified as relevant.
-    2.  The system is configured to ingest data from this new source.
-    3.  The data is successfully ingested, normalized, and stored.
-    4.  The ingested data is available for analysis within a specified timeframe (e.g., < 1 hour).
-2.  **Perform Enhanced Hate Speech Analysis:**
-    1.  A dataset (new or existing) is selected for analysis.
-    2.  The enhanced hate speech detection module is applied.
-    3.  A detailed report, including confidence scores and evidence, is generated.
-    4.  The report is accessible to authorized users within a timely manner (e.g., < 30 minutes for a standard dataset).
+1. **Triagem Rápida em War Room**: O analista entra no dashboard com Dark Mode ativado. Ao aplicar um filtro severo, a tela mostra um Skeleton Loader enquanto a API processa. Ao carregar, as ameaças mais graves (P0) piscam em vermelho. Ele navega pelos alertas usando as setas do teclado e descarta falsos positivos com `Ctrl + X`.
+2. **Investigação Profunda (Deep Dive)**: O analista encontra um alerta laranja. Em vez de ler todo o JSON do NLP, ele vê um resumo de 3 linhas. Ele clica em "Expandir Análise Profunda" e a interface revela a árvore completa do PASA, mantendo o restante da interface limpo.
+3. **Deploy à Prova de Idiotas**: Um desenvolvedor faz um pull request alterando o `instagram_scraper.py`. O CI roda testes unitários e o Ruff. O código quebra por falta de tipagem. O merge é bloqueado automaticamente.
 
 ### Functional Requirements
 
 | Priority | Requirement | User Story |
 | :---- | :---- | :---- |
-| P0 | Support ingestion of X new data sources identified in Q2. | As a data analyst, I want to easily configure and ingest data from new platforms so that our analysis is comprehensive and up-to-date. |
-| P0 | Optimize existing scraping and ingestion scripts for a 25% reduction in processing time. | As a system operator, I want ingestion processes to be faster and more efficient so that data is available for analysis sooner. |
-| P1 | Implement improved data validation and cleaning to reduce data quality issues by 15%. | As a data analyst, I want cleaner data so that my analysis is more accurate and reliable. |
-| P1 | Enhance the hate speech detection module with refined algorithms and confidence scoring. | As a forensic investigator, I want more accurate hate speech detection with clear confidence levels so that I can trust the findings. |
-| P2 | Develop a mechanism for monitoring and alerting on ingestion failures. | As a system operator, I want to be notified immediately of ingestion failures so that I can resolve them quickly. |
+| P0 | Filas Assíncronas e DLQ | Como sistema, quero enviar trabalhos falhos para uma DLQ para garantir zero perda de dados. |
+| P0 | CI/CD Quality Gates | Como lead engineer, quero bloquear merges que falhem nos testes ou no linter (Ruff/ESLint). |
+| P1 | Empacotador Front-end | Como dev, quero usar Vite/Webpack para minificar código e fazer cache busting por hash. |
+| P1 | Dark Mode Nativo | Como analista, quero ativar Dark Mode para não destruir minhas retinas em monitoramentos longos. |
+| P1 | Skeleton & Empty States | Como usuário, quero feedback visual de carregamento ou ausência de dados, sem telas em branco. |
+| P2 | Progressive Disclosure | Como analista, quero ver detalhes complexos de NLP apenas quando expandir um alerta. |
+| P2 | Atalhos de Teclado | Como analista experiente, quero processar dezenas de itens usando apenas o teclado. |
 
 ## Assumptions
 
--   The project has access to the necessary APIs or data extraction methods for new data sources.
--   Sufficient compute resources are available to handle increased data volumes and processing demands.
--   Existing infrastructure (database, APIs) can accommodate potential increases in data storage and query load.
+- O servidor/infraestrutura atual (Vercel/Render/VPS) suporta a adição de um broker de mensagens (Redis/RabbitMQ).
+- A equipe concorda em parar de fazer pushes diretos para a master.
 
 ## Risks & Mitigations
 
--   **Risk**: Difficulty in obtaining API access or reliable data extraction methods for new sources. -> **Mitigation**: Prioritize sources with well-documented APIs or publicly accessible data; develop alternative scraping strategies as a fallback.
--   **Risk**: Performance degradation due to increased data volume or complexity. -> **Mitigation**: Implement robust monitoring, optimize database queries, and consider caching strategies or more powerful compute instances.
--   **Risk**: Incompatibility issues with existing analysis modules. -> **Mitigation**: Thoroughly test new data formats and ingestion pipelines against current analysis tools; refactor analysis modules if necessary.
+- **Risk**: A introdução de filas adiciona complexidade à infraestrutura local de dev. -> **Mitigation**: Criar um arquivo `docker-compose.yml` simplificado apenas para instanciar o broker de desenvolvimento localmente.
+- **Risk**: Refatorar o front-end Vanilla para Vite quebra dependências legadas. -> **Mitigation**: Manter a lógica Vanilla pura, apenas passando pelo bundler, evitando a adoção imediata de um framework pesado se não for estritamente necessário, focando apenas no Unidirectional Data Flow.
 
 ## Tradeoff
 
--   **Option 1**: Focus solely on optimizing existing ingestion for current sources. (Pro: Faster implementation. Con: Missed opportunity to expand coverage.)
--   **Option 2**: Broadly expand to new sources and optimize existing ones. (Pro: Comprehensive improvement. Con: Higher complexity and longer development time.)
--   **Chosen**: Option 2, as comprehensive coverage is critical for Sentinela Democrática's mission. We will prioritize key new sources while optimizing existing ones.
+- **Vanilla JS com Bundler vs. React/Vue**: Optamos por manter o stack atual (menos reescrita completa) mas introduzindo Vite e Unidirectional Data Flow. Isso traz os benefícios do controle de cache sem a curva/tempo de reescrever tudo em React imediatamente. A performance bruta é mantida.
 
 ## Business Benefits/Impact/Metrics
 
@@ -84,15 +80,13 @@ This document details the requirements for enhancing the Sentinela Democrática'
 
 | Metric | Current State (Benchmark) | Future State (Target) | Savings/Impacts |
 | :---- | :---- | :---- | :---- |
-| Average data ingestion time per source | TBD (Requires measurement) | Reduce by 50% for key sources | Faster access to critical data |
-| Number of supported data sources | TBD (Requires audit) | Increase by 25% | Broader analysis coverage |
-| Hate speech detection accuracy (F1-score) | TBD (Requires testing) | Improve by 10% | More reliable identification of harmful content |
-| System uptime for ingestion pipeline | TBD (Requires measurement) | Maintain >99.9% uptime | Continuous data flow |
+| *Tempo de Renderização (TTV)* | ~3.5s | < 1.0s (com Skeleton) | Redução drástica da percepção de lentidão |
+| *Erros Não Tratados / Falhas* | Desconhecido (logs crus) | 100% capturados na DLQ | Zero perda de inteligência em falhas |
+| *Falhas em Produção (Bugs)* | Alta probabilidade | Zero merges sem linter/testes | Maior disponibilidade do produto |
 
 ## Stakeholders / Owners
 
 | Name | Team/Org | Role | Note |
 | :---- | :---- | :---- | :---- |
-| [User] | Sentinela Team | Project Lead | Approves final PRD and requirements. |
-| Data Analysts | Sentinela Team | Users of the system | Provide feedback on data quality and analysis needs. |
-| DevOps/Infra Team | Sentinela Team | Infrastructure Support | Ensure adequate resources and deployment. |
+| Pickle Rick | Engineering God | Arquiteto-Chefe | Dono do padrão técnico |
+| Thiago | Sentinela Team | Lead Developer | Implementador e revisor |

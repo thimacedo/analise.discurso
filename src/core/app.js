@@ -42,6 +42,49 @@ window.clearDashboardSearch = () => {
     window.setDashboardSearch('');
 };
 
+// FUNÇÃO PARA CARREGAR MAIS ALERTAS (INFINITE SCROLL)
+async function loadMoreAlerts() {
+    if (state.isLoading || state.currentPage >= 5) return; // Limite de segurança de 5 páginas (100 itens)
+
+    try {
+        state.isLoading = true;
+        const nextPage = state.currentPage + 1;
+        console.log(`📡 [Infinite Scroll] Carregando página ${nextPage}...`);
+        
+        const newAlerts = await dataService.getAlerts(20, nextPage);
+        
+        if (Array.isArray(newAlerts) && newAlerts.length > 0) {
+            state.alertas = [...state.alertas, ...newAlerts];
+            state.currentPage = nextPage;
+            
+            // Renderiza apenas os novos itens usando o modo append
+            renderFeed(newAlerts, 'feed-alertas', true);
+            console.log(`✅ [Infinite Scroll] ${newAlerts.length} novos itens adicionados.`);
+        } else {
+            console.log('🏁 [Infinite Scroll] Fim dos dados.');
+            state.currentPage = 999; // Impede novas tentativas
+        }
+    } catch (e) {
+        console.error('[Infinite Scroll] Failure:', e);
+    } finally {
+        state.isLoading = false;
+    }
+}
+
+// INTERSECTION OBSERVER PARA SCROLL INFINITO
+function initInfiniteScrollObserver() {
+    const sentinel = document.getElementById('scroll-sentinel');
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && !state.isLoading && state.currentPage < 10) {
+            loadMoreAlerts();
+        }
+    }, { threshold: 0.1 });
+
+    observer.observe(sentinel);
+}
+
 async function init() {
     console.log('🌟 SENTINELA | Diamond Edition v20.5.6 [STABLE]');
 
@@ -64,8 +107,8 @@ async function init() {
 
     await refreshData();
     
-    // Inicia o observador de rolagem infinita e gestos de Swipe
-    initInfiniteScroll();
+    // Inicia o observador de rolagem infinita (IntersectionObserver)
+    initInfiniteScrollObserver();
     initSwipeGestures();
 
     if (window.lucide) lucide.createIcons();
@@ -75,22 +118,27 @@ async function refreshData() {
     try {
         state.loading = true;
         const [summary, targets, alerts] = await Promise.all([
-            dataService.getSummary(),
-            dataService.getTargets(),
+            dataService.getSummary().catch(e => ({ error: true, message: e.message })),
+            dataService.getTargets().catch(e => []),
             // Puxa 20 itens para o carregamento inicial ser instantâneo
-            dataService.getAlerts(20, 1)
+            dataService.getAlerts(20, 1).catch(e => [])
         ]);
 
-        state.data = targets || [];
-        state.alertas = alerts || [];
+        state.data = Array.isArray(targets) ? targets : [];
+        state.alertas = Array.isArray(alerts) ? alerts : [];
         
         // PRIORIDADE: Dados reais da API. FALLBACK: Estado local limpo.
-        if (summary && !summary.error) {
-            state.summary = summary;
+        if (summary && !summary.error && typeof summary === 'object') {
+            state.summary = {
+                total_monitorados: summary.total_monitorados || 0,
+                total_alertas: summary.total_alertas || 0,
+                total_amostra: summary.total_amostra || 0,
+                resiliencia: summary.resiliencia || 100
+            };
         } else {
             // Fallback robusto se a API falhar
             const totalHate = state.alertas.length;
-            const totalAmostra = state.data.reduce((acc, curr) => acc + (curr.comentarios_totais_count || 0), 0) || 1000;
+            const totalAmostra = state.data.reduce((acc, curr) => acc + (curr?.comentarios_totais_count || 0), 0) || 0;
             state.summary = {
                 total_monitorados: state.data.length,
                 total_alertas: totalHate,
@@ -103,30 +151,30 @@ async function refreshData() {
         const nowStr = new Date().toLocaleTimeString('pt-BR');
         
         const elMonitorados = document.getElementById('kpi-monitorados');
-        if(elMonitorados) elMonitorados.textContent = state.summary.total_monitorados;
+        if(elMonitorados) elMonitorados.textContent = state.summary?.total_monitorados ?? 0;
         const elTimeMonitorados = document.getElementById('kpi-time-monitorados');
         if(elTimeMonitorados) elTimeMonitorados.textContent = nowStr;
 
         const elHate = document.getElementById('kpi-hate');
-        if(elHate) elHate.textContent = state.summary.total_alertas;
+        if(elHate) elHate.textContent = state.summary?.total_alertas ?? 0;
         const elTimeHate = document.getElementById('kpi-time-hate');
         if(elTimeHate) elTimeHate.textContent = nowStr;
 
         const elTotal = document.getElementById('kpi-total');
-        if(elTotal) elTotal.textContent = state.summary.total_amostra.toLocaleString('pt-BR');
+        if(elTotal) elTotal.textContent = (state.summary?.total_amostra ?? 0).toLocaleString('pt-BR');
         const elTimeTotal = document.getElementById('kpi-time-total');
         if(elTimeTotal) elTimeTotal.textContent = nowStr;
 
         const elRes = document.getElementById('kpi-res');
-        if(elRes) elRes.textContent = `${state.summary.resiliencia}%`;
+        if(elRes) elRes.textContent = `${state.summary?.resiliencia ?? 100}%`;
         const elTimeRes = document.getElementById('kpi-time-res');
         if(elTimeRes) elTimeRes.textContent = nowStr;
         
         // Atualizar lista de Triagem na Sidebar
         const chartMain = document.getElementById('chartMain');
-        if (chartMain && state.data.length > 0) {
+        if (chartMain && Array.isArray(state.data) && state.data.length > 0) {
             const topTargets = [...state.data]
-                .sort((a, b) => (b.prioridade_coleta || 0) - (a.prioridade_coleta || 0))
+                .sort((a, b) => (b?.prioridade_coleta || 0) - (a?.prioridade_coleta || 0))
                 .slice(0, 15);
                 
             chartMain.innerHTML = topTargets.map(alvo => {

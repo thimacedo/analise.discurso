@@ -31,8 +31,8 @@ def run_orchestrator():
             state = f.read()
         
         if query_gemma_decision(state):
-            print(f"🚀 [{datetime.now()}] Gemma autorizou: Iniciando ciclo de povoamento...")
-            subprocess.run([sys.executable, "workers/worker_sentinela.py", "--once"], check=False)
+            print(f"🚀 [{datetime.now()}] Gemma autorizou: Iniciando ciclo de povoamento (Centralizado)...")
+            subprocess.run([sys.executable, "-m", "core.orquestrador"], check=False)
         else:
             print(f"💤 [{datetime.now()}] Gemma descansando: Sem necessidade de raspagem no momento.")
             

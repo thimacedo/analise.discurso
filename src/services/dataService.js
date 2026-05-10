@@ -20,7 +20,7 @@ class SentinelDataService {
         const cached = this.cache.get(cacheKey);
         if (cached && Date.now() - cached.timestamp < this.cacheTTL) return cached.data;
 
-        const tryFetch = async (baseUrl) => {
+        try {
             const headers = {};
             if (state.currentOrganizationId) {
                 headers['X-Organization-Id'] = state.currentOrganizationId;
@@ -29,24 +29,16 @@ class SentinelDataService {
                 headers['Authorization'] = `Bearer ${authService.session.access_token}`;
             }
 
-            const response = await fetch(`${baseUrl}${path}`, { headers });
+            const response = await fetch(`${API_BASE}${path}`, { headers });
             if (!response.ok) throw new Error(`API Error: ${response.status}`);
-            return await response.json();
-        };
-
-        try {
-            const data = await tryFetch(window.SENTINELA_CONFIG.apiUrl);
+            const data = await response.json();
+            
             state.lastSyncAt = new Date().toISOString();
             this.cache.set(cacheKey, { data, timestamp: Date.now() });
             return data;
         } catch (error) {
-            console.warn(`[SentinelDataService] Primary path failed. Retrying fallback for ${endpoint}...`);
-            try {
-                return await tryFetch(window.SENTINELA_CONFIG.localFallbackUrl);
-            } catch (fbError) {
-                console.warn(`[SentinelDataService] All paths failed for ${endpoint}`);
-                return this.getFallbackData(endpoint);
-            }
+            console.error(`[SentinelDataService] Fetch failed for ${endpoint}:`, error);
+            return this.getFallbackData(endpoint);
         }
     }
 
@@ -89,7 +81,7 @@ class SentinelDataService {
     async postJson(endpoint, body = {}) {
         const path = endpoint;
         
-        const tryPost = async (baseUrl) => {
+        try {
             const headers = { 'Content-Type': 'application/json' };
             if (state.currentOrganizationId) {
                 headers['X-Organization-Id'] = state.currentOrganizationId;
@@ -98,27 +90,16 @@ class SentinelDataService {
                 headers['Authorization'] = `Bearer ${authService.session.access_token}`;
             }
 
-            const response = await fetch(`${baseUrl}${path}`, {
+            const response = await fetch(`${API_BASE}${path}`, {
                 method: 'POST',
                 headers: headers,
                 body: JSON.stringify(body)
             });
             if (!response.ok) throw new Error(`API Post Error: ${response.status}`);
             return await response.json();
-        };
-
-        try {
-            // TENTATIVA 1: Prioridade Vercel
-            return await tryPost(window.SENTINELA_CONFIG.apiUrl);
         } catch (error) {
-            // TENTATIVA 2: Fallback Local
-            console.warn(`[SentinelDataService] POST failed. Retrying fallback for ${endpoint}...`);
-            try {
-                return await tryPost(window.SENTINELA_CONFIG.localFallbackUrl);
-            } catch (fbError) {
-                console.error(`[SentinelDataService] All POST paths failed for ${endpoint}`);
-                throw fbError;
-            }
+            console.error(`[SentinelDataService] POST failed for ${endpoint}:`, error);
+            throw error;
         }
     }
 

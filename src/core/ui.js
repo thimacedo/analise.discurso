@@ -108,17 +108,30 @@ export function buildPostCard(alerta) {
  * Mapeia os dados estruturados e injeta os cards no feed principal.
  * @param {Array} alertas Array de objetos de alerta
  * @param {string} containerId ID do container DOM principal
+ * @param {boolean} append Se true, adiciona ao final em vez de substituir
  */
-export function renderFeed(alertas, containerId = 'feed-alertas') {
+export function renderFeed(alertas, containerId = 'feed-alertas', append = false) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    if (!alertas || alertas.length === 0) {
-        container.innerHTML = '<p class="text-center text-slate-500 text-xs font-bold uppercase tracking-widest mt-10">Nenhum alerta disponível para os filtros atuais.</p>';
+    if (!Array.isArray(alertas) || alertas.length === 0) {
+        if (!append) {
+            container.innerHTML = `
+            <div class="flex flex-col items-center justify-center p-12 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-200 mt-10">
+                <div class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300 w-8 h-8"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                </div>
+                <h3 class="text-slate-900 font-black text-sm uppercase tracking-widest">Silêncio no Horizonte</h3>
+                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-tighter mt-1 max-w-[200px]">
+                    Nenhum alerta detectado para os filtros selecionados. O sistema está vigilante.
+                </p>
+            </div>`;
+        }
         return;
     }
 
-    container.innerHTML = alertas.map((alerta, index) => {
+    const htmlContent = alertas.map((alerta, index) => {
+        if (!alerta) return '';
         let html = buildPostCard(alerta);
         
         // Injetar anúncio a cada 5 cards
@@ -136,6 +149,12 @@ export function renderFeed(alertas, containerId = 'feed-alertas') {
         }
         return html;
     }).join('');
+
+    if (append) {
+        container.insertAdjacentHTML('beforeend', htmlContent);
+    } else {
+        container.innerHTML = htmlContent;
+    }
     
     // Re-inicialização da biblioteca de ícones
     if (window.lucide) {

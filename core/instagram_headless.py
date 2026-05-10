@@ -337,24 +337,29 @@ class InstagramHeadlessScraper:
             await asyncio.sleep(2)
 
             comments_data = await self.page.evaluate("""() => {
-                // Seleciona os containers de comentário (li dentro de ul)
                 const items = Array.from(document.querySelectorAll('ul li'));
                 return items.map(li => {
-                    // O autor geralmente está em um h3, h4 ou o primeiro link
                     const authorEl = li.querySelector('h3 a, h4 a, a[role="link"]');
-                    // O texto do comentário costuma estar em um span com classes específicas ou dentro de um div
                     const textEl = li.querySelector('span._ap30, span[dir="auto"], div.x1n2onr6 span');
-                    
                     const author = authorEl ? authorEl.innerText.trim() : null;
                     const text = textEl ? textEl.innerText.trim() : null;
-                    
-                    // Filtra para garantir que não pegamos o nome do autor como texto
                     if (author && text && author !== text) {
                         return { author, text };
                     }
                     return null;
                 }).filter(i => i !== null);
             }""")
+            
+            # REGEX FALLBACK: Se o DOM falhar, tentamos extrair do HTML bruto
+            if not comments_data:
+                print("🔍 [Headless] Seletores DOM falharam. Iniciando Regex Fallback...")
+                html_content = await self.page.content()
+                # Padrão típico do Instagram em scripts JSON: "text":"...","owner":{"username":"..."}
+                pattern = re.compile(r'\"text\":\"(.*?)\".*?\"username\":\"(.*?)\"')
+                matches = pattern.findall(html_content)
+                for text, author in matches:
+                    if len(text) > 3 and author != username:
+                        comments_data.append({'author': author, 'text': text})
             
             print(f"💬 [Headless] Encontrados {len(comments_data)} comentários potenciais para {shortcode}.")
             

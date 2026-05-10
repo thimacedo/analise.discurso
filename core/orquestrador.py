@@ -157,7 +157,7 @@ class Orchestrator:
         return df_proc
 
     async def persist_intelligence(self, df: pd.DataFrame, clusters: List[Dict], temporal: Dict):
-        print("💾 [4.5/5] Persistindo Inteligência Forense...")
+        print("💾 [4.5/5] Persistindo Inteligência Forense & PSR-1 Rewards...")
         
         # 1. Atualiza IDs de Cluster nos comentários (Se houver)
         if 'cluster' in df.columns:
@@ -172,14 +172,19 @@ class Orchestrator:
                 await db_client.batch_update_comments(updates)
                 print(f"🔗 {len(updates)} comentários vinculados a clusters.")
 
-        # 2. Métricas Diárias
+        # 2. Métricas Diárias & PSR-1 Protocol
         hoje = datetime.now().strftime('%Y-%m-%d')
         total = len(df)
         hate = df['is_hate_speech'].sum() if 'is_hate_speech' in df.columns else 0
+        critical = df[df['is_hate_speech'] == True]['category'].isin(['CRITICAL', 'SEVERE']).sum() if 'category' in df.columns else 0
         resiliencia = round(100 - ((hate / total) * 100), 2) if total > 0 else 100.0
         
         pasa = df[df['is_hate_speech'] == True]['category'].value_counts().to_dict() if 'category' in df.columns else {}
         
+        # [PSR-1] Emissão de Recompensas Simbólicas/Métricas
+        reward_points = (total * 1) + (critical * 5)
+        print(f"🏆 [PSR-1] Reward Calculated: {reward_points} pts para o ciclo atual.")
+
         await db_client.upsert_daily_metrics({
             "p_data": hoje,
             "p_total_coletado": int(total),
