@@ -10,7 +10,7 @@ import { state, setViewState } from './state.js';
 import { dataService } from '../services/dataService.js';
 import { authService } from '../services/authService.js';
 import { fcmService } from '../services/fcmService.js';
-import { renderAll, renderFeed } from './ui.js?v=20.5.6';
+import { renderAll, renderFeed, toggleSkeleton } from './ui.js?v=20.5.6';
 
 let renderTimeout;
 window.debouncedRender = () => {
@@ -42,6 +42,7 @@ async function loadMoreAlerts() {
     if (state.isLoading || state.currentPage >= 5) return;
     try {
         state.isLoading = true;
+        toggleSkeleton(true);
         const nextPage = state.currentPage + 1;
         const newAlerts = await dataService.getAlerts(20, nextPage);
         if (Array.isArray(newAlerts) && newAlerts.length > 0) {
@@ -55,6 +56,7 @@ async function loadMoreAlerts() {
         console.error('[App] Scroll Error:', e);
     } finally {
         state.isLoading = false;
+        toggleSkeleton(false);
     }
 }
 
@@ -76,6 +78,7 @@ async function init() {
 async function refreshData() {
     try {
         state.loading = true;
+        toggleSkeleton(true);
         const [summary, targets, alerts] = await Promise.all([
             dataService.getSummary().catch(() => ({})), // Retorna objeto vazio em caso de erro
             dataService.getTargets().catch(() => []),   // Retorna array vazio em caso de erro

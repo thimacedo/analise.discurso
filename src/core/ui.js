@@ -30,13 +30,14 @@ export function buildPostCard(alerta) {
     const severity = alerta?.categoria_ia || alerta?.category || 'NEUTRAL';
     const isCritical = ['CRITICAL', 'SEVERE', 'HATE'].includes(severity.toUpperCase());
     
-    // Configurações visuais baseadas em risco
-    const borderColor = isCritical ? 'border-red-500 shadow-red-100' : 'border-slate-200';
-    const accentColor = isCritical ? 'bg-red-50 text-red-600 border-red-100' : 'bg-blue-50 text-blue-800 border-blue-100';
-    const severityLabel = isCritical ? 'Alto Risco' : 'Monitorado';
+    // Configurações visuais baseadas em risco (Color Psychology)
+    const borderColor = isCritical ? 'border-red-500 shadow-red-100' : 'border-slate-100 shadow-none';
+    const accentColor = isCritical ? 'bg-red-50 text-red-600 border-red-100' : 'bg-slate-50 text-slate-400 border-slate-100';
+    const severityLabel = isCritical ? 'Alto Risco' : 'Normal';
+    const badgeClass = isCritical ? 'bg-red-600 text-white shadow-lg' : 'bg-slate-100 text-slate-400 border-slate-200';
 
     const commentHtml = safeCommentText
-        ? `<div class="post-content mt-4 p-5 bg-slate-50 rounded-2xl text-[15px] leading-relaxed text-slate-800 font-medium border-l-4 ${isCritical ? 'border-red-500' : 'border-slate-300'} shadow-sm italic transition-colors">
+        ? `<div class="post-content mt-4 p-5 ${isCritical ? 'bg-red-50/30' : 'bg-slate-50/50'} rounded-2xl text-[15px] leading-relaxed ${isCritical ? 'text-slate-900' : 'text-slate-500'} font-medium border-l-4 ${isCritical ? 'border-red-500' : 'border-slate-200'} shadow-sm italic transition-colors">
             "${safeCommentText}"
            </div>`
         : '';
@@ -51,10 +52,10 @@ export function buildPostCard(alerta) {
             </div>
         </div>
 
-        <article class="post-card-surface relative bg-white border-2 ${borderColor} rounded-[2rem] p-6 shadow-sm z-10 w-full transition-all duration-300 group-hover:shadow-2xl group-hover:-translate-y-1">
+        <article class="post-card-surface relative bg-white border-2 ${borderColor} rounded-[2rem] p-6 shadow-sm z-10 w-full transition-all duration-300 ${isCritical ? 'group-hover:shadow-2xl' : 'group-hover:shadow-md'} group-hover:-translate-y-1">
             <!-- Badge de Severidade -->
             <div class="absolute -top-3 left-8 z-20">
-                <span class="px-4 py-1.5 ${isCritical ? 'bg-red-600' : 'bg-slate-900'} text-white rounded-full text-[10px] font-black tracking-widest shadow-lg uppercase border border-white/20">
+                <span class="px-4 py-1.5 ${badgeClass} rounded-full text-[10px] font-black tracking-widest uppercase border border-white/20">
                     ${severityLabel}
                 </span>
             </div>
@@ -126,12 +127,15 @@ export function renderFeed(alertas, containerId = 'feed-alertas', append = false
 
     if (safeAlerts.length === 0 && !append) {
         container.innerHTML = `
-            <div class="flex flex-col items-center justify-center p-12 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-200 mt-10">
-                <div class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300 w-8 h-8"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            <div class="flex flex-col items-center justify-center p-16 text-center bg-slate-50/50 rounded-[3rem] border-2 border-dashed border-slate-200 mt-10 transition-all">
+                <div class="w-20 h-20 bg-white rounded-3xl shadow-sm flex items-center justify-center mb-6 border border-slate-100">
+                    <i data-lucide="radar" class="text-blue-500 w-10 h-10 animate-pulse"></i>
                 </div>
-                <h3 class="text-slate-900 font-black text-sm uppercase tracking-widest">Silêncio no Horizonte</h3>
-                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-tighter mt-1 max-w-[200px]">Nenhum alerta detectado ou sistema offline.</p>
+                <h3 class="text-slate-900 font-black text-sm uppercase tracking-widest">Infiltração em Curso</h3>
+                <p class="text-slate-500 text-[11px] font-bold uppercase tracking-tighter mt-2 max-w-[280px] leading-relaxed">
+                    Os nossos workers estão a infiltrar-se na rede deste alvo. <br>
+                    <span class="text-blue-500">A inteligência estratégica aparecerá aqui em breve.</span>
+                </p>
             </div>`;
         if (window.lucide) window.lucide.createIcons();
         return;
@@ -176,6 +180,24 @@ export function renderFeed(alertas, containerId = 'feed-alertas', append = false
     }
 
     if (window.lucide) window.lucide.createIcons();
+}
+
+/**
+ * Alterna a visibilidade do Skeleton Loading.
+ * @param {boolean} show Se deve exibir o skeleton
+ */
+export function toggleSkeleton(show = true) {
+    const skeleton = document.getElementById('skeleton-container');
+    const feed = document.getElementById('feed-alertas');
+    if (!skeleton || !feed) return;
+
+    if (show) {
+        skeleton.style.display = 'block';
+        if (feed.children.length === 0) feed.style.display = 'none';
+    } else {
+        skeleton.style.display = 'none';
+        feed.style.display = 'grid';
+    }
 }
 
 /**
