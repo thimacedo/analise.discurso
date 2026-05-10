@@ -13,7 +13,7 @@ from core.predictive_service import predictive_service
 from core.firebase_alerter import send_alert_summary
 from core.instagram_headless import InstagramHeadlessScraper
 from core.meta_ad_service import meta_ad_service
-from processing.text_processor import TextProcessor
+from processing.text_processor import clean_comment
 from processing.data_miner import data_miner
 from processing.report_generator import ReportGenerator
 from processing.ad_processor import ad_processor
@@ -22,7 +22,6 @@ from workers.processors.queue_manager import QueueManagerWorker
 
 class Orchestrator:
     def __init__(self):
-        self.tp = TextProcessor()
         self.rg = ReportGenerator()
         self.tm = TargetManager(hours_threshold=48)
         self.batch_size = 200
@@ -108,7 +107,9 @@ class Orchestrator:
     async def process_and_mine(self, df: pd.DataFrame):
         print("⛏️ [4/5] NLP & Mineração...")
         await data_miner.run_once(limit=self.batch_size)
-        return self.tp.processar_dataframe(df)
+        df['text'] = df.apply(lambda row: clean_comment(row['text'], row['owner_username']), axis=1)
+        df.dropna(subset=['text'], inplace=True)
+        return df
 
     async def persist_intelligence(self, df: pd.DataFrame, clusters: List[Dict]):
         if 'cluster' in df.columns:
