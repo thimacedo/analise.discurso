@@ -3,8 +3,9 @@ import sys
 import os
 from datetime import datetime
 
-# Ajusta path
-sys.path.append(r"E:\Projetos\sentinela-democratica")
+# Adiciona o root do projeto ao sys.path de forma robusta
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from core.orquestrador import Orchestrator
 from core.config import settings
 

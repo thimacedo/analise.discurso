@@ -1,4 +1,10 @@
 import asyncio
+import os
+import sys
+
+# Adiciona o root do projeto ao sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from core.db import db_client
 
 async def cleanup_ghosts():
