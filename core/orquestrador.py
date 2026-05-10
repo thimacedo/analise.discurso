@@ -25,6 +25,7 @@ class Orchestrator:
         self.rg = ReportGenerator()
         self.tm = TargetManager(hours_threshold=48)
         self.batch_size = 200
+        self.error_counts = {} # Rastreia erros repetidos para evitar loops infinitos
 
     async def run_scraper(self, limit=200, cooldown=300):
         print(f"🚀 [1/5] Preparando Extração - Limite: {limit}...")
@@ -139,11 +140,31 @@ class Orchestrator:
 
     async def run_full_pipeline(self):
         print(f"🛡️ SENTINELA v{settings.VERSION} | AI: {settings.IA_PROVIDER}")
-        await self.run_scraper()
-        await self.run_repericia_cycle()
-        await self.run_meta_ads_cycle()
-        await self.run_ia_classification()
-        await self.run_predictive_cycle()
+        
+        stages = [
+            ("Scraper", self.run_scraper),
+            ("Repericia Cycle", self.run_repericia_cycle),
+            ("Meta Ads Cycle", self.run_meta_ads_cycle),
+            ("IA Classification", self.run_ia_classification),
+            ("Predictive Cycle", self.run_predictive_cycle),
+        ]
+        
+        for stage_name, stage_func in stages:
+            try:
+                print(f"🚀 Iniciando estágio: {stage_name}...")
+                await stage_func()
+            except Exception as e:
+                error_type = type(e).__name__
+                self.error_counts[error_type] = self.error_counts.get(error_type, 0) + 1
+                
+                print(f"❌ ERRO REPETIDO ({self.error_counts[error_type]}/3) no estágio '{stage_name}': {error_type} - {e}")
+                
+                if self.error_counts[error_type] >= 3:
+                    print(f"💥 ERRO CRÍTICO: O erro '{error_type}' ocorreu 3 vezes. Finalizando o processo.")
+                    sys.exit(1) # Termina o script
+                else:
+                    print(f"⚠️ Continuando após erro em '{stage_name}'.") # Informa que continuará
+
         
         df = await self.fetch_and_normalize()
         if df.empty: return

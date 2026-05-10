@@ -1,3 +1,11 @@
+function initInfiniteScroll() {
+    const sentinel = document.getElementById('scroll-sentinel');
+    if (!sentinel) return;
+    new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && !state.isLoading && state.currentPage < 10) loadMoreAlerts();
+    }, { threshold: 0.1 }).observe(sentinel);
+}
+
 import { state, setViewState } from './state.js';
 import { dataService } from '../services/dataService.js';
 import { authService } from '../services/authService.js';
@@ -48,14 +56,6 @@ async function loadMoreAlerts() {
     } finally {
         state.isLoading = false;
     }
-}
-
-function initInfiniteScroll() {
-    const sentinel = document.getElementById('scroll-sentinel');
-    if (!sentinel) return;
-    new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && !state.isLoading && state.currentPage < 10) loadMoreAlerts();
-    }, { threshold: 0.1 }).observe(sentinel);
 }
 
 async function init() {
