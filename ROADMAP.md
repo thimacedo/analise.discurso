@@ -24,8 +24,10 @@
 - [x] **Estrutura Base Diamond**: Dashboard, KPIs e Monitoramento.
 
 ## 🗺️ Roadmap Futuro (Épicos)
+- [ ] **Épico: Escalonamento de Conexões (Vercel Edge Caching & Redis)**: Implementar cache de 60s no frontend para desafogar as conexões simultâneas no Supabase.
+- [ ] **Épico: Message Brokers para Workers**: Transitar a inserção direta de dados para um sistema de filas (RabbitMQ ou Celery) consumidas pelo Validador de Recompensas.
+- [ ] **Épico: Proxy Rotativo Residencial**: Orquestrar rotação dinâmica de proxies no `core/orquestrador.py` para evitar bans da Meta/Instagram.
 - [ ] **Épico Sentinela Enterprise**: Upgrade de Arquitetura.
   - [ ] CI/CD Quality Gates (GitHub Actions).
-  - [ ] Filas Assíncronas (Redis/RabbitMQ).
   - [ ] Dashboard de Receita em Tempo Real.
   - [ ] Gestão de pool dinâmico de proxies.
