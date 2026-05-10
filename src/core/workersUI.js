@@ -240,7 +240,7 @@ export const workersUI = {
         // Wire up manual refresh
         const refreshBtn = document.getElementById('refresh-workers');
         if (refreshBtn) {
-            refreshBtn.addEventListener('click', () => this.renderWorkersDashboard(container.id));
+            refreshBtn.onclick = () => this.renderWorkersDashboard(container.id);
         }
     },
 

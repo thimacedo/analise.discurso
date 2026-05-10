@@ -99,27 +99,31 @@ async function refreshData() {
         updateEl('kpi-time-res', 'agora');
         
         const chartMain = document.getElementById('chartMain');
-        if (chartMain && state.data.length > 0) {
-            chartMain.innerHTML = [...state.data]
-                .sort((a, b) => (b?.prioridade_coleta || 0) - (a?.prioridade_coleta || 0))
-                .slice(0, 15)
-                .map(alvo => {
-                    const score = alvo.prioridade_coleta || 0;
-                    const color = score > 80 ? '#ef4444' : score > 60 ? '#f59e0b' : '#10b981';
-                    return `
-                    <div onclick="window.setFiltroAlvo('${alvo.username}')" class="monitor-row p-3 rounded-xl border border-transparent hover:bg-white hover:shadow-sm cursor-pointer transition-all flex items-center gap-3">
-                        <div class="monitor-avatar w-10 h-10 border-2 border-slate-100">
-                            <img src="https://ui-avatars.com/api/?name=${alvo.username}&background=0D8ABC&color=fff" alt="${alvo.username}" loading="lazy" width="40" height="40">
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex justify-between items-center mb-1">
-                                <strong class="text-xs font-black text-slate-800">@${alvo.username}</strong>
-                                <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-red-50 text-red-500">${score}</span>
+        if (chartMain) {
+            if (state.data.length > 0) {
+                chartMain.innerHTML = [...state.data]
+                    .sort((a, b) => (b?.prioridade_coleta || 0) - (a?.prioridade_coleta || 0))
+                    .slice(0, 15)
+                    .map(alvo => {
+                        const score = alvo.prioridade_coleta || 0;
+                        const color = score > 80 ? '#ef4444' : score > 60 ? '#f59e0b' : '#10b981';
+                        return `
+                        <div onclick="window.setFiltroAlvo('${alvo.username}')" class="monitor-row p-3 rounded-xl border border-transparent hover:bg-white hover:shadow-sm cursor-pointer transition-all flex items-center gap-3">
+                            <div class="monitor-avatar w-10 h-10 border-2 border-slate-100">
+                                <img src="https://ui-avatars.com/api/?name=${alvo.username}&background=0D8ABC&color=fff" alt="${alvo.username}" loading="lazy" width="40" height="40">
                             </div>
-                            <div class="w-full bg-slate-100 h-1 rounded-full overflow-hidden"><div class="h-full" style="width:${Math.min(100, score)}%; background:${color}"></div></div>
-                        </div>
-                    </div>`;
-                }).join('');
+                            <div class="flex-1">
+                                <div class="flex justify-between items-center mb-1">
+                                    <strong class="text-xs font-black text-slate-800">@${alvo.username}</strong>
+                                    <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-red-50 text-red-500">${score}</span>
+                                </div>
+                                <div class="w-full bg-slate-100 h-1 rounded-full overflow-hidden"><div class="h-full" style="width:${Math.min(100, score)}%; background:${color}"></div></div>
+                            </div>
+                        </div>`;
+                    }).join('');
+            } else {
+                chartMain.innerHTML = '<p class="text-xs text-slate-400">Nenhum alvo para exibir.</p>';
+            }
         }
 
         state.currentPage = 1;

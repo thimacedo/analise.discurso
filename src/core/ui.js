@@ -155,11 +155,7 @@ export function renderFeed(alertas, containerId = 'feed-alertas', append = false
  * Ponto de entrada para renderização completa.
  */
 export function renderAll(summary = {}, targets = [], alerts = []) {
-    const safeSummary = summary || {};
-    const safeTargets = Array.isArray(targets) ? targets : [];
-    const safeAlerts = Array.isArray(alerts) ? alerts : [];
-
-    renderFeed(safeAlerts);
+    renderFeed(alerts);
 }
 
 /**
