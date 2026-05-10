@@ -1,6 +1,8 @@
 // src/core/ui.js
 // SENTINELA | Diamond Edition - UI Engine v20.6.0 [ROBUST]
 
+import { state } from './state.js';
+
 /**
  * Constrói o HTML do card de alerta com sanitização agressiva de texto.
  * @param {Object} alerta Objeto de dados do comentário
@@ -145,7 +147,9 @@ export function renderFeed(alertas, containerId = 'feed-alertas', append = false
         let html = buildPostCard(alerta);
         
         // Injetar anúncio a cada 5 cards (IDs reais aplicados)
-        if ((index + 1) % 5 === 0) {
+        // Oculta para usuários Diamond/Premium (Brand Safety Enterprise)
+        const isDiamond = state.userPlan === 'diamond' || state.userPlan === 'premium';
+        if (!isDiamond && (index + 1) % 5 === 0) {
             html += `
             <div class="ad-feed-container my-6 p-4 bg-slate-50 rounded-3xl border border-dashed border-slate-200 min-h-[250px] flex items-center justify-center relative">
                 <span class="absolute top-2 right-4 text-[8px] font-black text-slate-300 uppercase tracking-widest">Publicidade Estratégica</span>

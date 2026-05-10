@@ -132,6 +132,17 @@ async function refreshData() {
         state.currentPage = 1;
         state.loading = false;
         state.lastSyncAt = new Date().toISOString();
+        
+        // Brand Safety: Ocultar anúncios para Diamond
+        if (state.userPlan === 'diamond' || state.userPlan === 'premium') {
+            const adCards = document.querySelectorAll('.insight-card');
+            adCards.forEach(card => {
+                if (card.innerText.includes('Publicidade') || card.querySelector('.adsbygoogle')) {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
         renderAll(state.summary, state.data, state.alertas);
     } catch (e) {
         console.error('[App] Refresh Error:', e);
