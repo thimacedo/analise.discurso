@@ -91,7 +91,7 @@ export function renderFeed(alertas, containerId = 'feed-alertas', append = false
 
     const htmlContent = alertas.map((alerta, index) => {
         let html = buildPostCard(alerta);
-        if ((index + 1) % 5 === 0) html += `<div class="ad-feed-container my-6 p-4 bg-slate-50 rounded-3xl border border-dashed border-slate-200 min-h-[250px] flex items-center justify-center"><ins class="adsbygoogle" style="display:block" data-ad-format="fluid" data-ad-layout-key="-fb+5w+4e-db+86" data-ad-client="ca-pub-1827611269042960" data-ad-slot="XXXXXX"></ins><script>(window.adsbygoogle = window.adsbygoogle || []).push({});</script></div>`;
+        if ((index + 1) % 5 === 0) html += `<div class="ad-feed-container my-6 p-4 bg-slate-50 rounded-3xl border border-dashed border-slate-200 min-h-[250px] flex items-center justify-center"><ins class="adsbygoogle" style="display:block" data-ad-format="fluid" data-ad-layout-key="-fb+5w+4e-db+86" data-ad-client="ca-pub-1827611269042960" data-ad-slot="1779104226"></ins><script>(window.adsbygoogle = window.adsbygoogle || []).push({});</script></div>`;
         return html;
     }).join('');
 
@@ -99,10 +99,6 @@ export function renderFeed(alertas, containerId = 'feed-alertas', append = false
     else container.innerHTML = htmlContent;
     
     if (window.lucide) window.lucide.createIcons();
-}
-
-export function initSwipeGestures() {
-    console.log('Swipe Gestures Initialized');
 }
 
 export function renderAll(summary = {}, targets = [], alerts = []) {

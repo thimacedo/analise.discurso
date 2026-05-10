@@ -2,7 +2,7 @@ import { state, setViewState } from './state.js';
 import { dataService } from '../services/dataService.js';
 import { authService } from '../services/authService.js';
 import { fcmService } from '../services/fcmService.js';
-import { renderAll, renderFeed, initSwipeGestures } from './ui.js?v=20.5.6';
+import { renderAll, renderFeed } from './ui.js?v=20.5.6';
 
 let renderTimeout;
 window.debouncedRender = () => {
@@ -70,7 +70,6 @@ async function init() {
     setViewState(window.location.hash.substring(1) || 'monitor');
     await refreshData();
     initInfiniteScroll();
-    initSwipeGestures();
     if (window.lucide) lucide.createIcons();
 }
 
