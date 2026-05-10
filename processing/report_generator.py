@@ -42,10 +42,15 @@ class ReportGenerator(FPDF):
             self.ln(10)
 
     def footer(self):
-        self.set_y(-15)
+        self.set_y(-20)
         self.set_font(self.font_family_main, 'I', 8)
         self.set_text_color(128, 128, 128)
-        self.cell(0, 10, f'Página {self.page_no()} | Protocolo PASA v16.4', align='C')
+        self.cell(0, 10, f'Página {self.page_no()} | Protocolo PASA v16.4', align='C', ln=True)
+        
+        # Motor de Viralidade B2B
+        self.set_font(self.font_family_main, '', 9)
+        self.set_text_color(160, 160, 160)
+        self.cell(0, 5, "Gerado por Inteligência Estratégica - Sentinela Democrática. Proteja a sua campanha em sentinelademocratica.com", align='C')
 
     def render_cover(self, candidato_id, total_amostra):
         """Cria uma capa profissional para o relatório."""
