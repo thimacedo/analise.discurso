@@ -13,6 +13,7 @@ export function buildPostCard(alerta) {
     const comentarioAlternativo = alerta?.comentario?.trim();
     const autorUsername = alerta?.autor_username?.trim().toLowerCase();
 
+    // Lógica de recuperação de conteúdo resiliente
     if (textoLimpo && textoLimpo.length >= 3) {
         safeCommentText = textoLimpo;
     } else if (textoBruto && textoBruto.toLowerCase() !== autorUsername && textoBruto.length >= 3) {
@@ -25,61 +26,87 @@ export function buildPostCard(alerta) {
         safeCommentText = "[Conteúdo do comentário não pôde ser recuperado]";
     }
 
+    // Identificação de Severidade (Enterprise Grade)
+    const severity = alerta?.categoria_ia || alerta?.category || 'NEUTRAL';
+    const isCritical = ['CRITICAL', 'SEVERE', 'HATE'].includes(severity.toUpperCase());
+    
+    // Configurações visuais baseadas em risco
+    const borderColor = isCritical ? 'border-red-500 shadow-red-100' : 'border-slate-200';
+    const accentColor = isCritical ? 'bg-red-50 text-red-600 border-red-100' : 'bg-blue-50 text-blue-800 border-blue-100';
+    const severityLabel = isCritical ? 'Alto Risco' : 'Monitorado';
+
     const commentHtml = safeCommentText
-        ? `<div class="post-content mt-4 p-5 bg-slate-50 rounded-2xl text-[15px] leading-relaxed text-slate-800 font-medium border-l-8 border-blue-500 shadow-inner italic">
+        ? `<div class="post-content mt-4 p-5 bg-slate-50 rounded-2xl text-[15px] leading-relaxed text-slate-800 font-medium border-l-4 ${isCritical ? 'border-red-500' : 'border-slate-300'} shadow-sm italic transition-colors">
             "${safeCommentText}"
            </div>`
         : '';
 
     return `
-    <div class="post-card-container relative mb-6 rounded-3xl overflow-hidden bg-slate-900" data-alerta-id="${alerta?.id || ''}">
-        <div class="absolute inset-y-0 right-0 w-1/3 flex items-center justify-end pr-8">
-            <div class="flex flex-col items-center justify-center opacity-60 text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mb-1"><rect width="20" height="5" x="2" y="3" rx="1"></rect><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path><path d="M10 12h4"></path></svg>
-                <span class="text-[10px] font-black uppercase tracking-widest">Arquivar</span>
+    <div class="post-card-container relative mb-8 group" data-alerta-id="${alerta?.id || ''}">
+        <!-- Camada de Ação Rápida (Swipe feel) -->
+        <div class="absolute inset-y-0 right-0 w-1/4 flex items-center justify-end pr-6">
+            <div class="flex flex-col items-center justify-center opacity-40 group-hover:opacity-80 transition-opacity text-slate-400">
+                <i data-lucide="archive" class="w-5 h-5 mb-1"></i>
+                <span class="text-[8px] font-black uppercase tracking-widest">Arquivar</span>
             </div>
         </div>
-        <article class="post-card-surface animate-in is-locked relative bg-white border border-slate-200 rounded-3xl p-6 shadow-sm z-10 w-full h-full transition-all hover:shadow-xl hover:-translate-y-1">
-            <div class="absolute top-4 left-6 z-20">
-                <span class="px-3 py-1 bg-slate-900 text-white rounded-full text-[9px] font-black tracking-widest shadow-sm uppercase border border-slate-800">Suspeito</span>
+
+        <article class="post-card-surface relative bg-white border-2 ${borderColor} rounded-[2rem] p-6 shadow-sm z-10 w-full transition-all duration-300 group-hover:shadow-2xl group-hover:-translate-y-1">
+            <!-- Badge de Severidade -->
+            <div class="absolute -top-3 left-8 z-20">
+                <span class="px-4 py-1.5 ${isCritical ? 'bg-red-600' : 'bg-slate-900'} text-white rounded-full text-[10px] font-black tracking-widest shadow-lg uppercase border border-white/20">
+                    ${severityLabel}
+                </span>
             </div>
-            <div class="post-header flex justify-between items-center gap-4 mb-6">
-                <div class="flex items-center gap-4 mt-2">
+
+            <div class="post-header flex justify-between items-start gap-4 mb-4">
+                <div class="flex items-center gap-4">
                     <div class="post-avatar relative">
-                        <img src="https://ui-avatars.com/api/?name=?&background=334155&color=fff" alt="Suspeito" class="w-12 h-12 rounded-2xl select-none pointer-events-none object-cover border border-slate-100 shadow-sm" loading="lazy">
-                        <div class="absolute -right-2 -bottom-2 bg-white rounded-full p-1.5 shadow-md border border-slate-50">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 text-slate-500"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center border border-slate-200 overflow-hidden shadow-inner">
+                            <i data-lucide="user-x" class="w-7 h-7 text-slate-400"></i>
+                        </div>
+                        <div class="absolute -right-1 -bottom-1 bg-white rounded-full p-1.5 shadow-md border border-slate-50">
+                            <i data-lucide="shield-alert" class="w-3.5 h-3.5 ${isCritical ? 'text-red-500' : 'text-slate-400'}"></i>
                         </div>
                     </div>
                     <div class="flex flex-col">
-                        <div class="post-username text-[13px] font-black text-slate-900 select-none pointer-events-none opacity-50">agressor_protegido</div>
-                        <div class="text-[10px] font-bold text-slate-400 flex items-center gap-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-2.5 h-2.5"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg> ${alerta?.hora || '00:00:00'}
+                        <div class="post-username text-[14px] font-black text-slate-900 tracking-tight">Autor Oculto</div>
+                        <div class="text-[10px] font-bold text-slate-400 flex items-center gap-1.5">
+                            <i data-lucide="clock" class="w-3 h-3"></i> ${alerta?.hora || 'Recém coletado'}
                         </div>
                     </div>
                 </div>
-                <div class="flex items-center gap-4 text-right">
-                    <div class="flex flex-col items-end min-w-0 max-w-[120px]">
-                        <div class="px-2 py-1 bg-blue-50 text-blue-800 rounded-lg text-[10px] font-black uppercase tracking-tighter truncate w-full">@${alerta?.alvo_username || 'alvo'}</div>
-                        <div class="text-[9px] font-black text-slate-700 uppercase truncate w-full mt-1">${alerta?.alvo_nome || 'Alvo'}</div>
+                
+                <!-- Alvo do Ataque -->
+                <div class="flex items-center gap-3 bg-slate-50/50 p-2 rounded-2xl border border-slate-100">
+                    <div class="flex flex-col items-end">
+                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Alvo</span>
+                        <span class="text-[11px] font-black text-slate-800">@${alerta?.alvo_username || 'alvo'}</span>
                     </div>
-                    <div class="w-12 h-12 rounded-2xl overflow-hidden border-2 border-slate-50 shadow-sm transition-transform group-hover:scale-110">
+                    <div class="w-10 h-10 rounded-xl overflow-hidden border-2 border-white shadow-sm">
                         <img src="https://ui-avatars.com/api/?name=${alerta?.alvo_username || 'alvo'}&background=0D8ABC&color=fff" alt="Alvo" class="w-full h-full object-cover">
                     </div>
                 </div>
             </div>
+
             ${commentHtml}
+
+            <!-- Rodapé de Ações Enterprise -->
             <div class="mt-6 pt-5 border-t border-slate-100 flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center border border-amber-100">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-amber-500"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    <div class="w-9 h-9 rounded-xl ${accentColor} flex items-center justify-center border">
+                        <i data-lucide="fingerprint" class="w-5 h-5"></i>
                     </div>
-                    <div>
-                        <span class="text-[10px] font-black text-slate-900 uppercase block leading-none">Dados Ocultos</span>
-                        <span class="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">Upgrade STN necessário</span>
+                    <div class="hidden sm:block">
+                        <span class="text-[10px] font-black text-slate-900 uppercase block leading-none">ID Forense</span>
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">HASH: ${alerta?.id?.substring(0,8) || 'PENDENTE'}</span>
                     </div>
                 </div>
-                <button class="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-xl shadow-slate-200" onclick="window.unlockIntel('${alerta?.id || ''}')">Revelar Dados</button>
+                <div class="flex gap-2">
+                    <button class="px-6 py-3 bg-slate-900 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-xl shadow-slate-200 active:scale-95" onclick="window.unlockIntel('${alerta?.id || ''}')">
+                        Audit Intelligence
+                    </button>
+                </div>
             </div>
         </article>
     </div>`;
