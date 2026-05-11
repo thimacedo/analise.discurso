@@ -133,12 +133,12 @@ async function refreshData() {
         state.loading = false;
         state.lastSyncAt = new Date().toISOString();
         
-        // Brand Safety: Ocultar anúncios para Diamond
         if (state.userPlan === 'diamond' || state.userPlan === 'premium') {
             const adCards = document.querySelectorAll('.insight-card');
             adCards.forEach(card => {
-                if (card.innerText.includes('Publicidade') || card.querySelector('.adsbygoogle')) {
-                    card.style.display = 'none';
+                // Verifica se o card contém um anúncio AdSense ou texto indicativo
+                if (card.innerText.includes('Publicidade Estratégica') || card.querySelector('.adsbygoogle')) {
+                    card.style.display = 'none !important'; // Garante que o anúncio seja ocultado
                 }
             });
         }

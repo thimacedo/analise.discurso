@@ -33,8 +33,8 @@ export function buildPostCard(alerta) {
     const isCritical = ['CRITICAL', 'SEVERE', 'HATE'].includes(severity.toUpperCase());
     
     // Configurações visuais baseadas em risco (Color Psychology)
-    const borderColor = isCritical ? 'border-red-500 shadow-red-100' : 'border-slate-100 shadow-none';
-    const accentColor = isCritical ? 'bg-red-50 text-red-600 border-red-100' : 'bg-slate-50 text-slate-400 border-slate-100';
+    const borderColor = isCritical ? 'border-red-500' : 'border-slate-100';
+    const accentColor = isCritical ? 'bg-red-50/30' : 'bg-slate-50/50'; // Cor de fundo para o conteúdo do comentário
     const severityLabel = isCritical ? 'Alto Risco' : 'Normal';
     const badgeClass = isCritical ? 'bg-red-600 text-white shadow-lg' : 'bg-slate-100 text-slate-400 border-slate-200';
 
@@ -54,7 +54,7 @@ export function buildPostCard(alerta) {
             </div>
         </div>
 
-        <article class="post-card-surface relative bg-white border-2 ${borderColor} rounded-[2rem] p-6 shadow-sm z-10 w-full transition-all duration-300 ${isCritical ? 'group-hover:shadow-2xl' : 'group-hover:shadow-md'} group-hover:-translate-y-1">
+        <article class="post-card-surface relative bg-white border-2 ${borderColor} rounded-[2rem] p-6 shadow-sm z-10 w-full transition-all duration-300 ${isCritical ? 'group-hover:shadow-2xl shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'group-hover:shadow-md'} group-hover:-translate-y-1">
             <!-- Badge de Severidade -->
             <div class="absolute -top-3 left-8 z-20">
                 <span class="px-4 py-1.5 ${badgeClass} rounded-full text-[10px] font-black tracking-widest uppercase border border-white/20">

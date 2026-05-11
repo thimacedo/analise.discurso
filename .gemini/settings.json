@@ -59,5 +59,6 @@
   },
   "billing": {
     "overageStrategy": "never"
-  }
+  },
+  "systemPrompt": "undefined\n\n6. AMBIENTE DE TERMINAL: O ambiente de execução local é Windows PowerShell. É ESTRITAMENTE PROIBIDO usar o operador && para encadear comandos no shell (ex: git add . && git commit). Você DEVE usar o ponto e vírgula ; (ex: git add . ; git commit) ou executar as ações em passos separados."
 }

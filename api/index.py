@@ -228,32 +228,29 @@ def mark_false_positive(payload: FalsePositiveRequest, supa: Client = Depends(ge
         logger.error(f"False Positive Critical Error: {e}\n{traceback.format_exc()}")
         raise HTTPException(status_code=500, detail={"error": str(e), "id": payload.id})
 
-@app.post("/api/v1/dossiers/generate")
-async def generate_dossier(payload: DossierGenerateRequest, supa: Client = Depends(get_supa)):
-    """Gera um novo relatório estratégico."""
+@app.post("/api/v1/dossiers/generate", status_code=202)
+async def generate_dossier_async(payload: DossierGenerateRequest, supa: Client = Depends(get_supa)):
+    """Enfileira a geração de um novo relatório estratégico."""
     try:
-        from processing.dossie_service import DossieService
-        data = supa.table('comentarios').select('*').eq('candidato_id', payload.candidato_id).limit(500).execute().data
-        if not data:
-            raise HTTPException(status_code=404, detail="No data found for this target")
-        
-        # Simulação de geração para evitar bloqueio de thread
-        timestamp = int(datetime.now().timestamp())
-        path = f"data/reports/relatorio_{payload.candidato_id}_{timestamp}.pdf"
-        
-        # Persistência do registro de relatório
-        supa.table('dossies').insert({
+        # Validação simples para evitar enfileiramento duplicado recente
+        # Em um sistema real, isso seria mais robusto (ex: Redis lock)
+        res_recent = supa.table('dossies').select('id').eq('candidato_id', payload.candidato_id).eq('status', 'Pendente').limit(1).execute()
+        if res_recent.data:
+            return {"status": "processing_already_queued", "detail": "Um dossiê para este alvo já está na fila."}
+
+        # Enfileirar a tarefa
+        insert_res = supa.table('dossies').insert({
             "candidato_id": payload.candidato_id,
-            "total_comentarios": len(data),
-            "total_hate": len([i for i in data if i.get('is_hate')]),
-            "arquivo_path": path,
-            "hash_integridade": f"sha256:{payload.candidato_id}:{timestamp}",
-            "versao_pasa": "v16.4"
+            "status": "Pendente",
+            "versao_pasa": "v16.4" # Pode ser um valor padrão
         }).execute()
 
-        return {"status": "success", "pdf_url": path}
+        if not insert_res.data:
+             raise HTTPException(status_code=500, detail="Falha ao enfileirar a tarefa de geração.")
+
+        return {"status": "processing", "detail": "A geração do dossiê foi iniciada e estará disponível em breve."}
     except Exception as e:
-        logger.error(f"Generation Error: {e}")
+        logger.error(f"Dossier Queuing Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/v1/dossiers")

@@ -221,7 +221,7 @@ export const workersUI = {
                         </div>
                         <div class="space-y-3">
                             ${data.workers.filter(w => w.recent_errors && w.recent_errors.length > 0).map(w => `
-                                <div class="p-4 bg-white/60 rounded-2xl border border-rose-100 text-xs">
+                                <div class="p-4 bg-white/60 rounded-2xl border border-rose-100 text-xs border-2 border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.3)]">
                                     <div class="flex justify-between mb-1">
                                         <span class="font-black text-rose-700 uppercase tracking-tighter">${w.worker}</span>
                                         <span class="text-slate-400 font-mono">${new Date(w.recent_errors[w.recent_errors.length-1].timestamp).toLocaleTimeString()}</span>
