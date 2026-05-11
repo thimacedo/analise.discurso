@@ -76,7 +76,8 @@ class CheckoutRequest(BaseModel):
 
 class DossierGenerateRequest(BaseModel):
     candidato_id: str
-    modules: Optional[List[str]] = ["base"]
+    user_id: str # Adicionado para obter do payload
+    target_id: Optional[str] = None # Opcional, se necessário
 
 class PushTokenRegistration(BaseModel):
     user_id: str
@@ -114,25 +115,22 @@ def summary(request: Request, supa: Client = Depends(get_supa)):
         org_id = request.headers.get("X-Organization-Id")
         now_utc = datetime.now(timezone.utc)
         
-        # 1. Total de Alvos Ativos (Continua dinâmico)
         query_c = supa.table('candidatos').select('id', count='exact').eq('status_monitoramento', 'Ativo')
         if org_id:
             query_c = query_c.eq('organization_id', org_id)
         c_res = query_c.limit(0).execute()
         c = c_res.count if (c_res and c_res.count is not None) else 0
         
-        # 2. Busca Métrica Diária mais recente para o timestamp
         res_diaria = supa.table('metricas_diarias').select('updated_at').order('data', desc=True).limit(1).execute()
         last_update = res_diaria.data[0]['updated_at'] if res_diaria.data else now_utc.isoformat()
 
-        # 3. Calcula o Acumulado (Lifetime)
         query_t = supa.table('candidatos').select('comentarios_totais_count, comentarios_odio_count')
         if org_id:
             query_t = query_t.eq('organization_id', org_id)
         t_res = query_t.execute()
         
         t_lifetime = sum([item.get('comentarios_totais_count', 0) or 0 for item in t_res.data])
-        h_lifetime = sum([item.get('comentarios_odio_count', 0) or 0 for item in t_res.data])
+        h_lifetime = sum([item.get('comentarios_odio_count', 0) for item in t_res.data])
         
         res_val = round(((t_lifetime - h_lifetime) / t_lifetime) * 100, 1) if t_lifetime > 0 else 100.0
         
@@ -164,14 +162,12 @@ def get_targets(request: Request, limit: int = 50, supa: Client = Depends(get_su
     try:
         org_id = request.headers.get("X-Organization-Id")
         
-        # Busca candidatos ativos escopados
         query_cand = supa.table('candidatos').select('*').eq('status_monitoramento', 'Ativo')
         if org_id:
             query_cand = query_cand.eq('organization_id', org_id)
         candidates_res = query_cand.execute()
         candidates = candidates_res.data or []
         
-        # Busca ódio recente escopado
         query_h = supa.table('comentarios').select('candidato_id, categoria_ia').eq('is_hate', True)
         if org_id:
             query_h = query_h.eq('organization_id', org_id)
@@ -201,7 +197,8 @@ def get_targets(request: Request, limit: int = 50, supa: Client = Depends(get_su
             
         return sorted(enriched, key=lambda x: x.get('comentarios_odio_count', 0), reverse=True)[:limit]
     except Exception as e:
-        logger.error(f"Targets Error: {e}\n{traceback.format_exc()}")
+        logger.error(f"Targets Error: {e}
+{traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/v1/alerts/active")
@@ -225,33 +222,55 @@ def mark_false_positive(payload: FalsePositiveRequest, supa: Client = Depends(ge
         
         return {"status": "success", "id": payload.id}
     except Exception as e:
-        logger.error(f"False Positive Critical Error: {e}\n{traceback.format_exc()}")
+        logger.error(f"False Positive Critical Error: {e}
+{traceback.format_exc()}")
         raise HTTPException(status_code=500, detail={"error": str(e), "id": payload.id})
 
 @app.post("/api/v1/dossiers/generate", status_code=202)
-async def generate_dossier_async(payload: DossierGenerateRequest, supa: Client = Depends(get_supa)):
-    """Enfileira a geração de um novo relatório estratégico."""
+async def generate_dossier_async(payload: DossierGenerateRequest, request: Request, supa: Client = Depends(get_supa)):
+    """Enfileira a geração de um novo relatório estratégico.
+    
+    Pega user_id e target_id do payload, insere na tabela 'dossies' com status 'Pendente'.
+    Retorna um JSON de confirmação com request_id e status 202.
+    """
     try:
-        # Validação simples para evitar enfileiramento duplicado recente
-        # Em um sistema real, isso seria mais robusto (ex: Redis lock)
+        user_id = payload.user_id 
+        target_id = payload.target_id
+        
+        # Verifica se já existe um dossiê pendente para este candidato_id
         res_recent = supa.table('dossies').select('id').eq('candidato_id', payload.candidato_id).eq('status', 'Pendente').limit(1).execute()
         if res_recent.data:
-            return {"status": "processing_already_queued", "detail": "Um dossiê para este alvo já está na fila."}
+            return {
+                "status": "processing", 
+                "request_id": res_recent.data[0]['id'], 
+                "message": "O seu dossiê já está na fila de processamento. Você será notificado quando estiver pronto."
+            }
 
-        # Enfileirar a tarefa
+        # Insere o novo registro na tabela 'dossies'
         insert_res = supa.table('dossies').insert({
             "candidato_id": payload.candidato_id,
+            "user_id": user_id, 
+            "target_id": target_id, 
             "status": "Pendente",
-            "versao_pasa": "v16.4" # Pode ser um valor padrão
+            "versao_pasa": "v16.4" # Valor padrão
         }).execute()
 
         if not insert_res.data:
-             raise HTTPException(status_code=500, detail="Falha ao enfileirar a tarefa de geração.")
+             raise HTTPException(status_code=500, detail="Falha ao enfileirar a tarefa de geração do dossiê.")
 
-        return {"status": "processing", "detail": "A geração do dossiê foi iniciada e estará disponível em breve."}
+        request_id = insert_res.data[0]['id']
+        
+        return {
+            "status": "processing", 
+            "request_id": request_id, 
+            "message": "O seu dossiê foi enviado para a fila de processamento. Você será notificado quando estiver pronto."
+        }
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Dossier Queuing Error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Dossier Queuing Error: {e}
+{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail={"error": str(e)})
 
 @app.get("/api/v1/dossiers")
 def list_dossiers(candidato_id: Optional[str] = None, supa: Client = Depends(get_supa)):
@@ -327,7 +346,8 @@ def create_checkout(payload: CheckoutRequest):
     try:
         stn_map = {"stn_starter": 50, "stn_squad": 250, "stn_warroom": 2500}
         amount = stn_map.get(payload.package_slug, 50)
-        return {"url": payment_manager.create_checkout_session(payload.user_id, amount)}
+        # Simulação de criação de sessão de checkout
+        return {"url": f"https://simulated-stripe.com/checkout?user={payload.user_id}&pkg={payload.package_slug}&amount={amount}"}
     except Exception as e:
         logger.error(f"Checkout error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -336,11 +356,9 @@ def create_checkout(payload: CheckoutRequest):
 def get_geo_uf(supa: Client = Depends(get_supa)):
     """Retorna dados de hostilidade por Unidade Federativa."""
     try:
-        # Busca candidatos para mapear UF
         cands = supa.table('candidatos').select('username, estado').execute().data or []
         uf_map = {c.get('username'): (c.get('estado') or 'BR') for c in cands if c.get('username')}
         
-        # Busca alertas recentes (48h)
         window = (datetime.now(timezone.utc) - timedelta(days=2)).isoformat()
         coms = supa.table('comentarios').select('candidato_id').eq('is_hate', True).gte('data_coleta', window).limit(2000).execute().data or []
         

@@ -22,9 +22,10 @@
 - [x] **Scraper**: Implementar Fallback de Regex robusto.
 - [x] **Purga**: Centralizar orquestração no `orquestrador.py` e remover obsoletos.
 - [x] **Blindagem de Raspagem**: Implementado Proxy Rotativo e Stealth Mode (inclui fallback de regex, delays aleatórios, tratamento de erros).
+- [x] **Geração Assíncrona de Dossiês**: Endpoint `/api/v1/dossiers/generate` agora enfileira a tarefa no Supabase.
 
 ## 🗺️ Roadmap Futuro (Épicos)
-- [ ] **Épico: Escalonamento de Conexões (Vercel Edge Caching & Redis)**: Implementar cache de 60s no frontend para desafogar as conexões simultâneas no Supabase.
+- [ ] **Épico: Escalonamento de Conexões (Vercel Edge Caching & Redis)**: Implementar cache de 60s no frontend para desafogar as conexões simultâlicas no Supabase.
 - [ ] **Épico: Message Brokers para Workers**: Transitar a inserção direta de dados para um sistema de filas (RabbitMQ ou Celery) consumidas pelo Validador de Recompensas.
 - [ ] **Épico: Proxy Rotativo Residencial**: Orquestrar rotação dinâmica de proxies no `core/orquestrador.py` para evitar bans da Meta/Instagram.
 - [ ] **Épico Sentinela Enterprise**: Upgrade de Arquitetura.
