@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Central de Comando de Observabilidade</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Theme: Dark */
+        body {
+            background-color: #1f2937; /* bg-gray-800 */
+            color: #e5e7eb; /* text-gray-200 */
+        }
+        .card {
+            background-color: #374151; /* bg-gray-700 */
+            border-radius: 0.5rem; /* rounded-lg */
+            padding: 1.5rem; /* p-6 */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+        }
+        .progress-bar-container {
+            background-color: #4b5563; /* bg-gray-600 */
+            border-radius: 0.25rem; /* rounded-full */
+            height: 0.75rem; /* h-3 */
+        }
+        .progress-bar {
+            background-color: #2563eb; /* bg-blue-600 */
+            border-radius: 0.25rem; /* rounded-full */
+            height: 0.75rem; /* h-3 */
+            transition: width 0.5s ease-in-out;
+        }
+        .terminal {
+            background-color: #0a0a0a; /* bg-gray-900 */
+            color: #22c55e; /* text-green-400 */
+            font-family: 'Courier New', Courier, monospace;
+            border-radius: 0.5rem; /* rounded-lg */
+            padding: 1rem; /* p-4 */
+            height: 400px; /* Fixed height for log display */
+            overflow-y: auto; /* Enable scrolling */
+            white-space: pre-wrap; /* Preserve whitespace and wrap lines */
+            word-wrap: break-word; /* Break long words */
+        }
+        .label {
+            font-weight: 500; /* font-medium */
+            color: #d1d5db; /* text-gray-300 */
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto p-6">
+        <h1 class="text-3xl font-bold text-center mb-8 text-blue-400">Central de Comando de Observabilidade</h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Total Records Card -->
+            <div class="card">
+                <div class="label">Total de Registros no Banco</div>
+                <div class="text-4xl font-bold mt-2" id="total-records">--</div>
+            </div>
+
+            <!-- AI Pending Card -->
+            <div class="card">
+                <div class="label">Pendente de IA</div>
+                <div class="text-4xl font-bold mt-2" id="ai-pending">--</div>
+            </div>
+
+            <!-- Mined Records Card -->
+            <div class="card">
+                <div class="label">Registros Processados</div>
+                <div class="text-4xl font-bold mt-2" id="mined-records">--</div>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="mb-8">
+            <div class="label mb-2">Progresso do Processamento</div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="processing-progress"></div>
+            </div>
+            <div class="text-xs text-gray-400 mt-1" id="progress-percentage">0%</div>
+        </div>
+
+        <!-- Log Display -->
+        <div>
+            <div class="label mb-2">Logs do Worker</div>
+            <pre class="terminal" id="log-output"></pre>
+        </div>
+    </div>
+
+    <script>
+        const API_STATUS_URL = '/api/monitor/status';
+        const LOG_REFRESH_INTERVAL = 5000; // 5 seconds
+
+        const totalRecordsEl = document.getElementById('total-records');
+        const aiPendingEl = document.getElementById('ai-pending');
+        const minedRecordsEl = document.getElementById('mined-records');
+        const progressBarEl = document.getElementById('processing-progress');
+        const progressPercentageEl = document.getElementById('progress-percentage');
+        const logOutputEl = document.getElementById('log-output');
+
+        function formatLogMessage(logEntry) {
+            // Basic formatting for log entries, assuming each entry is a single line
+            // In a real app, you might parse timestamps, levels, etc.
+            return logEntry.trim();
+        }
+
+        async function fetchStatusAndUpdateUI() {
+            try {
+                const response = await fetch(API_STATUS_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                // Update Stats Cards
+                const totalRecords = data.supabase_stats.total_records || 0;
+                const aiPending = data.supabase_stats.ai_pending || 0;
+                const minedRecords = data.supabase_stats.mined_records || 0;
+
+                totalRecordsEl.textContent = totalRecords.toLocaleString();
+                aiPendingEl.textContent = aiPending.toLocaleString();
+                minedRecordsEl.textContent = minedRecords.toLocaleString();
+
+                // Update Progress Bar
+                let progress = 0;
+                if (totalRecords > 0) {
+                    progress = Math.min(100, Math.round((minedRecords / totalRecords) * 100));
+                }
+                progressBarEl.style.width = `${progress}%`;
+                progressPercentageEl.textContent = `${progress}%`;
+
+                // Update Log Output
+                // Clear previous logs and append new ones to avoid excessive DOM manipulation
+                // A more efficient approach for very large logs might involve virtual scrolling
+                const formattedLogs = data.recent_logs.map(formatLogMessage).join('
+');
+                logOutputEl.textContent = formattedLogs;
+                // Auto-scroll to the bottom
+                logOutputEl.scrollTop = logOutputEl.scrollHeight;
+
+            } catch (error) {
+                console.error('Error fetching status:', error);
+                // Display error in UI
+                totalRecordsEl.textContent = 'Error';
+                aiPendingEl.textContent = 'Error';
+                minedRecordsEl.textContent = 'Error';
+                logOutputEl.textContent = `Failed to fetch status: ${error.message}`;
+            }
+        }
+
+        // Initial fetch and set up interval
+        fetchStatusAndUpdateUI();
+        setInterval(fetchStatusAndUpdateUI, LOG_REFRESH_INTERVAL);
+    </script>
+</body>
+</html>
