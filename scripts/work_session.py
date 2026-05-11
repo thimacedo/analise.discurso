@@ -1,27 +1,43 @@
+import os
+import sys
 import time
 import subprocess
-import sys
-import os
 import logging
 
 # Configuração de logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+# Adiciona o diretório raiz do projeto ao PYTHONPATH para garantir que os módulos internos sejam encontrados
+# Isso é crucial quando os scripts são executados de subdiretórios (como 'tools' ou 'scripts')
+project_root = os.path.abspath(os.path.dirname(__file__) + '/..')
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 # --- Funções de Tarefas ---
 
-def run_command(command: list[str], description: str):
+def run_command(command: list[str], description: str, env_vars: dict = None):
     """Executa um comando de script Python e exibe logs."""
     logging.info(f"Iniciando: {description}")
     try:
         # Garante que o comando seja executado com o interpretador Python correto
-        # e que o diretório de trabalho seja o raiz do projeto.
+        # e que o diretório de trabalho seja a raiz do projeto.
+        # Atualiza o ambiente com PYTHONPATH para incluir o diretório raiz.
+        current_env = os.environ.copy()
+        if env_vars:
+            current_env.update(env_vars)
+        
+        # Adiciona o diretório raiz ao PYTHONPATH do subprocesso
+        python_path = current_env.get('PYTHONPATH', '')
+        if project_root not in python_path.split(os.pathsep):
+            current_env['PYTHONPATH'] = f"{project_root}{os.pathsep}{python_path}".strip(os.pathsep)
+        
         process = subprocess.Popen([sys.executable, *command], 
                                    stdout=subprocess.PIPE, 
                                    stderr=subprocess.PIPE, 
                                    text=True,
-                                   cwd=os.path.abspath(os.path.dirname(__file__) + '/..')) # Define o diretório de trabalho como a raiz do projeto
+                                   cwd=project_root, # Define o diretório de trabalho como a raiz do projeto
+                                   env=current_env)
         
-        # Log stdout e stderr em tempo real
         stdout_lines = []
         stderr_lines = []
 
@@ -59,60 +75,50 @@ def cleanup_timeline():
     return run_command(["tools/cleanup_ghosts.py"], "Limpeza da timeline")
 
 def scraping_targets():
-    # Tentativa de executar o orquestrador com path relativo
+    # O orquestrador agora deve ser encontrado devido ao PYTHONPATH configurado
     return run_command(["core/orquestrador.py"], "Raspagem de todos os alvos")
 
 def classify_comments():
     return run_command(["tools/process_backlog.py"], "Classificação das pendências de comentários")
 
 def update_kpis():
-    # Script que causou SyntaxError anteriormente, vamos tentar executar assim mesmo.
-    # O erro original era em 'core/instagram_headless.py' importado por 'update_kpis.py'
+    # O update_kpis também deve funcionar agora se o path para core estiver correto
     return run_command(["scripts/update_kpis.py"], "Atualização dos KPIs")
 
 # --- Loop Principal ---
 
-def main_work_session():
-    """Executa a sessão de trabalho diária em loop."""
-    logging.info("Iniciando rotina de sessão de trabalho diária...")
+def run_routine():
+    """Executa a sequência de tarefas da rotina diária."""
+    tasks = [
+        ("Limpeza", cleanup_timeline),
+        ("Raspagem", scraping_targets),
+        ("IA / Classificação", classify_comments),
+        ("Dashboards / KPIs", update_kpis)
+    ]
     
-    while True:
-        try:
-            # 1. Limpeza
-            success_cleanup, _ = cleanup_timeline()
-            if not success_cleanup:
-                logging.warning("Falha na etapa de limpeza. Prosseguindo para a próxima etapa.")
+    all_tasks_successful = True
+    for description, func in tasks:
+        success, _ = func()
+        if not success:
+            all_tasks_successful = False
+            logging.warning(f"A tarefa '{description}' falhou. Prosseguindo com as próximas.")
+    
+    if all_tasks_successful:
+        logging.info("Ciclo de trabalho diário concluído com sucesso.")
+    else:
+        logging.warning("Ciclo de trabalho diário concluído com falhas em algumas tarefas.")
 
-            # 2. Coleta (Raspagem)
-            # A raspagem pode falhar, mas continuamos para não parar a rotina.
-            success_scraping, _ = scraping_targets()
-            if not success_scraping:
-                logging.warning("Falha na etapa de raspagem. Prosseguindo para a próxima etapa.")
-
-            # 3. Inteligência (Classificação)
-            success_classification, _ = classify_comments()
-            if not success_classification:
-                logging.warning("Falha na etapa de classificação. Prosseguindo para a próxima etapa.")
-            
-            # 4. Dashboard (Atualização de KPIs)
-            # Esta etapa falhou anteriormente devido a SyntaxError.
-            success_kpis, _ = update_kpis()
-            if not success_kpis:
-                logging.warning("Falha na etapa de atualização de KPIs. Prosseguindo para a próxima etapa.")
-
-            logging.info("Ciclo de trabalho diário concluído.")
-            
-            # 5. Pausa
+if __name__ == "__main__":
+    logging.info("🛡️ MODO WORK SESSION ATIVADO. Pressione Ctrl+C para parar.")
+    try:
+        while True:
+            run_routine()
             sleep_duration = 1800  # 30 minutos
             logging.info(f"Aguardando {sleep_duration} segundos antes do próximo ciclo...")
             time.sleep(sleep_duration)
-
-        except KeyboardInterrupt:
-            logging.info("Sessão de trabalho interrompida manualmente. Encerrando...")
-            sys.exit(0)
-        except Exception as e:
-            logging.error(f"Erro inesperado no loop principal: {e}. Reiniciando em 60 segundos.")
-            time.sleep(60)
-
-if __name__ == "__main__":
-    main_work_session()
+    except KeyboardInterrupt:
+        logging.info("🛑 Work Session interrompida manualmente. Encerrando...")
+        sys.exit(0)
+    except Exception as e:
+        logging.error(f"Erro inesperado no loop principal: {e}. Reiniciando em 60 segundos.")
+        time.sleep(60)

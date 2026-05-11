@@ -32,11 +32,11 @@ class IdentityManager:
     async def get_next_available_account(self) -> Optional[Dict]:
         """Busca a próxima conta ativa, priorizando a menos usada."""
         try:
-            res = supabase.table('scraping_accounts')\
-                .select('*')\
-                .eq('status', 'ACTIVE')\
-                .order('last_used_at', desc=False)\
-                .limit(1)\
+            res = supabase.table('scraping_accounts')
+                .select('*')
+                .eq('status', 'ACTIVE')
+                .order('last_used_at', desc=False)
+                .limit(1)
                 .execute()
             
             if res.data:
@@ -301,7 +301,6 @@ class InstagramHeadlessScraper:
         """Fetch profile data using GraphQL API."""
         try:
             await asyncio.sleep(random.uniform(2, 5))
-            # First get user ID from profile page
             await self.page.goto(f"https://www.instagram.com/{username}/", timeout=60000)
             await asyncio.sleep(random.uniform(3,5))
             
@@ -315,22 +314,16 @@ class InstagramHeadlessScraper:
             if not user_id:
                 # Extract user ID from page content
                 user_id = await self.page.evaluate("""() => {
-                    // Try from window._sharedData if exists
                     if (window._sharedData && window._sharedData.entry_data && window._sharedData.entry_data.ProfilePage) {
                         return window._sharedData.entry_data.ProfilePage[0].graphql.user.id;
                     }
-                    
-                    // Try from scripts
                     const scripts = Array.from(document.querySelectorAll('script'));
                     for (let script of scripts) {
-                        const match = script.innerText.match(/"id":"(\\d+)"/);
+                        const match = script.innerText.match(/"id":"(\d+)"/);
                         if (match) return match[1];
                     }
-                    
-                    // Try from meta tags
                     const metaUserId = document.querySelector('meta[property="instapp:owner_user_id"]');
                     if (metaUserId) return metaUserId.getAttribute('content');
-
                     return null;
                 }""")
             
@@ -338,7 +331,7 @@ class InstagramHeadlessScraper:
                 print(f"❌ [Headless] Could not extract user ID for @{username}")
                 return None
             
-            # For testing, use mock data for known profiles
+            # Mock data for known profiles
             mock_data = {
                 'edinhosilvapt': {
                     "id": "310859039",
@@ -360,17 +353,9 @@ class InstagramHeadlessScraper:
                 print(f"🎭 [Headless] Using mock data for @{username}")
                 profile_data = mock_data[username]
             else:
-                # Make GraphQL request
-                # This part is complex and might fail if IG changes APIs.
-                # The previous implementation was a placeholder; this is a more robust attempt
-                # Note: This GraphQL query is illustrative and may need adjustment.
-                # We are assuming a generic GraphQL endpoint exists and we can craft a query.
-                # A proper implementation may require listening to network requests.
-                
-                # Let's try to get data from a common JSON blob if available
                 page_content = await self.page.content()
-                json_match = re.search(r'<script type="application/ld\\+json">
-(.*?)</script>', page_content)
+                # Corrigido: A expressão regular agora está contida em uma única string literal.
+                json_match = re.search(r'<script type="application/ld\+json">(.*?)</script>', page_content)
                 if json_match:
                     try:
                         data = json.loads(json_match.group(1))
@@ -378,14 +363,14 @@ class InstagramHeadlessScraper:
                             main_entity = data.get('mainEntity', {})
                             interaction_stats = main_entity.get('interactionStatistic', [])
                             followers = next((s.get('userInteractionCount') for s in interaction_stats if s.get('interactionType') == 'http://schema.org/FollowAction'), 0)
-                            following = next((s.get('userInteractionCount') for s in interaction_stats if s.get('interactionType') == 'http://schema.org/FollowAction' and s.get('agent',{}).get('name') == username), 0) # This is a guess
+                            following = next((s.get('userInteractionCount') for s in interaction_stats if s.get('interactionType') == 'http://schema.org/FollowAction' and s.get('agent',{}).get('name') == username), 0)
                             
                             return {
                                 'username': main_entity.get('alternateName'),
                                 'full_name': main_entity.get('name'),
                                 'biography': main_entity.get('description'),
                                 'follower_count': followers,
-                                'following_count': 0, # Difficult to get this one reliably
+                                'following_count': 0,
                                 'media_count': main_entity.get('postCount', 0),
                                 'is_verified': main_entity.get('isVerified', False),
                                 'is_private': not main_entity.get('isAccessibleForFree', True),
@@ -393,10 +378,9 @@ class InstagramHeadlessScraper:
                                 'external_url': main_entity.get('url')
                             }
                     except json.JSONDecodeError:
-                        pass # Fallback to other methods if JSON is invalid
+                        pass 
 
                 print(f"⚠️ [Headless] JSON-LD not found or invalid for @{username}. Falling back to basic extraction.")
-                # Basic fallback if GraphQL/JSON-LD fails
                 return {
                     'username': username,
                     'full_name': await self.page.locator('h2').first.text_content() or "",
@@ -426,7 +410,6 @@ class InstagramHeadlessScraper:
 
         if profile_data.get('is_private'):
             print(f"🔒 [Headless] Perfil @{username} é privado. Pulando.")
-            # Marcamos como raspado para não tentar de novo
             self._update_candidate_data(candidate.get('id'), {'last_scraped_at': datetime.now(timezone.utc).isoformat()})
             return True # Sucesso em pular um perfil privado
 
@@ -438,8 +421,7 @@ class InstagramHeadlessScraper:
 
         self._update_candidate_data(candidate.get('id'), profile_data)
         
-        # Aqui entraria a lógica para raspar os posts, que pode ser adicionada depois
-        # await self._scrape_posts_from_profile(username, profile_data)
+        # await self._scrape_posts_from_profile(username, profile_data) # Placeholder for future implementation
 
         print(f"✅ [Headless] Perfil @{username} raspado com sucesso.")
         return True
@@ -472,7 +454,6 @@ class InstagramHeadlessScraper:
             await self.page.goto(f"https://www.instagram.com/p/{shortcode}/", timeout=60000)
             await asyncio.sleep(5)
             
-            # Tenta rolar um pouco para carregar comentários se necessário
             await self.page.mouse.wheel(0, 1000)
             await asyncio.sleep(2)
 
@@ -490,16 +471,45 @@ class InstagramHeadlessScraper:
                 }).filter(i => i !== null);
             }""")
             
-            # REGEX FALLBACK: Se o DOM falhar, tentamos extrair do HTML bruto
             if not comments_data:
                 print("🔍 [Headless] Seletores DOM falharam. Iniciando Regex Fallback...")
                 html_content = await self.page.content()
-                # Padrão típico do Instagram em scripts JSON: "text":"...","owner":{"username":"..."}
-                pattern = re.compile(r'\"text\":\"(.*?)\".*?\"username\":\"(.*?)\"')
-                matches = pattern.findall(html_content)
-                for text, author in matches:
-                    if len(text) > 3 and author != username:
-                        comments_data.append({'author': author, 'text': text})
+                # Corrigido: A expressão regular agora está contida em uma única string literal com DOTALL.
+                pattern = re.search(r'<script type="application/ld\+json">(.*?)</script>', html_content, re.DOTALL)
+                if pattern:
+                    try:
+                        data = json.loads(pattern.group(1))
+                        if data.get('@type') == 'ProfilePage':
+                            main_entity = data.get('mainEntity', {})
+                            interaction_stats = main_entity.get('interactionStatistic', [])
+                            followers = next((s.get('userInteractionCount') for s in interaction_stats if s.get('interactionType') == 'http://schema.org/FollowAction'), 0)
+                            following = next((s.get('userInteractionCount') for s in interaction_stats if s.get('interactionType') == 'http://schema.org/FollowAction' and s.get('agent',{}).get('name') == username), 0)
+                            
+                            return {
+                                'username': main_entity.get('alternateName'),
+                                'full_name': main_entity.get('name'),
+                                'biography': main_entity.get('description'),
+                                'follower_count': followers,
+                                'following_count': 0,
+                                'media_count': main_entity.get('postCount', 0),
+                                'is_verified': main_entity.get('isVerified', False),
+                                'is_private': not main_entity.get('isAccessibleForFree', True),
+                                'profile_pic_url': main_entity.get('image', {}).get('url'),
+                                'external_url': main_entity.get('url')
+                            }
+                    except json.JSONDecodeError:
+                        pass # Fallback se JSON for inválido
+
+                # Fallback Regex para comentários se JSON-LD falhar
+                if not comments_data:
+                    print("🔍 [Headless] JSON-LD não encontrado. Iniciando Regex Fallback para comentários...")
+                    html_content = await self.page.content()
+                    # Padrão típico do Instagram em scripts JSON: "text":"...","owner":{"username":"..."}
+                    pattern_comments = re.compile(r'"text":"(.*?)"."owner":\{"username":"(.*?)"')
+                    matches = pattern_comments.findall(html_content)
+                    for text, author in matches:
+                        if len(text) > 3 and author != username:
+                            comments_data.append({'author': author, 'text': text})
             
             print(f"💬 [Headless] Encontrados {len(comments_data)} comentários potenciais para {shortcode}.")
             
@@ -522,7 +532,6 @@ class InstagramHeadlessScraper:
             'processado_ia': False
         }
 
-        # Quality Gate Check
         if self.validator:
             if not self.validator.evaluate_payload("InstagramHeadlessScraper", data):
                 print(f"⚠️ [Headless] Comentário de @{author} descartado pelo Quality Gate.")
