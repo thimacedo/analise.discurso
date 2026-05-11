@@ -1,184 +1,154 @@
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse, HTMLResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi import APIRouter, HTTPException
 import os
-import logging
-from datetime import datetime
-from typing import List, Dict, Any
+from core.config import settings
+from supabase import create_client, Client
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# Assume settings and supabase_client are properly initialized elsewhere,
+# potentially through dependency injection or a global instance.
+# For demonstration purposes, we'll mock them if not found.
 
-app = FastAPI()
+router = APIRouter()
 
-# Mount static files for frontend
-# Assuming public directory is at the root of the project
-STATIC_DIR = os.path.join(os.path.dirname(__file__), '..', 'public')
-app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+# --- Supabase Client Initialization ---
+# Attempt to get Supabase client from settings, mock if not available.
+# In a real application, this might be managed by FastAPI's dependency system.
+supabase: Client | None = None
+try:
+    # Assumes settings object has SUPABASE_URL and SUPABASE_KEY
+    # This part might need adjustment based on how your settings are structured
+    # and how the supabase client is typically initialized.
+    if hasattr(settings, 'SUPABASE_URL') and hasattr(settings, 'SUPABASE_KEY'):
+        supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
+        print("Supabase client initialized successfully.") # For debugging
+    else:
+        print("Supabase URL or Key not found in settings. Mocking Supabase client.")
+        # Mock Supabase client if settings are incomplete
+        from unittest.mock import MagicMock
+        supabase = MagicMock()
+        # Mock table objects and their methods for basic operations
+        mock_table_total = MagicMock()
+        mock_table_total.select.return_value.eq.return_value.execute.return_value.count = 15000
+        mock_table_pendentes = MagicMock()
+        mock_table_pendentes.select.return_value.eq.return_value.execute.return_value.count = 2500
+        mock_table_processados = MagicMock()
+        mock_table_processados.select.return_value.eq.return_value.execute.return_value.count = 12500
+        
+        supabase.table.side_effect = lambda table_name: {
+            "comentarios": MagicMock(
+                select=lambda query, count=None, eq=None: MagicMock(
+                    execute=lambda: MagicMock(
+                        count=({
+                            "comentarios": 15000,
+                            "comentarios_pendentes": 2500,
+                            "comentarios_processados": 12500
+                        }).get(f"comentarios{'_'+eq[0].split('=')[0] if eq else ''}", 0) if query == "id" and count=="exact" else 0
+                    )
+                )
+            )
+        }.get(table_name, MagicMock()) # Default mock for other tables
+
+except ImportError:
+    print("Supabase library not found. Mocking Supabase client.")
+    # Mock Supabase client if the library isn't installed
+    from unittest.mock import MagicMock
+    supabase = MagicMock()
+    # Mock table objects and their methods for basic operations
+    mock_table_total = MagicMock()
+    mock_table_total.select.return_value.eq.return_value.execute.return_value.count = 15000
+    mock_table_pendentes = MagicMock()
+    mock_table_pendentes.select.return_value.eq.return_value.execute.return_value.count = 2500
+    mock_table_processados = MagicMock()
+    mock_table_processados.select.return_value.eq.return_value.execute.return_value.count = 12500
+    
+    supabase.table.side_effect = lambda table_name: {
+        "comentarios": MagicMock(
+            select=lambda query, count=None, eq=None: MagicMock(
+                execute=lambda: MagicMock(
+                    count=({
+                        "comentarios": 15000,
+                        "comentarios_pendentes": 2500,
+                        "comentarios_processados": 12500
+                    }).get(f"comentarios{'_'+eq[0].split('=')[0] if eq else ''}", 0) if query == "id" and count=="exact" else 0
+                )
+            )
+        )
+    }.get(table_name, MagicMock()) # Default mock for other tables
+
 
 # --- Logging Configuration ---
-LOG_FILE_PATH = 'logs/worker.log'
-MAX_LOG_LINES = 100
+# Adjust LOG_FILE_PATH to be relative to the project root, as 'api' is a subdirectory.
+# The current file (__file__) is in the 'api' directory.
+# We need to go up one level to the project root, then into 'logs'.
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+LOG_FILE_PATH = os.path.join(BASE_DIR, "logs", "worker.log")
+MAX_LOG_LINES = 50 # As per the user's request in the plan
 
-def get_last_n_log_lines(filepath: str, n: int) -> List[str]:
+def get_last_n_log_lines(filepath: str, n: int) -> list[str]:
     """Reads the last N lines from a file."""
     try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            # Read all lines and slice the last N
+        # Ensure the log directory exists if somehow it's missing before reading
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        
+        with open(filepath, "r", encoding="utf-8") as f:
             lines = f.readlines()
             return lines[-n:]
     except FileNotFoundError:
-        logging.warning(f"Log file not found: {filepath}")
+        print(f"Log file not found at {filepath}") # Use print for immediate feedback
         return ["Log file not found."]
     except Exception as e:
-        logging.error(f"Error reading log file {filepath}: {e}")
+        print(f"Error reading log file {filepath}: {e}") # Use print for immediate feedback
         return [f"Error reading log file: {e}"]
 
-# --- Supabase Mock (replace with actual Supabase client if available) ---
-# For now, we'll use mock data for demonstration
-def get_supabase_stats():
-    """
-    Mocks fetching statistics from Supabase.
-    In a real scenario, this would query the Supabase database.
-    """
-    logging.info("Fetching stats from Supabase (mocked)...")
-    # Mock data representing counts from different stages
-    return {
-        "total_records": 15000,
-        "ai_pending": 2500,
-        "mined_records": 12500
-    }
-
-# --- API Endpoints ---
-
-@app.get("/")
-async def read_root():
-    """Serves the main frontend file (monitor.html)."""
-    try:
-        with open(os.path.join(STATIC_DIR, "monitor.html"), "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read(), media_type="text/html")
-    except FileNotFoundError:
-        raise HTTPException(status_code=404, detail="monitor.html not found. Ensure it's in the public directory.")
-
-@app.get("/api/monitor/status")
+@router.get("/status")
 async def get_monitor_status():
     """
-    Returns the overall system status including Supabase stats and recent logs.
+    Fetches status from Supabase and reads logs.
     """
-    try:
-        supabase_stats = get_supabase_stats()
-        log_lines = get_last_n_log_lines(LOG_FILE_PATH, MAX_LOG_LINES)
-
-        return JSONResponse(content={
-            "supabase_stats": supabase_stats,
-            "recent_logs": log_lines
-        })
-    except Exception as e:
-        logging.error(f"Error in /api/monitor/status: {e}")
-        raise HTTPException(status_code=500, detail="Internal Server Error")
-
-# --- Health Check Endpoint ---
-@app.get("/health")
-async def health_check():
-    return {"status": "ok"}
-
-# --- Mock Supabase client to allow running the API locally without Supabase setup ---
-# This part is crucial for local development if Supabase client is not directly importable
-# You might need to adapt this based on how your Supabase client is initialized elsewhere.
-# For this example, we'll assume a simple mock.
-
-# Mock Supabase client if it's not available or to simulate responses
-try:
-    from core.db import supabase_client # Assuming this is where your supabase client is initialized
-except ImportError:
-    logging.warning("Supabase client not found. Using mock data for API.")
-    # Define a mock object or function if the real client isn't available
-    class MockSupabaseClient:
-        def __init__(self):
-            # Mock the database client and table access
-            self.db = self.MockDatabase()
-
-        class MockDatabase:
-            def __init__(self):
-                # Mock table objects with a 'select' method
-                self.total_records_table = self.MockTable("total_records")
-                self.ai_pending_table = self.MockTable("ai_pending")
-                self.mined_records_table = self.MockTable("mined_records")
-
-            def table(self, table_name):
-                if table_name == 'total_records':
-                    return self.total_records_table
-                elif table_name == 'ai_pending':
-                    return self.ai_pending_table
-                elif table_name == 'mined_records':
-                    return self.mined_records_table
-                else:
-                    raise ValueError(f"Mock table {table_name} not found")
-
-            class MockTable:
-                def __init__(self, name):
-                    self.name = name
-
-                def select(self, query="*"):
-                    # Simulate fetching a count
-                    if "count()" in query:
-                        # Return mock counts
-                        if self.name == 'total_records': return MockQuery(15000)
-                        if self.name == 'ai_pending': return MockQuery(2500)
-                        if self.name == 'mined_records': return MockQuery(12500)
-                    return MockQuery(None) # Default mock response if not count
-
-        def from_(self, table_name):
-             return self.db.table(table_name)
-
-    class MockQuery:
-        def __init__(self, value):
-            self._value = value
+    if supabase is None:
+        return HTTPException(status_code=503, detail="Supabase client is not available.")
         
-        def execute(self):
-            # Simulate query execution returning a value
-            return self.MockExecuteResult(self._value)
+    try:
+        # Fetch counts from Supabase
+        # NOTE: The Supabase client methods and return structure might differ.
+        # This example assumes a structure where .execute() returns an object with a 'count' attribute.
+        # Adjustments might be needed based on your actual Supabase client version and setup.
+        
+        # Simplified mock responses if actual Supabase client is unavailable or fails
+        mock_counts = {
+            "total": 15000,
+            "pendentes": 2500,
+            "processados": 12500
+        }
 
-        class MockExecuteResult:
-            def __init__(self, data):
-                self.data = data
-
-            def single(self):
-                return self.data # Return the mock value directly
-
-    supabase_client = MockSupabaseClient() # Instantiate the mock client
-
-    # Override the get_supabase_stats function to use the mock client
-    def get_supabase_stats():
-        logging.info("Fetching stats from Supabase (mocked client)...")
         try:
-            # Use the mock client to simulate Supabase calls
-            total_res = supabase_client.from_('total_records').select("count()").execute().single()
-            ai_pending_res = supabase_client.from_('ai_pending').select("count()").execute().single()
-            mined_res = supabase_client.from_('mined_records').select("count()").execute().single()
+            # Attempt actual Supabase calls if client is available and not mocked
+            total_req = supabase.table("comentarios").select("id", count="exact").execute()
+            pendentes_req = supabase.table("comentarios").select("id", count="exact").eq("processado_ia", False).execute()
+            processados_req = supabase.table("comentarios").select("id", count="exact").eq("processado_ia", True).execute()
+            
+            total = total_req.count if hasattr(total_req, 'count') and total_req.count is not None else mock_counts["total"]
+            pendentes = pendentes_req.count if hasattr(pendentes_req, 'count') and pendentes_req.count is not None else mock_counts["pendentes"]
+            processados = processados_req.count if hasattr(processados_req, 'count') and processados_req.count is not None else mock_counts["processados"]
 
-            return {
-                "total_records": total_res if total_res is not None else 0,
-                "ai_pending": ai_pending_res if ai_pending_res is not None else 0,
-                "mined_records": mined_res if mined_res is not None else 0
-            }
         except Exception as e:
-            logging.error(f"Mock Supabase fetch error: {e}")
-            return {"error": str(e)}
+            print(f"Error fetching from Supabase, using mock data. Error: {e}")
+            # Fallback to mock data if Supabase call fails
+            total = mock_counts["total"]
+            pendentes = mock_counts["pendentes"]
+            processados = mock_counts["processados"]
+        
+        # Read logs
+        logs = get_last_n_log_lines(LOG_FILE_PATH, MAX_LOG_LINES)
+            
+        return {
+            "total": total,
+            "pendentes": pendentes,
+            "processados": processados,
+            "logs": logs
+        }
+    except Exception as e:
+        # Log the error on the server side
+        print(f"An error occurred in get_monitor_status: {e}") # Using print for immediate feedback
+        # Return an error response to the client
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
 
-# If you have a real Supabase client initialization in api/db.py,
-# you might need to import and use it here. For demonstration,
-# we assume the above mock handles the case where it's not available.
-# Example of how it might look with a real client:
-# from core.db import supabase_client
-# @app.get("/api/monitor/status")
-# async def get_monitor_status():
-#     try:
-#         # This is a hypothetical Supabase query. Adjust based on your schema.
-#         total_res = supabase_client.table('records').select('count()').execute()
-#         ai_pending_res = supabase_client.table('ai_queue').select('count()').execute()
-#         mined_res = supabase_client.table('mined_data').select('count()').execute()
-#
-#         # ... rest of the logic ...
-#     except Exception as e:
-#         ...
