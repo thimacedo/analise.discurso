@@ -3,8 +3,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 // 1. CONFIGURAÇÃO SUPABASE (Substitua pelas suas variáveis reais do projeto)
-const SUPABASE_URL = 'SUA_URL_SUPABASE_AQUI';
-const SUPABASE_ANON_KEY = 'SUA_CHAVE_ANON_KEY_AQUI';
+const SUPABASE_URL = 'https://vhamejkldzxbeibqeqpk.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoYW1lamtsZHp4YmVpYnFlcXBrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjQ4ODEyNSwiZXhwIjoyMDkyMDY0MTI1fQ.GfvAI7rV8isgdhVeJp4mOUscWpdOqOuBoURGm82VdtY';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // 2. MAPEAMENTO VISUAL DO PASA v16.4
