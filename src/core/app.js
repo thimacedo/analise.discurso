@@ -1,8 +1,8 @@
 // src/core/app.js
 
 // 1. INICIALIZAÇÃO DO SUPABASE (Sem import, usando o objeto global do CDN)
-const SUPABASE_URL = 'SUA_URL_DO_SUPABASE_AQUI'; // Ex: https://xyzproject.supabase.co
-const SUPABASE_ANON_KEY = 'SUA_CHAVE_ANON_KEY_AQUI'; // A chave pública (anon)
+const SUPABASE_URL = 'https://vhamejkldzxbeibqeqpk.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoYW1lamtsZHp4YmVpYnFlcXBrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjQ4ODEyNSwiZXhwIjoyMDkyMDY0MTI1fQ.GfvAI7rV8isgdhVeJp4mOUscWpdOqOuBoURGm82VdtY';
 
 let supabaseClient;
 try {
