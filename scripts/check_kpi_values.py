@@ -6,7 +6,7 @@ if sys.platform == "win32":
     sys.stdout.reconfigure(encoding='utf-8')
 
 sys.path.append(r"C:\projetos\sentinela-democratica")
-from core.db import get_supabase_client
+from core.supabase_service import get_supabase_client
 
 def get_latest():
     print("=== MÉTRICAS DIÁRIAS (ÚLTIMO REGISTRO) ===")

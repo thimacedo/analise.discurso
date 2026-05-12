@@ -6,7 +6,8 @@ if hasattr(sys.stderr, 'reconfigure'):
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 import os
 from datetime import datetime, timedelta, UTC
-from core.db import get_supabase_client
+from core.supabase_service import get_supabase_client
+from dotenv import load_dotenv
 import httpx
 import asyncio
 from core.normalizer import target_normalizer

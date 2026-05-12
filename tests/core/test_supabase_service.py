@@ -1,46 +1,23 @@
 import pytest
 import httpx
-from unittest.mock import AsyncMock, MagicMock, patch
+import asyncio
+from unittest.mock import AsyncMock
+from tests.mocks.mock_supabase_service import MockSupabaseService
 
-# Assume that core.supabase_service is correctly importable and settings are available
-# If not, these tests might fail or need adjustment based on the actual project structure and mocking strategy.
-from core.supabase_service import SupabaseService
-from core.config import settings
-
-# Mocking Supabase client and httpx client for isolation
+# Mocking Supabase client using the existing MockSupabaseService
 @pytest.fixture
 def mock_supabase_service():
-    # Mock the create_client call to return a mock client
-    mock_client = MagicMock(spec=SupabaseService)
-    mock_client.url = "http://mock-url.com"
-    mock_client.key = "mock-key"
-    mock_client.headers = {"apikey": "mock-key", "Authorization": "Bearer mock-key", "Content-Type": "application/json"}
-    mock_client.client = MagicMock() # Mock the actual Supabase client object
-    mock_client.http_client = MagicMock(spec=httpx.AsyncClient) # Mock the httpx client
-    return mock_client
-
-@pytest.fixture
-def mock_settings():
-    mock_settings = MagicMock()
-    mock_settings.SUPABASE_URL = "http://mock-url.com"
-    mock_settings.SUPABASE_KEY = "mock-key"
-    return mock_settings
-
-# Patching settings and create_client globally for tests
-@pytest.fixture(autouse=True)
-def patch_globals(mock_settings):
-    with patch('core.supabase_service.settings', mock_settings, create=True):
-        with patch('core.supabase_service.create_client', return_value=MagicMock()) as mock_create_client:
-            yield mock_create_client
+    return MockSupabaseService()
 
 # --- Test Cases for SupabaseService ---
 
 @pytest.mark.asyncio
 async def test_fetch_unprocessed_comments_success(mock_supabase_service):
-    mock_supabase_service.http_client.get.return_value = AsyncMock(status_code=200, json=lambda: [{"id": 1, "text": "comment1"}])
+    mock_supabase_service.fetch_unprocessed_comments_return_value = [{"id": 1, "text": "comment1"}]
     comments = await mock_supabase_service.fetch_unprocessed_comments(limit=10)
     assert len(comments) == 1
     assert comments[0]["id"] == 1
+    assert mock_supabase_service.fetch_unprocessed_comments_call_count == 1
 
 @pytest.mark.asyncio
 async def test_fetch_unprocessed_comments_http_error(mock_supabase_service):

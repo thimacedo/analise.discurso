@@ -7,7 +7,7 @@ import random
 from dotenv import load_dotenv
 from playwright.async_api import async_playwright
 from workers.core.base_worker import BaseWorker
-from core.db import save_alerts # NOSSO NOVO MÓDULO DE BANCO
+from core.supabase_service import save_alerts # NOSSO NOVO MÓDULO DE BANCO
 
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
@@ -78,81 +78,126 @@ class InstagramWorker(BaseWorker):
         ])
 
     async def _run(self, *args, **kwargs):
+        """Método principal exigido pelo BaseWorker. Executa a rotina de raspagem."""
         self.logger.info(f"🚀 Iniciando Playwright Stealth para: {self.target_profile}")
-        
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True, args=['--disable-blink-features=AutomationControlled', '--no-sandbox'])
-            context = await browser.new_context(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36", viewport={'width': 1920, 'height': 1080}, locale='pt-BR')
-            
+            browser = await p.chromium.launch(
+                headless=True, 
+                args=['--disable-blink-features=AutomationControlled', '--no-sandbox']
+            )
+            context = await browser.new_context(
+                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36", 
+                viewport={'width': 1920, 'height': 1080}, 
+                locale='pt-BR'
+            )
             await self._inject_cookies(context)
             page = await context.new_page()
-            
-            await page.add_init_script("""Object.defineProperty(navigator, 'webdriver', { get: () => undefined });""")
-            
-            try:
-                await page.goto(self.profile_url, wait_until="domcontentloaded", timeout=30000)
-                if "login" in page.url: raise Exception("Sessão do Instagram Inválida/Bloqueada")
 
-                try: await page.click('button:has-text("Agora não"), button:has-text("Not Now")', timeout=2000)
+            # Stealth Patch
+            await page.add_init_script("""
+                Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+                Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
+                Object.defineProperty(navigator, 'languages', { get: () => ['pt-BR', 'pt', 'en-US', 'en'] });
+            """)
+
+            try:
+                # 1. Acessa o Perfil
+                await page.goto(self.profile_url, wait_until="domcontentloaded", timeout=30000)
+
+                # Aceitar Cookies (Obrigatório no Brasil/Europa, bloqueia o grid se não aceitar)
+                try: 
+                    await page.click('button:has-text("Aceitar"), button:has-text("Accept All"), button:has-text("Allow all cookies")', timeout=3000)
+                    self.logger.info("🍪 Cookies aceitos.")
+                    await asyncio.sleep(1)
                 except: pass
 
+                # Fecha pop-ups de notificação
+                try: 
+                    await page.click('button:has-text("Agora não"), button:has-text("Not Now")', timeout=2000)
+                except: pass
+
+                # 2. Scroll leve e pega apenas os 3 primeiros posts
+                await page.evaluate("window.scrollTo(0, 300)") # Scroll mínimo
+                await asyncio.sleep(2)
+
                 selector = 'a[href*="/p/"], a[href*="/reel/"]'
-                await page.wait_for_selector(selector, timeout=15000)
-                
-                detailed_posts = []
+                # Espera só o PRIMEIRO post aparecer
+                try: 
+                    await page.wait_for_selector(selector, timeout=15000, state="visible")
+                except:
+                    self.logger.error(f"❌ Nenhum post carregou para {self.target_profile}. Tirando print...")
+                    await page.screenshot(path=f"erro_grid_{self.target_profile}.png")
+                    raise Exception(f"Timeout ao aguardar grid de posts para {self.target_profile}")
+
                 elements = await page.query_selector_all(selector)
-                safe_limit = min(self.max_posts, 15, len(elements))
-                
-                for index, element in enumerate(elements[:safe_limit]):
+                # FORÇA O LIMITE EM 3 POSTS
+                elements = elements[:3]
+                self.logger.info(f"✅ Encontrados {len(elements)} posts. Iniciando extração profunda de comentários...")
+
+                # 3. Extração via Modal
+                detailed_posts = []
+                for index, element in enumerate(elements):
                     try:
                         href = await element.get_attribute('href')
                         shortcode = href.strip('/').split('/')[-1]
-                        
                         await element.click()
                         await page.wait_for_selector('div[role="dialog"]', timeout=10000)
-                        await asyncio.sleep(random.uniform(1.5, 4.5)) 
+                        await asyncio.sleep(random.uniform(2.0, 4.0))
                         
                         dialog_element = await page.query_selector('div[role="dialog"]')
                         if dialog_element:
+                            # Extrai Data
                             time_element = await dialog_element.query_selector('time')
                             date_str = await time_element.get_attribute('datetime') if time_element else "Unknown"
                             
+                            # Extrai Legenda (Caption)
                             caption = ""
                             h1 = await dialog_element.query_selector('h1')
                             if h1: caption = await h1.inner_text()
-                            else:
-                                span = await dialog_element.query_selector('div[role="button"] span')
-                                if span: caption = await span.inner_text()
-
+                            
                             # ==========================================
-                            # A MAGIA ACONTECE AQUI: CLASSIFICAÇÃO E SALVAMENTO
+                            # NOVIDADE: EXTRAÇÃO DE COMENTÁRIOS
                             # ==========================================
-                            category, is_critical = classify_pasa(caption)
-
+                            # Scroll dentro do modal para carregar os comentários
+                            await dialog_element.evaluate('el => el.scrollTop = el.scrollHeight')
+                            await asyncio.sleep(2)
+                            
+                            comments_text = []
+                            # Pega os textos dos comentários (geralmente estão em spans dentro de LIs)
+                            comment_elements = await dialog_element.query_selector_all('ul ul li')
+                            for c_el in comment_elements[:20]: # Limita a 20 comentários por post
+                                c_text = await c_el.inner_text()
+                                if c_text: comments_text.append(c_text.replace('\n', ' '))
+                                
+                            # Junta a legenda com os comentários para o PASA analisar tudo junto
+                            full_text = caption.strip()
+                            if comments_text:
+                                full_text += " | COMENTÁRIOS: " + " // ".join(comments_text)
+                                
+                            # Classifica e salva
+                            category, is_critical = classify_pasa(full_text)
                             post_data = {
                                 "id": shortcode, 
-                                "shortcode": shortcode,
-                                "text": caption.strip(),
+                                "text": full_text.strip(), # Texto completo (Legenda + Comentários)
                                 "timestamp": date_str,
-                                "profile": self.target_profile,
-                                "target_profile": self.target_profile, # Campo que o Frontend espera
-                                "category": category, # PASA classification
-                                "is_critical": is_critical, # PASA severity
+                                "target_profile": self.target_profile,
+                                "category": category,
+                                "is_critical": is_critical,
                                 "source": "IG",
                                 "target_avatar_url": "./assets/sentinela_small.webp"
                             }
                             detailed_posts.append(post_data)
-                            self.logger.info(f"🔍 [{index+1}/{safe_limit}] {shortcode} -> Classificação: {category}")
-                        
+                            self.logger.info(f"🔍 [{index+1}/3] {shortcode} -> PASA: {category} (Comentários: {len(comments_text)})")
+                            
                         await page.keyboard.press('Escape')
-                        await asyncio.sleep(random.uniform(1.0, 3.0))
+                        await asyncio.sleep(random.uniform(2.0, 4.0))
 
                     except Exception as e:
                         self.logger.warning(f"⚠️ Falha ao extrair post do modal: {e}")
                         await page.keyboard.press('Escape')
                         await asyncio.sleep(2)
-                
-                # SALVA TODOS OS POSTS EXTRAÍDOS DE UMA VEZ NO SUPABASE
+
+                # Salva no Supabase
                 if detailed_posts:
                     self.logger.info(f"💾 Salvando {len(detailed_posts)} alertas no Supabase...")
                     success = save_alerts(detailed_posts)
@@ -160,7 +205,6 @@ class InstagramWorker(BaseWorker):
                         self.logger.info("✅ Sincronização com o banco concluída com sucesso!")
                     else:
                         self.logger.error("❌ Falha ao sincronizar com o banco.")
-
                 return detailed_posts
 
             except Exception as e:
