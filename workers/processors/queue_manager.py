@@ -21,7 +21,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from workers.core.base_worker import BaseWorker
-from core.db import db_client
+from core.supabase_service import get_supabase_client
 
 class QueueManagerWorker(BaseWorker):
     def __init__(self):

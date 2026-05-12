@@ -13,7 +13,7 @@ import asyncio
 
 # Core imports
 sys.path.append(r"C:\projetos\sentinela-democratica")
-from core.db import db_client
+from core.supabase_service import get_supabase_client
 from core.whatsapp_alerter import send_whatsapp_summary
 
 def get_stats():

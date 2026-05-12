@@ -5,7 +5,7 @@ import sys
 # Adiciona o root do projeto ao sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from core.db import db_client
+from core.supabase_service import get_supabase_client
 
 # Configura a codificação UTF-8 para a saída padrão
 if hasattr(sys.stdout, 'reconfigure'):

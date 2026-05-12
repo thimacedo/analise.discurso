@@ -7,7 +7,7 @@ if hasattr(sys.stderr, 'reconfigure'):
 import asyncio
 import logging
 from typing import List, Dict, Any
-from core.db import db_client
+from core.supabase_service import get_supabase_client
 from core.ai_service import AIService
 from .common import BaseWorker
 

@@ -9,7 +9,7 @@ import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Any
 import numpy as np
-from core.db import db_client
+from core.supabase_service import get_supabase_client
 from core.firebase_alerter import send_alert_summary
 
 logger = logging.getLogger("PredictiveService")

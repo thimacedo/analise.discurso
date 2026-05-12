@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
 
-from core.db import db_client
+from core.supabase_service import get_supabase_client
 from core.instagram_headless import InstagramHeadlessScraper
 from core.ai_service import ai_service
 from core.orquestrador import Orchestrator

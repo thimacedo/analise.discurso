@@ -9,7 +9,7 @@ import os
 import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from core.db import db_client
+from core.supabase_service import get_supabase_client
 
 async def main():
     if not db_client.client:

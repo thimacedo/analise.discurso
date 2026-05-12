@@ -12,7 +12,7 @@ from sklearn.cluster import KMeans
 import os
 import logging
 from .common import BaseWorker
-from core.db import db_client
+from core.supabase_service import get_supabase_client
 from typing import List, Dict, Any
 
 class DataMiner(BaseWorker):

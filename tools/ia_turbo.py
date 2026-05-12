@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 sys.path.append(os.getcwd())
 
 from core.ai_service import run_batch_classification
-from core.db import db_client
+from core.supabase_service import get_supabase_client
 
 async def main():
     print("🚀 IA TURBO: Processando fila de comentários (Sem Scraper)...")
