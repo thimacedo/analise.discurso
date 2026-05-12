@@ -8,7 +8,7 @@ import os
 import json
 import csv
 from datetime import datetime
-from core.db import db_client
+from core.supabase_service import get_supabase_client # Importa a nova função
 
 # Configuração de Paths para o Vercel/Local
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -19,7 +19,7 @@ os.makedirs(API_DIR, exist_ok=True)
 
 def update_kpis():
     print("[INFO] Iniciando consolidação de KPIs...")
-    client = db_client.client
+    client = get_supabase_client() # Usa a nova função para obter o cliente
     if client is None:
         print("[ERRO] Cliente Supabase não inicializado.")
         return
