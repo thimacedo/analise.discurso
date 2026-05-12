@@ -203,8 +203,7 @@ def get_targets(request: Request, limit: int = 50, supa: Client = Depends(get_su
             
         return sorted(enriched, key=lambda x: x.get('comentarios_odio_count', 0), reverse=True)[:limit]
     except Exception as e:
-        logger.error(f"Targets Error: {e}")""")
-{traceback.format_exc()}")
+        logger.error(f"Targets Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/v1/alerts/active")
@@ -478,3 +477,6 @@ async def export_metrics(filepath: str = "data/workers_metrics_export.json"):
     except Exception as e:
         logger.error(f"Export Metrics Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+# Explicitly declare 'app' as public
+__all__ = ["app"]
