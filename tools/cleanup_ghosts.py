@@ -7,8 +7,12 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from core.db import db_client
 
+# Configura a codificação UTF-8 para a saída padrão
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+
 async def cleanup_ghosts():
-    print("🧹 Iniciando faxina Diamond de usuários fantasmas...")
+    print("Iniciando faxina Diamond de usuários fantasmas...")
     
     # Lista de termos técnicos e links de sistema para limpar
     ghost_terms = [

@@ -1,3 +1,9 @@
+
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 import json
 import httpx
 import asyncio
@@ -61,45 +67,64 @@ class AIEngine(ABC):
 class GeminiEngine(AIEngine):
     def __init__(self):
         self.adapter = GeminiAgentAdapter()
+        self.current_key_index = 0
 
     async def classify(self, text: str) -> Optional[Dict[str, Any]]:
-        if not settings.GEMINI_API_KEY: return None
-        # Proteção básica contra chaves inválidas (chaves Gemini reais geralmente começam com AIza)
-        if not settings.GEMINI_API_KEY.startswith("AIza"):
-            logger.warning(f"⚠️ [AI] Gemini Key parece inválida (não inicia com AIza). Pulando.")
+        if not settings.GEMINI_API_KEYS:
+            logger.warning("⚠️ [AI] Nenhuma chave GEMINI_API_KEYS configurada.")
             return None
             
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={settings.GEMINI_API_KEY}"
-        system_prompt = forensics_service.get_system_prompt()
-        payload = {
-            "contents": [{"parts": [{"text": f"{system_prompt}\n\nTEXTO: \"{text}\""}]}],
-            "generationConfig": {"response_mime_type": "application/json"}
-        }
-        async with httpx.AsyncClient() as client:
-            try:
-                resp = await client.post(url, json=payload, timeout=30.0)
+        # Tenta rotacionar por todas as chaves disponíveis
+        num_keys = len(settings.GEMINI_API_KEYS)
+        for _ in range(num_keys):
+            api_key = settings.GEMINI_API_KEYS[self.current_key_index]
+            
+            # Proteção básica contra chaves inválidas
+            if not api_key.startswith("AIza"):
+                logger.warning(f"⚠️ [AI] Gemini Key index {self.current_key_index} parece inválida. Pulando.")
+                self.current_key_index = (self.current_key_index + 1) % num_keys
+                continue
                 
-                # Auto-Healing: Se houver erro de assinatura ausente, logamos e tratamos
-                if resp.status_code == 400 and "thought_signature" in resp.text:
-                    logger.error(f"🚨 [AI] Falha de Assinatura Detectada: {resp.text}")
-                    # Aqui poderíamos implementar um fallback para uma versão estável
-                    return None
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+            system_prompt = forensics_service.get_system_prompt()
+            payload = {
+                "contents": [{"parts": [{"text": f"{system_prompt}\n\nTEXTO: \"{text}\""}]}],
+                "generationConfig": {"response_mime_type": "application/json"}
+            }
+            
+            async with httpx.AsyncClient() as client:
+                try:
+                    resp = await client.post(url, json=payload, timeout=30.0)
+                    
+                    # Se erro de quota (429) ou erro de autenticação (401), rotaciona
+                    if resp.status_code in [429, 401]:
+                        logger.warning(f"🔄 [AI] Gemini Key {self.current_key_index} falhou ({resp.status_code}). Rotacionando...")
+                        self.current_key_index = (self.current_key_index + 1) % num_keys
+                        continue
 
-                if resp.status_code == 200:
-                    data = resp.json()
-                    candidates = data.get('candidates', [])
-                    if not candidates: return None
-                    
-                    parts = candidates[0].get('content', {}).get('parts', [])
-                    # O Adaptador processa a resposta para capturar assinaturas se houver tool calling
-                    self.adapter.process_response_parts(parts)
-                    
-                    raw_text = parts[0]['text']
-                    return forensics_service.parse_verdict(raw_text)
-                else:
-                    logger.warning(f"⚠️ [AI] Gemini status {resp.status_code}: {resp.text}")
-            except Exception as e:
-                logger.warning(f"⚠️ [AI] Gemini failure: {e}")
+                    # Auto-Healing: Se houver erro de assinatura ausente, logamos e tratamos
+                    if resp.status_code == 400 and "thought_signature" in resp.text:
+                        logger.error(f"🚨 [AI] Falha de Assinatura Detectada: {resp.text}")
+                        return None
+
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        candidates = data.get('candidates', [])
+                        if not candidates: return None
+                        
+                        parts = candidates[0].get('content', {}).get('parts', [])
+                        self.adapter.process_response_parts(parts)
+                        
+                        raw_text = parts[0]['text']
+                        return forensics_service.parse_verdict(raw_text)
+                    else:
+                        logger.warning(f"⚠️ [AI] Gemini status {resp.status_code}: {resp.text}")
+                        # Outros erros também podem disparar rotação se for o caso
+                        self.current_key_index = (self.current_key_index + 1) % num_keys
+                except Exception as e:
+                    logger.warning(f"⚠️ [AI] Gemini failure with key {self.current_key_index}: {e}")
+                    self.current_key_index = (self.current_key_index + 1) % num_keys
+        
         return None
 
 class GroqEngine(AIEngine):
@@ -222,6 +247,11 @@ class AIService:
                 # Penalidade pesada por falha (ex: 429 ou 404)
                 self.engine_scores[engine_name] = max(0, self.engine_scores[engine_name] - 15)
                 logger.warning(f"📉 [AI] Penalizando {engine_name.upper()} por falha. Novo score: {self.engine_scores[engine_name]}")
+                
+                # PAUSA ADAPTATIVA: Se detectarmos falha generalizada (score baixo), esperamos o resfriamento
+                if self.engine_scores[engine_name] < 40:
+                    logger.info("⏳ [AI] Rate limit provável. Iniciando pausa adaptativa de 45s...")
+                    await asyncio.sleep(45)
 
         # Se todos falharem, tentar recuperar um pouco a pontuação de todos para não travarem no 0 para sempre
         for k in self.engine_scores.keys():
@@ -261,9 +291,11 @@ class AIService:
                 engine = result["classification"].get("engine", "none") if result.get("classification") else "none"
                 updates.append({
                     "id": c['id'],
+                    "id_externo": c.get('id_externo'), # Reenvia o ID externo para evitar violação de constraint no upsert do PostgREST
+                    "mined": c.get('mined', True),     # Garante que mined não seja nulo
                     "is_hate": result['is_hate'],
                     "categoria_ia": result['category'],
-                    "confianza_ia": result["classification"].get('confidence', 0) if result.get("classification") else 0,
+                    "confianca_ia": result["classification"].get('confidence', 0) if result.get("classification") else 0,
                     "processado_ia": True if engine != 'fail' else False
                 })
 

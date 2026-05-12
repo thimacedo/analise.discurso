@@ -12,4 +12,9 @@
 - ✅ **Scraper Robustness (STN-005)**: Implementado Regex Fallback no `InstagramHeadlessScraper` para falhas de seletor DOM.
 - ✅ **Resiliência de IA**: Cascata de motores (Gemini -> Groq -> Ollama) validada e funcional.
 - ✅ **UI Restoration (STN-UI-01/02)**: Recuperado visual Diamond, removidos efeitos de blur e garantida a resiliência básica de exibição de dados. Icones Lucide e CSS estão operacionais.
+- ✅ **Resiliência de Pipeline (STN-007)**: 
+    - Implementado `Smart Classifier Worker` com backoff adaptativo (90s) para gestão de Rate Limits (429).
+    - Criado mecanismo de fallback automático no `DatabaseClient` para updates individuais quando o batch falha por constraints de integridade.
+    - Blindagem de `id_externo` no scraper headless com geração determinística via MD5.
+    - Corrigido parser forense (`forensics_service.py`) para eliminar falhas de processamento por erro de indentação.
 

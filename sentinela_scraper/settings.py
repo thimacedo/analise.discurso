@@ -1,3 +1,9 @@
+
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 BOT_NAME = "sentinela_scraper"
 SPIDER_MODULES = ["sentinela_scraper.spiders"]
 NEWSPIDER_MODULE = "sentinela_scraper.spiders"

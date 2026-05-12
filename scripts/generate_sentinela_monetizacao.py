@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 """
 Gerador do PDF: Sentinela Democrática — Estratégia de Monetização e Gamificação v19.6.0
 Usa ReportLab para gerar um relatório profissional multi-páginas.

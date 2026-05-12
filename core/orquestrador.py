@@ -21,6 +21,10 @@ from processing.workers_metrics import WorkerValidator
 from tools.target_manager import TargetManager
 from workers.processors.queue_manager import QueueManagerWorker
 
+# Configura a codificação UTF-8 para a saída padrão
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+
 class Orchestrator:
     def __init__(self):
         self.rg = ReportGenerator()

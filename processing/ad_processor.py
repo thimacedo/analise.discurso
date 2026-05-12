@@ -1,3 +1,9 @@
+
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 import asyncio
 import logging
 from typing import List, Dict, Any
@@ -50,7 +56,7 @@ class AdProcessor(BaseWorker):
                 updates.append({
                     "id": ad_id,
                     "categoria_ia": classification['category'],
-                    "confianza_ia": classification['confidence'],
+                    "confianca_ia": classification['confidence'],
                     "is_hate": classification['is_hate'],
                     "processado_ia": True if classification.get('engine') != 'fail' else False
                 })

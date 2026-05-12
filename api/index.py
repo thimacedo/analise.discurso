@@ -1,3 +1,9 @@
+
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 from fastapi import FastAPI, HTTPException, Body, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -197,7 +203,7 @@ def get_targets(request: Request, limit: int = 50, supa: Client = Depends(get_su
             
         return sorted(enriched, key=lambda x: x.get('comentarios_odio_count', 0), reverse=True)[:limit]
     except Exception as e:
-        logger.error(f"Targets Error: {e}
+        logger.error(f"Targets Error: {e}")""")
 {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
 

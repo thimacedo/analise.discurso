@@ -3,17 +3,26 @@ Worker: CandidateScanner (Motor de Inteligência de Alvos)
 Finalidade: Monitorar a pasta de pesquisas, extrair candidatos, calcular relevância e agendar coleta.
 Protocolo Diamond: Herda de BaseWorker.
 """
+
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 import os
 import re
 import hashlib
 import asyncio
+import sys
 from datetime import datetime, UTC
 from pathlib import Path
 from typing import List, Dict
 
-# Import do contrato BaseWorker e DB
-import sys
-sys.path.append(r"E:\Projetos\sentinela-democratica")
+# Ajuste dinâmico de path para o root do projeto
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from workers.core.base_worker import BaseWorker
 from core.db import db_client
 
@@ -25,7 +34,8 @@ except ImportError:
 class CandidateScannerWorker(BaseWorker):
     def __init__(self):
         super().__init__("CandidateScanner")
-        self.base_path = Path(r"E:\Projetos\sentinela-democratica\bases_pesquisas")
+        # Usando caminho relativo ao root do projeto
+        self.base_path = PROJECT_ROOT / "bases_pesquisas"
         self.processed_table = "pesquisas_processadas"
         self.candidate_table = "candidatos"
         self.queue_table = "fila_coleta"

@@ -1,11 +1,6 @@
 # ROADMAP - Sentinela Democrática
 
 ## 🛠️ Em Andamento (Milestone v20.6/v20.7 - Restauração e Estabilização)
-- [ ] **Resiliência do Frontend (Null-Safety)**: Garantir resiliência contra falhas de API.
-    - [ ] **[STN-001]** Frontend: Add null-safety para 'summary', 'targets' e 'alerts'.
-- [ ] **Otimização de Memória (OOM Prevention)**: Paginação estrita e Infinite Scroll.
-    - [ ] **[STN-002]** DataService: Implementar fetch limit de 20 itens.
-    - [ ] **[STN-002.1]** Frontend: Validar mecanismo de infinite scroll.
 - [ ] **Estratégia de Cache e Monetização**: Versionamento e IDs reais.
     - [ ] **[STN-003]** Cache Busting: Headers Vercel e versionamento JS.
     - [ ] **[STN-004]** Monetização: IDs reais do AdSense (Slot 1779104226) e Stripe.
@@ -13,6 +8,10 @@
     - [ ] **[STN-X01]** Zombie Process Killer: Script para limpar portas 8000/8080.
 
 ## ✅ Concluído
+- [x] **[STN-007]** Pipeline Resilience: Implementar Smart Worker com backoff adaptativo e fallback de DB.
+- [x] **[STN-001]** Frontend: Add null-safety para 'summary', 'targets' e 'alerts'.
+- [x] **[STN-002]** DataService: Implementar fetch limit de 20 itens.
+- [x] **[STN-002.1]** Frontend: Validar mecanismo de infinite scroll.
 - [x] **UX/UI**: Bordas vermelhas em alertas críticos e Skeleton Loading com `animate-pulse`.
 - [x] **MARKETING**: Anúncios AdSense ocultos para usuários Diamond.
 - [x] **VIRALIDADE**: Rodapé cinza profissional adicionado aos PDFs gerados.

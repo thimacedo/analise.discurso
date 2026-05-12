@@ -3,25 +3,36 @@ Worker: SearchWatcher (Monitor de Novos Arquivos de Pesquisa)
 Finalidade: Monitorar a pasta bases_pesquisas diariamente e disparar o CandidateScanner.
 Protocolo Diamond: Herda de BaseWorker.
 """
+
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 import os
 import asyncio
 import hashlib
+import sys
 from pathlib import Path
 from datetime import datetime, UTC
 from typing import Set
 
-import sys
-sys.path.append(r"E:\Projetos\sentinela-democratica")
+# Ajuste dinâmico de path para o root do projeto
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from workers.core.base_worker import BaseWorker
 from core.db import db_client
 
 class SearchWatcherWorker(BaseWorker):
     def __init__(self):
         super().__init__("SearchWatcher")
-        self.base_path = Path(r"E:\Projetos\sentinela-democratica\bases_pesquisas")
+        self.base_path = PROJECT_ROOT / "bases_pesquisas"
         self.processed_table = "pesquisas_processadas"
-        self.scan_script = Path(r"E:\Projetos\sentinela-democratica\workers\processors\candidate_scanner.py")
-        self.python_exe = Path(r"E:\Projetos\sentinela-democratica\.venv\Scripts\python.exe")
+        self.scan_script = PROJECT_ROOT / "workers" / "processors" / "candidate_scanner.py"
+        # Tenta usar o python atual
+        self.python_exe = sys.executable or "python"
 
     async def _run(self, *args, **kwargs):
         """

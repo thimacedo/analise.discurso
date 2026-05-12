@@ -3,12 +3,23 @@ Worker: QueueManager (Cérebro da Fila de Coleta)
 Finalidade: Gerenciar a fila_coleta diária, garantindo rotação ponderada e atualização de todos os alvos.
 Protocolo Diamond: Herda de BaseWorker.
 """
-import asyncio
-from datetime import datetime, UTC, timedelta
-from typing import List, Dict
 
 import sys
-sys.path.append(r"E:\Projetos\sentinela-democratica")
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+import asyncio
+import sys
+from datetime import datetime, UTC, timedelta
+from pathlib import Path
+from typing import List, Dict
+
+# Ajuste dinâmico de path para o root do projeto
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from workers.core.base_worker import BaseWorker
 from core.db import db_client
 

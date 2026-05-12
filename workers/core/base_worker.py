@@ -2,6 +2,12 @@
 Contratos Base para Workers (Protocolo Diamond)
 Arquitetura Open/Closed: Novos workers devem herdar desta classe.
 """
+
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 from abc import ABC, abstractmethod
 import asyncio
 from datetime import datetime, UTC

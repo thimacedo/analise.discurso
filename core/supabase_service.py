@@ -1,3 +1,9 @@
+
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 from supabase import create_client, Client
@@ -166,7 +172,7 @@ class SupabaseService:
                 self.client.table('comentarios').update({
                     'processado_ia': False,
                     'categoria_ia': None,
-                    'confianza_ia': 0,
+                    'confianca_ia': 0,
                     'is_hate': False
                 }).in_('id', batch).execute()
             

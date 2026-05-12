@@ -9,6 +9,10 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from core.orquestrador import Orchestrator
 from core.config import settings
 
+# Configura a codificação UTF-8 para a saída padrão
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+
 async def main():
     print(f"📊 [KPI-UPDATE] Iniciando Atualização de Métricas Diamond v{settings.VERSION}")
     orc = Orchestrator()

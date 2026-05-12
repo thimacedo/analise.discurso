@@ -36,14 +36,14 @@ async def verify_schema():
             print("⚠️ [VERIFY] Tabela encontrada, mas está vazia. Verificando via RPC ou API de metadados...")
             # Fallback: tentar verificar colunas específicas via select filtrado
             try:
-                supabase.table('anuncios').select('corpo_anuncio, categoria_ia, confianza_ia, is_hate, processado_ia').limit(0).execute()
+                supabase.table('anuncios').select('corpo_anuncio, categoria_ia, confianca_ia, is_hate, processado_ia').limit(0).execute()
                 print("✅ [VERIFY] Todas as colunas PASA v16.4 estão presentes.")
                 return True
             except Exception as e:
                 print(f"❌ [VERIFY] Algumas colunas PASA estão faltando: {e}")
                 return False
                 
-        required_pasa = ['corpo_anuncio', 'categoria_ia', 'confianza_ia', 'is_hate', 'processado_ia']
+        required_pasa = ['corpo_anuncio', 'categoria_ia', 'confianca_ia', 'is_hate', 'processado_ia']
         missing = [c for c in required_pasa if c not in columns]
         
         if not missing:

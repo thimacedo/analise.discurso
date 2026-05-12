@@ -1,3 +1,9 @@
+
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 import time
 import subprocess
 import os
@@ -6,7 +12,7 @@ from datetime import datetime, timedelta
 import asyncio
 
 # Core imports
-sys.path.append(r"E:\Projetos\sentinela-democratica")
+sys.path.append(r"C:\projetos\sentinela-democratica")
 from core.db import db_client
 from core.whatsapp_alerter import send_whatsapp_summary
 

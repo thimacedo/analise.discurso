@@ -3,6 +3,12 @@ Election Monitor - Busca externa de notícias e pesquisas eleitorais.
 Responsável por identificar novos candidatos e mudanças no cenário eleitoral.
 """
 
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+
 import httpx
 import json
 import asyncio

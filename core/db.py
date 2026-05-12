@@ -1,3 +1,9 @@
+
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 import httpx
 from datetime import datetime
 from typing import List, Dict, Any, Optional
@@ -13,7 +19,10 @@ class DatabaseClient:
             "Authorization": f"Bearer {self.key}",
             "Content-Type": "application/json"
         }
-        self.client: Client = create_client(self.url, self.key) if self.url and self.key else None
+        # Inicialização segura: só cria o cliente se as credenciais forem válidas
+        self.client = None
+        if self.url and self.key and self.url.startswith("http"):
+            self.client = create_client(self.url, self.key)
 
     async def fetch_unprocessed_comments(self, limit: int = 200, org_id: str = None) -> List[Dict[str, Any]]:
         """Busca comentários que ainda não foram processados pela IA, filtrados por org opcional."""
@@ -46,17 +55,33 @@ class DatabaseClient:
     async def batch_update_comments(self, updates: List[Dict[str, Any]]):
         """
         Executa atualizações em lote para comentários usando upsert do Supabase.
-        Cada dicionário em 'updates' deve conter a chave 'id'.
+        Se o upsert falhar por violação de constraint (comum em updates parciais de registros antigos),
+        tenta realizar atualizações individuais via PATCH.
         """
         if not self.client or not updates:
             return
 
         try:
-            # O upsert no Supabase funciona como merge se o ID estiver presente
+            # O upsert no Supabase funciona como merge se o ID estiver presente,
+            # mas pode disparar erros de constraint se o registro for interpretado como novo INSERT.
             self.client.table('comentarios').upsert(updates).execute()
             print(f"✅ [DB] {len(updates)} comentários atualizados em lote.")
         except Exception as e:
-            print(f"❌ [DB] Erro no batch_update_comments: {e}")
+            error_msg = str(e)
+            if "23502" in error_msg or "id_externo" in error_msg:
+                print(f"⚠️ [DB] Upsert em lote falhou por constraint (id_externo). Tentando fallback para updates individuais...")
+                success_count = 0
+                for up in updates:
+                    try:
+                        # O método .update() do Supabase/PostgREST usa PATCH, que não exige colunas NOT NULL omitidas
+                        res = self.client.table('comentarios').update(up).eq('id', up['id']).execute()
+                        if res.data:
+                            success_count += 1
+                    except Exception as inner_e:
+                        print(f"❌ [DB] Falha no update individual para {up.get('id', 'unknown')}: {inner_e}")
+                print(f"✅ [DB] {success_count}/{len(updates)} comentários atualizados via fallback individual.")
+            else:
+                print(f"❌ [DB] Erro no batch_update_comments: {e}")
 
     async def batch_update_ad_classification(self, updates: List[Dict[str, Any]]):
         """
@@ -128,7 +153,7 @@ class DatabaseClient:
                 self.client.table('comentarios').update({
                     'processado_ia': False,
                     'categoria_ia': None,
-                    'confianza_ia': 0,
+                    'confianca_ia': 0,
                     'is_hate': False
                 }).in_('id', batch).execute()
             

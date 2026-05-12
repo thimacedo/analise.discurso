@@ -5,7 +5,7 @@ import os
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding='utf-8')
 
-sys.path.append(r"E:\Projetos\sentinela-democratica")
+sys.path.append(r"C:\projetos\sentinela-democratica")
 from core.db import db_client
 
 def get_latest():
