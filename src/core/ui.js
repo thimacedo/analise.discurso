@@ -98,7 +98,7 @@ export function buildPostCard(alerta) {
                 <div class="flex items-center gap-3 bg-slate-50/50 p-2 rounded-2xl border border-slate-100">
                     <div class="flex flex-col items-end">
                         <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Alvo</span>
-                        <span class="text-[11px] font-black text-slate-800">@${alerta?.alvo_username || 'alvo'}</span>
+                        <span class="text-[11px] font-black text-slate-800">@${alerta?.alvo_username || alerta?.candidato_id || 'alvo'}</span>
                     </div>
                     <div class="w-10 h-10 rounded-xl overflow-hidden border-2 border-white shadow-sm">
                         <img src="https://ui-avatars.com/api/?name=${alerta?.alvo_username || 'alvo'}&background=0D8ABC&color=fff" alt="Alvo" class="w-full h-full object-cover">
