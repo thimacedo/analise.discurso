@@ -70,6 +70,7 @@ export function buildPostCard(alerta) {
         </div>
 
         <article class="post-card-surface relative bg-white border-2 ${borderColor} rounded-[2rem] p-6 shadow-sm z-10 w-full transition-all duration-300 ${isCritical ? 'group-hover:shadow-2xl shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'group-hover:shadow-md'} group-hover:-translate-y-1" style="position:relative;">
+    ${fpButtonHtml}   <!-- 🚩 Bandeira de falso positivo -->
             <!-- Badge de Severidade -->
             <div class="absolute -top-3 left-8 z-20">
                 <span class="px-4 py-1.5 ${badgeClass} rounded-full text-[10px] font-black tracking-widest uppercase border border-white/20">

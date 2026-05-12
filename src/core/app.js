@@ -68,6 +68,43 @@ window.unlockIntel = (alertId) => {
     alert('Detalhes do alerta não disponíveis.');
   }
 };
+
+// Adiciona a função window.setFiltroAlvo
+window.setFiltroAlvo = (username) => {
+  console.log('[Filtro] Definindo filtro para:', username);
+  const input = document.getElementById('dashboard-search-input');
+  if (input) {
+    input.value = username;
+    window.setDashboardSearch(username);
+  }
+};
+
+// Confirma a existência e adiciona a função window.markFalsePositive se ausente
+if (typeof window.markFalsePositive === 'undefined') {
+    window.markFalsePositive = async (commentId, cardElement) => {
+      try {
+        const response = await fetch(`${SENTINELA_CONFIG.apiUrl}/alerts/false-positive`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: commentId })
+        });
+        if (response.ok) {
+          console.log('[FP] Comentário sinalizado com sucesso.');
+          if (cardElement) {
+              const container = cardElement.closest('.post-card-container');
+              if (container) container.style.display = 'none';
+          }
+        } else {
+          const errorData = await response.json();
+          console.error('[FP] Erro ao sinalizar:', errorData);
+          alert(`Erro ao sinalizar falso positivo: ${errorData.message || response.statusText}`);
+        }
+      } catch (e) {
+        console.error('[FP] Falha na requisição:', e);
+        alert('Falha na requisição para sinalizar falso positivo. Verifique o console.');
+      }
+    };
+}
 };
 
 
