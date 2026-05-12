@@ -16,7 +16,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 from core.config import settings
-from core.db import get_supabase_client
+from core.supabase_service import get_supabase_client
 from core.ai_service import ai_service
 from validator_mcp import validate_worker_standard
 

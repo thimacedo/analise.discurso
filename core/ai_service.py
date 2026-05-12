@@ -297,9 +297,9 @@ class AIService:
 
     async def run_batch_classification(self, limit: int = 200, force_retry_failures: bool = False):
         """Processamento em lote com persistência via DB injetado."""
-        from core.db import db_client
+        from core.supabase_service import get_supabase_client
         from core.pasa_auditor import PASAAuditor
-        self.db = db_client
+        self.db = get_supabase_client()
         pasa_auditor = PASAAuditor(ai_service_instance=self)
 
         total_processed = 0
@@ -307,7 +307,7 @@ class AIService:
         # Processar comentários
         if force_retry_failures:
             logger.info("🔍 [AI] Iniciando limpeza de FALHA_IA em comentários...")
-            res = self.db.client.table('comentarios').select('*').eq('categoria_ia', 'FALHA_IA').limit(limit).execute()
+            res = self.db.table('comentarios').select('*').eq('categoria_ia', 'FALHA_IA').limit(limit).execute()
             comentarios = res.data
         else:
             comentarios = await self.db.fetch_unprocessed_comments(limit=limit)
