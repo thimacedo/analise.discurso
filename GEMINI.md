@@ -37,3 +37,7 @@ Este arquivo contém as regras imutáveis de desenvolvimento e gestão de memór
 - **Híbrido:** Para alternar entre o processamento local (Ollama) e nuvem (Gemini), utilize a variável `IA_PROVIDER` no seu arquivo `.env`.
 - **Credenciais Gemini:** Certifique-se de que sua `GEMINI_API_KEY` está configurada no arquivo `.env` para habilitar as funções de nuvem.
 
+## ⚖️ REGRAS DE EXECUÇÃO ESTREITA
+- **Proatividade:** Siga rigorosamente as diretrizes em `.gemini/commands/strict-development-rules.md`. Decisões técnicas devem ser tomadas autonomamente com base no contexto, evitando turnos de pergunta/resposta desnecessários.
+
+
