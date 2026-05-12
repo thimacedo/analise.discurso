@@ -6,12 +6,13 @@ if sys.platform == "win32":
     sys.stdout.reconfigure(encoding='utf-8')
 
 sys.path.append(r"C:\projetos\sentinela-democratica")
-from core.db import db_client
+from core.db import get_supabase_client
 
 def get_latest():
     print("=== MÉTRICAS DIÁRIAS (ÚLTIMO REGISTRO) ===")
     try:
-        res_metrics = db_client.client.table('metricas_diarias').select('*').order('data', desc=True).limit(1).execute()
+        supabase = get_supabase_client()
+        res_metrics = supabase.table('metricas_diarias').select('*').order('data', desc=True).limit(1).execute()
         if res_metrics.data:
             for k, v in res_metrics.data[0].items():
                 print(f"{k}: {v}")
@@ -22,7 +23,8 @@ def get_latest():
 
     print("\n=== ÚLTIMA REDE COORDENADA DETECTADA ===")
     try:
-        res_redes = db_client.client.table('redes_coordenadas').select('*').order('created_at', desc=True).limit(1).execute()
+        supabase = get_supabase_client()
+        res_redes = supabase.table('redes_coordenadas').select('*').order('created_at', desc=True).limit(1).execute()
         if res_redes.data:
             for k, v in res_redes.data[0].items():
                 print(f"{k}: {v}")

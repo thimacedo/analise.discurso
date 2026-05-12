@@ -8,7 +8,7 @@ import hashlib
 import pandas as pd
 from datetime import datetime
 from processing.report_generator import ReportGenerator
-from core.db import db_client
+from core.supabase_service import supabase_client_instance
 
 class DossieService:
     """
@@ -50,7 +50,7 @@ class DossieService:
                 "arquivo_path": pdf_path,
                 "versao_pasa": "v16.4"
             }
-            await db_client.persist_dossier(dossie_meta)
+            await supabase_client_instance.persist_dossier(dossie_meta)
             print(f"✨ [DossieService] Inteligência do dossiê {data_hash[:10]} persistida no repositório.")
             
         return pdf_path

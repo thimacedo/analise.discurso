@@ -1,4 +1,5 @@
 import pytest
+import httpx
 from unittest.mock import AsyncMock, MagicMock, patch
 
 # Assume that core.supabase_service is correctly importable and settings are available
@@ -28,7 +29,7 @@ def mock_settings():
 # Patching settings and create_client globally for tests
 @pytest.fixture(autouse=True)
 def patch_globals(mock_settings):
-    with patch('core.supabase_service.settings', mock_settings):
+    with patch('core.supabase_service.settings', mock_settings, create=True):
         with patch('core.supabase_service.create_client', return_value=MagicMock()) as mock_create_client:
             yield mock_create_client
 
