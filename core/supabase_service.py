@@ -276,11 +276,11 @@ class SupabaseService:
             print("⚠️ [SupabaseService] Cliente Supabase não inicializado.")
             return []
         try:
-            res = self.client.table('dossies')
-                .select('*')
-                .eq('candidato_id', candidato_id)
-                .order('data_geracao', ascending=False)
-                .limit(limit)
+            res = self.client.table('dossies') \
+                .select('*') \
+                .eq('candidato_id', candidato_id) \
+                .order('data_geracao', ascending=False) \
+                .limit(limit) \
                 .execute()
             return res.data
         except Exception as e:
