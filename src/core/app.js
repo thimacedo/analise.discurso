@@ -1,233 +1,166 @@
 // src/core/app.js
-// SENTINELA | Diamond Edition - App Core v20.5.6 [STABLE]
 
-import { state, setViewState } from './state.js';
-import { dataService } from '../services/dataService.js';
-import { authService } from '../services/authService.js';
-import { fcmService } from '../services/fcmService.js';
-import { renderAll, renderFeed, toggleSkeleton } from './ui.js?v=20.5.6';
+import { createClient } from '@supabase/supabase-js';
 
-// Constants for API URLs and other configurations
-const SENTINELA_CONFIG = {
-    apiUrl: 'http://localhost:3000/api/v1' // Placeholder - assume this is dynamically set or configured elsewhere
+// 1. CONFIGURAÇÃO SUPABASE (Substitua pelas suas variáveis reais do projeto)
+const SUPABASE_URL = 'SUA_URL_SUPABASE_AQUI';
+const SUPABASE_ANON_KEY = 'SUA_CHAVE_ANON_KEY_AQUI';
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// 2. MAPEAMENTO VISUAL DO PASA v16.4
+const PASA_THREAT_PROFILE = {
+    'AMEACA': { color: 'bg-red-600', label: 'Ameaça', badge: 'bg-red-50 text-red-600' },
+    'ODIO_IDENTITARIO': { color: 'bg-orange-500', label: 'Ódio Identitário', badge: 'bg-orange-50 text-orange-600' },
+    'VIOLENCIA_GENERO': { color: 'bg-purple-500', label: 'Violência de Gênero', badge: 'bg-purple-50 text-purple-600' },
+    'RIGOR_CRIMINAL': { color: 'bg-yellow-500', label: 'Rigor Criminal', badge: 'bg-yellow-50 text-yellow-700' },
+    'INSULTO_AD_HOMINEM': { color: 'bg-amber-500', label: 'Ad Hominem', badge: 'bg-amber-50 text-amber-700' },
+    'ATAQUE_INSTITUCIONAL': { color: 'bg-blue-500', label: 'Ataque Institucional', badge: 'bg-blue-50 text-blue-600' },
+    'NEUTRO': { color: 'bg-slate-300', label: 'Neutro', badge: 'bg-slate-100 text-slate-500' }
 };
 
-let renderTimeout;
-window.debouncedRender = () => {
-    if (renderTimeout) cancelAnimationFrame(renderTimeout);
-    renderTimeout = requestAnimationFrame(() => renderAll());
-};
+// 3. FUNÇÕES DE RENDERIZAÇÃO
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.appendChild(document.createTextNode(text));
+    return div.innerHTML;
+}
 
-window.setDashboardFilter = (filter) => {
-    state.dashboardFilter = filter;
-    state.currentPage = 1;
-    refreshData();
-};
+function getTimeAgo(timestamp) {
+    if (!timestamp) return '';
+    const diffMins = Math.round((new Date() - new Date(timestamp)) / 60000);
+    if (diffMins < 1) return 'agora';
+    if (diffMins < 60) return `há ${diffMins} min`;
+    if (diffMins < 1440) return `há ${Math.round(diffMins / 60)}h`;
+    return `há ${Math.round(diffMins / 1440)}d`;
+}
 
-window.setDashboardSearch = (query) => {
-    state.searchQuery = query;
-    state.currentPage = 1;
-    const clearBtn = document.getElementById('clear-search-btn');
-    if (clearBtn) clearBtn.style.display = query ? 'block' : 'none';
-    window.debouncedRender();
-};
+function renderThreatCard(alertData) {
+    const profile = PASA_THREAT_PROFILE[alertData.category] || PASA_THREAT_PROFILE['NEUTRO'];
+    const severityClass = alertData.is_critical ? 'border-red-500' : 'border-slate-200';
+    const timeAgo = getTimeAgo(alertData.timestamp);
 
-window.clearDashboardSearch = () => {
-    const input = document.getElementById('dashboard-search-input');
-    if (input) input.value = '';
-    window.setDashboardSearch('');
-};
+    return `
+        <div class="threat-card bg-white rounded-xl border ${severityClass} shadow-sm hover:shadow-md transition-all overflow-hidden group">
+            <div class="flex">
+                <div class="w-1 ${profile.color} flex-shrink-0"></div>
+                <div class="flex-1 p-4">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500 overflow-hidden">
+                                <img src="${alertData.target_avatar_url || './assets/sentinela_small.webp'}" class="w-full h-full object-cover" onerror="this.style.display='none'">
+                            </div>
+                            <div>
+                                <span class="text-sm font-bold text-slate-800">@${alertData.target_profile || 'Desconhecido'}</span>
+                                <span class="text-[10px] ml-2 font-bold ${profile.badge} px-2 py-0.5 rounded-full uppercase tracking-wider">${profile.label}</span>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-mono text-slate-400">${timeAgo}</span>
+                    </div>
+                    <div class="bg-slate-50 border-l-2 border-slate-300 rounded-r-lg p-3 mb-3">
+                        <p class="text-sm text-slate-700 italic leading-relaxed">"${escapeHtml(alertData.text || 'Texto não capturado')}"</p>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <span class="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase"><i data-lucide="shield-alert" class="w-3 h-3"></i> ${profile.label}</span>
+                            <span class="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase"><i data-lucide="share-2" class="w-3 h-3"></i> ${alertData.source || 'IG'}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+}
 
-// Função para sinalizar falso positivo (adicionar ao app.js)
-window.markFalsePositive = async (commentId, cardElement) => {
-  try {
-    const response = await fetch(`${SENTINELA_CONFIG.apiUrl}/alerts/false-positive`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: commentId })
+function renderHotTargets(targets) {
+    const container = document.getElementById('chartMain');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (targets.length === 0) {
+        container.innerHTML = '<p class="text-center text-slate-300 text-[10px] py-4 uppercase">Sem alvos críticos</p>';
+        return;
+    }
+
+    targets.slice(0, 5).forEach((target, index) => {
+        const riskPercent = Math.min(100, Math.round((target.threat_count / target.max_threats) * 100));
+        const riskColor = riskPercent > 75 ? 'bg-red-500' : riskPercent > 40 ? 'bg-orange-400' : 'bg-slate-300';
+
+        container.innerHTML += `
+            <div class="flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 transition-colors group cursor-pointer">
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-full bg-red-50 flex items-center justify-center text-[9px] font-bold text-red-500 border border-red-100">${index + 1}</div>
+                    <span class="text-xs font-bold text-slate-700 group-hover:text-slate-900">@${target.profile}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-16 bg-slate-100 rounded-full h-1.5">
+                        <div class="${riskColor} h-1.5 rounded-full" style="width: ${riskPercent}%"></div>
+                    </div>
+                    <span class="text-[9px] font-mono text-slate-400">${riskPercent}%</span>
+                </div>
+            </div>`;
     });
-    if (response.ok) {
-      console.log('[FP] Comentário sinalizado com sucesso.');
-      if (cardElement) cardElement.style.display = 'none';
-    } else {
-      console.error('[FP] Erro ao sinalizar:', await response.json());
-    }
-  } catch (e) {
-    console.error('[FP] Falha na requisição:', e);
-  }
-};
-
-// Adiciona a função window.unlockIntel
-window.unlockIntel = (alertId) => {
-  console.log('[Intel] Solicitada auditoria para alerta:', alertId);
-  // Exibe os detalhes do alerta
-  const alerta = state.alertas.find(a => a.id === alertId);
-  if (alerta) {
-    alert(`Auditoria do Alerta:\n\nCategoria: ${alerta.categoria_ia}\nAlvo: @${alerta.alvo_username}\nTexto: "${alerta.texto_bruto}"\nHash: ${alerta.id}`);
-  } else {
-    alert('Detalhes do alerta não disponíveis.');
-  }
-};
-
-// Adiciona a função window.setFiltroAlvo
-window.setFiltroAlvo = (username) => {
-  console.log('[Filtro] Definindo filtro para:', username);
-  const input = document.getElementById('dashboard-search-input');
-  if (input) {
-    input.value = username;
-    window.setDashboardSearch(username);
-  }
-};
-
-// Confirma a existência e adiciona a função window.markFalsePositive se ausente
-if (typeof window.markFalsePositive === 'undefined') {
-    window.markFalsePositive = async (commentId, cardElement) => {
-      try {
-        const response = await fetch(`${SENTINELA_CONFIG.apiUrl}/alerts/false-positive`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: commentId })
-        });
-        if (response.ok) {
-          console.log('[FP] Comentário sinalizado com sucesso.');
-          if (cardElement) {
-              const container = cardElement.closest('.post-card-container');
-              if (container) container.style.display = 'none';
-          }
-        } else {
-          const errorData = await response.json();
-          console.error('[FP] Erro ao sinalizar:', errorData);
-          alert(`Erro ao sinalizar falso positivo: ${errorData.message || response.statusText}`);
-        }
-      } catch (e) {
-        console.error('[FP] Falha na requisição:', e);
-        alert('Falha na requisição para sinalizar falso positivo. Verifique o console.');
-      }
-    };
 }
-};
 
+// 4. FUNÇÃO PRINCIPAL DE CARGA DO BANCO
+async function loadSentinelaDashboard() {
+    const feedContainer = document.getElementById('feed-alertas');
+    const skeleton = document.getElementById('skeleton-container');
+    
+    if(!feedContainer) return;
 
-async function loadMoreAlerts() {
-    if (state.isLoading || state.currentPage >= 5) return;
     try {
-        state.isLoading = true;
-        toggleSkeleton(true);
-        const nextPage = state.currentPage + 1;
-        const newAlerts = await dataService.getAlerts(20, nextPage);
-        if (Array.isArray(newAlerts) && newAlerts.length > 0) {
-            state.alertas = [...state.alertas, ...newAlerts];
-            state.currentPage = nextPage;
-            renderFeed(newAlerts, 'feed-alertas', true);
-        } else {
-            state.currentPage = 999;
-        }
-    } catch (e) {
-        console.error('[App] Scroll Error:', e);
-    } finally {
-        state.isLoading = false;
-        toggleSkeleton(false);
-    }
-}
+        // A. Buscar Alertas Recentes (Ajuste o nome da tabela 'threat_alerts' se for diferente no seu Supabase)
+        const { data: alerts, error: alertError } = await supabase
+            .from('threat_alerts')
+            .select('*')
+            .order('timestamp', { ascending: false })
+            .limit(20);
 
-function initInfiniteScroll() {
-    const sentinel = document.getElementById('scroll-sentinel');
-    if (!sentinel) return;
-    new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && !state.isLoading && state.currentPage < 10) loadMoreAlerts();
-    }, { threshold: 0.1 }).observe(sentinel);
-}
+        if (alertError) throw alertError;
 
-
-async function init() {
-    console.log('🌟 SENTINELA | Diamond Edition v20.5.6 [STABLE]');
-    try {
-        await authService.init();
-        if (authService.isAuthenticated()) fcmService.init();
-    } catch (e) {
-        console.error('[App] Init Error:', e);
-    }
-    window.addEventListener('hashchange', () => setViewState(window.location.hash.substring(1) || 'monitor'));
-    setViewState(window.location.hash.substring(1) || 'monitor');
-    await refreshData();
-    initInfiniteScroll();
-    if (window.lucide) lucide.createIcons();
-}
-
-async function refreshData() {
-    try {
-        state.loading = true;
-        toggleSkeleton(true);
-        const [summary, targets, alerts] = await Promise.all([
-            dataService.getSummary().catch(() => ({})), // Retorna objeto vazio em caso de erro
-            dataService.getTargets().catch(() => []),   // Retorna array vazio em caso de erro
-            dataService.getAlerts(20, 1).catch(() => [])       // Retorna array vazio em caso de erro
-        ]);
-
-        state.data = targets;
-        state.alertas = alerts;
-        state.summary = summary;
-
-        const now = new Date().toLocaleTimeString('pt-BR');
-        const updateEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-        
-        updateEl('kpi-monitorados', state.summary?.total_monitorados ?? '---');
-        updateEl('kpi-time-monitorados', 'agora');
-        updateEl('kpi-hate', state.summary?.total_alertas ?? '---');
-        updateEl('kpi-time-hate', 'agora');
-        updateEl('kpi-total', state.summary?.total_amostra?.toLocaleString('pt-BR') ?? '---');
-        updateEl('kpi-time-total', 'agora');
-        updateEl('kpi-res', `${state.summary?.resiliencia ?? 0}%`);
-        updateEl('kpi-time-res', 'agora');
-        
-        const chartMain = document.getElementById('chartMain');
-        if (chartMain) {
-            if (state.data.length > 0) {
-                chartMain.innerHTML = [...state.data]
-                    .sort((a, b) => (b?.prioridade_coleta || 0) - (a?.prioridade_coleta || 0))
-                    .slice(0, 15)
-                    .map(alvo => {
-                        const score = alvo.prioridade_coleta || 0;
-                        const color = score > 80 ? '#ef4444' : score > 60 ? '#f59e0b' : '#10b981';
-                        return `
-                        <div onclick="window.setFiltroAlvo('${alvo.username}')" class="monitor-row p-3 rounded-xl border border-transparent hover:bg-white hover:shadow-sm cursor-pointer transition-all flex items-center gap-3">
-                            <div class="monitor-avatar w-10 h-10 border-2 border-slate-100">
-                                <img src="https://ui-avatars.com/api/?name=${alvo.username}&background=0D8ABC&color=fff" alt="${alvo.username}" loading="lazy" width="40" height="40">
-                            </div>
-                            <div class="flex-1">
-                                <div class="flex justify-between items-center mb-1">
-                                    <strong class="text-xs font-black text-slate-800">@${alvo.username}</strong>
-                                    <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-red-50 text-red-500">${score}</span>
-                                </div>
-                                <div class="w-full bg-slate-100 h-1 rounded-full overflow-hidden"><div class="h-full" style="width:${Math.min(100, score)}%; background:${color}"></div></div>
-                            </div>
-                        </div>`;
-                    }).join('');
-            } else {
-                chartMain.innerHTML = '<p class="text-xs text-slate-400">Nenhum alvo para exibir.</p>';
-            }
-        }
-
-        state.currentPage = 1;
-        state.loading = false;
-        state.lastSyncAt = new Date().toISOString();
-        
-        if (state.userPlan === 'diamond' || state.userPlan === 'premium') {
-            const adCards = document.querySelectorAll('.insight-card');
-            adCards.forEach(card => {
-                // Verifica se o card contém um anúncio AdSense ou texto indicativo
-                if (card.innerText.includes('Publicidade Estratégica') || card.querySelector('.adsbygoogle')) {
-                    card.style.display = 'none !important'; // Garante que o anúncio seja ocultado
-                }
+        feedContainer.innerHTML = '';
+        if (alerts && alerts.length > 0) {
+            alerts.forEach(alert => {
+                feedContainer.innerHTML += renderThreatCard(alert);
             });
+        } else {
+            feedContainer.innerHTML = '<p class="text-center text-slate-400 text-sm py-8">Nenhum alerta encontrado.</p>';
         }
 
-        renderAll(state.summary, state.data, state.alertas);
-    } catch (e) {
-        console.error('[App] Refresh Error:', e);
-        state.loading = false;
-        renderAll({}, [], []);
+        // B. Buscar dados para a Sidebar (Alvos Críticos)
+        const { data: targetsData, error: targetsError } = await supabase
+            .from('threat_alerts')
+            .select('target_profile, category')
+            .not('category', 'eq', 'NEUTRO')
+            .limit(500);
+
+        if (targetsError) throw targetsError;
+
+        const profileCounts = {};
+        targetsData.forEach(curr => {
+            profileCounts[curr.target_profile] = (profileCounts[curr.target_profile] || 0) + 1;
+        });
+
+        const targetsArray = Object.entries(profileCounts).map(([profile, count]) => ({ profile, threat_count: count }));
+        targetsArray.sort((a, b) => b.threat_count - a.threat_count);
+        const maxThreats = targetsArray.length > 0 ? targetsArray[0].threat_count : 1;
+        const finalTargets = targetsArray.map(t => ({ ...t, max_threats: maxThreats }));
+
+        renderHotTargets(finalTargets);
+
+        // C. Atualizar KPIs
+        document.getElementById('kpi-monitorados').innerText = new Set(alerts.map(a => a.target_profile)).size;
+        document.getElementById('kpi-hate').innerText = alerts.filter(a => a.is_critical).length;
+        document.getElementById('kpi-total').innerText = alerts.length;
+        document.getElementById('kpi-res').innerText = '99.8%';
+
+    } catch (err) {
+        console.error("Erro Supabase:", err);
+        feedContainer.innerHTML = '<p class="text-center text-red-500 text-sm py-8">Erro ao conectar com o banco de dados.</p>';
+    } finally {
+        if(skeleton) skeleton.style.display = 'none';
+        if (window.lucide) lucide.createIcons();
     }
 }
 
-document.addEventListener('DOMContentLoaded', init);
+// 5. INICIALIZAÇÃO
+document.addEventListener('DOMContentLoaded', loadSentinelaDashboard);

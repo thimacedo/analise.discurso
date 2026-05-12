@@ -3,12 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Sentinela Democrática - Monitoramento estratégico de discurso de ódio e tendências políticas no Brasil com inteligência estratégica.">
-    <!-- Google Tools -->
+    <meta name="description" content="Sentinela Democrática - Monitoramento estratégico de discurso de ódio e tendências políticas no Brasil.">
     <meta name="google-site-verification" content="ALWjqhKFnwzKBPGcQPsygASHuoRaJmrXxhuCuxCorgI" />
     <meta name="google-adsense-account" content="ca-pub-1827611269042960">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1827611269042960" crossorigin="anonymous"></script>
-    <!-- Google Analytics (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1899XV142N"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -17,47 +15,34 @@
       gtag('config', 'G-1899XV142N');
     </script>
     
-    <!-- Performance Optimization -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
     <link rel="preconnect" href="https://unpkg.com">
-    <link rel="preconnect" href="https://d3js.org">
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
 
     <script src="https://cdn.tailwindcss.com/3.4.1"></script>
-    <title>SENTINELA | Diamond Edition v20.5.2</title>
+    <title>SENTINELA | Diamond Edition v20.6.0</title>
     <link rel="icon" type="image/png" href="./assets/sentinela_small.png">
     
-    <!-- Critical Scripts -->
-
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest" defer></script>
-    <link rel="stylesheet" href="./src/styles/main.css?v=20.5.1">
+    <link rel="stylesheet" href="./src/styles/main.css?v=20.6.0">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 </head>
-<body class="custom-scrollbar">
-    <!-- SIDEBAR ESQUERDA (Navegação) -->
+<body class="custom-scrollbar bg-slate-50">
+    <!-- SIDEBAR ESQUERDA -->
     <aside class="sidebar-left">
         <div class="brand-block">
-                <div class="brand-mark"><img src="./assets/sentinela_small.webp" alt="Logo" fetchpriority="high"></div>
+            <div class="brand-mark"><img src="./assets/sentinela_small.webp" alt="Logo" fetchpriority="high"></div>
         </div>
-
         <nav class="side-nav">
             <div class="search-box-sidebar px-3 mb-6">
                 <div class="relative flex items-center group">
                     <i data-lucide="search" class="absolute left-3 w-4 h-4 text-slate-400"></i>
-                    <input type="text" 
-                           id="dashboard-search-input"
-                           placeholder="Pesquisar..." 
-                           class="w-full bg-slate-100 border-none rounded-lg py-2 pl-10 pr-8 text-xs focus:ring-2 focus:ring-blue-500 transition-all"
-                           oninput="window.setDashboardSearch(this.value)">
-                    <button onclick="window.clearDashboardSearch()" id="clear-search-btn" class="absolute right-3 w-4 h-4 text-slate-400 hover:text-slate-600 hidden group-hover:block transition-colors">
-                        <i data-lucide="x" class="w-full h-full"></i>
-                    </button>
+                    <input type="text" id="dashboard-search-input" placeholder="Pesquisar..." class="w-full bg-slate-100 border-none rounded-lg py-2 pl-10 pr-8 text-xs focus:ring-2 focus:ring-blue-500 transition-all">
+                    <button id="clear-search-btn" class="absolute right-3 w-4 h-4 text-slate-400 hover:text-slate-600 hidden group-hover:block transition-colors"><i data-lucide="x" class="w-full h-full"></i></button>
                 </div>
             </div>
-
             <a href="#monitor" class="nav-item active" id="nav-monitor"><i data-lucide="home" class="w-5 h-5"></i> <span>Panorama</span></a>
             <a href="#networks" class="nav-item" id="nav-networks"><i data-lucide="share-2" class="w-5 h-5"></i> <span>Redes</span></a>
             <a href="#directory" class="nav-item" id="nav-directory"><i data-lucide="users" class="w-5 h-5"></i> <span>Perfis</span></a>
@@ -65,7 +50,6 @@
             <a href="#ads" class="nav-item" id="nav-ads"><i data-lucide="megaphone" class="w-5 h-5"></i> <span>Anúncios</span></a>
             <a href="#map" class="nav-item" id="nav-map"><i data-lucide="globe" class="w-5 h-5"></i> <span>Mapa</span></a>
             <a href="#workers" class="nav-item" id="nav-workers"><i data-lucide="activity" class="w-5 h-5"></i> <span>Workers</span></a>
-            
             <div class="mt-8 pt-6 border-t border-slate-200">
                 <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-3 mb-3 block">Filtros de Inteligência</span>
                 <button onclick="window.setDashboardFilter('all')" id="btn-filter-all" class="nav-item"><i data-lucide="globe" class="w-5 h-5"></i> <span>Global</span></button>
@@ -73,26 +57,33 @@
                 <button onclick="window.setDashboardFilter('critical')" id="btn-filter-critical" class="nav-item"><i data-lucide="alert-octagon" class="w-5 h-5"></i> <span>Crítico</span></button>
             </div>
         </nav>
-
-        <div class="sidebar-footer">
-        </div>
     </aside>
 
-    <!-- FEED CENTRAL -->
+    <!-- FEED CENTRAL (Sala de Situação) -->
     <main class="main-feed-container custom-scrollbar dashboard-main">
         <div class="views-container">
-            <section id="view-monitor" class="view-content active-view">
-                <div id="feed-alertas" class="social-feed">
-                    <!-- Cards de Alerta aqui -->
+            <section id="view-monitor" class="view-content active-view p-6">
+                <div class="flex items-center justify-between mb-6 px-2">
+                    <div>
+                        <h1 class="text-xl font-black text-slate-800 tracking-tight">Panorama de Ameaças</h1>
+                        <p class="text-xs text-slate-400 font-medium">Monitoramento PASA v16.4 em tempo real</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="flex h-2 w-2 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span>
+                        <span class="text-[10px] font-bold text-green-600 uppercase">Sistema Ativo</span>
+                    </div>
+                </div>
+
+                <div id="feed-alertas" class="social-feed flex flex-col gap-4">
+                    <!-- O JavaScript vai injetar os Threat Cards reais do Supabase aqui -->
                 </div>
                 
                 <div id="scroll-sentinel" style="height: 10px; width: 100%;"></div>
                 
-                <div id="skeleton-container" style="display: none;">
-                    <div class="animate-pulse bg-slate-200 rounded-3xl h-48 w-full"></div>
+                <div id="skeleton-container" class="flex flex-col gap-4 mt-4">
+                    <div class="animate-pulse bg-white rounded-xl border border-slate-200 p-4 flex gap-4"><div class="w-1 bg-slate-200 rounded h-20"></div><div class="flex-1 space-y-3"><div class="h-3 bg-slate-200 rounded w-1/4"></div><div class="h-12 bg-slate-100 rounded w-full"></div><div class="h-2 bg-slate-200 rounded w-1/2"></div></div></div>
                 </div>
             </section>
-
             <section id="view-networks" class="view-content"></section>
             <section id="view-directory" class="view-content"></section>
             <section id="view-dossie" class="view-content"></section>
@@ -104,95 +95,45 @@
 
     <!-- SIDEBAR DIREITA (Inteligência Fixa) -->
     <aside class="sidebar-right custom-scrollbar">
-        <div class="profile-summary mb-8">
-            <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200">
-                <img src="./assets/sentinela_small.webp" alt="Logo" class="w-6 h-6" fetchpriority="high">
+        <div class="profile-summary mb-6 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-slate-900 flex items-center justify-center border border-slate-800 shadow-sm"><img src="./assets/sentinela_small.webp" alt="Logo" class="w-5 h-5"></div>
+                <div>
+                    <h2 class="text-xs font-black text-slate-800 uppercase tracking-tight">Sentinela Diamond</h2>
+                    <span class="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">● Online</span>
+                </div>
             </div>
-            <div>
-                <h2 class="text-sm font-black text-slate-800">Sentinela Diamond</h2>
-                <span class="text-[10px] font-bold text-blue-500 uppercase tracking-tighter" id="stn-balance">0 STN</span>
+            <div class="text-right">
+                <span class="text-[9px] font-mono text-slate-400 block">v20.6.0</span>
+                <span class="text-[9px] font-bold text-slate-500 block" id="stn-balance">0 STN</span>
             </div>
         </div>
 
-        <div class="kpi-grid-vertical flex flex-col gap-3 mb-8">
-            <div class="kpi-card flex justify-between items-center p-4 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
-                <div class="flex items-center gap-3 relative z-10">
-                    <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-500">
-                        <i data-lucide="users" class="w-4 h-4"></i>
-                    </div>
-                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Alvos</span>
-                </div>
-                <div class="flex flex-col items-end relative z-10">
-                    <div id="kpi-monitorados" class="text-base font-black text-slate-800">---</div>
-                    <span class="text-[8px] font-bold text-slate-400 mt-0.5" id="kpi-time-monitorados">--:--</span>
-                </div>
-            </div>
-            
-            <div class="kpi-card flex justify-between items-center p-4 bg-white border border-red-100 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-r from-red-50/50 to-transparent"></div>
-                <div class="flex items-center gap-3 relative z-10">
-                    <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center text-red-500">
-                        <i data-lucide="shield-alert" class="w-4 h-4"></i>
-                    </div>
-                    <span class="text-[11px] font-bold text-red-600 uppercase tracking-wider">Alertas</span>
-                </div>
-                <div class="flex flex-col items-end relative z-10">
-                    <div id="kpi-hate" class="text-base font-black text-red-600">---</div>
-                    <span class="text-[8px] font-bold text-red-400/70 mt-0.5" id="kpi-time-hate">--:--</span>
-                </div>
-            </div>
-            
-            <div class="kpi-card flex justify-between items-center p-4 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
-                <div class="flex items-center gap-3 relative z-10">
-                    <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-500">
-                        <i data-lucide="database" class="w-4 h-4"></i>
-                    </div>
-                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Amostra</span>
-                </div>
-                <div class="flex flex-col items-end relative z-10">
-                    <div id="kpi-total" class="text-base font-black text-slate-800">---</div>
-                    <span class="text-[8px] font-bold text-slate-400 mt-0.5" id="kpi-time-total">--:--</span>
-                </div>
-            </div>
-            
-            <div class="kpi-card flex justify-between items-center p-4 bg-white border border-green-100 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-r from-green-50/50 to-transparent"></div>
-                <div class="flex items-center gap-3 relative z-10">
-                    <div class="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center text-green-500">
-                        <i data-lucide="activity" class="w-4 h-4"></i>
-                    </div>
-                    <span class="text-[11px] font-bold text-green-600 uppercase tracking-wider">Resiliência</span>
-                </div>
-                <div class="flex flex-col items-end relative z-10">
-                    <div id="kpi-res" class="text-base font-black text-green-600">---</div>
-                    <span class="text-[8px] font-bold text-green-400/70 mt-0.5" id="kpi-time-res">--:--</span>
-                </div>
-            </div>
+        <div class="grid grid-cols-2 gap-2 mb-6">
+            <div class="kpi-card p-3 bg-white border border-slate-200 rounded-lg"><span class="text-[9px] font-bold text-slate-400 uppercase block mb-1">Alvos Ativos</span><div class="flex items-baseline gap-1"><span id="kpi-monitorados" class="text-lg font-black text-slate-800">---</span><i data-lucide="users" class="w-3 h-3 text-slate-300"></i></div></div>
+            <div class="kpi-card p-3 bg-white border border-red-100 rounded-lg"><span class="text-[9px] font-bold text-red-400 uppercase block mb-1">Alertas Hoje</span><div class="flex items-baseline gap-1"><span id="kpi-hate" class="text-lg font-black text-red-600">---</span><i data-lucide="alert-triangle" class="w-3 h-3 text-red-200"></i></div></div>
+            <div class="kpi-card p-3 bg-white border border-slate-200 rounded-lg"><span class="text-[9px] font-bold text-slate-400 uppercase block mb-1">Amostra DB</span><div class="flex items-baseline gap-1"><span id="kpi-total" class="text-lg font-black text-slate-800">---</span><i data-lucide="database" class="w-3 h-3 text-slate-300"></i></div></div>
+            <div class="kpi-card p-3 bg-white border border-emerald-100 rounded-lg"><span class="text-[9px] font-bold text-emerald-400 uppercase block mb-1">Resiliência</span><div class="flex items-baseline gap-1"><span id="kpi-res" class="text-lg font-black text-emerald-600">---</span><i data-lucide="check-circle" class="w-3 h-3 text-emerald-200"></i></div></div>
         </div>
 
         <div class="insight-card p-4 bg-white border border-slate-200 rounded-xl mb-6">
-            <h3 class="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest">Publicidade Estratégica</h3>
-            <div class="ad-sidebar-container bg-slate-50 rounded-lg flex items-center justify-center overflow-hidden border border-dashed border-slate-200" style="min-height: 250px;">
-                <!-- ADSENSE SIDEBAR -->
-                <ins class="adsbygoogle"
-                     style="display:block"
-                     data-ad-client="ca-pub-1827611269042960"
-                     data-ad-slot="1779104226"
-                     data-ad-format="auto"
-                     data-full-width-responsive="true"></ins>
-                <script>(window.adsbygoogle = window.adsbygoogle || []).push({});</script>
+            <h3 class="text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest flex items-center gap-2"><i data-lucide="crosshair" class="w-3 h-3 text-red-400"></i> Alvos Críticos</h3>
+            <div id="chartMain" class="flex flex-col gap-2">
+                <!-- O JavaScript vai injetar os Hot Targets reais do Supabase aqui -->
             </div>
         </div>
 
         <div class="insight-card p-4 bg-white border border-slate-200 rounded-xl">
-            <h3 class="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest">Prioridade de Triagem</h3>
-            <div id="chartMain" class="flex flex-col gap-2">
-                <!-- Lista de Risco aqui -->
+            <h3 class="text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest flex items-center gap-2"><i data-lucide="dollar-sign" class="w-3 h-3 text-green-400"></i> Monetização</h3>
+            <div class="ad-sidebar-container bg-slate-50 rounded-lg flex items-center justify-center overflow-hidden border border-dashed border-slate-200" style="min-height: 250px;">
+                <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-1827611269042960" data-ad-slot="1779104226" data-ad-format="auto" data-full-width-responsive="true"></ins>
+                <script>(window.adsbygoogle = window.adsbygoogle || []).push({});</script>
             </div>
         </div>
     </aside>
 
-    <!-- Scripts de Terceiros e Core -->
-    <script type="module" src="./src/core/app.js?v=20.6.1"></script>
-        <script type="module" src="./src/core/payments.js?v=20.6.1"></script></body>
-    </html>
+    <!-- Scripts Core -->
+    <script type="module" src="./src/core/app.js?v=20.6.0"></script>
+    <script type="module" src="./src/core/payments.js?v=20.6.0"></script>
+</body>
+</html>
