@@ -1,11 +1,20 @@
 // src/core/app.js
 
-import { createClient } from '@supabase/supabase-js';
+// 1. INICIALIZAÇÃO DO SUPABASE (Sem import, usando o objeto global do CDN)
+const SUPABASE_URL = 'SUA_URL_DO_SUPABASE_AQUI'; // Ex: https://xyzproject.supabase.co
+const SUPABASE_ANON_KEY = 'SUA_CHAVE_ANON_KEY_AQUI'; // A chave pública (anon)
 
-// 1. CONFIGURAÇÃO SUPABASE (Substitua pelas suas variáveis reais do projeto)
-const SUPABASE_URL = 'https://vhamejkldzxbeibqeqpk.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoYW1lamtsZHp4YmVpYnFlcXBrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjQ4ODEyNSwiZXhwIjoyMDkyMDY0MTI1fQ.GfvAI7rV8isgdhVeJp4mOUscWpdOqOuBoURGm82VdtY';
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let supabaseClient;
+try {
+    if (SUPABASE_URL !== 'SUA_URL_DO_SUPABASE_AQUI' && window.supabase) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log("✅ Supabase Client inicializado com sucesso via CDN.");
+    } else {
+        console.warn("⚠️ Credenciais do Supabase não configuradas ou CDN não carregou.");
+    }
+} catch (e) {
+    console.error("❌ Erro crítico ao inicializar Supabase:", e);
+}
 
 // 2. MAPEAMENTO VISUAL DO PASA v16.4
 const PASA_THREAT_PROFILE = {
@@ -21,7 +30,7 @@ const PASA_THREAT_PROFILE = {
 // 3. FUNÇÕES DE RENDERIZAÇÃO
 function escapeHtml(text) {
     const div = document.createElement('div');
-    div.appendChild(document.createTextNode(text));
+    div.appendChild(document.createTextNode(text || ''));
     return div.innerHTML;
 }
 
@@ -57,7 +66,7 @@ function renderThreatCard(alertData) {
                         <span class="text-[10px] font-mono text-slate-400">${timeAgo}</span>
                     </div>
                     <div class="bg-slate-50 border-l-2 border-slate-300 rounded-r-lg p-3 mb-3">
-                        <p class="text-sm text-slate-700 italic leading-relaxed">"${escapeHtml(alertData.text || 'Texto não capturado')}"</p>
+                        <p class="text-sm text-slate-700 italic leading-relaxed">"${escapeHtml(alertData.text)}"</p>
                     </div>
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-4">
@@ -107,15 +116,29 @@ async function loadSentinelaDashboard() {
     
     if(!feedContainer) return;
 
+    if (!supabaseClient) {
+        console.error("❌ Supabase não inicializado. Verifique as credenciais.");
+        feedContainer.innerHTML = '<p class="text-center text-red-400 text-sm py-8">Erro: Credenciais do Banco não configuradas no app.js.</p>';
+        if(skeleton) skeleton.style.display = 'none';
+        return;
+    }
+
     try {
-        // A. Buscar Alertas Recentes (Ajuste o nome da tabela 'threat_alerts' se for diferente no seu Supabase)
-        const { data: alerts, error: alertError } = await supabase
-            .from('threat_alerts')
+        console.log("🔍 Buscando alertas no Supabase...");
+        
+        // A. BUSCAR ALERTAS (Lembre-se: 'threat_alerts' deve ser o NOME REAL da sua tabela)
+        const { data: alerts, error: alertError } = await supabaseClient
+            .from('threat_alerts') 
             .select('*')
             .order('timestamp', { ascending: false })
             .limit(20);
 
-        if (alertError) throw alertError;
+        if (alertError) {
+            console.error("❌ Erro do Supabase:", alertError.message);
+            throw alertError;
+        }
+
+        console.log(`✅ ${alerts ? alerts.length : 0} alertas encontrados.`, alerts);
 
         feedContainer.innerHTML = '';
         if (alerts && alerts.length > 0) {
@@ -123,21 +146,21 @@ async function loadSentinelaDashboard() {
                 feedContainer.innerHTML += renderThreatCard(alert);
             });
         } else {
-            feedContainer.innerHTML = '<p class="text-center text-slate-400 text-sm py-8">Nenhum alerta encontrado.</p>';
+            feedContainer.innerHTML = '<p class="text-center text-slate-400 text-sm py-8">Nenhum alerta encontrado no banco de dados.</p>';
         }
 
-        // B. Buscar dados para a Sidebar (Alvos Críticos)
-        const { data: targetsData, error: targetsError } = await supabase
+        // B. CALCULAR ALVOS CRÍTICOS
+        const { data: targetsData, error: targetsError } = await supabaseClient
             .from('threat_alerts')
-            .select('target_profile, category')
-            .not('category', 'eq', 'NEUTRO')
-            .limit(500);
+            .select('target_profile, category');
 
         if (targetsError) throw targetsError;
 
         const profileCounts = {};
         targetsData.forEach(curr => {
-            profileCounts[curr.target_profile] = (profileCounts[curr.target_profile] || 0) + 1;
+            if (curr.category !== 'NEUTRO' && curr.target_profile) {
+                profileCounts[curr.target_profile] = (profileCounts[curr.target_profile] || 0) + 1;
+            }
         });
 
         const targetsArray = Object.entries(profileCounts).map(([profile, count]) => ({ profile, threat_count: count }));
@@ -147,15 +170,15 @@ async function loadSentinelaDashboard() {
 
         renderHotTargets(finalTargets);
 
-        // C. Atualizar KPIs
+        // C. ATUALIZAR KPIs
         document.getElementById('kpi-monitorados').innerText = new Set(alerts.map(a => a.target_profile)).size;
         document.getElementById('kpi-hate').innerText = alerts.filter(a => a.is_critical).length;
         document.getElementById('kpi-total').innerText = alerts.length;
         document.getElementById('kpi-res').innerText = '99.8%';
 
     } catch (err) {
-        console.error("Erro Supabase:", err);
-        feedContainer.innerHTML = '<p class="text-center text-red-500 text-sm py-8">Erro ao conectar com o banco de dados.</p>';
+        console.error("❌ Falha geral:", err);
+        feedContainer.innerHTML = '<p class="text-center text-red-500 text-sm py-8">Erro ao buscar dados. Verifique o Console (F12).</p>';
     } finally {
         if(skeleton) skeleton.style.display = 'none';
         if (window.lucide) lucide.createIcons();
