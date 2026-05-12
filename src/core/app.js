@@ -48,7 +48,6 @@ window.markFalsePositive = async (commentId, cardElement) => {
     });
     if (response.ok) {
       console.log('[FP] Comentário sinalizado com sucesso.');
-      // Remove o card da visualização
       if (cardElement) cardElement.style.display = 'none';
     } else {
       console.error('[FP] Erro ao sinalizar:', await response.json());
@@ -56,6 +55,19 @@ window.markFalsePositive = async (commentId, cardElement) => {
   } catch (e) {
     console.error('[FP] Falha na requisição:', e);
   }
+};
+
+// Adiciona a função window.unlockIntel
+window.unlockIntel = (alertId) => {
+  console.log('[Intel] Solicitada auditoria para alerta:', alertId);
+  // Exibe os detalhes do alerta
+  const alerta = state.alertas.find(a => a.id === alertId);
+  if (alerta) {
+    alert(`Auditoria do Alerta:\n\nCategoria: ${alerta.categoria_ia}\nAlvo: @${alerta.alvo_username}\nTexto: "${alerta.texto_bruto}"\nHash: ${alerta.id}`);
+  } else {
+    alert('Detalhes do alerta não disponíveis.');
+  }
+};
 };
 
 
