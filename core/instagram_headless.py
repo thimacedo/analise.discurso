@@ -695,10 +695,15 @@ class InstagramHeadlessScraper:
 
         # Limpa o texto do comentário usando a função text_processor
         valid_text = clean_comment(text, candidato_username)
-        if not valid_text:
+
+        # ✅ VERIFICAÇÃO ADICIONAL: texto limpo não pode ser vazio nem igual ao autor
+        if not valid_text or len(valid_text) < 3:
+            return False
+        if valid_text.lower().strip() == author.lower().strip():
             return False
 
         import hashlib
+        from datetime import datetime, timezone
         # Garante que o id_externo NUNCA seja nulo
         base_string = f"{author}_{shortcode}_{valid_text[:50]}_{datetime.now(timezone.utc).isoformat()}"
         generated_id = f"ig_{hashlib.md5(base_string.encode()).hexdigest()[:12]}"
