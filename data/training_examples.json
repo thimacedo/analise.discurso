@@ -1,0 +1,82 @@
+[
+  {
+    "text": "Tasks such as toxicity detection, hate speech detection, and online harassment detection have been developed for identifying interactions involving offensive speech.",
+    "category": "NEUTRO"
+  },
+  {
+    "text": "Hate speech is typically defined to link the use of derogatory language to a person or people based on group membership, such as 'some characteristic such as race, color, ethnicity, gender, sexual orientation, nationality, religion, or other characteristics'.",
+    "category": "NEUTRO"
+  },
+  {
+    "text": "Offensive language classification and related tasks capture different forms of undesirable language, such as language that is rude, incites hate, causes offense, or causes people to disengage from online interaction.",
+    "category": "NEUTRO"
+  },
+  {
+    "text": "We argue that the target of offensive language is best understood with respect to differential relations and power dynamics between them and the producers, receivers, and perceivers of offensive speech.",
+    "category": "NEUTRO"
+  },
+  {
+    "text": "Toxicity helps bring attention to the ends of reappropriated offensive language, and what characteristics can help distinguish it from denotative uses of offensive language.",
+    "category": "NEUTRO"
+  },
+  {
+    "text": "A internet de hoje se transmutou, sem d\u00favida. A atua\u00e7\u00e3o social, a mobiliza\u00e7\u00e3o e o engajamento viraram um valor da rede, se contrapondo \u00e0quele pensamento de felicidade eterna da web comercial, que contaminava a economia e a pol\u00edtica.",
+    "category": "NEUTRO"
+  },
+  {
+    "text": "A m\u00eddia irradiada cada vez mais ressalta seu poder de atingir uma quantidade imensa de popula\u00e7\u00f5es em uma s\u00f3 tacada, para ressaltar a virtude mantenedora de sua sustenta\u00e7\u00e3o financeira.",
+    "category": "NEUTRO"
+  },
+  {
+    "text": "Desde o seu surgimento, a m\u00eddia distribu\u00edda tem se contraposto atrav\u00e9s de seus usu\u00e1rios a estes efeitos acachapantes de achatamento da diversidade cultural promovida pelos processos de indu\u00e7\u00e3o e falseamento de opini\u00e3o t\u00edpicos desta comunica\u00e7\u00e3o unilateral onde poucos falam para muit\u00edssimos.",
+    "category": "ATAQUE_INSTITUCIONAL"
+  },
+  {
+    "text": "Embora a m\u00eddia irradiada de massa seja uma valiosa m\u00e1quina de constru\u00e7\u00e3o e destrui\u00e7\u00e3o instant\u00e2nea de reputa\u00e7\u00e3o social...",
+    "category": "NEUTRO"
+  },
+  {
+    "text": "Hoje o cerne do debate sobre liberdade est\u00e1 no direito de produ\u00e7\u00e3o.",
+    "category": "NEUTRO"
+  },
+  {
+    "text": "As manifesta\u00e7\u00f5es odiosas s\u00e3o marcadas pela intoler\u00e2ncia, pela hostilidade e pela incita\u00e7\u00e3o a atos antidemocr\u00e1ticos e s\u00e3o proferidas com o objetivo de influenciar e intimidar grupos sociais...",
+    "category": "NEUTRO"
+  },
+  {
+    "text": "Nesses ambientes, internautas, ao compartilharem cren\u00e7as, normas e comportamentos sociais, tendem a se agrupar e a captar apoio, criando um senso de pertencimento e identidade. No entanto, essa complexa din\u00e2mica interacional endogrupal muito favorece a constru\u00e7\u00e3o da vis\u00e3o do 'outro' como estranho, diferente, n\u00e3o adequado...",
+    "category": "ODIO_IDENTITARIO"
+  },
+  {
+    "text": "...criando terreno f\u00e9rtil para o aumento de atitudes hostis e para a dissemina\u00e7\u00e3o do discurso odiento.",
+    "category": "NEUTRO"
+  },
+  {
+    "text": "O descritivo n\u00e3o s\u00f3 sinaliza posicionamentos e orienta\u00e7\u00f5es argumentativas, mas tamb\u00e9m revela uma motiva\u00e7\u00e3o a comportamentos odientos e ataques pessoais.",
+    "category": "INSULTO_AD_HOMINEM"
+  },
+  {
+    "text": "...muito favorece a constru\u00e7\u00e3o da vis\u00e3o do 'outro' como estranho, diferente, n\u00e3o adequado...",
+    "category": "XENOFOBIA_REGIONAL"
+  },
+  {
+    "text": "As redes sociais j\u00e1 haviam mostrado sua relev\u00e2ncia no campo pol\u00edtico desde a campanha eleitoral de Obama em 2008.",
+    "category": "NEUTRO"
+  },
+  {
+    "text": "Outro exemplo foram as campanhas presidenciais de Donald Trump em 2016 e de Jair Bolsonaro em 2018, nas quais a comunica\u00e7\u00e3o nas redes sociais tiveram centralidade no resultado, al\u00e9m da prolifera\u00e7\u00e3o de desinforma\u00e7\u00e3o e fake news como estrat\u00e9gia eleitoral.",
+    "category": "NEUTRO"
+  },
+  {
+    "text": "Em paralelo, a r\u00e1pida populariza\u00e7\u00e3o das redes sociais de internet no Brasil e no mundo transformou estas plataformas em espa\u00e7os privilegiados de sociabilidade, difus\u00e3o e produ\u00e7\u00e3o de informa\u00e7\u00f5es...",
+    "category": "NEUTRO"
+  },
+  {
+    "text": "Este artigo tem por objetivo identificar as diferentes formas (tipos) de atua\u00e7\u00e3o pol\u00edtica por meio do uso das redes sociais para a constru\u00e7\u00e3o de uma agenda de pesquisa no campo de estudos em Internet e Pol\u00edtica.",
+    "category": "NEUTRO"
+  },
+  {
+    "text": "A discuss\u00e3o que se segue come\u00e7a por meio de revis\u00e3o bibliogr\u00e1fica de estudos do campo, para identificar as diferentes formas de a\u00e7\u00e3o pol\u00edtica que emergiram do uso dessas plataformas...",
+    "category": "NEUTRO"
+  }
+]

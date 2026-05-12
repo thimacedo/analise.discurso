@@ -20,6 +20,7 @@ class Settings:
     
     # AI Cloud APIs
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
+    MISTRAL_API_KEY: str = os.getenv("MISTRAL_API_KEY", "")
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
     GEMINI_API_KEYS: List[str] = [k.strip() for k in os.getenv("GEMINI_API_KEYS", "").split(",") if k.strip()]
     

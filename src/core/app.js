@@ -1,16 +1,16 @@
-function initInfiniteScroll() {
-    const sentinel = document.getElementById('scroll-sentinel');
-    if (!sentinel) return;
-    new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && !state.isLoading && state.currentPage < 10) loadMoreAlerts();
-    }, { threshold: 0.1 }).observe(sentinel);
-}
+// src/core/app.js
+// SENTINELA | Diamond Edition - App Core v20.5.6 [STABLE]
 
 import { state, setViewState } from './state.js';
 import { dataService } from '../services/dataService.js';
 import { authService } from '../services/authService.js';
 import { fcmService } from '../services/fcmService.js';
 import { renderAll, renderFeed, toggleSkeleton } from './ui.js?v=20.5.6';
+
+// Constants for API URLs and other configurations
+const SENTINELA_CONFIG = {
+    apiUrl: 'http://localhost:3000/api/v1' // Placeholder - assume this is dynamically set or configured elsewhere
+};
 
 let renderTimeout;
 window.debouncedRender = () => {
@@ -38,6 +38,27 @@ window.clearDashboardSearch = () => {
     window.setDashboardSearch('');
 };
 
+// Função para sinalizar falso positivo (adicionar ao app.js)
+window.markFalsePositive = async (commentId, cardElement) => {
+  try {
+    const response = await fetch(`${SENTINELA_CONFIG.apiUrl}/alerts/false-positive`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: commentId })
+    });
+    if (response.ok) {
+      console.log('[FP] Comentário sinalizado com sucesso.');
+      // Remove o card da visualização
+      if (cardElement) cardElement.style.display = 'none';
+    } else {
+      console.error('[FP] Erro ao sinalizar:', await response.json());
+    }
+  } catch (e) {
+    console.error('[FP] Falha na requisição:', e);
+  }
+};
+
+
 async function loadMoreAlerts() {
     if (state.isLoading || state.currentPage >= 5) return;
     try {
@@ -59,6 +80,15 @@ async function loadMoreAlerts() {
         toggleSkeleton(false);
     }
 }
+
+function initInfiniteScroll() {
+    const sentinel = document.getElementById('scroll-sentinel');
+    if (!sentinel) return;
+    new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && !state.isLoading && state.currentPage < 10) loadMoreAlerts();
+    }, { threshold: 0.1 }).observe(sentinel);
+}
+
 
 async function init() {
     console.log('🌟 SENTINELA | Diamond Edition v20.5.6 [STABLE]');

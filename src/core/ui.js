@@ -2,6 +2,7 @@
 // SENTINELA | Diamond Edition - UI Engine v20.6.0 [ROBUST]
 
 import { state } from './state.js';
+import { authService } from './authService.js'; // Import authService to check user credentials
 
 /**
  * Constrói o HTML do card de alerta com sanitização agressiva de texto.
@@ -44,6 +45,20 @@ export function buildPostCard(alerta) {
            </div>`
         : '';
 
+    // Acesso EXCLUSIVO para thi.macedo@gmail.com
+    const isAdmin = authService.isAuthenticated() && 
+      authService.user?.email === 'thi.macedo@gmail.com';
+    const fpButtonHtml = isAdmin ? `
+      <span class="fp-flag" 
+            title="Sinalizar como falso positivo" 
+            onclick="event.stopPropagation(); window.markFalsePositive('${alerta?.id}', this.closest('.post-card-surface'))" 
+            style="cursor:pointer; position:absolute; top:8px; right:8px; font-size:12px; opacity:0.4; transition:opacity 0.2s; z-index:10;"
+            onmouseover="this.style.opacity='1.0'" 
+            onmouseout="this.style.opacity='0.4'">
+        🚩
+      </span>` : '';
+
+
     return `
     <div class="post-card-container relative mb-8 group" data-alerta-id="${alerta?.id || ''}">
         <!-- Camada de Ação Rápida (Swipe feel) -->
@@ -54,7 +69,7 @@ export function buildPostCard(alerta) {
             </div>
         </div>
 
-        <article class="post-card-surface relative bg-white border-2 ${borderColor} rounded-[2rem] p-6 shadow-sm z-10 w-full transition-all duration-300 ${isCritical ? 'group-hover:shadow-2xl shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'group-hover:shadow-md'} group-hover:-translate-y-1">
+        <article class="post-card-surface relative bg-white border-2 ${borderColor} rounded-[2rem] p-6 shadow-sm z-10 w-full transition-all duration-300 ${isCritical ? 'group-hover:shadow-2xl shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'group-hover:shadow-md'} group-hover:-translate-y-1" style="position:relative;">
             <!-- Badge de Severidade -->
             <div class="absolute -top-3 left-8 z-20">
                 <span class="px-4 py-1.5 ${badgeClass} rounded-full text-[10px] font-black tracking-widest uppercase border border-white/20">
@@ -73,8 +88,7 @@ export function buildPostCard(alerta) {
                         </div>
                     </div>
                     <div class="flex flex-col">
-                        <div class="post-username text-[14px] font-black text-slate-900 tracking-tight">Autor Oculto</div>
-                        <div class="text-[10px] font-bold text-slate-400 flex items-center gap-1.5">
+                            <div class="post-username text-[14px] font-black text-slate-900 tracking-tight">@${alerta?.autor_username || 'Autor Oculto'}</div>                        <div class="text-[10px] font-bold text-slate-400 flex items-center gap-1.5">
                             <i data-lucide="clock" class="w-3 h-3"></i> ${alerta?.hora || 'Recém coletado'}
                         </div>
                     </div>

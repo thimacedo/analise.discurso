@@ -179,15 +179,42 @@ class OllamaEngine(AIEngine):
                 logger.warning(f"⚠️ [AI] Ollama failure: {e}")
         return None
 
+class MistralEngine(AIEngine):
+    async def classify(self, text: str) -> Optional[Dict[str, Any]]:
+        if not settings.MISTRAL_API_KEY: return None
+        url = "https://api.mistral.ai/v1/chat/completions"
+        headers = {"Authorization": f"Bearer {settings.MISTRAL_API_KEY}"}
+        system_prompt = forensics_service.get_system_prompt()
+        payload = {
+            "model": "mistral-large-latest",
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"TEXTO: \"{text}\""}
+            ],
+            "response_format": {"type": "json_object"}
+        }
+        async with httpx.AsyncClient() as client:
+            try:
+                resp = await client.post(url, headers=headers, json=payload, timeout=30.0)
+                if resp.status_code == 200:
+                    raw_text = resp.json()['choices'][0]['message']['content']
+                    return forensics_service.parse_verdict(raw_text)
+                else:
+                    logger.warning(f"⚠️ [AI] Mistral status {resp.status_code}: {resp.text}")
+            except Exception as e:
+                logger.warning(f"⚠️ [AI] Mistral failure: {e}")
+        return None
+
 class AIService:
     def __init__(self, db_client=None):
         self.db = db_client
         self.engines: Dict[str, AIEngine] = {}
         # Lista inicial. Usaremos um sistema de pontuação para ordenar dinamicamente.
         self.engine_scores: Dict[str, int] = {
-            "gemini": 100,
-            "groq": 90,
-            "ollama": 80
+            "gemini": 50, # Iniciando com score reduzido devido ao rate limit
+            "groq": 100,
+            "ollama": 80,
+            "mistral": 100 # Novo motor com score máximo
         }
         self.engine_latencies: Dict[str, float] = {}
         
@@ -195,6 +222,8 @@ class AIService:
         self.register_engine("gemini", GeminiEngine())
         self.register_engine("groq", GroqEngine())
         self.register_engine("ollama", OllamaEngine())
+        self.register_engine("mistral", MistralEngine()) # Registra o novo motor Mistral
+
 
     def register_engine(self, name: str, engine: AIEngine):
         """Registra um novo motor de IA."""
