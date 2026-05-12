@@ -1,0 +1,10 @@
+{
+    "timestamp": "2026-05-12T17:38:19.354022",
+    "metrics": {
+        "total_alvos": 347,
+        "total_alertas": 2,
+        "total_anuncios": 0,
+        "resiliencia_score": 98.5
+    },
+    "status": "active"
+}

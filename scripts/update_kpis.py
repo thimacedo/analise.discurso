@@ -8,7 +8,7 @@ import os
 import json
 import csv
 from datetime import datetime
-from core.supabase_service import get_supabase_client
+from core.db import db_client
 
 # Configuração de Paths para o Vercel/Local
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -19,19 +19,22 @@ os.makedirs(API_DIR, exist_ok=True)
 
 def update_kpis():
     print("[INFO] Iniciando consolidação de KPIs...")
-    client = get_supabase_client()
+    client = db_client.client
+    if client is None:
+        print("[ERRO] Cliente Supabase não inicializado.")
+        return
     try:
         # Coleta de Métricas Brutas do Supabase
         # 1. Total de Alvos Ativos
-        alvos_res = client.table('alvos').select('id', count='exact').execute()
+        alvos_res = client.table('candidatos').select('id', count='exact').execute()
         total_alvos = alvos_res.count if alvos_res.count is not None else 0
         
         # 2. Total de Alertas / Falsos Positivos
-        alertas_res = client.table('alertas').select('status', count='exact').execute()
+        alertas_res = client.table('alertas_ativos').select('id', count='exact').execute()
         total_alertas = alertas_res.count if alertas_res.count is not None else 0
         
         # 3. Anúncios Processados
-        anuncios_res = client.table('anuncios_pasa').select('id', count='exact').execute()
+        anuncios_res = client.table('anuncios').select('id', count='exact').execute()
         total_anuncios = anuncios_res.count if anuncios_res.count is not None else 0
         
         # Montagem do Snapshot

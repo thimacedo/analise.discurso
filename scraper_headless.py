@@ -18,13 +18,12 @@ class InstagramScraperHeadless:
         self.target_profile = target_profile
         self.profile_url = f"https://www.instagram.com/{target_profile}/"
         
-        # Pegando as variáveis do .env com os nomes que você definiu
         self.session_id = os.getenv("INSTAGRAM_SESSIONID")
         self.ds_user_id = os.getenv("INSTAGRAM_DS_USER_ID")
         self.csrf_token = os.getenv("INSTAGRAM_CSRFTOKEN")
 
         if not self.session_id or not self.ds_user_id or not self.csrf_token:
-            raise ValueError("❌ Variáveis de sessão do Instagram (INSTAGRAM_SESSIONID, etc) não encontradas no .env")
+            raise ValueError("❌ Variáveis de sessão do Instagram não encontradas no .env")
 
     async def fetch_recent_posts(self):
         logger.info(f"🚀 Iniciando Playwright com INJEÇÃO DE SESSÃO para: {self.target_profile}")
@@ -41,10 +40,7 @@ class InstagramScraperHeadless:
                 locale='pt-BR'
             )
             
-            # ==========================================
-            # A MAGIA ACONTECE AQUI: INJEÇÃO DE COOKIES
-            # ==========================================
-            logger.info("🍪 Injetando cookies de sessão no navegador...")
+            logger.info("🍪 Injetando cookies de sessão...")
             await context.add_cookies([
                 {
                     "name": "sessionid",
@@ -81,45 +77,56 @@ class InstagramScraperHeadless:
             """)
             
             try:
-                # NAVEGA DIRETO NO ALVO (sem passar pela tela de login)
-                logger.info(f"🎯 Navegando direto para o perfil: {self.profile_url}")
-                await page.goto(self.profile_url, wait_until="networkidle", timeout=30000)
+                logger.info(f"🎯 Navegando para o perfil: {self.profile_url}")
                 
-                # Verifica se a injeção funcionou ou se fomos jogados na tela de login
+                # A MUDANÇA PRINCIPAL ESTÁ AQUI: domcontentloaded em vez de networkidle
+                await page.goto(self.profile_url, wait_until="domcontentloaded", timeout=30000)
+                
+                # Verifica se caiu no login
                 if "login" in page.url:
-                    logger.error("❌ Fomos redirecionados para o Login. O SESSIONID pode ter expirado ou a conta foi bloqueada.")
+                    logger.error("❌ Fomos redirecionados para o Login. O SESSIONID pode ter expirado.")
                     await page.screenshot(path="falha_sessao.png")
                     return []
 
-                # Tenta fechar aqueles pop-ups chatos de "Ativar Notificações" que aparecem logo que loga
+                # Tenta fechar pop-ups
                 try:
                     await page.click('button:has-text("Agora não"), button:has-text("Not Now")', timeout=3000)
                     await asyncio.sleep(1)
                 except Exception:
-                    pass # Se não aparecer, segue o jogo
+                    pass
 
-                # EXTRAÇÃO DOS DADOS
-                logger.info("⏳ Aguardando o grid de posts carregar...")
-                await page.wait_for_selector('a[href*="/p/"]', timeout=15000)
+                # EXTRAÇÃO DOS DADOS (Agora buscando /p/ e /reel/)
+                logger.info("⏳ Aguardando o grid de posts/reels carregar...")
                 
+                # Seletor atualizado para pegar tanto posts normais quanto reels
+                selector = 'a[href*="/p/"], a[href*="/reel/"]'
+                await page.wait_for_selector(selector, timeout=15000)
+                
+                # Pequena pausa para o React terminar de renderizar
                 await asyncio.sleep(2)
                 
                 post_links = await page.eval_on_selector_all(
-                    'a[href*="/p/"]',
+                    selector,
                     'elements => elements.map(el => el.href)'
                 )
                 
                 posts = []
                 seen = set()
                 for link in post_links:
-                    parts = link.split("/p/")
-                    if len(parts) > 1:
-                        shortcode = parts[1].split("/")[0]
-                        if shortcode not in seen:
-                            seen.add(shortcode)
-                            posts.append({"shortcode": shortcode, "url": link})
+                    # O link vem como https://www.instagram.com/p/SHORTCODE/ ou .../reel/SHORTCODE/
+                    parts = link.split("/")
+                    # Encontra o shortcode (vem depois de /p/ ou /reel/)
+                    shortcode = None
+                    for i, part in enumerate(parts):
+                        if part in ("p", "reel") and i + 1 < len(parts):
+                            shortcode = parts[i+1]
+                            break
+                    
+                    if shortcode and shortcode not in seen:
+                        seen.add(shortcode)
+                        posts.append({"shortcode": shortcode, "url": link})
                             
-                logger.info(f"✅ SUCESSO! Extraídos {len(posts)} posts recentes.")
+                logger.info(f"✅ SUCESSO! Extraídos {len(posts)} posts/reels recentes.")
                 return posts
 
             except Exception as e:
@@ -131,10 +138,9 @@ class InstagramScraperHeadless:
                 await browser.close()
 
 async def main():
-    # Usando um perfil real como teste
     scraper = InstagramScraperHeadless("instagram") 
     dados = await scraper.fetch_recent_posts()
-    print(f"\n📝 Dados encontrados ({len(dados)} posts):")
+    print(f"\n📝 Dados encontrados ({len(dados)} posts/reels):")
     for d in dados[:5]: 
         print(d)
 
