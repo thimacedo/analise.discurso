@@ -5,25 +5,47 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# No backend Python, usamos a SERVICE_ROLE_KEY, que tem permissão de administrador.
-# A ANON_KEY é só para o frontend. Nunca exponha a SERVICE_ROLE_KEY no frontend!
-URL = os.getenv("SUPABASE_URL")
-KEY = os.getenv("SUPABASE_SERVICE_KEY")
+# Variável global para armazenar o cliente (Singleton)
+_supabase_client = None
 
-if not URL or not KEY:
-    raise ValueError("❌ SUPABASE_URL ou SUPABASE_SERVICE_KEY não encontradas no .env")
+def get_supabase_client() -> Client:
+    """
+    Inicializa e retorna o cliente Supabase apenas quando chamado.
+    Isso evita erros de importação no Pytest ou em scripts que não usam o DB.
+    """
+    global _supabase_client
+    if _supabase_client is None:
+        URL = os.getenv("SUPABASE_URL")
+        KEY = os.getenv("SUPABASE_SERVICE_KEY")
+        
+        if not URL or not KEY:
+            raise ValueError("❌ SUPABASE_URL ou SUPABASE_SERVICE_KEY não encontradas no .env")
+            
+        _supabase_client = create_client(URL, KEY)
+        
+    return _supabase_client
 
-supabase: Client = create_client(URL, KEY)
+class LazySupabaseProxy:
+    """
+    Proxy que intercepta as chamadas para o client Supabase e faz a inicialização lazy.
+    Usado para manter retrocompatibilidade com códigos que importam `db_client` ou `DatabaseClient`.
+    """
+    def __getattr__(self, name):
+        client = get_supabase_client()
+        return getattr(client, name)
 
-# Aliases for backward compatibility
-db_client = supabase
-DatabaseClient = supabase
+# Instâncias Lazy (Proxy) para retrocompatibilidade em todo o projeto
+db_client = LazySupabaseProxy()
+DatabaseClient = LazySupabaseProxy()
+supabase = LazySupabaseProxy()
 
 def save_alerts(alerts_data: list):
     """Insere ou atualiza uma lista de alertas no Supabase."""
     try:
-        # upsert: se o id já existir, atualiza; se não, cria.
-        data, count = supabase.table('threat_alerts').upsert(
+        # A conexão só acontece aqui, quando a função é executada de verdade!
+        client = get_supabase_client()
+        
+        data, count = client.table('threat_alerts').upsert(
             alerts_data, 
             on_conflict="id" # Define a coluna ID como o verificador de conflito
         ).execute()
@@ -31,3 +53,4 @@ def save_alerts(alerts_data: list):
     except Exception as e:
         print(f"❌ Erro ao salvar no Supabase: {e}")
         return False
+
