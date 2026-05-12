@@ -22,8 +22,9 @@ class BaseWorker(ABC):
         """Método principal. Faz o wrap de segurança e logs ao redor do processamento central."""
         self.logger.info(f"[{self.name}] Worker iniciado em {datetime.now(UTC).isoformat()}")
         try:
-            await self._run(*args, **kwargs)
+            result = await self._run(*args, **kwargs)
             self.logger.info(f"[{self.name}] Worker finalizado com sucesso.")
+            return result
         except Exception as e:
             self.logger.error(f"[{self.name}] Falha crítica: {str(e)}", exc_info=True)
             self.handle_failure(e)
