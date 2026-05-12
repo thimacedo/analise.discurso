@@ -15,6 +15,10 @@ if not URL or not KEY:
 
 supabase: Client = create_client(URL, KEY)
 
+# Aliases for backward compatibility
+db_client = supabase
+DatabaseClient = supabase
+
 def save_alerts(alerts_data: list):
     """Insere ou atualiza uma lista de alertas no Supabase."""
     try:
