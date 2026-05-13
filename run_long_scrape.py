@@ -59,10 +59,13 @@ async def main():
         except Exception as e:
             logger.error(f"❌ Falha mecânica ao processar @{target}: {e}")
             
-            # PUNIÇÃO DO ALVO: Registra a falha no banco para que o sistema evite este bunker
-            # nos próximos ciclos (Target Blacklist / Cooldown)
+            # PUNIÇÃO DO ALVO / CLASSIFICAÇÃO DO ERRO
             error_msg = str(e)
-            if "Timeout" in error_msg or "timeout" in error_msg.lower():
+            if "Perfil não encontrado" in error_msg:
+                save_scrape_error(target, "PROFILE_NOT_FOUND")
+                # Perfis inexistentes não devem ser tentados novamente com a mesma prioridade
+                logger.warning(f"⛔ Perfil @{target} não existe. Sugerido verificar cadastro no banco.")
+            elif "Timeout" in error_msg or "timeout" in error_msg.lower():
                 save_scrape_error(target, "TIMEOUT")
             elif "Login" in error_msg or "Sessão" in error_msg or "Inválida" in error_msg:
                 save_scrape_error(target, "LOGIN_BLOCK")

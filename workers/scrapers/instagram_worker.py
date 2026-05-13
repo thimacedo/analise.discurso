@@ -117,7 +117,20 @@ class InstagramWorker(BaseWorker):
                     await page.click('button:has-text("Agora não"), button:has-text("Not Now")', timeout=2000)
                 except: pass
 
+                # ==========================================
+                # FAST FAIL: Detecção Imediata de Perfil Inexistente
+                # ==========================================
+                page_not_found_pt = await page.query_selector('text="Esta página não está disponível"')
+                page_not_found_en = await page.query_selector('text="Sorry, this page isn\'t available"')
+                
+                if page_not_found_pt or page_not_found_en:
+                    self.logger.error(f"❌ Perfil @{self.target_profile} NÃO EXISTE no Instagram. Abortando.")
+                    # Tira print para evidência e levanta erro específico
+                    await page.screenshot(path=f"perfil_inexistente_{self.target_profile}.png")
+                    raise Exception(f"Perfil não encontrado: {self.target_profile}")
+
                 # 2. Scroll leve e pega apenas os 3 primeiros posts
+                self.logger.info("🖱️ Simulando scroll humano para carregar o grid...")
                 await page.evaluate("window.scrollTo(0, 300)") # Scroll mínimo
                 await asyncio.sleep(2)
 

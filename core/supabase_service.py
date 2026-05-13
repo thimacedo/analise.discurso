@@ -47,7 +47,7 @@ def get_next_targets_to_scrape(limit: int = 5) -> list:
         supabase = get_supabase_client()
         response = supabase.table('candidatos') \
             .select('username, prioridade_coleta') \
-            .eq('status_monitoramento', 'ATIVO') \
+            .ilike('status_monitoramento', 'ATIVO') \
             .order('prioridade_coleta', desc=True) \
             .order('last_scraped_at', desc=False) \
             .limit(limit) \
