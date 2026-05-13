@@ -143,21 +143,21 @@ async function loadSentinelaDashboard() {
         feedContainer.innerHTML = '';
         if (alerts && alerts.length > 0) {
             alerts.forEach(alert => {
-                // MAPEAMENTO DOS NOVOS CAMPOS PARA O CARD
+                // MAPEAMENTO DOS NOVOS CAMPOS PARA O CARD COM FALLBACKS DEFENSIVOS
                 const mappedAlert = {
-                    id: alert.id_externo || alert.id,
-                    target_profile: alert.candidato_id,
-                    text: alert.texto_bruto,
-                    category: alert.categoria_ia,
-                    is_critical: alert.is_hate,
-                    source: alert.plataforma,
-                    timestamp: alert.data_publicacao,
+                    id: alert.id_externo || alert.id || 'unknown',
+                    target_profile: alert.candidato_id || 'Desconhecido',
+                    text: alert.texto_bruto || 'Sem texto',
+                    category: alert.categoria_ia || 'NEUTRO',
+                    is_critical: alert.is_hate || false,
+                    source: alert.plataforma || 'IG',
+                    timestamp: alert.data_publicacao || new Date().toISOString(),
                     target_avatar_url: "./assets/sentinela_small.webp"
                 };
                 feedContainer.innerHTML += renderThreatCard(mappedAlert);
             });
         } else {
-            feedContainer.innerHTML = '<p class="text-center text-slate-400 text-sm py-8">Nenhum alerta encontrado.</p>';
+            feedContainer.innerHTML = '<p class="text-center text-slate-400 text-sm py-8">Nenhum alerta encontrado no banco.</p>';
         }
 
         // B. CALCULAR ALVOS CRÍTICOS (Agora baseado na tabela comentarios)
