@@ -124,13 +124,13 @@ async function loadSentinelaDashboard() {
     }
 
     try {
-        console.log("🔍 Buscando alertas no Supabase...");
+        console.log("🔍 Buscando alertas reais no Supabase (tabela comentarios)...");
         
-        // A. BUSCAR ALERTAS (Lembre-se: 'threat_alerts' deve ser o NOME REAL da sua tabela)
+        // A. BUSCAR ALERTAS REAIS
         const { data: alerts, error: alertError } = await supabaseClient
-            .from('threat_alerts') 
+            .from('comentarios') // MUDOU AQUI
             .select('*')
-            .order('timestamp', { ascending: false })
+            .order('data_publicacao', { ascending: false }) // MUDOU AQUI
             .limit(20);
 
         if (alertError) {
@@ -143,23 +143,35 @@ async function loadSentinelaDashboard() {
         feedContainer.innerHTML = '';
         if (alerts && alerts.length > 0) {
             alerts.forEach(alert => {
-                feedContainer.innerHTML += renderThreatCard(alert);
+                // MAPEAMENTO DOS NOVOS CAMPOS PARA O CARD
+                const mappedAlert = {
+                    id: alert.id_externo || alert.id,
+                    target_profile: alert.candidato_id,
+                    text: alert.texto_bruto,
+                    category: alert.categoria_ia,
+                    is_critical: alert.is_hate,
+                    source: alert.plataforma,
+                    timestamp: alert.data_publicacao,
+                    target_avatar_url: "./assets/sentinela_small.webp"
+                };
+                feedContainer.innerHTML += renderThreatCard(mappedAlert);
             });
         } else {
-            feedContainer.innerHTML = '<p class="text-center text-slate-400 text-sm py-8">Nenhum alerta encontrado no banco de dados.</p>';
+            feedContainer.innerHTML = '<p class="text-center text-slate-400 text-sm py-8">Nenhum alerta encontrado.</p>';
         }
 
-        // B. CALCULAR ALVOS CRÍTICOS
+        // B. CALCULAR ALVOS CRÍTICOS (Agora baseado na tabela comentarios)
         const { data: targetsData, error: targetsError } = await supabaseClient
-            .from('threat_alerts')
-            .select('target_profile, category');
+            .from('comentarios') // MUDOU AQUI
+            .select('candidato_id, categoria_ia') // MUDOU AQUI
+            .not('categoria_ia', 'eq', 'NEUTRO');
 
         if (targetsError) throw targetsError;
 
         const profileCounts = {};
         targetsData.forEach(curr => {
-            if (curr.category !== 'NEUTRO' && curr.target_profile) {
-                profileCounts[curr.target_profile] = (profileCounts[curr.target_profile] || 0) + 1;
+            if (curr.categoria_ia !== 'NEUTRO' && curr.candidato_id) {
+                profileCounts[curr.candidato_id] = (profileCounts[curr.candidato_id] || 0) + 1;
             }
         });
 
@@ -171,8 +183,8 @@ async function loadSentinelaDashboard() {
         renderHotTargets(finalTargets);
 
         // C. ATUALIZAR KPIs
-        document.getElementById('kpi-monitorados').innerText = new Set(alerts.map(a => a.target_profile)).size;
-        document.getElementById('kpi-hate').innerText = alerts.filter(a => a.is_critical).length;
+        document.getElementById('kpi-monitorados').innerText = new Set(alerts.map(a => a.candidato_id)).size; // MUDOU AQUI
+        document.getElementById('kpi-hate').innerText = alerts.filter(a => a.is_hate).length; // MUDOU AQUI
         document.getElementById('kpi-total').innerText = alerts.length;
         document.getElementById('kpi-res').innerText = '99.8%';
 
