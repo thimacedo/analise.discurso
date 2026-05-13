@@ -40,3 +40,32 @@ def save_alerts(alerts_data: list):
     except Exception as e:
         print(f"❌ Erro ao salvar no Supabase: {e}")
         return False
+
+def get_next_targets_to_scrape(limit: int = 5) -> list:
+    """Busca os alvos mais prioritários e que não foram raspados recentemente."""
+    try:
+        supabase = get_supabase_client()
+        response = supabase.table('candidatos') \
+            .select('username, prioridade_coleta') \
+            .eq('status_monitoramento', 'ATIVO') \
+            .order('prioridade_coleta', desc=True) \
+            .order('last_scraped_at', desc=False) \
+            .limit(limit) \
+            .execute()
+        
+        # Retorna apenas os usernames, garantindo que não tenham @ no início
+        return [item['username'].lstrip('@') for item in response.data]
+    except Exception as e:
+        print(f"❌ Erro ao buscar alvos no banco: {e}")
+        return []
+
+def update_last_scraped_at(username: str):
+    """Atualiza o timestamp de raspagem para esfriar o alvo na fila."""
+    try:
+        supabase = get_supabase_client()
+        supabase.table('candidatos') \
+            .update({'last_scraped_at': 'NOW()'}) \
+            .eq('username', username) \
+            .execute()
+    except Exception as e:
+        print(f"❌ Erro ao atualizar last_scraped_at para @{username}: {e}")
