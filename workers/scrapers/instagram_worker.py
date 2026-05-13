@@ -4,10 +4,11 @@ import asyncio
 import logging
 import os
 import random
+import hashlib
 from dotenv import load_dotenv
 from playwright.async_api import async_playwright
 from workers.core.base_worker import BaseWorker
-from core.supabase_service import save_alerts # NOSSO NOVO MÓDULO DE BANCO
+from core.supabase_service import save_comments # MUDOU AQUI
 
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
@@ -156,38 +157,69 @@ class InstagramWorker(BaseWorker):
                             if h1: caption = await h1.inner_text()
                             
                             # ==========================================
-                            # NOVIDADE: EXTRAÇÃO DE COMENTÁRIOS
+                            # NOVA ESTRUTURA: SEPARA LEGENDA DE COMENTÁRIOS
                             # ==========================================
                             # Scroll dentro do modal para carregar os comentários
                             await dialog_element.evaluate('el => el.scrollTop = el.scrollHeight')
                             await asyncio.sleep(2)
                             
-                            comments_text = []
-                            # Pega os textos dos comentários (geralmente estão em spans dentro de LIs)
+                            extracted_comments = []
                             comment_elements = await dialog_element.query_selector_all('ul ul li')
-                            for c_el in comment_elements[:20]: # Limita a 20 comentários por post
+                            
+                            for idx, c_el in enumerate(comment_elements[:20]):
                                 c_text = await c_el.inner_text()
-                                if c_text: comments_text.append(c_text.replace('\n', ' '))
+                                if not c_text: continue
                                 
-                            # Junta a legenda com os comentários para o PASA analisar tudo junto
-                            full_text = caption.strip()
-                            if comments_text:
-                                full_text += " | COMENTÁRIOS: " + " // ".join(comments_text)
+                                # Limpa o texto (remove quebras de linha)
+                                clean_text = c_text.replace('\n', ' ').strip()
                                 
-                            # Classifica e salva
-                            category, is_critical = classify_pasa(full_text)
-                            post_data = {
-                                "id": shortcode, 
-                                "text": full_text.strip(), # Texto completo (Legenda + Comentários)
-                                "timestamp": date_str,
-                                "target_profile": self.target_profile,
-                                "category": category,
-                                "is_critical": is_critical,
-                                "source": "IG",
-                                "target_avatar_url": "./assets/sentinela_small.webp"
-                            }
-                            detailed_posts.append(post_data)
-                            self.logger.info(f"🔍 [{index+1}/3] {shortcode} -> PASA: {category} (Comentários: {len(comments_text)})")
+                                # Gera um ID único para o comentário (Hash do shortcode + índice)
+                                # Isso garante que se rodarmos de novo, não duplicaremos no banco
+                                hash_input = f"{shortcode}_{idx}_{clean_text[:50]}"
+                                comment_id = f"ig_{hashlib.md5(hash_input.encode()).hexdigest()}"
+                                
+                                # Classifica com o PASA
+                                category, is_critical = classify_pasa(clean_text)
+                                
+                                comment_data = {
+                                    "id_externo": comment_id,
+                                    "candidato_id": self.target_profile,
+                                    "post_id": shortcode,
+                                    "autor_username": "public_user", # Será enriquecido depois
+                                    "texto_bruto": clean_text,
+                                    "data_publicacao": date_str,
+                                    "categoria_ia": category,
+                                    "is_hate": is_critical,
+                                    "confianca_ia": 0.85 if is_critical else 0.60, # Simulação de confiança
+                                    "processado_ia": True, # O PASA já processou
+                                    "plataforma": "INSTAGRAM",
+                                    "mined": True
+                                }
+                                extracted_comments.append(comment_data)
+
+                            # 2. Processa a Legenda do Próprio Alvo
+                            if caption.strip():
+                                category_cap, is_critical_cap = classify_pasa(caption)
+                                caption_data = {
+                                    "id_externo": f"ig_{shortcode}_caption",
+                                    "candidato_id": self.target_profile,
+                                    "post_id": shortcode,
+                                    "autor_username": self.target_profile, # O alvo é o autor
+                                    "texto_bruto": caption.strip(),
+                                    "data_publicacao": date_str,
+                                    "categoria_ia": category_cap,
+                                    "is_hate": is_critical_cap,
+                                    "confianca_ia": 0.95 if is_critical_cap else 0.70,
+                                    "processado_ia": True,
+                                    "plataforma": "INSTAGRAM",
+                                    "mined": True
+                                }
+                                extracted_comments.insert(0, caption_data)
+
+                            self.logger.info(f"🔍 [{index+1}/3] {shortcode} -> Extraídos {len(extracted_comments)} itens (Legenda + Comentários)")
+                            
+                            # Adiciona à lista geral do Worker
+                            detailed_posts.extend(extracted_comments)
                             
                         await page.keyboard.press('Escape')
                         await asyncio.sleep(random.uniform(2.0, 4.0))
@@ -197,10 +229,10 @@ class InstagramWorker(BaseWorker):
                         await page.keyboard.press('Escape')
                         await asyncio.sleep(2)
 
-                # Salva no Supabase
+                # Salva no Supabase (Usando a nova tabela estruturada)
                 if detailed_posts:
-                    self.logger.info(f"💾 Salvando {len(detailed_posts)} alertas no Supabase...")
-                    success = save_alerts(detailed_posts)
+                    self.logger.info(f"💾 Salvando {len(detailed_posts)} itens na tabela 'comentarios'...")
+                    success = save_comments(detailed_posts) # MUDOU AQUI
                     if success:
                         self.logger.info("✅ Sincronização com o banco concluída com sucesso!")
                     else:

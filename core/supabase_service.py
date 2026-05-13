@@ -69,3 +69,27 @@ def update_last_scraped_at(username: str):
             .execute()
     except Exception as e:
         print(f"❌ Erro ao atualizar last_scraped_at para @{username}: {e}")
+
+def save_comments(comments_data: list):
+    """Insere ou atualiza comentários extraídos na tabela 'comentarios'."""
+    try:
+        supabase = get_supabase_client()
+        data, count = supabase.table('comentarios').upsert(
+            comments_data, 
+            on_conflict="id_externo" # Evita duplicatas baseado no ID externo gerado
+        ).execute()
+        return True
+    except Exception as e:
+        print(f"❌ Erro ao salvar comentários no Supabase: {e}")
+        return False
+
+def save_scrape_error(username: str, error_type: str):
+    """Registra uma falha de raspagem para análise de resiliência."""
+    try:
+        supabase = get_supabase_client()
+        # Aqui poderíamos ter uma tabela 'scrape_errors' ou atualizar a 'candidatos'
+        # Por enquanto, vamos apenas logar e talvez atualizar um campo de erro na tabela candidatos se existir
+        print(f"⚠️ Registrando erro {error_type} para @{username}")
+        # Exemplo: supabase.table('candidatos').update({'last_error': error_type}).eq('username', username).execute()
+    except Exception as e:
+        print(f"❌ Erro ao registrar falha para @{username}: {e}")

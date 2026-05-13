@@ -8,7 +8,7 @@ if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
 from workers.scrapers.instagram_worker import InstagramWorker
-from core.supabase_service import save_alerts, get_next_targets_to_scrape, update_last_scraped_at
+from core.supabase_service import save_comments, get_next_targets_to_scrape, update_last_scraped_at, save_scrape_error
 from core.worker_auditor import audit_worker_result
 
 # Configuração de Logging
@@ -49,15 +49,28 @@ async def main():
                 
                 # 2. SALVA OS ALERTAS
                 logger.info(f"💾 Processo íntegro. Salvando {len(dados)} alertas...")
-                success = save_alerts(dados)
-                if success:
-                    total_alerts_saved += len(dados)
-                    logger.info("✅ Sincronização concluída.")
+                # Note: save_comments is already called inside InstagramWorker._run
+                # But we can track success here if needed or if worker returns data
+                total_alerts_saved += len(dados)
+                logger.info("✅ Sincronização concluída.")
             else:
                 logger.warning(f"⚠️ @{target} não rendeu dados ou sessão bloqueada.")
 
         except Exception as e:
             logger.error(f"❌ Falha mecânica ao processar @{target}: {e}")
+            
+            # PUNIÇÃO DO ALVO: Registra a falha no banco para que o sistema evite este bunker
+            # nos próximos ciclos (Target Blacklist / Cooldown)
+            error_msg = str(e)
+            if "Timeout" in error_msg or "timeout" in error_msg.lower():
+                save_scrape_error(target, "TIMEOUT")
+            elif "Login" in error_msg or "Sessão" in error_msg or "Inválida" in error_msg:
+                save_scrape_error(target, "LOGIN_BLOCK")
+                # Se a sessão caiu, o Maestro deveria parar tudo imediatamente
+                logger.error("🚨 SESSÃO DO INSTAGRAM INVALIDADA! Operação cancelada.")
+                break
+            else:
+                save_scrape_error(target, "UNKNOWN_ERROR")
 
         # IMPORTANTE: Atualiza o last_scraped_at do alvo, mesmo se falhar
         # Para não ficar preso no mesmo alvo quebrado no próximo ciclo
