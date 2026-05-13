@@ -186,6 +186,27 @@ class InstagramWorker(BaseWorker):
                                 # Limpa o texto (remove quebras de linha)
                                 clean_text = c_text.replace('\n', ' ').strip()
                                 
+                                # ==========================================
+                                # FILTRO DE RUÍDO (ANTI-SLOP)
+                                # Ignora elementos de interface e metadados inúteis
+                                # ==========================================
+                                noise_patterns = [
+                                    "curtidas", "curtida", "Responder", "Ver respostas", 
+                                    "Explorar", "Notificações", "Página inicial", 
+                                    "Também da Meta", "Pesquisa", "Criar", "Perfil", 
+                                    "Mais", "Painel", "Ver tradução"
+                                ]
+                                
+                                if not clean_text or len(clean_text) < 3:
+                                    continue
+                                    
+                                if any(pattern.lower() in clean_text.lower() for pattern in noise_patterns):
+                                    continue
+                                    
+                                # Se for apenas um username (sem espaço e com muitos caracteres)
+                                if " " not in clean_text and len(clean_text) > 3:
+                                    continue
+
                                 # Gera um ID único para o comentário (Hash do shortcode + índice)
                                 # Isso garante que se rodarmos de novo, não duplicaremos no banco
                                 hash_input = f"{shortcode}_{idx}_{clean_text[:50]}"
