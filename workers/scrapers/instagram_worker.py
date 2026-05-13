@@ -5,6 +5,7 @@ import logging
 import os
 import random
 import hashlib
+import re
 from dotenv import load_dotenv
 from playwright.async_api import async_playwright
 from workers.core.base_worker import BaseWorker
@@ -187,24 +188,39 @@ class InstagramWorker(BaseWorker):
                                 clean_text = c_text.replace('\n', ' ').strip()
                                 
                                 # ==========================================
-                                # FILTRO DE RUÍDO (ANTI-SLOP)
-                                # Ignora elementos de interface e metadados inúteis
+                                # FILTRO DE RUÍDO (VERSÃO SNIPER V2)
+                                # Ignora elementos de interface e metadados usando Regex
                                 # ==========================================
                                 noise_patterns = [
-                                    "curtidas", "curtida", "Responder", "Ver respostas", 
+                                    "Responder", "Ver respostas", "Ver todas as", 
                                     "Explorar", "Notificações", "Página inicial", 
                                     "Também da Meta", "Pesquisa", "Criar", "Perfil", 
-                                    "Mais", "Painel", "Ver tradução"
+                                    "Mais", "Painel", "Ver tradução", "Mensagens",
+                                    "Upload de contatos", "não usuários"
                                 ]
                                 
-                                if not clean_text or len(clean_text) < 3:
+                                # 1. Regex para padrões temporais (ex: "há 4 h", "há 9 horas")
+                                if re.search(r'há \d+ [hdms]|há \d+ (hora|minuto|segundo|dia|semana)', clean_text.lower()):
                                     continue
                                     
+                                # 2. Regex para metadados de curtidas (ex: "yasmimalves.pe e outros 2")
+                                if re.search(r'e outros \d+|[0-9]+ curtida', clean_text.lower()):
+                                    continue
+                                    
+                                # 3. Filtro de comprimento e caracteres básicos
+                                if not clean_text or len(clean_text) < 4:
+                                    continue
+                                    
+                                # 4. Filtro de palavras-chave estáticas
                                 if any(pattern.lower() in clean_text.lower() for pattern in noise_patterns):
                                     continue
                                     
-                                # Se for apenas um username (sem espaço e com muitos caracteres)
-                                if " " not in clean_text and len(clean_text) > 3:
+                                # 5. Filtro de Identidade
+                                if clean_text.lower() == self.target_profile.lower():
+                                    continue
+                                    
+                                # 6. REGRA DE OURO: Evita lixo sem espaços
+                                if " " not in clean_text:
                                     continue
 
                                 # Gera um ID único para o comentário (Hash do shortcode + índice)
