@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from api.routes import monitor
 
 # A VARIAVEL ABAIXO PRECISA ESTAR SEM INDENTÇÃO (NADA DE ESPAÇO ANTES)
 app = FastAPI(title="Sentinela Democrática API")
@@ -12,11 +13,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(monitor.router)
+
 @app.get("/")
 def read_root():
     return {"status": "online", "system": "Sentinela API v1"}
-
-@app.get("/api/v1/alerts")
-def get_alerts():
-    # Aqui você vai conectar a lógica do dataService ou Supabase no futuro
-    return {"alerts": [], "count": 0}
