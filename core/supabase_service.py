@@ -41,6 +41,9 @@ def save_alerts(alerts_data: list):
         print(f"❌ Erro ao salvar no Supabase: {e}")
         return False
 
+# Exportação do singleton para uso simplificado (PASA v21+)
+supabase = get_supabase_client()
+
 def get_next_targets_to_scrape(limit: int = 5) -> list:
     """Busca os alvos mais prioritários e que não foram raspados recentemente."""
     try:
