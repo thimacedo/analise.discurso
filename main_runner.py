@@ -23,7 +23,8 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from core.event_bus import bus
 from workers.processors.classifier_worker import ClassifierWorker
-from workers.scrapers.instagram_worker import InstagramWorker
+from workers.processors.alert_worker import AlertWorker
+from workers.processors.cleanup_worker import CleanupWorker
 
 # Garante que a pasta de logs exista
 Path("logs").mkdir(exist_ok=True)
@@ -41,7 +42,6 @@ logger = logging.getLogger("MainRunner")
 # Mapa: nome da fila → classe do worker que a consome
 QUEUE_WORKERS: dict[str, type] = {
     "classify_comments": ClassifierWorker,
-    # "scrape_profile":  InstagramWorker,  # ative quando quiser scraping reativo
 }
 
 # Controle de shutdown gracioso
@@ -101,7 +101,7 @@ async def _run_with_ack(worker, msg: dict, queue_name: str) -> None:
 
     try:
         await worker.execute(payload)
-        bus.ack(msg_id)
+        bus.ack(queue_name, msg_id)
         logger.info(f"[{queue_name}] msg {msg_id} processada e confirmada.")
     except Exception as exc:
         # Não faz ack — mensagem volta para a fila após locked_until
@@ -112,13 +112,29 @@ async def _run_with_ack(worker, msg: dict, queue_name: str) -> None:
         )
 
 
+async def scheduled_loop(
+    WorkerClass: type,
+    interval_seconds: int,
+    label: str,
+) -> None:
+    """Executa workers periódicos — não orientados a fila."""
+    logger.info(f"[{label}] Loop agendado iniciado (intervalo: {interval_seconds}s).")
+    while not _shutdown.is_set():
+        try:
+            worker = WorkerClass()
+            await worker.execute({})
+        except Exception as exc:
+            logger.error(f"[{label}] Falha na execução agendada: {exc}")
+        await asyncio.sleep(interval_seconds)
+
+
 async def heartbeat() -> None:
     """Log de sinal de vida a cada 5 minutos."""
     while not _shutdown.is_set():
         logger.info(
             f"💓 Runner ativo | "
-            f"Filas monitoradas: {list(QUEUE_WORKERS.keys())} | "
-            f"{datetime.now(UTC).strftime('%H:%M:%S UTC')}"
+            f"{datetime.now(UTC).strftime('%H:%M:%S UTC')} | "
+            f"Filas: {list(QUEUE_WORKERS.keys())}"
         )
         await asyncio.sleep(300)
 
@@ -126,14 +142,22 @@ async def heartbeat() -> None:
 async def main() -> None:
     logger.info("🚀 Sentinela Main Runner iniciando...")
 
+    # Consumidores de fila
     consumers = [
         process_queue(queue, WorkerClass)
         for queue, WorkerClass in QUEUE_WORKERS.items()
     ]
 
+    # Loops agendados
+    schedules = [
+        scheduled_loop(AlertWorker, interval_seconds=300, label="AlertWorker"),
+        scheduled_loop(CleanupWorker, interval_seconds=86400, label="CleanupWorker"),
+    ]
+
     # Adiciona o heartbeat e aguarda todos
     await asyncio.gather(
         *consumers,
+        *schedules,
         heartbeat(),
     )
 
