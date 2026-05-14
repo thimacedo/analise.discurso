@@ -157,74 +157,116 @@ const PASA_THREAT_PROFILE = {
     'NEUTRO': { color: 'bg-slate-300', label: 'Neutro', badge: 'bg-slate-100 text-slate-500' }
 };
 
-// 3. FUNÇÕES DE RENDERIZAÇÃO
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.appendChild(document.createTextNode(text || ''));
-    return div.innerHTML;
-}
-
-function getTimeAgo(timestamp) {
-    if (!timestamp) return '';
-    const diffMins = Math.round((new Date() - new Date(timestamp)) / 60000);
-    if (diffMins < 1) return 'agora';
-    if (diffMins < 60) return `há ${diffMins} min`;
-    if (diffMins < 1440) return `há ${Math.round(diffMins / 60)}h`;
-    return `há ${Math.round(diffMins / 1440)}d`;
-}
-
-function renderThreatCard(alertData) {
-    const profile = PASA_THREAT_PROFILE[alertData.category] || PASA_THREAT_PROFILE['NEUTRO'];
-    const severityClass = alertData.is_critical ? 'border-red-500' : 'border-slate-200';
-    const timeAgo = getTimeAgo(alertData.timestamp);
-
-    // ==========================================
-    // DEFESA EM PROFUNDIDADE: FILTRO DE RUÍDO FRONTEND
-    // ==========================================
-    const UI_NOISE_PATTERNS = [
-        /^upload de contatos/i,
-        /^não usuários/i,
-        /^há \d+ (hora|min|dia)/i,
-        /^e outros \d+$/i,
-    ];
+/**
+ * PASA v25.1 - Motor de Triagem Visual: Classificação por Severidade
+ */
+export function renderThreatCard(comment) {
+    let borderColor = 'bg-slate-300'; // Padrão
+    let badgeColor = 'bg-slate-100 text-slate-500';
+    let badgeText = 'Não Classificado';
+    let quoteStyle = 'bg-slate-50 border-slate-300 text-slate-700';
+    let iconColor = 'text-slate-400';
     
-    let safeCommentText = alertData.text || '';
-    const isNoise = UI_NOISE_PATTERNS.some(p => p.test(safeCommentText));
-    if (isNoise) {
-        console.warn("🚫 Ruído de UI filtrado no frontend:", safeCommentText);
-        return ''; // Não renderiza o card se for ruído
+    // Lógica de Triagem PASA v25
+    if (comment.is_hate === true) {
+        borderColor = 'bg-red-500';
+        badgeColor = 'bg-red-100 text-red-600';
+        badgeText = 'Ameaça Detectada';
+        quoteStyle = 'bg-red-50 border-red-400 text-red-800';
+        iconColor = 'text-red-500';
+    } else if (comment.is_hate === false) {
+        borderColor = 'bg-emerald-400';
+        badgeColor = 'bg-emerald-100 text-emerald-600';
+        badgeText = 'Seguro';
+        quoteStyle = 'bg-emerald-50 border-emerald-300 text-emerald-800';
+        iconColor = 'text-emerald-500';
+    } else if (comment.classification_status === 'PENDENTE' || comment.is_hate === null) {
+        borderColor = 'bg-yellow-500';
+        badgeColor = 'bg-yellow-100 text-yellow-600';
+        badgeText = 'Pendente';
+        quoteStyle = 'bg-yellow-50 border-yellow-300 text-yellow-800';
+        iconColor = 'text-yellow-500';
     }
 
+    // Sanitização de texto
+    const cleanText = (comment.texto || '').replace(/&nbsp;/g, ' ').replace(/\n/g, ' ').trim();
+    const cleanAuthor = (comment.autor || 'Anônimo').split('\n')[0];
+
     return `
-        <div class="threat-card bg-white rounded-xl border ${severityClass} shadow-sm hover:shadow-md transition-all overflow-hidden group">
+        <div class="threat-card bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all overflow-hidden group mb-4">
             <div class="flex">
-                <div class="w-1 ${profile.color} flex-shrink-0"></div>
+                <div class="w-1 ${borderColor} flex-shrink-0 transition-colors"></div>
                 <div class="flex-1 p-4">
                     <div class="flex items-start justify-between mb-3">
                         <div class="flex items-center gap-3">
                             <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500 overflow-hidden">
-                                <img src="${alertData.target_avatar_url || './assets/sentinela_small.webp'}" class="w-full h-full object-cover" onerror="this.style.display='none'">
+                                <img src="./assets/sentinela_small.webp" class="w-full h-full object-cover" onerror="this.style.display='none'">
                             </div>
                             <div>
-                                <span class="text-sm font-bold text-slate-800">@${alertData.target_profile || 'Desconhecido'}</span>
-                                <span class="text-[10px] ml-2 font-bold ${profile.badge} px-2 py-0.5 rounded-full uppercase tracking-wider">${profile.label}</span>
+                                <span class="text-sm font-bold text-slate-800">@${cleanAuthor}</span>
+                                <span class="text-[10px] ml-2 font-bold ${badgeColor} px-2 py-0.5 rounded-full uppercase tracking-wider">${badgeText}</span>
                             </div>
                         </div>
-                        <span class="text-[10px] font-mono text-slate-400">${timeAgo}</span>
+                        <span class="text-[10px] font-mono text-slate-400">${timeAgo(comment.data_coleta)}</span>
                     </div>
-                    <div class="bg-slate-50 border-l-2 border-slate-300 rounded-r-lg p-3 mb-3">
-                        <p class="text-sm text-slate-700 italic leading-relaxed">"${escapeHtml(alertData.text)}"</p>
+                    <div class="${quoteStyle} border-l-2 rounded-r-lg p-3 mb-3">
+                        <p class="text-sm italic leading-relaxed">"${cleanText}"</p>
                     </div>
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-4">
-                            <span class="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase"><i data-lucide="shield-alert" class="w-3 h-3"></i> ${profile.label}</span>
-                            <span class="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase"><i data-lucide="share-2" class="w-3 h-3"></i> ${alertData.source || 'IG'}</span>
+                            <span class="flex items-center gap-1 text-[10px] font-bold uppercase ${iconColor}">
+                                <i data-lucide="shield-alert" class="w-3 h-3"></i> ${badgeText.split(' ')[0]}
+                            </span>
+                            <span class="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase">
+                                <i data-lucide="share-2" class="w-3 h-3"></i> ${(comment.plataforma || 'IG').toUpperCase()}
+                            </span>
                         </div>
+                        ${comment.is_hate === true ? `
+                        <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="window.auditComment('${comment.id}', 'not_hate')" class="text-[9px] bg-emerald-500 hover:bg-emerald-600 text-white px-2 py-1 rounded font-bold">Validado</button>
+                            <button onclick="window.auditComment('${comment.id}', 'hate')" class="text-[9px] bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded font-bold">Padrão Ouro</button>
+                        </div>
+                        ` : ''}
                     </div>
                 </div>
             </div>
         </div>`;
 }
+
+// Utilitário de tempo relativo
+function timeAgo(dateString) {
+    if (!dateString) return 'agora';
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = Math.floor((now - date) / 60000); // minutos
+    if (diff < 1) return 'agora';
+    if (diff < 60) return `${diff}m atrás`;
+    if (diff < 1440) return `${Math.floor(diff/60)}h atrás`;
+    return `${Math.floor(diff/1440)}d atrás`;
+}
+
+// Função global para os botões de auditoria no feed
+window.auditComment = async (commentId, rotulo) => {
+    try {
+        const res = await fetch('/api/v1/audit/validate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                comment_id: commentId, 
+                rotulo_correto: rotulo, 
+                validado_por: 'thi.macedo@gmail.com' 
+            })
+        });
+        if (res.ok) {
+            alert('Comentário auditado com sucesso! Padrão Ouro atualizado.');
+            location.reload();
+        } else {
+            alert('Erro ao auditar comentário.');
+        }
+    } catch (e) {
+        console.error(e);
+    }
+};
 
 function renderHotTargets(targets) {
     const container = document.getElementById('chartMain');
@@ -290,16 +332,15 @@ async function loadSentinelaDashboard() {
         feedContainer.innerHTML = '';
         if (alerts && alerts.length > 0) {
             alerts.forEach(alert => {
-                // MAPEAMENTO DOS NOVOS CAMPOS PARA O CARD COM FALLBACKS DEFENSIVOS
+                // MAPEAMENTO PARA O MOTOR DE TRIAGEM PASA v25.1
                 const mappedAlert = {
-                    id: alert.id_externo || alert.id || 'unknown',
-                    target_profile: alert.candidato_id || 'Desconhecido',
-                    text: alert.texto_bruto || 'Sem texto',
-                    category: alert.categoria_ia || 'NEUTRO',
-                    is_critical: alert.is_hate || false,
-                    source: alert.plataforma || 'IG',
-                    timestamp: alert.data_publicacao || new Date().toISOString(),
-                    target_avatar_url: "./assets/sentinela_small.webp"
+                    id: alert.id || 'unknown',
+                    autor: alert.autor_username || alert.candidato_id || 'Desconhecido',
+                    texto: alert.texto_bruto || 'Sem texto',
+                    is_hate: alert.is_hate,
+                    classification_status: alert.processado_ia ? 'CLASSIFIED' : 'PENDENTE',
+                    plataforma: alert.plataforma || 'IG',
+                    data_coleta: alert.data_publicacao || alert.data_coleta || new Date().toISOString()
                 };
                 feedContainer.innerHTML += renderThreatCard(mappedAlert);
             });
