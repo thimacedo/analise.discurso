@@ -12,6 +12,7 @@ from uuid import uuid4
 from core.schemas import CommentPayload
 from core.supabase_service import get_supabase_client
 from workers.core.xp_engine import calculate_run_xp
+from core.alert_manager import send_critical_alert
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -49,7 +50,7 @@ class BaseWorker(ABC):
                 elif isinstance(result, list):
                     items_processed = len(result)
 
-                self._finish_run(
+                await self._finish_run(
                     status="success",
                     duration_ms=duration_ms,
                     items_processed=items_processed,
@@ -73,7 +74,7 @@ class BaseWorker(ABC):
                     )
 
         duration_ms = int((datetime.now(UTC) - started_at).total_seconds() * 1000)
-        self._finish_run(
+        await self._finish_run(
             status="failure",
             duration_ms=duration_ms,
             error_message=str(last_exc)[:1000],
@@ -139,7 +140,7 @@ class BaseWorker(ABC):
         except Exception as exc:
             self.logger.warning(f"[{self.name}] Falha ao registrar run: {exc}")
 
-    def _finish_run(
+    async def _finish_run(
         self,
         status: str,
         duration_ms: int,
@@ -181,6 +182,13 @@ class BaseWorker(ABC):
             else:
                 # Em caso de falha, atualiza o ledger com a penalidade e status
                 self._audit_and_update_state(0, 0, run_xp, None, status="ERROR")
+                
+            # 4. PASA v18: Dispara alerta crítico se houver penalidade severa
+            await send_critical_alert(
+                worker_id=self.name, 
+                run_xp=run_xp, 
+                error_details=error_message or "Falha desconhecida"
+            )
 
         except Exception as exc:
             self.logger.warning(f"[{self.name}] Falha ao finalizar run: {exc}")
