@@ -11,6 +11,7 @@ from uuid import uuid4
 
 from core.schemas import CommentPayload
 from core.supabase_service import get_supabase_client
+from workers.core.xp_engine import calculate_run_xp
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -148,7 +149,22 @@ class BaseWorker(ABC):
         results: list = None
     ) -> None:
         try:
-            # 1. Atualiza worker_runs (O Log Histórico)
+            # 1. Calcula XP da execução
+            is_success = status == "success"
+            critical_hits = 0
+            if results and isinstance(results, list):
+                critical_hits = sum(1 for item in results if item.get('is_hate'))
+
+            run_xp = calculate_run_xp(
+                success=is_success,
+                critical_hits=critical_hits,
+                rejections=items_rejected,
+                total_items=items_processed + items_rejected,
+                auth_fail="Auth" in (error_message or ""),
+                timeout="timeout" in (error_message or "").lower()
+            )
+
+            # 2. Atualiza worker_runs (O Log Histórico)
             self.db.table("worker_runs").update({
                 "status":           status,
                 "finished_at":      datetime.now(UTC).isoformat(),
@@ -156,59 +172,49 @@ class BaseWorker(ABC):
                 "items_processed":  items_processed,
                 "items_rejected":   items_rejected,
                 "error_message":    error_message,
+                "xp_gained":        run_xp
             }).eq("id", self._run_id).execute()
 
-            # 2. Lógica de Auditoria, XP e Level (O Placar de Estado)
-            if status == "success":
-                self._audit_and_update_state(items_processed, results)
+            # 3. Lógica de Auditoria, XP e Level (O Placar de Estado)
+            if is_success:
+                self._audit_and_update_state(items_processed, critical_hits, run_xp, results)
             else:
-                # Em caso de falha, apenas atualiza o status no ledger
-                self.db.table("worker_ledger").update({
-                    "status": "ERROR",
-                    "last_audit": datetime.now(UTC).isoformat()
-                }).eq("worker_name", self.name).execute()
+                # Em caso de falha, atualiza o ledger com a penalidade e status
+                self._audit_and_update_state(0, 0, run_xp, None, status="ERROR")
 
         except Exception as exc:
             self.logger.warning(f"[{self.name}] Falha ao finalizar run: {exc}")
 
-    def _audit_and_update_state(self, total_items: int, results: list = None) -> None:
+    def _audit_and_update_state(
+        self, 
+        total_items: int, 
+        critical_hits: int, 
+        xp_earned: int, 
+        results: list = None,
+        status: str = "ACTIVE"
+    ) -> None:
         """
-        Calcula XP, verifica Level Up e detecta burlas (neutralidade excessiva).
-        Integrado de core/worker_auditor.py.
+        Atualiza o Ledger acumulativo do worker.
         """
-        XP_PER_SUCCESS = 10
-        XP_PER_CRITICAL_HIT = 25
-        XP_TO_LEVEL_UP = [50, 150, 300, 600, 1000]
-        
         # Busca estado atual
         res = self.db.table("worker_ledger").select("*").eq("worker_name", self.name).execute()
-        ledger = res.data[0] if res.data else {"level": 0, "xp": 0, "successful_extractions": 0, "critical_hits": 0}
+        ledger = res.data[0] if res.data else {"xp": 0, "successful_extractions": 0, "critical_hits": 0, "total_runs": 0}
         
-        critical_hits = 0
         neutrality_rate = 0
-        if results and isinstance(results, list):
-            critical_hits = sum(1 for item in results if item.get('is_hate'))
+        if results and isinstance(results, list) and total_items > 0:
             neutral_hits = sum(1 for item in results if item.get('categoria_ia') == 'NEUTRO')
-            neutrality_rate = neutral_hits / total_items if total_items > 0 else 0
+            neutrality_rate = neutral_hits / total_items
 
-        # Cálculo de XP
-        xp_earned = (total_items * XP_PER_SUCCESS) + (critical_hits * XP_PER_CRITICAL_HIT)
-        new_xp = ledger.get('xp', 0) + xp_earned
-        current_level = ledger.get('level', 0)
+        new_xp = max(0, (ledger.get('xp') or ledger.get('current_xp') or 0) + xp_earned)
         
-        # Level Up
-        if current_level < 5 and new_xp >= XP_TO_LEVEL_UP[current_level]:
-            current_level += 1
-            self.logger.info(f"🎉 LEVEL UP! {self.name} agora é Nível {current_level}!")
-
-        # Upsert no Ledger
+        # Upsert no Ledger (Trigger SQL cuida do Level)
         self.db.table("worker_ledger").upsert({
             "worker_name": self.name,
-            "xp": new_xp,
-            "level": current_level,
-            "successful_extractions": ledger.get('successful_extractions', 0) + total_items,
-            "critical_hits": ledger.get('critical_hits', 0) + critical_hits,
+            "current_xp": new_xp,
+            "successful_extractions": (ledger.get('successful_extractions') or 0) + total_items,
+            "critical_hits": (ledger.get('critical_hits') or 0) + critical_hits,
             "neutrality_rate": neutrality_rate,
-            "status": "ACTIVE",
+            "total_runs": (ledger.get('total_runs') or 0) + 1,
+            "status": status,
             "last_audit": datetime.now(UTC).isoformat()
         }, on_conflict="worker_name").execute()
