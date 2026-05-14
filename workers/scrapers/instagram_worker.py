@@ -306,30 +306,25 @@ class InstagramWorker(BaseWorker):
                         await page.keyboard.press('Escape')
                         await asyncio.sleep(2)
 
-                # Salva no Supabase (Usando a nova tabela estruturada com Validação de Contrato)
+                # Salva no Supabase (Usando a nova tabela estruturada com Validação de Contrato PASA v17)
                 if detailed_posts:
-                    from core.schemas import CommentPayload
-                    
-                    validated_comments = []
-                    for raw in detailed_posts:
-                        try:
-                            # Validação rigorosa via Pydantic (Catch de ruídos e erros de tipo)
-                            payload = CommentPayload(**raw)
-                            validated_comments.append(payload.model_dump())
-                        except Exception as ve:
-                            self.logger.warning(f"⚠️ Comentário rejeitado pelo contrato (UI Noise ou Erro): {ve}")
+                    valid_comments, n_rejected = self.validate_comments(detailed_posts)
 
-                    if validated_comments:
-                        self.logger.info(f"💾 Salvando {len(validated_comments)} itens VALIDADOS na tabela 'comentarios'...")
-                        success = save_comments(validated_comments)
-                        if success:
-                            self.logger.info("✅ Sincronização com o banco concluída com sucesso!")
-                        else:
-                            self.logger.error("❌ Falha ao sincronizar com o banco.")
+                    self.logger.info(
+                        f"✅ Validação PASA v17: {len(valid_comments)} aceitos, "
+                        f"{n_rejected} rejeitados (ruído/lixo de UI)"
+                    )
+
+                    if valid_comments:
+                        self.logger.info(f"💾 Salvando {len(valid_comments)} itens VALIDADOS na tabela 'comentarios'...")
+                        success = save_comments(valid_comments)
+                        if not success:
+                            raise RuntimeError("Falha ao persistir comentários no Supabase")
+                        self.logger.info("✅ Sincronização com o banco concluída com sucesso!")
                     else:
                         self.logger.warning("📉 Nenhum comentário restou após a validação de contrato (Todos eram ruído).")
                 
-                return detailed_posts
+                return valid_comments if 'valid_comments' in locals() else []
 
             except Exception as e:
                 self.logger.error(f"❌ Erro geral na raspagem: {e}")
