@@ -6,6 +6,7 @@ import threading
 from app.database import supabase
 from app.workers.instagram_worker import InstagramWorker
 from app.workers.classifier_worker import ClassifierWorker
+from scripts.fetch_pending import process_pending_comments
 
 class QueueProcessor:
     def __init__(self, poll_interval: int = 30):
@@ -75,6 +76,8 @@ class QueueProcessor:
         while self.running:
             if not self._check_global_pause():
                 self._process_next_item()
+                # PASA v25: Após processar um alvo, tenta esvaziar a fila de classificação em lote
+                process_pending_comments()
             time.sleep(self.poll_interval)
 
     def start_async(self):
