@@ -21,13 +21,43 @@ if hasattr(sys.stderr, "reconfigure"):
 
 
 class BaseWorker(ABC):
-    def __init__(self, name: str, max_retries: int = 3, retry_base: int = 2):
+    def __init__(self, name: str, platform: str = "GENERIC", max_retries: int = 3, retry_base: int = 2):
         self.name = name
+        self.platform = platform
         self.max_retries = max_retries
         self.retry_base = retry_base
         self.logger = logging.getLogger(name)
         self.db = get_supabase_client()
         self._run_id = str(uuid4())
+
+    def _check_circuit_breaker(self) -> bool:
+        """Verifica se a fila da plataforma está pausada por falha de auth."""
+        try:
+            paused = self.db.table('fila_coleta')\
+                .select('id')\
+                .eq('plataforma', self.platform)\
+                .eq('status', 'paused_auth_fail')\
+                .limit(1)\
+                .execute()
+            
+            if paused.data:
+                self.logger.warning(f"🚨 [Circuit Breaker] Fila de {self.platform} pausada. Abortando run para preservar XP.")
+                return True
+        except Exception as e:
+            self.logger.error(f"⚠️ Erro ao verificar Circuit Breaker: {e}")
+        return False
+
+    def _trigger_circuit_breaker(self):
+        """Pausa toda a fila da plataforma para evitar falhas em cascata."""
+        try:
+            self.db.table('fila_coleta')\
+                .update({'status': 'paused_auth_fail'})\
+                .eq('plataforma', self.platform)\
+                .eq('status', 'PENDENTE')\
+                .execute()
+            self.logger.error(f"🔥 [Circuit Breaker] Fila de {self.platform} pausada automaticamente por falha de auth.")
+        except Exception as e:
+            self.logger.error(f"⚠️ Erro ao disparar Circuit Breaker: {e}")
 
     # ------------------------------------------------------------------
     # Ponto de entrada público — nunca sobrescreva este método
@@ -182,6 +212,11 @@ class BaseWorker(ABC):
             else:
                 # Em caso de falha, atualiza o ledger com a penalidade e status
                 self._audit_and_update_state(0, 0, run_xp, None, status="ERROR")
+                
+                # 3.1 PASA v19: Circuit Breaker - Pausa a fila se a sessão caiu
+                auth_fail = "Auth" in (error_message or "")
+                if auth_fail:
+                    self._trigger_circuit_breaker()
                 
             # 4. PASA v18: Dispara alerta crítico se houver penalidade severa
             await send_critical_alert(
