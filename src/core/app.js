@@ -48,6 +48,23 @@ function renderThreatCard(alertData) {
     const severityClass = alertData.is_critical ? 'border-red-500' : 'border-slate-200';
     const timeAgo = getTimeAgo(alertData.timestamp);
 
+    // ==========================================
+    // DEFESA EM PROFUNDIDADE: FILTRO DE RUÍDO FRONTEND
+    // ==========================================
+    const UI_NOISE_PATTERNS = [
+        /^upload de contatos/i,
+        /^não usuários/i,
+        /^há \d+ (hora|min|dia)/i,
+        /^e outros \d+$/i,
+    ];
+    
+    let safeCommentText = alertData.text || '';
+    const isNoise = UI_NOISE_PATTERNS.some(p => p.test(safeCommentText));
+    if (isNoise) {
+        console.warn("🚫 Ruído de UI filtrado no frontend:", safeCommentText);
+        return ''; // Não renderiza o card se for ruído
+    }
+
     return `
         <div class="threat-card bg-white rounded-xl border ${severityClass} shadow-sm hover:shadow-md transition-all overflow-hidden group">
             <div class="flex">

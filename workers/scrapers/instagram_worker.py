@@ -180,11 +180,12 @@ class InstagramWorker(BaseWorker):
                             # ==========================================
                             # FILTRO ANTI-UI NÍVEL 3 (Regex Dinâmico)
                             # ==========================================
-                            extracted_comments = []
+                            extracted_comments = [] # DECLARAÇÃO EXPLÍCITA AQUI
                             comment_elements = await dialog_element.query_selector_all('ul ul li')
                             
                             # Lista ampliada de ruídos estáticos
                             ui_noise = [
+                                "upload de contatos e não usuários", # STRING COMPLETA
                                 "curtida", "curtidas", "responder", "explorar", 
                                 "notificações", "página inicial", "também da meta", 
                                 "painel", "ver tradução", "ver comentários", 
@@ -192,7 +193,7 @@ class InstagramWorker(BaseWorker):
                                 "respostas", "perfil", "mensagens", "salvo",
                                 "configurações", "sair", "cancelar", "mais",
                                 "seguidores", "seguindo", "editar perfil",
-                                "upload de contatos", "não usuários" # NOVOS
+                                "upload de contatos", "não usuários"
                             ]
                             
                             months = [
@@ -207,7 +208,9 @@ class InstagramWorker(BaseWorker):
                                 r'^há \d+ (hora|horas|min|mins|dia|dias|semana|semanas|mês|meses|ano|anos)$', 
                                 r'^e outros \d+$',
                                 r'^\d+(\.\d+)? visualizaç(ão|ões)$',
-                                r'^\d+ semanal$'
+                                r'^\d+ semanal$',
+                                r'^upload de contatos', # Catch para variações
+                                r'^\d+ ponto(s)? de coleta'
                             ]
                             emoji_pattern = re.compile(r'[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF\U00002702-\U000027B0]')
                             
@@ -303,14 +306,29 @@ class InstagramWorker(BaseWorker):
                         await page.keyboard.press('Escape')
                         await asyncio.sleep(2)
 
-                # Salva no Supabase (Usando a nova tabela estruturada)
+                # Salva no Supabase (Usando a nova tabela estruturada com Validação de Contrato)
                 if detailed_posts:
-                    self.logger.info(f"💾 Salvando {len(detailed_posts)} itens na tabela 'comentarios'...")
-                    success = save_comments(detailed_posts) # MUDOU AQUI
-                    if success:
-                        self.logger.info("✅ Sincronização com o banco concluída com sucesso!")
+                    from core.schemas import CommentPayload
+                    
+                    validated_comments = []
+                    for raw in detailed_posts:
+                        try:
+                            # Validação rigorosa via Pydantic (Catch de ruídos e erros de tipo)
+                            payload = CommentPayload(**raw)
+                            validated_comments.append(payload.model_dump())
+                        except Exception as ve:
+                            self.logger.warning(f"⚠️ Comentário rejeitado pelo contrato (UI Noise ou Erro): {ve}")
+
+                    if validated_comments:
+                        self.logger.info(f"💾 Salvando {len(validated_comments)} itens VALIDADOS na tabela 'comentarios'...")
+                        success = save_comments(validated_comments)
+                        if success:
+                            self.logger.info("✅ Sincronização com o banco concluída com sucesso!")
+                        else:
+                            self.logger.error("❌ Falha ao sincronizar com o banco.")
                     else:
-                        self.logger.error("❌ Falha ao sincronizar com o banco.")
+                        self.logger.warning("📉 Nenhum comentário restou após a validação de contrato (Todos eram ruído).")
+                
                 return detailed_posts
 
             except Exception as e:
