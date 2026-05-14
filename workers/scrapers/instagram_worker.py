@@ -177,71 +177,92 @@ class InstagramWorker(BaseWorker):
                             await dialog_element.evaluate('el => el.scrollTop = el.scrollHeight')
                             await asyncio.sleep(2)
                             
-                            extracted_comments = []
+                            # ==========================================
+                            # FILTRO ANTI-UI NÍVEL 3 (Regex Dinâmico)
+                            # ==========================================
                             comment_elements = await dialog_element.query_selector_all('ul ul li')
                             
-                            for idx, c_el in enumerate(comment_elements[:20]):
-                                c_text = await c_el.inner_text()
-                                if not c_text: continue
-                                
-                                # Limpa o texto (remove quebras de linha)
-                                clean_text = c_text.replace('\n', ' ').strip()
-                                
-                                # ==========================================
-                                # FILTRO DE RUÍDO (VERSÃO SNIPER V2)
-                                # Ignora elementos de interface e metadados usando Regex
-                                # ==========================================
-                                noise_patterns = [
-                                    "Responder", "Ver respostas", "Ver todas as", 
-                                    "Explorar", "Notificações", "Página inicial", 
-                                    "Também da Meta", "Pesquisa", "Criar", "Perfil", 
-                                    "Mais", "Painel", "Ver tradução", "Mensagens",
-                                    "Upload de contatos", "não usuários"
-                                ]
-                                
-                                # 1. Regex para padrões temporais (ex: "há 4 h", "há 9 horas")
-                                if re.search(r'há \d+ [hdms]|há \d+ (hora|minuto|segundo|dia|semana)', clean_text.lower()):
-                                    continue
-                                    
-                                # 2. Regex para metadados de curtidas (ex: "yasmimalves.pe e outros 2")
-                                if re.search(r'e outros \d+|[0-9]+ curtida', clean_text.lower()):
-                                    continue
-                                    
-                                # 3. Filtro de comprimento e caracteres básicos
-                                if not clean_text or len(clean_text) < 4:
-                                    continue
-                                    
-                                # 4. Filtro de palavras-chave estáticas
-                                if any(pattern.lower() in clean_text.lower() for pattern in noise_patterns):
-                                    continue
-                                    
-                                # 5. Filtro de Identidade
-                                if clean_text.lower() == self.target_profile.lower():
-                                    continue
-                                    
-                                # 6. REGRA DE OURO: Evita lixo sem espaços
-                                if " " not in clean_text:
-                                    continue
+                            # Lista ampliada de ruídos estáticos
+                            ui_noise = [
+                                "curtida", "curtidas", "responder", "explorar", 
+                                "notificações", "página inicial", "também da meta", 
+                                "painel", "ver tradução", "ver comentários", 
+                                "ver menos", "alternar", "ver perfil", "ver todas",
+                                "respostas", "perfil", "mensagens", "salvo",
+                                "configurações", "sair", "cancelar", "mais",
+                                "seguidores", "seguindo", "editar perfil",
+                                "upload de contatos", "não usuários"
+                            ]
+                            
+                            months = [
+                                "janeiro", "fevereiro", "março", "abril", "maio", "junho",
+                                "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
+                            ]
 
-                                # Gera um ID único para o comentário (Hash do shortcode + índice)
-                                # Isso garante que se rodarmos de novo, não duplicaremos no banco
+                            # Padrões: "há 9 horas", "há 5 min", "e outros 2", "1.245 visualizações"
+                            dynamic_noise_patterns = [
+                                r'^há \d+ (hora|horas|min|mins|dia|dias|semana|semanas|mês|meses|ano|anos)$', 
+                                r'^e outros \d+$',
+                                r'^\d+(\.\d+)? visualizaç(ão|ões)$',
+                                r'^\d+ semanal$'
+                            ]
+                            emoji_pattern = re.compile(r'[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF\U00002702-\U000027B0]')
+                            
+                            for idx, c_el in enumerate(comment_elements[:20]):
+                                raw_text = await c_el.inner_text()
+                                if not raw_text: continue
+                                
+                                lines = [line.strip() for line in raw_text.split('\n') if line.strip()]
+                                
+                                meaningful_lines = []
+                                for line in lines:
+                                    line_lower = line.lower()
+                                    
+                                    # Ignora UI Noise Estático
+                                    if any(noise in line_lower for noise in ui_noise): continue
+                                    # Ignora só números
+                                    if line.isdigit(): continue
+                                    # Ignora Datas (Meses)
+                                    if any(mes in line_lower for mes in months): continue
+                                    # Ignora Padrões Dinâmicos
+                                    if any(re.match(pattern, line_lower) for pattern in dynamic_noise_patterns): continue
+                                    
+                                    meaningful_lines.append(line)
+                                
+                                if not meaningful_lines: continue
+                                
+                                # Heurística de Comentário vs Username Solto
+                                if len(meaningful_lines) == 1:
+                                    sole_line = meaningful_lines[0]
+                                    if " " not in sole_line and not emoji_pattern.search(sole_line):
+                                        continue # É um username solto ou UI curta
+                                
+                                # Isola Username e Comentário
+                                if len(meaningful_lines) >= 2:
+                                    author_username = meaningful_lines[0] if len(meaningful_lines[0]) < 30 and " " not in meaningful_lines[0] else "public_user"
+                                    comment_text = " ".join(meaningful_lines[1:]) if author_username != "public_user" else " ".join(meaningful_lines)
+                                else:
+                                    author_username = "public_user"
+                                    comment_text = meaningful_lines[0]
+
+                                clean_text = comment_text.replace('\n', ' ').strip()
+                                if len(clean_text) < 2: continue
+
                                 hash_input = f"{shortcode}_{idx}_{clean_text[:50]}"
                                 comment_id = f"ig_{hashlib.md5(hash_input.encode()).hexdigest()}"
-                                
-                                # Classifica com o PASA
                                 category, is_critical = classify_pasa(clean_text)
                                 
                                 comment_data = {
                                     "id_externo": comment_id,
                                     "candidato_id": self.target_profile,
                                     "post_id": shortcode,
-                                    "autor_username": "public_user", # Será enriquecido depois
+                                    "autor_username": author_username,
                                     "texto_bruto": clean_text,
                                     "data_publicacao": date_str,
                                     "categoria_ia": category,
                                     "is_hate": is_critical,
-                                    "confianca_ia": 0.85 if is_critical else 0.60, # Simulação de confiança
-                                    "processado_ia": True, # O PASA já processou
+                                    "confianca_ia": 0.85 if is_critical else 0.60,
+                                    "processado_ia": True,
                                     "plataforma": "INSTAGRAM",
                                     "mined": True
                                 }
