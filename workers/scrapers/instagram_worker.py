@@ -69,8 +69,20 @@ class InstagramWorker(BaseWorker):
         self.ds_user_id = os.getenv("INSTAGRAM_DS_USER_ID")
         self.csrf_token = os.getenv("INSTAGRAM_CSRFTOKEN")
 
+        self._browser = None
+        self._playwright = None
+
         if not all([self.session_id, self.ds_user_id, self.csrf_token]):
             raise ValueError("❌ Variáveis de sessão do Instagram ausentes no .env")
+
+    async def cleanup(self):
+        """Fecha o browser e encerra o playwright com segurança."""
+        if self._browser:
+            await self._browser.close()
+            self.logger.info(f"[{self.name}] Browser encerrado.")
+        if self._playwright:
+            await self._playwright.stop()
+            self.logger.info(f"[{self.name}] Playwright parado.")
 
     async def _inject_cookies(self, context):
         await context.add_cookies([
@@ -82,41 +94,42 @@ class InstagramWorker(BaseWorker):
     async def _run(self, *args, **kwargs):
         """Método principal exigido pelo BaseWorker. Executa a rotina de raspagem."""
         self.logger.info(f"🚀 Iniciando Playwright Stealth para: {self.target_profile}")
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(
-                headless=True, 
-                args=['--disable-blink-features=AutomationControlled', '--no-sandbox']
-            )
-            context = await browser.new_context(
-                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36", 
-                viewport={'width': 1920, 'height': 1080}, 
-                locale='pt-BR'
-            )
-            await self._inject_cookies(context)
-            page = await context.new_page()
+        from playwright.async_api import async_playwright
+        self._playwright = await async_playwright().start()
+        self._browser = await self._playwright.chromium.launch(
+            headless=True, 
+            args=['--disable-blink-features=AutomationControlled', '--no-sandbox']
+        )
+        context = await self._browser.new_context(
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36", 
+            viewport={'width': 1920, 'height': 1080}, 
+            locale='pt-BR'
+        )
+        await self._inject_cookies(context)
+        page = await context.new_page()
 
-            # Stealth Patch
-            await page.add_init_script("""
-                Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
-                Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
-                Object.defineProperty(navigator, 'languages', { get: () => ['pt-BR', 'pt', 'en-US', 'en'] });
-            """)
+        # Stealth Patch
+        await page.add_init_script("""
+            Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+            Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
+            Object.defineProperty(navigator, 'languages', { get: () => ['pt-BR', 'pt', 'en-US', 'en'] });
+        """)
 
-            try:
-                # 1. Acessa o Perfil
-                await page.goto(self.profile_url, wait_until="domcontentloaded", timeout=30000)
+        try:
+            # 1. Acessa o Perfil
+            await page.goto(self.profile_url, wait_until="domcontentloaded", timeout=30000)
 
-                # Aceitar Cookies (Obrigatório no Brasil/Europa, bloqueia o grid se não aceitar)
-                try: 
-                    await page.click('button:has-text("Aceitar"), button:has-text("Accept All"), button:has-text("Allow all cookies")', timeout=3000)
-                    self.logger.info("🍪 Cookies aceitos.")
-                    await asyncio.sleep(1)
-                except: pass
+            # Aceitar Cookies (Obrigatório no Brasil/Europa, bloqueia o grid se não aceitar)
+            try: 
+                await page.click('button:has-text("Aceitar"), button:has-text("Accept All"), button:has-text("Allow all cookies")', timeout=3000)
+                self.logger.info("🍪 Cookies aceitos.")
+                await asyncio.sleep(1)
+            except: pass
 
-                # Fecha pop-ups de notificação
-                try: 
-                    await page.click('button:has-text("Agora não"), button:has-text("Not Now")', timeout=2000)
-                except: pass
+            # Fecha pop-ups de notificação
+            try: 
+                await page.click('button:has-text("Agora não"), button:has-text("Not Now")', timeout=2000)
+            except: pass
 
                 # ==========================================
                 # FAST FAIL: Detecção Imediata de Perfil Inexistente
@@ -321,6 +334,22 @@ class InstagramWorker(BaseWorker):
                         if not success:
                             raise RuntimeError("Falha ao persistir comentários no Supabase")
                         self.logger.info("✅ Sincronização com o banco concluída com sucesso!")
+                        
+                        # ==========================================
+                        # PASA v17: EVENT BUS INTEGRATION
+                        # ==========================================
+                        try:
+                            from core.event_bus import bus
+                            # Publica evento para a próxima fase: Classificação via LLM
+                            bus.publish("classify_comments", {
+                                "post_id": shortcode,
+                                "candidato_id": self.target_profile,
+                                "count": len(valid_comments),
+                                "platform": "INSTAGRAM"
+                            })
+                            self.logger.info(f"📡 Evento 'classify_comments' publicado para o post {shortcode}")
+                        except Exception as eb_err:
+                            self.logger.warning(f"⚠️ Falha ao publicar no EventBus: {eb_err}")
                     else:
                         self.logger.warning("📉 Nenhum comentário restou após a validação de contrato (Todos eram ruído).")
                 

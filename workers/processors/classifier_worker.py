@@ -1,0 +1,170 @@
+# workers/processors/classifier_worker.py
+from __future__ import annotations
+import asyncio
+import json
+import logging
+import os
+import sys
+from datetime import datetime, UTC
+from pathlib import Path
+
+import httpx
+from dotenv import load_dotenv
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+load_dotenv()
+
+from workers.core.base_worker import BaseWorker
+from core.event_bus import bus
+from core.supabase_service import get_supabase_client
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_URL = (
+    "https://generativelanguage.googleapis.com/v1beta/models/"
+    "gemini-1.5-flash:generateContent"
+)
+
+PASA_SYSTEM_PROMPT = """
+Você é um classificador forense do sistema PASA v16.4.
+Analise o comentário e retorne APENAS um JSON com este formato exato:
+{"categoria": "CATEGORIA", "is_hate": true/false, "confianca": 0.0}
+
+Categorias válidas:
+- NEUTRO: apoio, crítica legítima, comentário neutro
+- AMEACA: ameaças físicas, chamados à violência
+- ODIO_IDENTITARIO: ódio por raça, gênero, religião, origem
+- VIOLENCIA_GENERO: misoginia, ataques baseados em gênero
+- RIGOR_CRIMINAL: acusações criminais sem evidência, difamação
+- INSULTO_AD_HOMINEM: insultos pessoais sem conteúdo político
+- ATAQUE_INSTITUCIONAL: ataques ao STF, TSE, urnas, democracia
+
+Regras:
+- is_hate=true apenas para AMEACA, ODIO_IDENTITARIO, VIOLENCIA_GENERO
+- confianca entre 0.0 e 1.0
+- Responda SOMENTE o JSON, sem markdown, sem explicação
+""".strip()
+
+
+class ClassifierWorker(BaseWorker):
+    def __init__(self):
+        super().__init__("ClassifierWorker")
+        self.db = get_supabase_client()
+        self.queue = "classify_comments"
+
+    async def _run(self, payload: dict) -> list:
+        """
+        Payload esperado: {"comment_ids": ["uuid1", "uuid2", ...]}
+        Ou processa um batch direto da fila se payload vazio.
+        """
+        comment_ids = payload.get("comment_ids", [])
+
+        if not comment_ids:
+            self.logger.info("Payload sem IDs — buscando não classificados no banco.")
+            comment_ids = self._fetch_unclassified_ids(limit=20)
+
+        if not comment_ids:
+            self.logger.info("Nenhum comentário pendente de classificação.")
+            return []
+
+        comments = self._fetch_comments(comment_ids)
+        self.logger.info(f"Classificando {len(comments)} comentários via Gemini...")
+
+        results = []
+        async with httpx.AsyncClient(timeout=30) as client:
+            for comment in comments:
+                result = await self._classify_one(client, comment)
+                if result:
+                    results.append(result)
+                await asyncio.sleep(0.5)  # respeita rate limit do Gemini
+
+        if results:
+            self._persist_classifications(results)
+
+        return results
+
+    async def _classify_one(
+        self, client: httpx.AsyncClient, comment: dict
+    ) -> dict | None:
+        texto = comment.get("texto_bruto", "").strip()
+        if not texto:
+            return None
+
+        body = {
+            "system_instruction": {"parts": [{"text": PASA_SYSTEM_PROMPT}]},
+            "contents": [{"parts": [{"text": texto}]}],
+            "generationConfig": {
+                "temperature": 0.1,
+                "maxOutputTokens": 100,
+            },
+        }
+
+        try:
+            resp = await client.post(
+                GEMINI_URL,
+                params={"key": GEMINI_API_KEY},
+                json=body,
+            )
+            resp.raise_for_status()
+            raw = resp.json()
+            text_out = (
+                raw["candidates"][0]["content"]["parts"][0]["text"].strip()
+            )
+            
+            # Sanitização básica para o caso do Gemini retornar markdown ```json ... ```
+            if "```json" in text_out:
+                text_out = text_out.split("```json")[1].split("```")[0].strip()
+            elif "```" in text_out:
+                text_out = text_out.split("```")[1].split("```")[0].strip()
+
+            parsed = json.loads(text_out)
+
+            return {
+                "id": comment["id"],
+                "categoria_ia": parsed.get("categoria", "NEUTRO"),
+                "is_hate": parsed.get("is_hate", False),
+                "confianca_ia": float(parsed.get("confianca", 0.5)),
+                "processado_ia": True,
+            }
+
+        except json.JSONDecodeError as exc:
+            self.logger.warning(
+                f"Gemini retornou JSON inválido para {comment['id']}: {exc}"
+            )
+            return None
+        except httpx.HTTPStatusError as exc:
+            self.logger.error(f"Gemini HTTP {exc.response.status_code}: {exc}")
+            raise  # Sobe para o retry do BaseWorker
+
+    def _fetch_unclassified_ids(self, limit: int = 20) -> list[str]:
+        res = (
+            self.db.table("comentarios")
+            .select("id")
+            .eq("processado_ia", False)
+            .eq("mined", True)
+            .limit(limit)
+            .execute()
+        )
+        return [row["id"] for row in (res.data or [])]
+
+    def _fetch_comments(self, ids: list[str]) -> list[dict]:
+        res = (
+            self.db.table("comentarios")
+            .select("id, texto_bruto")
+            .in_("id", ids)
+            .execute()
+        )
+        return res.data or []
+
+    def _persist_classifications(self, results: list[dict]) -> None:
+        for r in results:
+            self.db.table("comentarios").update({
+                "categoria_ia":  r["categoria_ia"],
+                "is_hate":       r["is_hate"],
+                "confianca_ia":  r["confianca_ia"],
+                "processado_ia": True,
+            }).eq("id", r["id"]).execute()
+
+        self.logger.info(f"✅ {len(results)} classificações persistidas.")
