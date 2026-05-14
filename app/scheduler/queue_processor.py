@@ -34,8 +34,14 @@ class QueueProcessor:
             if platform == 'instagram':
                 worker = InstagramWorker()
                 success = worker.run(target=target_id)
-            
-            # Futuro: elif platform == 'tiktok': ...
+            # PASA v22: Expansão congelada até o Instagram ser perfeito
+            # elif platform == 'youtube':
+            #     worker = YouTubeScraper()
+            #     success = worker.run(target=target_id)
+            else:
+                print(f"[QueueProcessor] Plataforma {platform} congelada ou inexistente. Pulando.")
+                supabase.table('fila_coleta').update({'status': 'PAUSADO_ESTRATEGICO'}).eq('id', item_id).execute()
+                return
 
             if success:
                 # Após coleta bem sucedida, agenda classificação
