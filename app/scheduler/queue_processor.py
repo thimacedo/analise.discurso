@@ -56,12 +56,25 @@ class QueueProcessor:
             print(f"[QueueProcessor] Erro fatal ao processar {target_id}: {e}")
             supabase.table('fila_coleta').update({'status': 'failed'}).eq('id', item_id).execute()
 
+    def _check_global_pause(self):
+        """PASA v24: Verifica se a sessão do Instagram está marcada como expirada antes de processar."""
+        try:
+            session = supabase.table('worker_sessions').select('status').eq('plataforma', 'instagram').execute()
+            if session.data and session.data[0]['status'] == 'expired':
+                print("[QueueProcessor] Sessão do Instagram expirada. Aguardando injeção de cookies via Dashboard...")
+                return True
+        except Exception as e:
+            # Se a tabela não existir ainda, ignora o pause
+            pass
+        return False
+
     def run_loop(self):
         """Loop contínuo de processamento da fila."""
         self.running = True
         print("[QueueProcessor] Motor de autonomia iniciado. Monitorando fila...")
         while self.running:
-            self._process_next_item()
+            if not self._check_global_pause():
+                self._process_next_item()
             time.sleep(self.poll_interval)
 
     def start_async(self):

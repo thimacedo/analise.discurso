@@ -92,6 +92,13 @@ class InstagramWorker(BaseWorker):
             
             print(f"[InstagramWorker] ERRO CAPTURADO: {error_msg}")
             
+            if auth_fail:
+                print(f"[InstagramWorker] ⚠️ Falha de Autenticação detectada! Marcando sessão como expirada.")
+                try:
+                    supabase.table('worker_sessions').update({'status': 'expired'}).eq('plataforma', 'instagram').execute()
+                except Exception as ex:
+                    print(f"Erro ao marcar sessão como expirada: {ex}")
+
             self.after_run(
                 success=False,
                 critical_hits=0,
