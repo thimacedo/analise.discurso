@@ -1,4 +1,5 @@
 // src/core/app.js
+import { renderSessionManager } from '../components/session-manager.js';
 
 // 1. INICIALIZAÇÃO DO SUPABASE (Sem import, usando o objeto global do CDN)
 const SUPABASE_URL = 'https://vhamejkldzxbeibqeqpk.supabase.co';
@@ -14,6 +15,79 @@ try {
     }
 } catch (e) {
     console.error("❌ Erro crítico ao inicializar Supabase:", e);
+}
+
+// PASA v24: Integração do Motor de XP e Circuit Breaker no Cérebro Frontend
+export async function initPasaDashboard() {
+    // 1. Renderiza o Gerenciador de Sessões (Cookie Injector)
+    renderSessionManager('session-manager-container');
+
+    try {
+        // 2. Consome o Status Unificado PASA v21
+        const response = await fetch('/api/v1/monitor/status');
+        if (response.ok) {
+            const systemData = await response.json();
+            renderWorkerEvolution(systemData.worker_evolution || []);
+            renderCircuitBreakerAlert(systemData.queue_health || { circuit_breaker_tripped: false });
+        }
+    } catch (err) {
+        console.warn("⚠️ Falha ao buscar status do monitor (backend offline?)");
+    }
+
+    // 3. Supabase Realtime para atualizar XP no vivo
+    if (supabaseClient) {
+        supabaseClient
+          .channel('worker-ledger-changes')
+          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'worker_ledger' }, payload => {
+            updateWorkerXPUI(payload.new);
+          })
+          .subscribe();
+    }
+}
+
+function renderCircuitBreakerAlert(queueHealth) {
+    const container = document.getElementById('circuit-breaker-alert');
+    if (!container) return;
+
+    if (queueHealth.circuit_breaker_tripped) {
+        container.innerHTML = `
+            <div class="bg-red-900/50 border border-red-500 text-red-200 p-3 rounded flex items-center gap-3 animate-pulse">
+                <i data-lucide="alert-octagon" class="w-6 h-6"></i>
+                <div>
+                    <p class="font-bold text-xs">CIRCUIT BREAKER ATIVADO</p>
+                    <p class="text-[10px]">Plataformas pausadas: ${(queueHealth.paused_platforms || []).join(', ')}</p>
+                </div>
+            </div>
+        `;
+        // Força a exibição do painel de injeção de sessão
+        document.getElementById('session-manager-container')?.classList.remove('hidden');
+        if (window.lucide) window.lucide.createIcons();
+    } else {
+        container.innerHTML = '';
+    }
+}
+
+function renderWorkerEvolution(workers) {
+    const container = document.getElementById('worker-xp-ranking');
+    if (!container) return;
+
+    container.innerHTML = workers.map(w => `
+        <div class="flex justify-between items-center bg-slate-50 p-2 rounded border-l-4 border-yellow-500 shadow-sm">
+            <span class="font-mono text-[10px] text-slate-600 font-bold">${w.worker_id || w.worker_name}</span>
+            <div class="flex gap-2 text-[10px]">
+                <span class="text-yellow-600 font-black">Nv ${w.current_level || 1}</span>
+                <span class="text-blue-600 font-bold">${w.current_xp || 0} XP</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+function updateWorkerXPUI(workerData) {
+    // Simplesmente re-renderiza ou atualiza um item específico
+    // Para simplificar PASA v24, vamos apenas recarregar a lista se visível
+    const response = fetch('/api/v1/monitor/status')
+        .then(r => r.json())
+        .then(data => renderWorkerEvolution(data.worker_evolution || []));
 }
 
 // 2. MAPEAMENTO VISUAL DO PASA v16.4
@@ -263,6 +337,9 @@ function setupSidebarNavigation() {
 
 // 6. INICIALIZAÇÃO
 document.addEventListener('DOMContentLoaded', () => {
+    // Inicializa as funcionalidades PASA v24 (XP, Sessions, CB)
+    initPasaDashboard();
+
     // Inicializa os dados do Dashboard
     loadSentinelaDashboard();
 
