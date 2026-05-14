@@ -53,37 +53,28 @@ class ClassifierWorker(BaseWorker):
         super().__init__("ClassifierWorker")
         self.db = get_supabase_client()
         self.queue = "classify_comments"
+        self.gold_path = PROJECT_ROOT / 'data' / 'classifier_gold_dataset.json'
 
-    async def _run(self, payload: dict) -> list:
-        """
-        Payload esperado: {"comment_ids": ["uuid1", "uuid2", ...]}
-        Ou processa um batch direto da fila se payload vazio.
-        """
-        comment_ids = payload.get("comment_ids", [])
-
-        if not comment_ids:
-            self.logger.info("Payload sem IDs — buscando não classificados no banco.")
-            comment_ids = self._fetch_unclassified_ids(limit=20)
-
-        if not comment_ids:
-            self.logger.info("Nenhum comentário pendente de classificação.")
-            return []
-
-        comments = self._fetch_comments(comment_ids)
-        self.logger.info(f"Classificando {len(comments)} comentários via Gemini...")
-
-        results = []
-        async with httpx.AsyncClient(timeout=30) as client:
-            for comment in comments:
-                result = await self._classify_one(client, comment)
-                if result:
-                    results.append(result)
-                await asyncio.sleep(0.5)  # respeita rate limit do Gemini
-
-        if results:
-            self._persist_classifications(results)
-
-        return results
+    def _get_system_prompt(self) -> str:
+        """Gera o prompt do sistema com injeção dinâmica de exemplos (Padrão Ouro)."""
+        prompt = PASA_SYSTEM_PROMPT
+        
+        if self.gold_path.exists():
+            try:
+                with open(self.gold_path, 'r', encoding='utf-8') as f:
+                    gold_data = json.load(f)
+                
+                if gold_data:
+                    prompt += "\n\nUse os seguintes exemplos reais auditados para guiar sua decisão (Padrão Ouro):\n"
+                    # Pega apenas os 10 exemplos mais recentes para não estourar o contexto
+                    for item in gold_data[-10:]:
+                        prompt += f"- Texto: \"{item['text']}\" -> Categoria: {item['label'].upper()}\n"
+                    
+                    self.logger.info(f"💉 Injetados {len(gold_data[:10])} exemplos de Padrão Ouro no prompt.")
+            except Exception as e:
+                self.logger.warning(f"⚠️ Falha ao carregar Padrão Ouro: {e}")
+        
+        return prompt
 
     async def _classify_one(
         self, client: httpx.AsyncClient, comment: dict
@@ -93,7 +84,7 @@ class ClassifierWorker(BaseWorker):
             return None
 
         body = {
-            "system_instruction": {"parts": [{"text": PASA_SYSTEM_PROMPT}]},
+            "system_instruction": {"parts": [{"text": self._get_system_prompt()}]},
             "contents": [{"parts": [{"text": texto}]}],
             "generationConfig": {
                 "temperature": 0.1,
