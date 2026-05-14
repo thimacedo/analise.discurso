@@ -197,5 +197,70 @@ async function loadSentinelaDashboard() {
     }
 }
 
-// 5. INICIALIZAÇÃO
-document.addEventListener('DOMContentLoaded', loadSentinelaDashboard);
+// 5. NAVEGAÇÃO SPA (Single Page Application)
+// ==========================================
+// ROUTER - Controlador de Navegação da Sidebar
+// ==========================================
+function setupSidebarNavigation() {
+    const navItems = document.querySelectorAll('.side-nav .nav-item');
+    navItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault(); // Impede o comportamento padrão do link
+
+            // 1. Remove a classe 'active' de todos os itens do menu
+            navItems.forEach(nav => nav.classList.remove('active'));
+            
+            // 2. Adiciona 'active' ao item clicado
+            item.classList.add('active');
+
+            // 3. Determina qual seção mostrar baseado no href ou id
+            const targetId = item.getAttribute('href')?.replace('#', 'view-') || item.id.replace('nav-', 'view-');
+            const targetSection = document.getElementById(targetId);
+
+            if (targetSection) {
+                // Esconde todas as seções
+                document.querySelectorAll('.view-content').forEach(section => {
+                    section.classList.remove('active-view');
+                    // Garante que a seção ocupe espaço apenas quando ativa
+                    section.style.display = 'none';
+                });
+
+                // Mostra a seção alvo
+                targetSection.classList.add('active-view');
+                targetSection.style.display = 'block';
+
+                // 4. Atualiza a URL
+                const hash = item.getAttribute('href') || `#${item.id.replace('nav-', '')}`;
+                history.pushState(null, '', hash);
+            }
+        });
+    });
+
+    // Lida com o botão "Voltar" do navegador
+    window.addEventListener('popstate', () => {
+        const hash = location.hash || '#monitor';
+        const activeLink = document.querySelector(`.side-nav .nav-item[href="${hash}"]`);
+        if (activeLink) activeLink.click();
+    });
+}
+
+// 6. INICIALIZAÇÃO
+document.addEventListener('DOMContentLoaded', () => {
+    // Inicializa os dados do Dashboard
+    loadSentinelaDashboard();
+
+    // Inicializa a navegação da Sidebar
+    setupSidebarNavigation();
+
+    // Carrega a view correta baseada na URL inicial (ex: se abrir #networks)
+    const initialHash = location.hash || '#monitor';
+    const initialLink = document.querySelector(`.side-nav .nav-item[href="${initialHash}"]`);
+    
+    if (initialLink) {
+        initialLink.click();
+    } else {
+        // Fallback para o monitor se a URL tiver um hash inválido
+        const monitorNav = document.getElementById('nav-monitor') || document.querySelector('.side-nav .nav-item[href="#monitor"]');
+        if (monitorNav) monitorNav.click();
+    }
+});

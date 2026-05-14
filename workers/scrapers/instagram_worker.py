@@ -180,6 +180,7 @@ class InstagramWorker(BaseWorker):
                             # ==========================================
                             # FILTRO ANTI-UI NÍVEL 3 (Regex Dinâmico)
                             # ==========================================
+                            extracted_comments = []
                             comment_elements = await dialog_element.query_selector_all('ul ul li')
                             
                             # Lista ampliada de ruídos estáticos
@@ -191,7 +192,7 @@ class InstagramWorker(BaseWorker):
                                 "respostas", "perfil", "mensagens", "salvo",
                                 "configurações", "sair", "cancelar", "mais",
                                 "seguidores", "seguindo", "editar perfil",
-                                "upload de contatos", "não usuários"
+                                "upload de contatos", "não usuários" # NOVOS
                             ]
                             
                             months = [
@@ -199,6 +200,8 @@ class InstagramWorker(BaseWorker):
                                 "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
                             ]
 
+                            # Regex para padrões dinâmicos do Instagram
+                            import re
                             # Padrões: "há 9 horas", "há 5 min", "e outros 2", "1.245 visualizações"
                             dynamic_noise_patterns = [
                                 r'^há \d+ (hora|horas|min|mins|dia|dias|semana|semanas|mês|meses|ano|anos)$', 
@@ -224,7 +227,7 @@ class InstagramWorker(BaseWorker):
                                     if line.isdigit(): continue
                                     # Ignora Datas (Meses)
                                     if any(mes in line_lower for mes in months): continue
-                                    # Ignora Padrões Dinâmicos
+                                    # Ignora Padrões Dinâmicos (NOVO)
                                     if any(re.match(pattern, line_lower) for pattern in dynamic_noise_patterns): continue
                                     
                                     meaningful_lines.append(line)
