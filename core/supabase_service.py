@@ -53,8 +53,8 @@ def get_next_targets_to_scrape(limit: int = 5) -> list:
             .limit(limit) \
             .execute()
         
-        # Retorna apenas os usernames, garantindo que não tenham @ no início
-        return [item['username'].lstrip('@') for item in response.data]
+        # Retorna a lista completa de dicionários (username, prioridade, etc)
+        return response.data
     except Exception as e:
         print(f"❌ Erro ao buscar alvos no banco: {e}")
         return []

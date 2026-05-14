@@ -31,7 +31,8 @@ async def main():
     logger.info("🚀 INICIANDO OPERAÇÃO DINÂMICA (MODO STEALTH + AUDITORIA)")
     logger.info(f"🎯 Alvos selecionados pelo banco: {targets}")
 
-    for index, target in enumerate(targets):
+    for index, target_data in enumerate(targets):
+        target = target_data['username'].lstrip('@')
         logger.info(f"\n{'='*50}")
         logger.info(f"📍 Iniciando extração para: @{target} ({index+1}/{len(targets)})")
         
