@@ -16,7 +16,7 @@ def process_mass_classification():
     while True:
         # Busca comentários onde processado_ia é falso ou nulo
         pending = db.table('comentarios')\
-            .select('id, texto_bruto')\
+            .select('id, texto_limpo')\
             .neq('processado_ia', True)\
             .limit(BATCH_SIZE)\
             .offset(offset)\
@@ -28,7 +28,7 @@ def process_mass_classification():
 
         batch = pending.data
         # Ajusta para o formato que a engine espera
-        formatted_batch = [{'id': c['id'], 'texto': c['texto_bruto']} for c in batch]
+        formatted_batch = [{'id': c['id'], 'texto': c['texto_limpo'] or ""} for c in batch]
         print(f"[MassClassify] Processando lote de {len(formatted_batch)} comentários...")
 
         classifications = classify_batch(formatted_batch)
@@ -41,12 +41,12 @@ def process_mass_classification():
             if not c.get('id'): continue
             
             is_hate = c.get('rotulo') == 'hate'
-            categoria = c.get('categoria_ia', 'Neutro')
+            categoria = c.get('categoria_ia', 'NEUTRO')
             direcao = c.get('direcao_odio') if is_hate else None
             confianca = float(c.get('confianca_ia', 0.5))
             
             if categoria not in VALID_CATEGORIAS:
-                categoria = "Neutro"
+                categoria = "NEUTRO"
 
             # Mapeamento exato para o schema do Supabase
             db.table('comentarios').update({
