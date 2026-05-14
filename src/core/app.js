@@ -17,22 +17,13 @@ try {
     console.error("❌ Erro crítico ao inicializar Supabase:", e);
 }
 
-// PASA v24: Integração do Motor de XP e Circuit Breaker no Cérebro Frontend
+// PASA v24.1: Integração do Motor de XP e Circuit Breaker no Cérebro Frontend
 export async function initPasaDashboard() {
     // 1. Renderiza o Gerenciador de Sessões (Cookie Injector)
     renderSessionManager('session-manager-container');
 
-    try {
-        // 2. Consome o Status Unificado PASA v21
-        const response = await fetch('/api/v1/monitor/status');
-        if (response.ok) {
-            const systemData = await response.json();
-            renderWorkerEvolution(systemData.worker_evolution || []);
-            renderCircuitBreakerAlert(systemData.queue_health || { circuit_breaker_tripped: false });
-        }
-    } catch (err) {
-        console.warn("⚠️ Falha ao buscar status do monitor (backend offline?)");
-    }
+    // 2. Busca o Status Unificado do Backend
+    await fetchSystemStatus();
 
     // 3. Supabase Realtime para atualizar XP no vivo
     if (supabaseClient) {
@@ -45,49 +36,114 @@ export async function initPasaDashboard() {
     }
 }
 
+async function fetchSystemStatus() {
+    try {
+        const response = await fetch('/api/v1/monitor/status');
+        if (!response.ok) throw new Error('API Offline');
+        
+        const data = await response.json();
+
+        // --- Atualização dos KPIs (A Alma do Dashboard) ---
+        updateKPI('kpi-monitorados', (data.queue_health?.pending || 0) + (data.queue_health?.processing || 0));
+        
+        // Para "Alertas Hoje", somamos os critical_hits do ledger
+        const totalAlerts = (data.worker_evolution || []).reduce((sum, w) => sum + (w.total_critical_hits || w.critical_hits || 0), 0);
+        updateKPI('kpi-hate', totalAlerts);
+        
+        // "Amostra DB" - Total de runs executadas pelo ecossistema
+        const totalRuns = (data.worker_evolution || []).reduce((sum, w) => sum + (w.total_runs || 0), 0);
+        updateKPI('kpi-total', totalRuns);
+
+        // "Resiliência" - Baseada no Circuit Breaker
+        const resEl = document.getElementById('kpi-res');
+        if (resEl) {
+            if (data.queue_health?.circuit_breaker_tripped) {
+                resEl.textContent = 'CRÍTICO';
+                resEl.classList.remove('text-emerald-600');
+                resEl.classList.add('text-red-600');
+            } else {
+                resEl.textContent = '100%';
+                resEl.classList.remove('text-red-600');
+                resEl.classList.add('text-emerald-600');
+            }
+        }
+
+        // --- Renderização dos Módulos Visuais ---
+        renderCircuitBreakerAlert(data.queue_health || { circuit_breaker_tripped: false });
+        renderWorkerEvolution(data.worker_evolution || []);
+
+    } catch (error) {
+        console.error('[Sentinela] Falha ao buscar status do sistema:', error);
+        const resEl = document.getElementById('kpi-res');
+        if(resEl) {
+            resEl.textContent = 'OFFLINE';
+            resEl.classList.remove('text-emerald-600');
+            resEl.classList.add('text-red-600');
+        }
+    }
+}
+
+function updateKPI(elementId, value) {
+    const el = document.getElementById(elementId);
+    if (el) {
+        el.textContent = value;
+        // Animação sutil de atualização
+        el.classList.add('scale-110');
+        setTimeout(() => el.classList.remove('scale-110'), 300);
+    }
+}
+
 function renderCircuitBreakerAlert(queueHealth) {
     const container = document.getElementById('circuit-breaker-alert');
     if (!container) return;
 
     if (queueHealth.circuit_breaker_tripped) {
         container.innerHTML = `
-            <div class="bg-red-900/50 border border-red-500 text-red-200 p-3 rounded flex items-center gap-3 animate-pulse">
-                <i data-lucide="alert-octagon" class="w-6 h-6"></i>
+            <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-3 rounded-r-lg shadow-sm flex items-start gap-3 animate-pulse">
+                <i data-lucide="alert-octagon" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
                 <div>
-                    <p class="font-bold text-xs">CIRCUIT BREAKER ATIVADO</p>
-                    <p class="text-[10px]">Plataformas pausadas: ${(queueHealth.paused_platforms || []).join(', ')}</p>
+                    <p class="font-black text-xs uppercase">Circuit Breaker Ativado</p>
+                    <p class="text-[10px] mt-1">Coleta pausada. Injete cookies para retomar.</p>
                 </div>
             </div>
         `;
         // Força a exibição do painel de injeção de sessão
-        document.getElementById('session-manager-container')?.classList.remove('hidden');
-        if (window.lucide) window.lucide.createIcons();
+        const sessionContainer = document.getElementById('session-manager-container');
+        if (sessionContainer) sessionContainer.classList.remove('hidden');
     } else {
         container.innerHTML = '';
+        const sessionContainer = document.getElementById('session-manager-container');
+        if (sessionContainer) sessionContainer.classList.add('hidden');
     }
+    // Re-inicializa ícones Lucide após injeção de HTML
+    if (window.lucide) lucide.createIcons();
 }
 
 function renderWorkerEvolution(workers) {
     const container = document.getElementById('worker-xp-ranking');
     if (!container) return;
 
+    if (!workers || workers.length === 0) {
+        container.innerHTML = '<p class="text-[10px] text-slate-400">Nenhum worker ativo ainda.</p>';
+        return;
+    }
+
     container.innerHTML = workers.map(w => `
-        <div class="flex justify-between items-center bg-slate-50 p-2 rounded border-l-4 border-yellow-500 shadow-sm">
-            <span class="font-mono text-[10px] text-slate-600 font-bold">${w.worker_id || w.worker_name}</span>
-            <div class="flex gap-2 text-[10px]">
-                <span class="text-yellow-600 font-black">Nv ${w.current_level || 1}</span>
-                <span class="text-blue-600 font-bold">${w.current_xp || 0} XP</span>
+        <div class="flex justify-between items-center p-2 bg-slate-50 rounded-md border border-slate-100 hover:bg-slate-100 transition-colors">
+            <div class="flex items-center gap-2">
+                <span class="text-[10px] font-mono font-bold text-slate-600">${w.worker_id || w.worker_name}</span>
+            </div>
+            <div class="flex gap-3 items-center">
+                <span class="text-[9px] font-black text-yellow-500 bg-yellow-50 px-1.5 py-0.5 rounded">Nv ${w.current_level || 1}</span>
+                <span class="text-[9px] font-bold text-blue-600">${w.current_xp || 0} XP</span>
             </div>
         </div>
     `).join('');
 }
 
 function updateWorkerXPUI(workerData) {
-    // Simplesmente re-renderiza ou atualiza um item específico
-    // Para simplificar PASA v24, vamos apenas recarregar a lista se visível
-    const response = fetch('/api/v1/monitor/status')
-        .then(r => r.json())
-        .then(data => renderWorkerEvolution(data.worker_evolution || []));
+    // Simplesmente re-busca o status para atualizar a UI
+    fetchSystemStatus();
 }
 
 // 2. MAPEAMENTO VISUAL DO PASA v16.4
