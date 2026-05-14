@@ -146,11 +146,16 @@ class SentinelDataService {
 
     // ── Worker Metrics & Credits ──
     async getWorkersMetrics() {
-        return this.fetchJson('/workers/dashboard');
+        return this.fetchJson('/monitor/workers');
     }
 
-    async getWorkersCredits() {
-        return this.fetchJson('/workers/credits');
+    // ── Instagram Session Management ──
+    async getInstagramSessionStatus() {
+        return this.fetchJson('/sessions/instagram/status');
+    }
+
+    async updateInstagramSession(sessionData) {
+        return this.postJson('/sessions/instagram/update', sessionData);
     }
 
     // ── Invalidação Manual de Cache ──

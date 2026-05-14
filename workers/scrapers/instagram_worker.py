@@ -1,103 +1,37 @@
-# workers/scrapers/instagram_worker.py
-import sys
-import asyncio
-import logging
-import os
-import random
-import hashlib
-import re
-from dotenv import load_dotenv
-from playwright.async_api import async_playwright
-from workers.core.base_worker import BaseWorker
-from core.supabase_service import save_comments # MUDOU AQUI
+    async def _get_session_cookies(self):
+        """Busca cookies do Supabase (system_configs) ou cai para as envs."""
+        try:
+            res = self.db.table("system_configs").select("value").eq("key", "instagram_session").single().execute()
+            if res.data and res.data.get("value"):
+                config = res.data["value"]
+                self.logger.info(f"[{self.name}] Usando sessão dinâmica do banco de dados.")
+                return [
+                    {"name": "sessionid", "value": config["session_id"], "domain": ".instagram.com", "path": "/", "httpOnly": True, "secure": True, "sameSite": "Lax"},
+                    {"name": "ds_user_id", "value": config["ds_user_id"], "domain": ".instagram.com", "path": "/", "secure": True},
+                    {"name": "csrftoken", "value": config["csrf_token"], "domain": ".instagram.com", "path": "/", "secure": True}
+                ]
+        except Exception as e:
+            self.logger.warning(f"[{self.name}] Falha ao buscar sessão no DB: {e}. Tentando .env...")
 
-if hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        if all([self.session_id, self.ds_user_id, self.csrf_token]):
+            return [
+                {"name": "sessionid", "value": self.session_id, "domain": ".instagram.com", "path": "/", "httpOnly": True, "secure": True, "sameSite": "Lax"},
+                {"name": "ds_user_id", "value": self.ds_user_id, "domain": ".instagram.com", "path": "/", "secure": True},
+                {"name": "csrftoken", "value": self.csrf_token, "domain": ".instagram.com", "path": "/", "secure": True}
+            ]
+        return None
 
-load_dotenv()
-
-# ==========================================
-# MOTOR DE CLASSIFICAÇÃO PASA v16.4 (Simulado)
-# Em produção, isso será substituído pela chamada à API do Gemini/LLM
-# ==========================================
-def classify_pasa(text: str) -> tuple:
-    """Analisa o texto e retorna (category, is_critical) baseado no PASA."""
-    if not text:
-        return "NEUTRO", False
-        
-    text_lower = text.lower()
-    
-    # 1. Scanner de Ameaça (Crítico)
-    if any(w in text_lower for w in ["tiro", "paredão", "matar", "morte"]):
-        return "AMEACA", True
-        
-    # 2. Rigor Criminal
-    if any(w in text_lower for w in ["ladrão", "corrupto", "traficante", "roubo"]):
-        return "RIGOR_CRIMINAL", True
-        
-    # 3. Violência de Gênero
-    if any(w in text_lower for w in ["vaca", "puta", "louca", "mulher feia"]):
-        return "VIOLENCIA_GENERO", True
-        
-    # 4. Ódio Identitário / Regionalismo
-    if any(w in text_lower for w in ["baiano preguiçoso", "nordestino", "xenofobia"]):
-        return "ODIO_IDENTITARIO", True
-        
-    # 5. Ataque Institucional
-    if any(w in text_lower for w in ["ditadura da toga", "stf ladrão", "fraude nas urnas"]):
-        return "ATAQUE_INSTITUCIONAL", True
-        
-    # 6. Insulto Ad Hominem
-    if any(w in text_lower for w in ["verme", "rato", "lixo", "escória"]):
-        return "INSULTO_AD_HOMINEM", False
-
-    # Se não cair em nada, é Neutro (Apoio agressivo, crítica política legítima, etc.)
-    return "NEUTRO", False
-
-
-class InstagramWorker(BaseWorker):
-    """
-    Worker oficial de raspagem do Instagram via Playwright Stealth.
-    """
-    def __init__(self, target_profile: str, max_posts: int = 5):
-        super().__init__(name=f"InstagramWorker-{target_profile}")
-        self.target_profile = target_profile
-        self.profile_url = f"https://www.instagram.com/{target_profile}/"
-        self.max_posts = max_posts 
-        
-        self.session_id = os.getenv("INSTAGRAM_SESSIONID")
-        self.ds_user_id = os.getenv("INSTAGRAM_DS_USER_ID")
-        self.csrf_token = os.getenv("INSTAGRAM_CSRFTOKEN")
-
-        self._browser = None
-        self._playwright = None
-
-        if not all([self.session_id, self.ds_user_id, self.csrf_token]):
-            raise ValueError("❌ Variáveis de sessão do Instagram ausentes no .env")
-
-    async def cleanup(self):
-        """Fecha o browser e encerra o playwright com segurança."""
-        if self._browser:
-            await self._browser.close()
-            self.logger.info(f"[{self.name}] Browser encerrado.")
-        if self._playwright:
-            await self._playwright.stop()
-            self.logger.info(f"[{self.name}] Playwright parado.")
-
-    async def _inject_cookies(self, context):
-        await context.add_cookies([
-            {"name": "sessionid", "value": self.session_id, "domain": ".instagram.com", "path": "/", "httpOnly": True, "secure": True, "sameSite": "Lax"},
-            {"name": "ds_user_id", "value": self.ds_user_id, "domain": ".instagram.com", "path": "/", "secure": True},
-            {"name": "csrftoken", "value": self.csrf_token, "domain": ".instagram.com", "path": "/", "secure": True}
-        ])
-
-    async def _run(self, *args, **kwargs):
+    async def _run(self, payload: dict) -> Any:
         """Método principal exigido pelo BaseWorker. Executa a rotina de raspagem."""
         self.logger.info(f"🚀 Iniciando Playwright Stealth para: {self.target_profile}")
-        from playwright.async_api import async_playwright
+        
+        cookies = await self._get_session_cookies()
+        if not cookies:
+            raise ValueError(f"[{self.name}] Nenhuma sessão ativa encontrada (DB ou .env)")
+
         self._playwright = await async_playwright().start()
         self._browser = await self._playwright.chromium.launch(
-            headless=True, 
+            headless=True,
             args=['--disable-blink-features=AutomationControlled', '--no-sandbox']
         )
         context = await self._browser.new_context(
@@ -105,7 +39,7 @@ class InstagramWorker(BaseWorker):
             viewport={'width': 1920, 'height': 1080}, 
             locale='pt-BR'
         )
-        await self._inject_cookies(context)
+        await context.add_cookies(cookies)
         page = await context.new_page()
 
         # Stealth Patch

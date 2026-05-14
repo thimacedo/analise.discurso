@@ -32,6 +32,7 @@ export const workersUI = {
             }
 
             this.drawDashboard(container, metrics);
+            this.renderSessionManager(container);
             this.startPolling(containerId);
         } catch (error) {
             console.error('[WorkersUI] Error:', error);
@@ -241,6 +242,87 @@ export const workersUI = {
         const refreshBtn = document.getElementById('refresh-workers');
         if (refreshBtn) {
             refreshBtn.onclick = () => this.renderWorkersDashboard(container.id);
+        }
+    },
+
+    async renderSessionManager(container) {
+        const sessionContainer = document.createElement('div');
+        sessionContainer.className = 'mt-12';
+        container.appendChild(sessionContainer);
+
+        try {
+            const status = await dataService.getInstagramSessionStatus();
+            
+            sessionContainer.innerHTML = `
+                <div class="bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden max-w-2xl">
+                    <div class="px-8 py-5 border-b border-slate-50 bg-slate-800 flex items-center gap-3">
+                        <i data-lucide="shield" class="text-cyan-400 w-5 h-5"></i>
+                        <h3 class="font-black text-white uppercase tracking-widest text-xs">Instagram Session Manager</h3>
+                    </div>
+                    
+                    <div class="p-8 space-y-6">
+                        <div class="p-4 rounded-2xl flex items-center justify-between ${status?.status === 'active' ? 'bg-emerald-50 border border-emerald-100' : 'bg-amber-50 border border-amber-100'}">
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="${status?.status === 'active' ? 'check-circle' : 'alert-triangle'}" class="${status?.status === 'active' ? 'text-emerald-500' : 'text-amber-500'} w-5 h-5"></i>
+                                <div>
+                                    <p class="text-slate-700 font-black text-xs uppercase tracking-tight">${status?.status === 'active' ? 'Sessão Ativa' : 'Sessão Ausente'}</p>
+                                    <p class="text-[10px] text-slate-400 font-bold uppercase">${status?.last_updated ? 'Atualizado em: ' + new Date(status.last_updated).toLocaleString() : 'Pendente'}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form id="session-form" class="space-y-4">
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Session ID</label>
+                                <input type="password" name="session_id" required class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3 text-sm focus:ring-2 focus:ring-cyan-500 outline-none transition-all" placeholder="sessionid cookie value">
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-1">
+                                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">DS User ID</label>
+                                    <input type="text" name="ds_user_id" required class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3 text-sm focus:ring-2 focus:ring-cyan-500 outline-none transition-all" placeholder="ds_user_id">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">CSRF Token</label>
+                                    <input type="text" name="csrf_token" required class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3 text-sm focus:ring-2 focus:ring-cyan-500 outline-none transition-all" placeholder="csrftoken">
+                                </div>
+                            </div>
+                            <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-black uppercase tracking-widest text-[10px] py-4 rounded-2xl transition-all active:scale-[0.98] shadow-lg shadow-slate-200 flex items-center justify-center gap-2">
+                                <i data-lucide="save" class="w-4 h-4"></i>
+                                Salvar Configurações
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            `;
+
+            if (window.lucide) lucide.createIcons();
+
+            const form = document.getElementById('session-form');
+            form.onsubmit = async (e) => {
+                e.preventDefault();
+                const btn = e.target.querySelector('button');
+                btn.disabled = true;
+                btn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4 animate-spin"></i> Salvando...';
+                if (window.lucide) lucide.createIcons();
+
+                const formData = new FormData(e.target);
+                const data = Object.fromEntries(formData.entries());
+                
+                try {
+                    await dataService.updateInstagramSession(data);
+                    alert('Sessão atualizada com sucesso!');
+                    this.renderWorkersDashboard(container.id);
+                } catch (err) {
+                    alert('Erro ao atualizar: ' + err.message);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Salvar Configurações';
+                    if (window.lucide) lucide.createIcons();
+                }
+            };
+
+        } catch (error) {
+            console.error('[WorkersUI] Session Manager Error:', error);
         }
     },
 
