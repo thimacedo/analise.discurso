@@ -1,6 +1,13 @@
 """
-PASA v36.1 - Sentinela Local Node: Servidor de Raspagem com Log de Operações em Tela
+PASA v36.1 - Sentinela Local Node: Servidor de Raspagem com Log de Operações
 """
+import time
+import os
+import sys
+
+# Garante que o diretório raiz do projeto esteja no Python Path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 import time
 import os
 import sys
