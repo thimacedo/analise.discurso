@@ -106,35 +106,43 @@ def main_loop():
                 supabase_status = "🔴 OFFLINE"
                 log_event(ops_log, f"Falha ao sincronizar cache: {str(e)[:40]}")
 
-            # 2. Fase de Raspagem (Serial)
-            WarRoomUI.render("🟡 RASPANDO INSTAGRAM", supabase_status, len(load_queue()), cycle_count, ops_log)
-            try:
-                # PASA v37.2: Removido filtro de 'plataforma' pois a coluna não existe na tabela real
-                pending = db.table('fila_coleta').select('id, target_id').eq('status', 'PENDENTE').limit(1).execute()
-                
-                if pending.data:
-                    target = pending.data[0]['target_id']
-                    item_id = pending.data[0]['id']
+            # 2. Fase de Raspagem (Batch Serial Resiliente)
+            PROFILES_PER_CYCLE = 5 # PASA v38: Processa 5 alvos por ciclo antes da hibernação
+            
+            for i in range(PROFILES_PER_CYCLE):
+                WarRoomUI.render(f"🟡 RASPANDO INSTAGRAM ({i+1}/{PROFILES_PER_CYCLE})", supabase_status, len(load_queue()), cycle_count, ops_log)
+                try:
+                    # PASA v37.2: Removido filtro de 'plataforma' pois a coluna não existe na tabela real
+                    pending = db.table('fila_coleta').select('id, target_id').eq('status', 'PENDENTE').limit(1).execute()
                     
-                    db.table('fila_coleta').update({'status': 'PROCESSANDO'}).eq('id', item_id).execute()
-                    log_event(ops_log, f"Iniciando raspagem de @{target}")
+                    if pending.data:
+                        target = pending.data[0]['target_id']
+                        item_id = pending.data[0]['id']
+                        
+                        db.table('fila_coleta').update({'status': 'PROCESSANDO'}).eq('id', item_id).execute()
+                        log_event(ops_log, f"Iniciando raspagem de @{target}")
 
-                    try:
-                        success = worker.run(target=target)
-                        new_status = 'CONCLUIDO' if success else 'FALHOU'
-                        db.table('fila_coleta').update({'status': new_status}).eq('id', item_id).execute()
-                        log_event(ops_log, f"Raspagem de @{target} finalizada: {new_status}")
-                    except Exception as e:
-                        db.table('fila_coleta').update({'status': 'FALHOU'}).eq('id', item_id).execute()
-                        log_event(ops_log, f"ERRO CRÍTICO em @{target}: {str(e)[:40]}")
+                        try:
+                            success = worker.run(target=target)
+                            new_status = 'CONCLUIDO' if success else 'FALHOU'
+                            db.table('fila_coleta').update({'status': new_status}).eq('id', item_id).execute()
+                            log_event(ops_log, f"Raspagem de @{target} finalizada: {new_status}")
+                        except Exception as e:
+                            db.table('fila_coleta').update({'status': 'FALHOU'}).eq('id', item_id).execute()
+                            log_event(ops_log, f"ERRO CRÍTICO em @{target}: {str(e)[:40]}")
 
-                    time.sleep(SCRAPE_PAUSE)
-                else:
-                    log_event(ops_log, "Fila de raspagem vazia.")
-            except Exception as e:
-                supabase_status = "🔴 OFFLINE"
-                # PASA v37.2: Log detalhado do erro real do Supabase
-                log_event(ops_log, f"Erro Supabase (Fila): {str(e)[:80]}")
+                        # Pausa respirada entre perfis DENTRO do ciclo
+                        if i < PROFILES_PER_CYCLE - 1:
+                            time.sleep(SCRAPE_PAUSE)
+                    else:
+                        log_event(ops_log, "Fila de raspagem vazia. Encerrando batch antecipadamente.")
+                        break # Sai do loop do batch se a fila acabou
+                        
+                except Exception as e:
+                    supabase_status = "🔴 OFFLINE"
+                    # PASA v37.2: Log detalhado do erro real do Supabase
+                    log_event(ops_log, f"Erro Supabase (Fila): {str(e)[:80]}")
+                    break # Interrompe o batch se o banco cair
 
             # 3. Fase de Processamento IA (Batch)
             WarRoomUI.render("🧠 PROCESSANDO IA", supabase_status, len(load_queue()), cycle_count, ops_log)
