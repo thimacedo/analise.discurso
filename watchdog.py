@@ -18,16 +18,17 @@ RESTART_DELAY = 30 # Segundos antes de ressuscitar
 
 def get_python_executable():
     """Detecta o executável Python do ambiente virtual (venv ou .venv) se disponível."""
-    # Prioriza o executável que está rodando o watchdog
-    current_executable = sys.executable
+    # Se já estivermos rodando dentro de um venv, sys.executable é o caminho correto
+    if sys.prefix != sys.base_prefix:
+        return sys.executable
     
-    # Se estiver rodando no Windows, verifica venv/Scripts/python.exe
+    # Se não, tenta detectar pastas padrão no diretório do projeto
     project_root = os.path.dirname(os.path.abspath(__file__))
     venv_paths = [
-        os.path.join(project_root, "venv", "Scripts", "python.exe"),
         os.path.join(project_root, ".venv", "Scripts", "python.exe"),
-        os.path.join(project_root, "venv", "bin", "python"),
+        os.path.join(project_root, "venv", "Scripts", "python.exe"),
         os.path.join(project_root, ".venv", "bin", "python"),
+        os.path.join(project_root, "venv", "bin", "python"),
     ]
     
     for path in venv_paths:
@@ -35,7 +36,7 @@ def get_python_executable():
             print(f"[Watchdog] Ambiente virtual detectado: {path}")
             return path
             
-    return current_executable
+    return sys.executable
 
 # Credenciais CallMeBot (Integrado no Watchdog para resiliência máxima)
 CALLMEBOT_PHONE = "558496066876"
