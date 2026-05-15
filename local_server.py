@@ -4,23 +4,30 @@ PASA v36.1 - Sentinela Local Node: Servidor de Raspagem com Log de Operações
 import time
 import os
 import sys
+import json
 
 # Garante que o diretório raiz do projeto esteja no Python Path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-import time
-import os
-import sys
 from datetime import datetime
 from core.supabase_service import get_supabase_client
-from core.offline_cache import save_to_queue, flush_queue, load_queue
-from app.workers.instagram_worker import InstagramWorker
-from scripts.mass_classify import process_mass_classification
-from scripts.update_threat_profiles import calculate_hate_density
 
-# Configurações do Ciclo
+# Configurações Padrão (Fallback)
 CYCLE_PAUSE = 900 # 15 minutos
 SCRAPE_PAUSE = 45 # Pausa entre perfis
+
+def load_runtime_config():
+    """Carrega configurações dinâmicas geradas pelo AutoUpdater."""
+    global CYCLE_PAUSE, SCRAPE_PAUSE
+    config_path = "data/cache/runtime_config.json"
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, 'r') as f:
+                config = json.load(f)
+                CYCLE_PAUSE = config.get('CYCLE_PAUSE', CYCLE_PAUSE)
+                SCRAPE_PAUSE = config.get('SCRAPE_PAUSE', SCRAPE_PAUSE)
+        except Exception:
+            pass
 
 class WarRoomUI:
     @staticmethod
@@ -54,6 +61,28 @@ def log_event(ops_log: list, message: str):
     timestamp = datetime.now().strftime("%H:%M:%S")
     ops_log.append(f"[{timestamp}] {message}")
 
+from core.offline_cache import save_to_queue, flush_queue, load_queue
+from app.workers.instagram_worker import InstagramWorker
+from scripts.mass_classify import process_mass_classification
+from scripts.update_threat_profiles import calculate_hate_density
+
+# Configurações Padrão (Fallback)
+CYCLE_PAUSE = 900 # 15 minutos
+SCRAPE_PAUSE = 45 # Pausa entre perfis
+
+def load_runtime_config():
+    """Carrega configurações dinâmicas geradas pelo AutoUpdater."""
+    global CYCLE_PAUSE, SCRAPE_PAUSE
+    config_path = "data/cache/runtime_config.json"
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, 'r') as f:
+                config = json.load(f)
+                CYCLE_PAUSE = config.get('CYCLE_PAUSE', CYCLE_PAUSE)
+                SCRAPE_PAUSE = config.get('SCRAPE_PAUSE', SCRAPE_PAUSE)
+        except Exception:
+            pass
+
 def main_loop():
     db = get_supabase_client()
     worker = InstagramWorker()
@@ -63,6 +92,7 @@ def main_loop():
     try:
         while True:
             cycle_count += 1
+            load_runtime_config() # PASA v37: Carrega configs dinâmicas
             log_event(ops_log, f"=== INÍCIO DO CICLO {cycle_count} ===")
             supabase_status = "🟢 ONLINE"
             
