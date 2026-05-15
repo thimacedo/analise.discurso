@@ -109,7 +109,8 @@ def main_loop():
             # 2. Fase de Raspagem (Serial)
             WarRoomUI.render("🟡 RASPANDO INSTAGRAM", supabase_status, len(load_queue()), cycle_count, ops_log)
             try:
-                pending = db.table('fila_coleta').select('id, target_id').eq('status', 'PENDENTE').eq('plataforma', 'instagram').limit(1).execute()
+                # PASA v37.2: Removido filtro de 'plataforma' pois a coluna não existe na tabela real
+                pending = db.table('fila_coleta').select('id, target_id').eq('status', 'PENDENTE').limit(1).execute()
                 
                 if pending.data:
                     target = pending.data[0]['target_id']
@@ -132,7 +133,8 @@ def main_loop():
                     log_event(ops_log, "Fila de raspagem vazia.")
             except Exception as e:
                 supabase_status = "🔴 OFFLINE"
-                log_event(ops_log, "Erro ao acessar fila de coleta no Supabase.")
+                # PASA v37.2: Log detalhado do erro real do Supabase
+                log_event(ops_log, f"Erro Supabase (Fila): {str(e)[:80]}")
 
             # 3. Fase de Processamento IA (Batch)
             WarRoomUI.render("🧠 PROCESSANDO IA", supabase_status, len(load_queue()), cycle_count, ops_log)
