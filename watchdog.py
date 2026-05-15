@@ -16,6 +16,27 @@ from core.auto_updater import check_for_updates
 SERVER_SCRIPT = "local_server.py"
 RESTART_DELAY = 30 # Segundos antes de ressuscitar
 
+def get_python_executable():
+    """Detecta o executável Python do ambiente virtual (venv ou .venv) se disponível."""
+    # Prioriza o executável que está rodando o watchdog
+    current_executable = sys.executable
+    
+    # Se estiver rodando no Windows, verifica venv/Scripts/python.exe
+    project_root = os.path.dirname(os.path.abspath(__file__))
+    venv_paths = [
+        os.path.join(project_root, "venv", "Scripts", "python.exe"),
+        os.path.join(project_root, ".venv", "Scripts", "python.exe"),
+        os.path.join(project_root, "venv", "bin", "python"),
+        os.path.join(project_root, ".venv", "bin", "python"),
+    ]
+    
+    for path in venv_paths:
+        if os.path.exists(path):
+            print(f"[Watchdog] Ambiente virtual detectado: {path}")
+            return path
+            
+    return current_executable
+
 # Credenciais CallMeBot (Integrado no Watchdog para resiliência máxima)
 CALLMEBOT_PHONE = "558496066876"
 CALLMEBOT_APIKEY = "8552672"
@@ -50,8 +71,9 @@ def guard():
         # 2. Inicia o servidor como um subprocesso
         print(f"[Watchdog] Iniciando {SERVER_SCRIPT}...")
         try:
-            # Usando sys.executable para garantir que usa o mesmo interpretador Python
-            process = subprocess.Popen([sys.executable, SERVER_SCRIPT])
+            # Usa o executável detectado para garantir isolamento (venv)
+            python_exe = get_python_executable()
+            process = subprocess.Popen([python_exe, SERVER_SCRIPT])
 
             # 3. Monitora o processo
             last_update_check = time.time()
