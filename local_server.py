@@ -10,6 +10,7 @@ from core.offline_cache import save_to_queue, flush_queue, load_queue
 from app.workers.instagram_worker import InstagramWorker
 # classifier_engine.py contém classify_batch, mas o orquestrador pode usar o script de massa
 from scripts.mass_classify import process_mass_classification
+from scripts.update_threat_profiles import calculate_hate_density
 
 # Configurações do Ciclo
 CYCLE_PAUSE = 900 # 15 minutos de sono entre ciclos completos (ajustável)
@@ -92,9 +93,14 @@ def main_loop():
             try:
                 # Roda a classificação em lote
                 process_mass_classification()
-                last_action += " | IA Processada."
+                last_action = "IA Processada. Calculando ameaças..."
+                WarRoomUI.render("🔍 PROFILING DE AMEAÇAS", supabase_status, len(load_queue()), last_action, cycle_count)
+                
+                # Roda o Threat Profiler para atualizar Densidade de Ódio
+                calculate_hate_density()
+                last_action += " | Perfis Atualizados."
             except Exception as e:
-                last_action += f" | Falha na IA: {str(e)[:20]}"
+                last_action += f" | Falha no Processamento: {str(e)[:20]}"
 
             # 4. Sono Estratégico
             WarRoomUI.render("🟢 AGUARDANDO PRÓXIMO CICLO", supabase_status, len(load_queue()), last_action, cycle_count)

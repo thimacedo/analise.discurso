@@ -268,34 +268,48 @@ window.auditComment = async (commentId, rotulo) => {
     }
 };
 
+async function fetchHotTargets() {
+    try {
+        // Busca candidatos ordenados pela maior nota_relevancia (Densidade de Ódio)
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/candidatos?select=username,nome_completo,nota_relevancia,comentarios_odio_count&order=nota_relevancia.desc&limit=5`, {
+            headers: {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+            }
+        });
+        const targets = await response.json();
+        renderHotTargets(targets);
+    } catch (e) {
+        console.error('Erro ao buscar alvos críticos:', e);
+    }
+}
+
 function renderHotTargets(targets) {
     const container = document.getElementById('chartMain');
     if (!container) return;
-    container.innerHTML = '';
 
-    if (targets.length === 0) {
-        container.innerHTML = '<p class="text-center text-slate-300 text-[10px] py-4 uppercase">Sem alvos críticos</p>';
+    if (!targets || targets.length === 0) {
+        container.innerHTML = '<p class="text-[10px] text-slate-400 text-center py-4">Nenhum alvo crítico mapeado ainda.</p>';
         return;
     }
 
-    targets.slice(0, 5).forEach((target, index) => {
-        const riskPercent = Math.min(100, Math.round((target.threat_count / target.max_threats) * 100));
-        const riskColor = riskPercent > 75 ? 'bg-red-500' : riskPercent > 40 ? 'bg-orange-400' : 'bg-slate-300';
-
-        container.innerHTML += `
-            <div class="flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 transition-colors group cursor-pointer">
+    container.innerHTML = targets.map(t => {
+        const density = t.nota_relevancia || 0;
+        const color = density > 40 ? 'bg-red-500' : density > 20 ? 'bg-orange-500' : 'bg-yellow-500';
+        return `
+            <div class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
                 <div class="flex items-center gap-2">
-                    <div class="w-6 h-6 rounded-full bg-red-50 flex items-center justify-center text-[9px] font-bold text-red-500 border border-red-100">${index + 1}</div>
-                    <span class="text-xs font-bold text-slate-700 group-hover:text-slate-900">@${target.profile}</span>
+                    <span class="text-xs font-bold text-slate-700">@${t.username}</span>
                 </div>
                 <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-red-600 font-bold">${density}%</span>
                     <div class="w-16 bg-slate-100 rounded-full h-1.5">
-                        <div class="${riskColor} h-1.5 rounded-full" style="width: ${riskPercent}%"></div>
+                        <div class="${color} h-1.5 rounded-full" style="width: ${Math.min(density, 100)}%"></div>
                     </div>
-                    <span class="text-[9px] font-mono text-slate-400">${riskPercent}%</span>
                 </div>
-            </div>`;
-    });
+            </div>
+        `;
+    }).join('');
 }
 
 // 4. FUNÇÃO PRINCIPAL DE CARGA DO BANCO
@@ -348,27 +362,8 @@ async function loadSentinelaDashboard() {
             feedContainer.innerHTML = '<p class="text-center text-slate-400 text-sm py-8">Nenhum alerta encontrado no banco.</p>';
         }
 
-        // B. CALCULAR ALVOS CRÍTICOS (Agora baseado na tabela comentarios)
-        const { data: targetsData, error: targetsError } = await supabaseClient
-            .from('comentarios') // MUDOU AQUI
-            .select('candidato_id, categoria_ia') // MUDOU AQUI
-            .not('categoria_ia', 'eq', 'NEUTRO');
-
-        if (targetsError) throw targetsError;
-
-        const profileCounts = {};
-        targetsData.forEach(curr => {
-            if (curr.categoria_ia !== 'NEUTRO' && curr.candidato_id) {
-                profileCounts[curr.candidato_id] = (profileCounts[curr.candidato_id] || 0) + 1;
-            }
-        });
-
-        const targetsArray = Object.entries(profileCounts).map(([profile, count]) => ({ profile, threat_count: count }));
-        targetsArray.sort((a, b) => b.threat_count - a.threat_count);
-        const maxThreats = targetsArray.length > 0 ? targetsArray[0].threat_count : 1;
-        const finalTargets = targetsArray.map(t => ({ ...t, max_threats: maxThreats }));
-
-        renderHotTargets(finalTargets);
+        // B. ATUALIZAR ALVOS CRÍTICOS (Via API Supabase filtrada)
+        await fetchHotTargets();
 
         // C. ATUALIZAR KPIs
         document.getElementById('kpi-monitorados').innerText = new Set(alerts.map(a => a.candidato_id)).size; // MUDOU AQUI
