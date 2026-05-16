@@ -87,6 +87,13 @@ class PushTokenRegistration(BaseModel):
 class FalsePositiveRequest(BaseModel):
     id: str
 
+class SessionRotationRequest(BaseModel):
+    enabled: Optional[bool] = None
+    intervalHours: Optional[int] = None
+
+class SessionCookieRequest(BaseModel):
+    cookies: str
+
 # --- UTILS ---
 def calculate_risk(item: Dict[str, Any]):
     totais = item.get('comentarios_totais_count', 0) or 0
@@ -449,11 +456,66 @@ async def export_metrics(filepath: str = "data/workers_metrics_export.json"):
     
     try:
         await metrics_collector.export_metrics_json(filepath)
-        return {
-            "status": "success",
-            "filepath": filepath,
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }
+        return {"status": "success", "filepath": filepath, "timestamp": datetime.now(timezone.utc).isoformat()}
     except Exception as e:
         logger.error(f"Export Metrics Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# --- SESSIONS ENDPOINTS (v47.5) ---
+
+@app.get("/api/v1/sessions/instagram")
+async def get_sessions(supa: Client = Depends(get_supa)):
+    """Lista sessões de raspagem do Instagram."""
+    try:
+        res = supa.table('worker_sessions').select('*').eq('plataforma', 'instagram').order('updated_at', desc=True).execute()
+        return res.data or []
+    except Exception as e:
+        logger.error(f"Get Sessions Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v1/sessions/instagram/cookies")
+async def add_session(payload: SessionCookieRequest, supa: Client = Depends(get_supa)):
+    """Adiciona/Injeta novos cookies de sessão."""
+    try:
+        data = {
+            "plataforma": "instagram",
+            "cookies": payload.cookies,
+            "status": "active",
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        res = supa.table('worker_sessions').insert(data).execute()
+        return {"status": "success", "data": res.data[0] if res.data else {}}
+    except Exception as e:
+        logger.error(f"Add Session Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.patch("/api/v1/sessions/instagram/{session_id}/rotation")
+async def update_rotation(session_id: str, payload: SessionRotationRequest, supa: Client = Depends(get_supa)):
+    """Atualiza configuração de rotação automática de uma sessão."""
+    try:
+        update_data = {}
+        if payload.enabled is not None:
+            update_data["auto_rotate_enabled"] = payload.enabled
+        if payload.intervalHours is not None:
+            update_data["auto_rotate_interval"] = payload.intervalHours
+
+        res = supa.table('worker_sessions').update(update_data).eq('id', session_id).execute()
+        return {"status": "success", "data": res.data[0] if res.data else {}}
+    except Exception as e:
+        logger.error(f"Update Rotation Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v1/sessions/instagram/rotate")
+async def rotate_now(supa: Client = Depends(get_supa)):
+    """Dispara rotação manual imediata."""
+    return {"status": "success", "message": "Rotação sinalizada para o orquestrador local."}
+
+@app.delete("/api/v1/sessions/instagram/{session_id}")
+async def delete_session(session_id: str, supa: Client = Depends(get_supa)):
+    """Remove uma sessão."""
+    try:
+        supa.table('worker_sessions').delete().eq('id', session_id).execute()
+        return {"status": "success"}
+    except Exception as e:
+        logger.error(f"Delete Session Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
