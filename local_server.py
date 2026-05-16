@@ -74,64 +74,99 @@ async def run_server():
         supabase_status = "🟢 ONLINE" if db.client else "🔴 OFFLINE"
         log_event(ops_log, f"Iniciando ciclo #{cycle_count}")
         
-        # 1. Fase de Raspagem Inteligente (PASA v47: Posts + Reels)
+        # 1. Fase de Raspagem (Busca Ativa até completar o Batch - Lei do Esforço Contínuo PASA v49)
         PROFILES_PER_CYCLE = 5
         profiles_scraped_this_cycle = 0
+        profiles_skipped_cooldown = 0
+        search_attempts = 0
+        MAX_SEARCH_ATTEMPTS = 20 # Segurança para não loopar infinito se tudo estiver em cooldown
         
-        while profiles_scraped_this_cycle < PROFILES_PER_CYCLE:
+        while profiles_scraped_this_cycle < PROFILES_PER_CYCLE and search_attempts < MAX_SEARCH_ATTEMPTS:
+            search_attempts += 1
             try:
                 res_pend = db.client.table('fila_coleta').select('id', count='exact').eq('status', 'PENDENTE').execute()
                 queue_size = res_pend.count if res_pend.count is not None else 0
                 
-                WarRoomUI.render(f"🟡 RASPAGEM: ALVO {profiles_scraped_this_cycle+1}/{PROFILES_PER_CYCLE}", supabase_status, queue_size, cycle_count, ops_log)
+                WarRoomUI.render(f"🟡 BUSCANDO ALVO ({profiles_scraped_this_cycle+1}/{PROFILES_PER_CYCLE})", supabase_status, queue_size, cycle_count, ops_log)
                 
-                pending = db.client.table('fila_coleta').select('id, target_id').eq('status', 'PENDENTE').limit(10).execute()
+                # Busca lote de alvos pendentes
+                pending = db.client.table('fila_coleta').select('id, target_id').eq('status', 'PENDENTE').limit(PROFILES_PER_CYCLE).execute()
                 
-                if not pending.data: break
+                if not pending.data:
+                    log_event(ops_log, "Fila de raspagem completamente vazia.")
+                    break # Fim da fila real
 
-                target_item = None
+                viable_found_in_batch = False
                 for p in pending.data:
                     target_id = p['target_id']
+                    
+                    # Verifica Cooldown
                     cand = db.client.table('candidatos').select('last_scraped_at').eq('username', target_id).execute()
                     
                     if cand.data and cand.data[0].get('last_scraped_at'):
                         last_scraped_str = cand.data[0]['last_scraped_at']
                         try:
                             last_scraped = datetime.fromisoformat(last_scraped_str.replace('Z', '+00:00'))
-                            if (datetime.now(timezone.utc) - last_scraped).total_seconds() / 3600 < COOLDOWN_HOURS:
+                            hours_since_scrape = (datetime.now(timezone.utc) - last_scraped).total_seconds() / 3600
+                            
+                            if hours_since_scrape < COOLDOWN_HOURS:
+                                # Em cooldown! Varre pra baixo (marca como concluído) e continua procurando
                                 db.client.table('fila_coleta').update({'status': 'CONCLUIDO'}).eq('id', p['id']).execute()
+                                log_event(ops_log, f"@{target_id} em cooldown ({hours_since_scrape:.1f}h). Pulando.")
+                                profiles_skipped_cooldown += 1
                                 continue
                         except Exception: pass
                     
-                    target_item = p
-                    break
-                
-                if not target_item: break
-
-                target_id = target_item['target_id']
-                db.client.table('fila_coleta').update({'status': 'PROCESSANDO'}).eq('id', target_item['id']).execute()
-                
-                try:
-                    success = worker.run(target=target_id)
-                    new_status = 'CONCLUIDO' if success else 'FALHOU'
-                    db.client.table('fila_coleta').update({'status': new_status}).eq('id', target_item['id']).execute()
+                    # Alvo Viável Encontrado!
+                    viable_found_in_batch = True
+                    item_id = p['id']
+                    db.client.table('fila_coleta').update({'status': 'PROCESSANDO'}).eq('id', item_id).execute()
                     
-                    if success:
-                        db.client.table('candidatos').update({
-                            'last_scraped_at': datetime.now(timezone.utc).isoformat(),
-                            'reels_scraped': True # PASA v47
-                        }).eq('username', target_id).execute()
-                        log_event(ops_log, f"@{target_id} (P+R) concluído.")
-                        profiles_scraped_this_cycle += 1
-                    else:
-                        log_event(ops_log, f"Falha em @{target_id}")
+                    try:
+                        success = worker.run(target=target_id)
+                        new_status = 'CONCLUIDO' if success else 'FALHOU'
+                        db.client.table('fila_coleta').update({'status': new_status}).eq('id', item_id).execute()
+                        
+                        if success:
+                            db.client.table('candidatos').update({
+                                'last_scraped_at': datetime.now(timezone.utc).isoformat(),
+                                'reels_scraped': True
+                            }).eq('username', target_id).execute()
+                            log_event(ops_log, f"Raspagem de @{target_id} concluída: {new_status}")
+                            profiles_scraped_this_cycle += 1
+                        else:
+                            log_event(ops_log, f"Falha em @{target_id}")
 
-                except Exception as e:
-                    db.client.table('fila_coleta').update({'status': 'FALHOU'}).eq('id', target_item['id']).execute()
-                    log_event(ops_log, f"Erro fatal @{target_id}: {str(e)[:40]}")
+                        if profiles_scraped_this_cycle < PROFILES_PER_CYCLE:
+                            time.sleep(SCRAPE_PAUSE)
+                            
+                    except Exception as e:
+                        db.client.table('fila_coleta').update({'status': 'FALHOU'}).eq('id', item_id).execute()
+                        log_event(ops_log, f"ERRO CRÍTICO em @{target_id}: {str(e)[:40]}")
+                        break
 
-                time.sleep(SCRAPE_PAUSE)
-            except Exception: break
+                # Se varremos o lote e nenhum era viável, o loop while busca o próximo lote
+                if not viable_found_in_batch and pending.data:
+                    log_event(ops_log, "Lote atual inteiro em cooldown. Buscando próximos...")
+                    continue
+
+            except Exception as e:
+                supabase_status = "🔴 OFFLINE"
+                log_event(ops_log, f"Erro Supabase (Fila): {str(e)[:80]}")
+                break
+
+        # PASA v49: Penalidade por Preguiça (Se não raspou nada mas pulou por cooldown)
+        if profiles_scraped_this_cycle == 0 and profiles_skipped_cooldown > 0:
+            log_event(ops_log, f"⚠️ WORKER PREGUIÇOSO: Descansou sem raspar nada ({profiles_skipped_cooldown} alvos em cooldown). Penalidade de XP aplicada.")
+            try:
+                # Tenta buscar XP atual e descontar
+                res_ledger = db.client.table('worker_ledger').select('current_xp').eq('worker_id', 'InstagramWorker').single().execute()
+                if res_ledger.data:
+                    current_xp = res_ledger.data['current_xp']
+                    db.client.table('worker_ledger').update({'current_xp': max(0, current_xp - 30)}).eq('worker_id', 'InstagramWorker').execute()
+                    log_event(ops_log, "Penalidade de -30 XP aplicada no ledger.")
+            except Exception as xp_e:
+                log_event(ops_log, f"Erro ao aplicar penalidade: {str(xp_e)[:40]}")
 
         # 2. Profiling e Git Sync
         WarRoomUI.render("📊 ATUALIZANDO PROFILER", supabase_status, "---", cycle_count, ops_log)
