@@ -1,11 +1,13 @@
 """
-PASA v22 - Instagram Worker Fortaleza
-Foco: Resiliência, tratamento rigoroso de sessão e sanitização de dados.
+PASA v49.3 - Instagram Worker Fortaleza
+Foco: Resiliência, tratamento rigoroso de schema e persistência garantida.
 """
 import time
 import random
 import uuid
-from datetime import datetime
+import re
+import hashlib
+from datetime import datetime, timezone
 from app.workers.base_worker import BaseWorker
 from core.supabase_service import supabase
 from app.workers.quality_gate import is_valid_comment
@@ -15,27 +17,43 @@ class InstagramWorker(BaseWorker):
         super().__init__(platform="instagram")
         self.worker_id = "InstagramWorker"
 
+    def _limpar_texto(self, texto: str) -> str:
+        """Remove URLs, espaços excessivos e normaliza o texto para análise."""
+        if not texto: return ""
+        texto = re.sub(r'http\S+', '', texto)
+        texto = re.sub(r'\s+', ' ', texto).strip()
+        return texto
+
     def _sanitize_comment(self, raw_comment: dict, content_type: str = "POST") -> dict:
-        """Garante que o dicionário de comentário mapeie EXATAMENTE para o schema do Supabase."""
+        """
+        Garante que o dicionário de comentário mapeie EXATAMENTE para o schema do Supabase.
+        Inclui obrigatoriamente id_externo (NOT NULL).
+        """
         text = str(raw_comment.get('text', ''))[:2000]
-        raw_id = str(raw_comment.get('id', ''))
         
-        # PASA v49.3: Gera UUID determinístico (v5) a partir do ID do Instagram
-        # Isso garante que o mesmo comentário sempre gere o mesmo UUID, permitindo upsert
+        # 1. Identifica ou gera o id_externo (ID real da rede social)
+        id_externo = str(raw_comment.get('id', ''))
+        if not id_externo or id_externo == 'None':
+             # Fallback determinístico baseado no conteúdo para dados de teste ou incompletos
+             hash_input = f"{getattr(self, 'current_target', 'unknown')}_{content_type}_{text}"
+             id_externo = f"ig_gen_{hashlib.md5(hash_input.encode()).hexdigest()[:16]}"
+
+        # 2. Gera UUID determinístico (v5) a partir do id_externo para o ID interno (PK)
         namespace = uuid.NAMESPACE_URL
-        deterministic_uuid = str(uuid.uuid5(namespace, f"instagram.com/{raw_id}"))
+        id_interno = str(uuid.uuid5(namespace, f"instagram.com/{id_externo}"))
         
         return {
-            'id': deterministic_uuid,
+            'id': id_interno,
+            'id_externo': id_externo,          # ← CAMPO OBRIGATÓRIO (NOT NULL)
             'texto_bruto': text,
-            'texto_limpo': text, 
+            'texto_limpo': self._limpar_texto(text), 
             'autor_username': str(raw_comment.get('ownerUsername', 'unknown')),
             'candidato_id': getattr(self, 'current_target', 'unknown'),
-            'data_coleta': raw_comment.get('timestamp', ''),
+            'data_coleta': raw_comment.get('timestamp') or datetime.now(timezone.utc).isoformat(),
             'plataforma': 'instagram',
             'rede_social': 'instagram',
             'processado_ia': False,
-            'tipo_conteudo': content_type # PASA v47: Identifica a origem do comentário
+            'tipo_conteudo': content_type
         }
 
     def run(self, target: str):
@@ -46,38 +64,43 @@ class InstagramWorker(BaseWorker):
 
         try:
             # 2. Rate Limiting Humano (Anti-Ban)
-            sleep_time = random.uniform(2.0, 6.0)
+            sleep_time = random.uniform(2.0, 5.0)
             print(f"[InstagramWorker] Dormindo {sleep_time:.2f}s para simular comportamento humano...")
             time.sleep(sleep_time)
 
             # 3. Execução da Raspagem (PASA v47: Posts + Reels)
             print(f"[InstagramWorker] Iniciando coleta integral para: {target}")
             
-            # 3.1 Raspagem de Posts (Padrão)
+            # 3.1 Raspagem de Posts
             post_comments = self._scrape_section(target, "posts")
             
-            # 3.2 Raspagem de Reels (PASA v47 - O Vetor Efêmero)
+            # 3.2 Raspagem de Reels
             reel_comments = self._scrape_section(target, "reels")
 
             # Consolida e salva
-            all_comments = post_comments + reel_comments
+            all_payloads = post_comments + reel_comments
             
-            if not all_comments:
+            if not all_payloads:
                 print(f"[InstagramWorker] Nenhum comentário novo para {target}. Extração limpa.")
                 self.after_run(success=True, critical_hits=0, rejections=0, total_items=0, auth_fail=False, timeout=False)
                 return True
 
-            # 4. Persistência
-            supabase.table('comentarios').upsert(all_comments, on_conflict='id').execute()
+            # 4. Persistência com Validação de Sanidade
+            # Filtra payloads que porventura ainda estejam sem id_externo
+            valid_payloads = [p for p in all_payloads if p.get('id_externo')]
+            
+            if valid_payloads:
+                supabase.table('comentarios').upsert(valid_payloads, on_conflict='id').execute()
+                print(f"[InstagramWorker] Sucesso: {len(valid_payloads)} comentários persistidos para @{target}")
 
             # 5. Pós-execução com XP
-            hate_count = sum(1 for c in all_comments if "hate" in c['texto_bruto'].lower() or "ódio" in c['texto_bruto'].lower())
+            hate_count = sum(1 for c in valid_payloads if "hate" in c['texto_bruto'].lower() or "ódio" in c['texto_bruto'].lower())
             
             self.after_run(
                 success=True,
                 critical_hits=hate_count,
-                rejections=0,
-                total_items=len(all_comments),
+                rejections=len(all_comments) - len(valid_payloads) if 'all_comments' in locals() else 0,
+                total_items=len(valid_payloads),
                 auth_fail=False,
                 timeout=False
             )
@@ -113,9 +136,15 @@ class InstagramWorker(BaseWorker):
         print(f"[InstagramWorker] Raspando seção: {section} de @{target}")
         
         # SIMULAÇÃO: No ambiente real, aqui chamaria o scraper (Apify/Playwright)
+        # Agora gerando IDs fictícios consistentes para o id_externo
         raw_data = [
-            {"id": f"ig_{section}_{random.randint(1000,9999)}", "text": f"Teste de {section} detectado", "ownerUsername": "user_test", "timestamp": datetime.now().isoformat()}
-        ] if random.random() > 0.5 else []
+            {
+                "id": f"ig_{section}_{target}_{random.randint(1000,9999)}", 
+                "text": f"Conteúdo de {section} detectado para @{target}", 
+                "ownerUsername": "user_test", 
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+        ] if random.random() > 0.3 else []
         
         comments = []
         for rc in raw_data:
