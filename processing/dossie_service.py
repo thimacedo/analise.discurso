@@ -1,5 +1,5 @@
 import hashlib
-import pandas as pd
+import json
 from datetime import datetime
 from processing.report_generator import ReportGenerator
 from core.db import db_client
@@ -7,7 +7,7 @@ from core.db import db_client
 class DossieService:
     """
     Serviço para geração de dossiês forenses com persistência estruturada.
-    Diamond Edition v20.5.2
+    Diamond Edition v20.5.2 (Otimizado: Sem Pandas para compatibilidade Vercel)
     """
     def __init__(self):
         self.generator = ReportGenerator()
@@ -15,24 +15,26 @@ class DossieService:
     async def generate_dossie(self, data, path, candidato_id: str):
         """
         Gera o PDF e persiste os metadados no banco de dados.
+        Utiliza lógica nativa para evitar dependência do Pandas.
         """
         if not data:
             print("⚠️ [DossieService] Nenhum dado para gerar dossiê.")
             return None
 
-        df = pd.DataFrame(data)
-        
-        # 1. Calcula Metadados Forenses
-        data_str = df.to_json()
+        # 1. Calcula Metadados Forenses (Usando JSON nativo)
+        data_str = json.dumps(data)
         data_hash = hashlib.sha256(data_str.encode()).hexdigest()
-        total_comentarios = len(df)
+        total_comentarios = len(data)
         
-        # Verifica se as colunas existem antes de contar
-        is_hate_col = 'is_hate_speech' if 'is_hate_speech' in df.columns else 'is_hate'
-        total_hate = int(df[df[is_hate_col] == True].shape[0]) if is_hate_col in df.columns else 0
+        # Identifica coluna de ódio (is_hate ou is_hate_speech)
+        total_hate = 0
+        for item in data:
+            if item.get('is_hate') is True or item.get('is_hate_speech') is True:
+                total_hate += 1
 
         # 2. Gera o PDF físico
-        pdf_path = self.generator.generate_pdf(df, path)
+        # Nota: ReportGenerator deve ser adaptado para aceitar List[Dict] em vez de DataFrame
+        pdf_path = self.generator.generate_pdf(data, path)
         
         if pdf_path:
             # 3. Persistência Estruturada no Supabase

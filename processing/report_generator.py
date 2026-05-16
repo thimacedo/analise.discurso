@@ -1,15 +1,16 @@
 import os
 import hashlib
 import re
-import pandas as pd
+import json
 from fpdf import FPDF
 from datetime import datetime
-from processing.visual_engine import visual_engine
+# Import visual_engine será movido para dentro do método ou removido se depender de Pandas
+# Para manter compatibilidade, vamos assumir que visual_engine pode ser adaptado ou ignorado se falhar
 
 class ReportGenerator(FPDF):
     """
     Gerador de relatórios PDF de alto desempenho (Diamond Edition).
-    Produz dossiês executivos com visualizações integradas e integridade forense.
+    Otimizado: Sem Pandas para compatibilidade Vercel.
     """
     
     def __init__(self):
@@ -79,7 +80,7 @@ class ReportGenerator(FPDF):
         self.set_font(self.font_family_main, '', 9)
         self.cell(0, 5, "SISTEMA SENTINELA DEMOCRÁTICA - DIAMOND EDITION", align='C')
 
-    def render_analytics_page(self, df):
+    def render_analytics_page(self, data):
         """Página com gráficos estatísticos."""
         self.add_page()
         self.set_font(self.font_family_main, 'B', 14)
@@ -87,16 +88,10 @@ class ReportGenerator(FPDF):
         self.cell(0, 10, 'ANÁLISE ESTATÍSTICA E TENDÊNCIAS', ln=True)
         self.ln(5)
 
-        # Gráfico 1: Breakdown PASA
-        path_pasa = visual_engine.generate_pasa_breakdown(df)
-        if path_pasa and os.path.exists(path_pasa):
-            self.image(path_pasa, x=15, w=180)
-            self.ln(10)
-
-        # Gráfico 2: Tendência Temporal
-        path_trend = visual_engine.generate_temporal_trend(df)
-        if path_trend and os.path.exists(path_trend):
-            self.image(path_trend, x=10, w=190)
+        # Gráficos desativados temporariamente para remover dependência do Pandas/Matplotlib no Bundle Vercel
+        self.set_font(self.font_family_main, 'I', 10)
+        self.set_text_color(100, 100, 100)
+        self.cell(0, 10, '[Visualizações gráficas disponíveis na versão Desktop/Worker]', ln=True)
 
     def render_evidence_item(self, item):
         """Renderiza um card de evidência detalhado."""
@@ -133,7 +128,7 @@ class ReportGenerator(FPDF):
         self.set_xy(15, current_y + 12)
         self.set_font(self.font_family_main, '', 9)
         self.set_text_color(71, 85, 105)
-        texto = self.clean_text(item.get('text', ''))
+        texto = self.clean_text(item.get('text', '') or item.get('texto_limpo', ''))
         self.multi_cell(180, 5, f"CONTEÚDO: {texto[:280]}...")
         
         # Footer do card (Data)
@@ -145,7 +140,7 @@ class ReportGenerator(FPDF):
         
         self.set_y(current_y + 55)
 
-    def render_integrity_seal(self, df):
+    def render_integrity_seal(self, data):
         """Selo de integridade forense."""
         self.add_page()
         self.set_y(100)
@@ -153,7 +148,7 @@ class ReportGenerator(FPDF):
         self.set_text_color(*self.primary_color)
         self.cell(0, 10, 'CERTIFICAÇÃO DE INTEGRIDADE DOS DADOS', ln=True, align='C')
         
-        data_str = df.to_json()
+        data_str = json.dumps(data)
         data_hash = hashlib.sha256(data_str.encode()).hexdigest()
         
         self.set_font(self.font_family_main, '', 9)
@@ -169,17 +164,17 @@ class ReportGenerator(FPDF):
         self.set_fill_color(241, 245, 249)
         self.cell(0, 10, f"SHA-256: {data_hash}", border=1, ln=True, align='C', fill=True)
 
-    def generate_pdf(self, df_final, output_path):
-        if df_final is None or df_final.empty:
+    def generate_pdf(self, data, output_path):
+        if not data:
             return None
 
-        candidato = df_final['candidato_id'].iloc[0] if 'candidato_id' in df_final.columns else "Geral"
+        candidato = data[0].get('candidato_id', 'Geral') if len(data) > 0 else "Geral"
         
         # 1. Capa
-        self.render_cover(candidato, len(df_final))
+        self.render_cover(candidato, len(data))
         
-        # 2. Analytics
-        self.render_analytics_page(df_final)
+        # 2. Analytics (Resumido para Vercel)
+        self.render_analytics_page(data)
         
         # 3. Evidências (Top 50 hostis)
         self.add_page()
@@ -188,18 +183,19 @@ class ReportGenerator(FPDF):
         self.cell(0, 10, 'DETALHAMENTO DE EVIDÊNCIAS (TOP SINAIS)', ln=True)
         self.ln(5)
         
-        is_hate_col = 'is_hate_speech' if 'is_hate_speech' in df_final.columns else 'is_hate'
-        df_report = df_final[df_final[is_hate_col] == True].head(50) if is_hate_col in df_final.columns else df_final.head(10)
+        # Filtra os primeiros 50 itens de ódio
+        hate_items = [item for item in data if item.get('is_hate') is True or item.get('is_hate_speech') is True][:50]
         
-        if df_report.empty:
-            df_report = df_final.head(10)
+        if not hate_items:
+            hate_items = data[:10]
 
-        for _, row in df_report.iterrows():
-            self.render_evidence_item(row.to_dict())
+        for item in hate_items:
+            self.render_evidence_item(item)
 
         # 4. Selo de Integridade
-        self.render_integrity_seal(df_final)
+        self.render_integrity_seal(data)
 
         self.output(output_path)
         print(f"📄 Dossiê executivo gerado: {output_path}")
         return output_path
+

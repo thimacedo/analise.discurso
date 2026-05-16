@@ -1,10 +1,14 @@
-fastapi
-uvicorn
-supabase
-python-dotenv
-httpx
-stripe
-pydantic
-pydantic-settings
-traceback-with-variables
-mangum
+# PASA v47.4: Requirements Otimizado para Vercel (API Only)
+fastapi==0.110.0
+uvicorn[standard]==0.29.0
+supabase==2.4.0
+python-dotenv==1.0.1
+httpx==0.27.0
+stripe==8.5.0
+pydantic==2.6.4
+pydantic-settings==2.2.1
+traceback-with-variables==2.0.4
+mangum==0.17.0
+fpdf2==2.7.8
+# spacy, nltk, pandas, numpy, scikit-learn removidos para manter bundle < 500MB
+# Esses pacotes devem ser usados apenas em workers locais/especializados.
