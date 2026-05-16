@@ -120,11 +120,11 @@ async def run_server():
                     # Alvo Viável Encontrado!
                     viable_found_in_batch = True
                     item_id = p['id']
-                    db.client.table('fila_coleta').update({'status': 'PROCESSANDO'}).eq('id', item_id).execute()
+                    db.client.table('fila_coleta').update({'status': 'EM_CURSO'}).eq('id', item_id).execute()
                     
                     try:
                         success = worker.run(target=target_id)
-                        new_status = 'CONCLUIDO' if success else 'FALHOU'
+                        new_status = 'CONCLUIDO' if success else 'FALHA'
                         db.client.table('fila_coleta').update({'status': new_status}).eq('id', item_id).execute()
                         
                         if success:
@@ -141,7 +141,7 @@ async def run_server():
                             time.sleep(SCRAPE_PAUSE)
                             
                     except Exception as e:
-                        db.client.table('fila_coleta').update({'status': 'FALHOU'}).eq('id', item_id).execute()
+                        db.client.table('fila_coleta').update({'status': 'FALHA'}).eq('id', item_id).execute()
                         log_event(ops_log, f"ERRO CRÍTICO em @{target_id}: {str(e)[:40]}")
                         break
 
