@@ -1,10 +1,4 @@
-
-import sys
-if hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-if hasattr(sys.stderr, 'reconfigure'):
-    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
-from core.supabase_service import get_supabase_client
+from core.db import db_client
 import asyncio
 
 async def cleanup():

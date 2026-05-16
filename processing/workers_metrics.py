@@ -3,15 +3,8 @@ Worker Performance Metrics Module
 Tracks latency, throughput, and health of all processing workers.
 """
 
-import sys
-if hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-if hasattr(sys.stderr, 'reconfigure'):
-    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
-
 import time
 import json
-import os
 from datetime import datetime, timedelta, UTC
 from typing import Dict, List, Any, Optional
 from collections import defaultdict
@@ -20,125 +13,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class WorkerValidator:
-    """
-    Sistema Central de Recompensas e Validação de Workers (Quality Gate).
-    Avalia a qualidade dos dados raspados e atribui pontuações aos workers.
-    """
-    
-    def __init__(self, ledger_path: str = "metrics/performance_ledger.json"):
-        self.ledger_path = ledger_path
-        self._ensure_ledger_exists()
-        self.data = self._load_ledger()
-
-    def _ensure_ledger_exists(self):
-        os.makedirs(os.path.dirname(self.ledger_path), exist_ok=True)
-        if not os.path.exists(self.ledger_path):
-            with open(self.ledger_path, 'w', encoding='utf-8') as f:
-                json.dump({"workers": {}, "history": []}, f, indent=2)
-
-    def _load_ledger(self) -> Dict:
-        try:
-            with open(self.ledger_path, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except Exception as e:
-            logger.error(f"Erro ao carregar ledger: {e}")
-            return {"workers": {}, "history": []}
-
-    def _save_ledger(self):
-        try:
-            with open(self.ledger_path, 'w', encoding='utf-8') as f:
-                json.dump(self.data, f, indent=2, ensure_ascii=False)
-        except Exception as e:
-            logger.error(f"Erro ao salvar ledger: {e}")
-
-    def evaluate_payload(self, worker_name: str, payload: Any) -> bool:
-        """
-        Avalia o payload de um worker e atualiza sua nota.
-        Regras:
-        - Dados nulos, strings de erro ou datas zeradas: Nota -20 (Inválido)
-        - Timeout ou erro de stealth (passado via metadados ou exceção): Nota -10
-        - Extração completa e limpa: Nota +15 (Válido)
-        """
-        score_change = 0
-        is_valid = True
-        reason = "Success"
-
-        # 1. Verificação de Dados Nulos ou Erros de Conteúdo
-        if payload is None:
-            score_change = -20
-            is_valid = False
-            reason = "Null payload"
-        elif isinstance(payload, str):
-            if "[Conteúdo do comentário não pôde ser recuperado]" in payload:
-                score_change = -20
-                is_valid = False
-                reason = "Incomplete content error"
-        elif isinstance(payload, dict):
-            # Verifica campos críticos se for um dicionário
-            text = payload.get('texto_bruto', '')
-            data_coleta = payload.get('data_coleta', '')
-            
-            if not text or "[Conteúdo do comentário não pôde ser recuperado]" in str(text):
-                score_change = -20
-                is_valid = False
-                reason = "Invalid text content"
-            elif "00:00:00" in str(data_coleta):
-                score_change = -20
-                is_valid = False
-                reason = "Invalid timestamp"
-        
-        # 2. Erros de Timeout/Stealth (geralmente indicados por payload vazio ou flag de erro)
-        if is_valid and (payload == {} or payload == []):
-            score_change = -10
-            is_valid = False
-            reason = "Timeout/Stealth error (empty payload)"
-
-        # 3. Sucesso
-        if is_valid:
-            score_change = 15
-        
-        # Atualiza o ledger
-        self._update_score(worker_name, score_change, reason, is_valid)
-        
-        if not is_valid:
-            logger.warning(f"⚠️ [QualityGate] Worker '{worker_name}' invalid payload: {reason}. Score: {score_change}")
-        
-        return is_valid
-
-    def _update_score(self, worker_name: str, change: int, reason: str, is_valid: bool):
-        if worker_name not in self.data["workers"]:
-            self.data["workers"][worker_name] = {
-                "score": 0,
-                "total_tasks": 0,
-                "valid_tasks": 0,
-                "invalid_tasks": 0,
-                "last_updated": ""
-            }
-        
-        worker = self.data["workers"][worker_name]
-        worker["score"] += change
-        worker["total_tasks"] += 1
-        if is_valid:
-            worker["valid_tasks"] += 1
-        else:
-            worker["invalid_tasks"] += 1
-        worker["last_updated"] = datetime.now(UTC).isoformat()
-
-        # Adiciona ao histórico
-        self.data["history"].append({
-            "timestamp": datetime.now(UTC).isoformat(),
-            "worker": worker_name,
-            "change": change,
-            "reason": reason,
-            "valid": is_valid
-        })
-
-        # Limita histórico para os últimos 1000 registros para evitar OOM
-        if len(self.data["history"]) > 1000:
-            self.data["history"] = self.data["history"][-1000:]
-
-        self._save_ledger()
 
 class WorkerMetric:
     """Individual metric snapshot for a worker execution."""

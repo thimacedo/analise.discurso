@@ -3,12 +3,6 @@ Worker: CandidateScanner (Motor de Inteligência de Alvos)
 Finalidade: Monitorar a pasta de pesquisas, extrair candidatos, calcular relevância e agendar coleta.
 Protocolo Diamond: Herda de BaseWorker.
 """
-
-import sys
-if hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-if hasattr(sys.stderr, 'reconfigure'):
-    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 import os
 import re
 import hashlib
@@ -17,12 +11,11 @@ from datetime import datetime, UTC
 from pathlib import Path
 from typing import List, Dict
 
-# Ajuste dinâmico de path para o root do projeto
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
+# Import do contrato BaseWorker e DB
+import sys
+sys.path.append(r"E:\Projetos\sentinela-democratica")
 from workers.core.base_worker import BaseWorker
+from core.db import db_client
 
 try:
     from pypdf import PdfReader
@@ -32,47 +25,37 @@ except ImportError:
 class CandidateScannerWorker(BaseWorker):
     def __init__(self):
         super().__init__("CandidateScanner")
-        # Usando caminho relativo ao root do projeto
-        self.base_path = PROJECT_ROOT / "bases_pesquisas"
+        self.base_path = Path(r"E:\Projetos\sentinela-democratica\bases_pesquisas")
         self.processed_table = "pesquisas_processadas"
         self.candidate_table = "candidatos"
         self.queue_table = "fila_coleta"
 
-    async def _run(self, payload: dict) -> Any:
+    async def _run(self, *args, **kwargs):
         if not PdfReader:
             self.logger.error("Biblioteca 'pypdf' não encontrada. Execute 'pip install pypdf'.")
-            return []
+            return
 
         self.logger.info(f"🔍 Escaneando diretório: {self.base_path}")
-        if not self.base_path.exists():
-            self.logger.warning(f"⚠️ Diretório {self.base_path} não existe.")
-            return []
-
         files = list(self.base_path.glob("*.pdf"))
-        processed_files = []
         
         for file_path in files:
-            result = await self._process_file(file_path)
-            if result:
-                processed_files.append(result)
-        
-        return processed_files
+            await self._process_file(file_path)
 
     async def _process_file(self, file_path: Path):
         file_name = file_path.name
         self.logger.info(f"📄 Analisando arquivo: {file_name}")
 
         # 1. Verificar se já foi processado (Hash)
+        file_content = file_path.read_bytes()
+        file_hash = hashlib.sha256(file_content).hexdigest()
+
+        existing = db_client.client.table(self.processed_table).select("id").eq("hash_sha256", file_hash).execute()
+        if existing.data:
+            self.logger.info(f"⏩ Arquivo já processado anteriormente. Pulando.")
+            return
+
+        # 2. Extrair Texto do PDF
         try:
-            file_content = file_path.read_bytes()
-            file_hash = hashlib.sha256(file_content).hexdigest()
-
-            existing = self.db.table(self.processed_table).select("id").eq("hash_sha256", file_hash).execute()
-            if existing.data:
-                self.logger.info(f"⏩ Arquivo já processado anteriormente. Pulando.")
-                return None
-
-            # 2. Extrair Texto do PDF
             reader = PdfReader(str(file_path))
             full_text = ""
             for page in reader.pages:
@@ -80,10 +63,10 @@ class CandidateScannerWorker(BaseWorker):
             
             # 3. Detectar Candidatos e Intenções (%)
             candidates = self._extract_candidates(full_text)
-            self.logger.info(f"🎯 Detectados {len(candidates)} potenciais alvos.")
+            self.logger.info(f"🎯 Detectados {len(candidates)} potenciaos alvos.")
 
             # 4. Salvar Registro da Pesquisa
-            res_pesquisa = self.db.table(self.processed_table).insert({
+            res_pesquisa = db_client.client.table(self.processed_table).insert({
                 "arquivo": file_name,
                 "hash_sha256": file_hash,
                 "candidatos_detectados": len(candidates),
@@ -95,21 +78,14 @@ class CandidateScannerWorker(BaseWorker):
             # 5. Processar cada candidato detectado
             for candidate in candidates:
                 await self._handle_candidate(candidate, pesquisa_id)
-            
-            return {"file": file_name, "candidates": len(candidates)}
 
         except Exception as e:
             self.logger.error(f"❌ Erro ao processar {file_name}: {e}")
-            try:
-                self.db.table(self.processed_table).insert({
-                    "arquivo": file_name,
-                    "hash_sha256": file_hash if 'file_hash' in locals() else "ERROR",
-                    "status": "ERRO",
-                    "error_message": str(e)
-                }).execute()
-            except:
-                pass
-            return None
+            db_client.client.table(self.processed_table).insert({
+                "arquivo": file_name,
+                "hash_sha256": file_hash,
+                "status": "ERRO"
+            }).execute()
 
     def _extract_candidates(self, text: str) -> List[Dict]:
         """
@@ -142,15 +118,12 @@ class CandidateScannerWorker(BaseWorker):
             if is_noise:
                 continue
             
-            try:
-                val_float = float(value.replace(",", "."))
-                results.append({
-                    "nome": clean_name,
-                    "intencao": val_float,
-                    "cargo": self._infer_cargo(text, clean_name)
-                })
-            except ValueError:
-                continue
+            val_float = float(value.replace(",", "."))
+            results.append({
+                "nome": clean_name,
+                "intencao": val_float,
+                "cargo": self._infer_cargo(text, clean_name)
+            })
         
         # Remove duplicatas mantendo o maior valor
         unique_candidates = {}
@@ -175,6 +148,7 @@ class CandidateScannerWorker(BaseWorker):
         cargo = info['cargo']
         
         # 1. Cálculo de Relevância (Sistema de Recompensas do Motor)
+        # Nota: (CargoWeight * 10) + Intencao
         cargo_weight = {"Presidente": 5, "Governador": 4, "Senador": 3, "Candidato": 1}
         nota = (cargo_weight.get(cargo, 1) * 10) + intencao
         
@@ -190,7 +164,7 @@ class CandidateScannerWorker(BaseWorker):
         self.logger.info(f"💎 Target: @{username} | Nota: {nota:.2f} | Prioridade: {prioridade}")
 
         # 3. Upsert no Supabase
-        self.db.table(self.candidate_table).upsert({
+        db_client.client.table(self.candidate_table).upsert({
             "username": username,
             "nome_completo": nome,
             "cargo": cargo,
@@ -201,6 +175,8 @@ class CandidateScannerWorker(BaseWorker):
             "status_monitoramento": "Ativo" if prioridade >= 3 else "Observação",
             "atualizado_em": datetime.now(UTC).isoformat()
         }, on_conflict="username").execute()
+
+        self.logger.info(f"✨ Alvo @{username} atualizado no banco de dados.")
 
     def _generate_handle(self, nome: str) -> str:
         """Gera um handle provisório. Em produção, isso usaria uma busca real."""

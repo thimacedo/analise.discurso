@@ -1,9 +1,3 @@
-
-import sys
-if hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-if hasattr(sys.stderr, 'reconfigure'):
-    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 import os
 import re
 import asyncio
@@ -12,7 +6,7 @@ import logging
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 from playwright.async_api import async_playwright
-from core.supabase_service import get_supabase_client
+from core.db import db_client
 from core.config import settings
 from core.base_scraper import SentinelaScraper
 from processing.monetization_engine import MonetizationEngine
@@ -24,7 +18,6 @@ class MetaAdScraper(SentinelaScraper):
         self.headless = os.getenv("PLAYWRIGHT_HEADLESS", "true").lower() == "true"
         self.base_url = "https://www.facebook.com/ads/library/"
         self.monetization_engine = MonetizationEngine()
-        self.db = get_supabase_client()
 
     def login(self):
         self.logger.info("Meta Ad Library não requer login explícito.")
@@ -64,8 +57,8 @@ class MetaAdScraper(SentinelaScraper):
                     try:
                         ad_data = await self._extract_card_data(card, username)
                         if ad_data:
-                            if hasattr(self.db, 'persist_ad'):
-                                await self.db.persist_ad(ad_data)
+                            if hasattr(db_client, 'persist_ad'):
+                                await db_client.persist_ad(ad_data)
                                 self.logger.info(f"Anúncio {ad_data['ad_id']} persistido.")
                                 
                                 # Lógica de alerta de monetização

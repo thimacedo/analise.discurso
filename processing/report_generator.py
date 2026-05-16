@@ -1,9 +1,3 @@
-
-import sys
-if hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-if hasattr(sys.stderr, 'reconfigure'):
-    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 import os
 import hashlib
 import re
@@ -48,15 +42,10 @@ class ReportGenerator(FPDF):
             self.ln(10)
 
     def footer(self):
-        self.set_y(-20)
+        self.set_y(-15)
         self.set_font(self.font_family_main, 'I', 8)
-        self.set_text_color(160, 160, 160) # Cinza profissional para o rodapé
-        self.cell(0, 10, f'Página {self.page_no()} | Protocolo PASA v16.4', align='C', ln=True)
-        
-        # Motor de Viralidade B2B - Rodapé Profissional
-        self.set_font(self.font_family_main, '', 9)
-        self.set_text_color(128, 128, 128) # Cor cinza
-        self.cell(0, 5, "Gerado por Inteligência Estratégica - Sentinela Democrática. Proteja a sua campanha em sentinelademocratica.com", align='C')
+        self.set_text_color(128, 128, 128)
+        self.cell(0, 10, f'Página {self.page_no()} | Protocolo PASA v16.4', align='C')
 
     def render_cover(self, candidato_id, total_amostra):
         """Cria uma capa profissional para o relatório."""

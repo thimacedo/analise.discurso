@@ -4,7 +4,7 @@
 ALTER TABLE public.anuncios 
 ADD COLUMN IF NOT EXISTS corpo_anuncio text,
 ADD COLUMN IF NOT EXISTS categoria_ia text,
-ADD COLUMN IF NOT EXISTS confianca_ia numeric(5,4) DEFAULT 0,
+ADD COLUMN IF NOT EXISTS confianza_ia numeric(5,4) DEFAULT 0,
 ADD COLUMN IF NOT EXISTS is_hate boolean DEFAULT false,
 ADD COLUMN IF NOT EXISTS processado_ia boolean DEFAULT false;
 

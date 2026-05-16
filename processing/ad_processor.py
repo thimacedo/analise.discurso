@@ -1,13 +1,7 @@
-
-import sys
-if hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-if hasattr(sys.stderr, 'reconfigure'):
-    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 import asyncio
 import logging
 from typing import List, Dict, Any
-from core.supabase_service import get_supabase_client
+from core.db import db_client
 from core.ai_service import AIService
 from .common import BaseWorker
 
@@ -56,7 +50,7 @@ class AdProcessor(BaseWorker):
                 updates.append({
                     "id": ad_id,
                     "categoria_ia": classification['category'],
-                    "confianca_ia": classification['confidence'],
+                    "confianza_ia": classification['confidence'],
                     "is_hate": classification['is_hate'],
                     "processado_ia": True if classification.get('engine') != 'fail' else False
                 })

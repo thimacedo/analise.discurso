@@ -65,8 +65,7 @@ body {
 .brand-mark img {
     width: 100%;
     height: 100%;
-    -o-object-fit: contain;
-       object-fit: contain;
+    object-fit: contain;
 }
 
 .brand-block h1 {
@@ -125,8 +124,7 @@ body {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    -o-object-fit: cover;
-       object-fit: cover;
+    object-fit: cover;
     background: #efefef;
     border: 1px solid var(--border);
     overflow: hidden;
@@ -138,8 +136,7 @@ body {
 .post-avatar img, .monitor-avatar img {
     width: 100%;
     height: 100%;
-    -o-object-fit: cover;
-       object-fit: cover;
+    object-fit: cover;
 }
 
 .feed-header {

@@ -1,199 +1,144 @@
-// src/core/app.js
+/**
+ * PASA v40 - Frontend Engine: Integração completa com Backend Forense e Monitor de Ameaças
+ */
+import { initAuth, getCurrentUserEmail } from './auth.js';
 import { renderSessionManager } from '../components/session-manager.js';
+import { renderWorkersView } from './workers_view.js';
 
-// 1. INICIALIZAÇÃO DO SUPABASE (Sem import, usando o objeto global do CDN)
-const SUPABASE_URL = 'https://vhamejkldzxbeibqeqpk.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoYW1lamtsZHp4YmVpYnFlcXBrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjQ4ODEyNSwiZXhwIjoyMDkyMDY0MTI1fQ.GfvAI7rV8isgdhVeJp4mOUscWpdOqOuBoURGm82VdtY';
+// Configurações Supabase (Injetadas pelo Vite ou window)
+const SUPABASE_URL = window.SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-let supabaseClient;
-try {
-    if (SUPABASE_URL !== 'SUA_URL_DO_SUPABASE_AQUI' && window.supabase) {
-        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        console.log("✅ Supabase Client inicializado com sucesso via CDN.");
-    } else {
-        console.warn("⚠️ Credenciais do Supabase não configuradas ou CDN não carregou.");
-    }
-} catch (e) {
-    console.error("❌ Erro crítico ao inicializar Supabase:", e);
-}
+let allComments = [];
+let currentFilter = 'all';
 
-// PASA v24.1: Integração do Motor de XP e Circuit Breaker no Cérebro Frontend
-export async function initPasaDashboard() {
-    // 1. Renderiza o Gerenciador de Sessões (Cookie Injector)
+document.addEventListener('DOMContentLoaded', () => {
+    initDashboard();
+    initAuth();
+});
+
+export async function initDashboard() {
     renderSessionManager('session-manager-container');
-
-    // 2. Busca o Status Unificado do Backend
     await fetchSystemStatus();
-
-    // 3. Supabase Realtime para atualizar XP no vivo
-    if (supabaseClient) {
-        supabaseClient
-          .channel('worker-ledger-changes')
-          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'worker_ledger' }, payload => {
-            updateWorkerXPUI(payload.new);
-          })
-          .subscribe();
-    }
+    await fetchComments();
+    setupFilters();
+    setupSearch();
 }
+
+// --- DATA FETCHING ---
 
 async function fetchSystemStatus() {
     try {
-        const response = await fetch('/api/v1/monitor/status');
-        if (!response.ok) throw new Error('API Offline');
+        const res = await fetch('/api/v1/monitor/status');
+        if (!res.ok) {
+            // Fallback se a API de monitor falhar, tentamos o stream local
+            await fetchProfilerStream();
+            return;
+        }
+        const data = await res.json();
+        renderKPIs(data);
+        renderCircuitBreaker(data.queue_health || { circuit_breaker_tripped: false });
+        renderWorkerEvolution(data.worker_evolution || []);
         
-        const data = await response.json();
+        // PASA v40: Prioridade para o stream de ameaças
+        await fetchProfilerStream();
+    } catch (e) {
+        console.error('Status fetch error:', e);
+        await fetchProfilerStream();
+    }
+}
 
-        // --- Atualização dos KPIs (A Alma do Dashboard) ---
-        updateKPI('kpi-monitorados', (data.queue_health?.pending || 0) + (data.queue_health?.processing || 0));
+async function fetchProfilerStream() {
+    try {
+        // PASA v40: Busca do JSON gerado pelo servidor local (via Git push)
+        const timestamp = new Date().getTime();
         
-        // Para "Alertas Hoje", somamos os critical_hits do ledger
-        const totalAlerts = (data.worker_evolution || []).reduce((sum, w) => sum + (w.total_critical_hits || w.critical_hits || 0), 0);
-        updateKPI('kpi-hate', totalAlerts);
-        
-        // "Amostra DB" - Total de runs executadas pelo ecossistema
-        const totalRuns = (data.worker_evolution || []).reduce((sum, w) => sum + (w.total_runs || 0), 0);
-        updateKPI('kpi-total', totalRuns);
-
-        // "Resiliência" - Baseada no Circuit Breaker
-        const resEl = document.getElementById('kpi-res');
-        if (resEl) {
-            if (data.queue_health?.circuit_breaker_tripped) {
-                resEl.textContent = 'CRÍTICO';
-                resEl.classList.remove('text-emerald-600');
-                resEl.classList.add('text-red-600');
-            } else {
-                resEl.textContent = '100%';
-                resEl.classList.remove('text-red-600');
-                resEl.classList.add('text-emerald-600');
+        // Busca KPIs consolidados
+        const kpiRes = await fetch(`/docs/kpis.json?t=${timestamp}`);
+        if (kpiRes.ok) {
+            const kpis = await kpiRes.json();
+            updateKPI('kpi-targets', kpis.targets || 0);
+            updateKPI('kpi-hate', kpis.alerts || 0);
+            updateKPI('kpi-total', kpis.db_sample || 0);
+            
+            const resEl = document.getElementById('kpi-res');
+            if (resEl) {
+                // Cálculo de resiliência simples
+                const resValue = kpis.db_sample > 0 ? (((kpis.db_sample - kpis.alerts) / kpis.db_sample) * 100).toFixed(1) : 100;
+                resEl.textContent = `${resValue}%`;
+                resEl.className = resValue < 80 ? 'text-lg font-black text-red-600' : 'text-lg font-black text-emerald-600';
             }
         }
 
-        // --- Renderização dos Módulos Visuais ---
-        renderCircuitBreakerAlert(data.queue_health || { circuit_breaker_tripped: false });
-        renderWorkerEvolution(data.worker_evolution || []);
-
-    } catch (error) {
-        console.error('[Sentinela] Falha ao buscar status do sistema:', error);
-        const resEl = document.getElementById('kpi-res');
-        if(resEl) {
-            resEl.textContent = 'OFFLINE';
-            resEl.classList.remove('text-emerald-600');
-            resEl.classList.add('text-red-600');
+        // Busca Stream de Ameaças
+        const streamRes = await fetch(`/docs/profiler_stream.json?t=${timestamp}`);
+        if (streamRes.ok) {
+            const stream = await streamRes.json();
+            renderProfilerStream(stream);
         }
+    } catch (e) {
+        console.warn('Profiler stream offline:', e);
     }
 }
 
-function updateKPI(elementId, value) {
-    const el = document.getElementById(elementId);
-    if (el) {
-        el.textContent = value;
-        // Animação sutil de atualização
-        el.classList.add('scale-110');
-        setTimeout(() => el.classList.remove('scale-110'), 300);
+async function fetchComments() {
+    if (!SUPABASE_URL) return;
+    try {
+        // PASA v39.1: Adicionado cache-busting e mapeamento exato de colunas
+        const timestamp = new Date().getTime();
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/comentarios?select=id,autor_username,texto_limpo,data_coleta,is_hate,categoria_ia,direcao_odio,confianca_ia,processado_ia,candidato_id&order=data_coleta.desc&limit=100&t=${timestamp}`, {
+            headers: { 
+                'apikey': SUPABASE_ANON_KEY, 
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache'
+            }
+        });
+        allComments = await res.json();
+        renderFeed();
+    } catch (e) {
+        console.error('Comments fetch error:', e);
     }
 }
 
-function renderCircuitBreakerAlert(queueHealth) {
-    const container = document.getElementById('circuit-breaker-alert');
+// --- RENDERING ---
+
+function renderFeed() {
+    const container = document.getElementById('feed-alertas');
     if (!container) return;
 
-    if (queueHealth.circuit_breaker_tripped) {
-        container.innerHTML = `
-            <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-3 rounded-r-lg shadow-sm flex items-start gap-3 animate-pulse">
-                <i data-lucide="alert-octagon" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
-                <div>
-                    <p class="font-black text-xs uppercase">Circuit Breaker Ativado</p>
-                    <p class="text-[10px] mt-1">Coleta pausada. Injete cookies para retomar.</p>
-                </div>
-            </div>
-        `;
-        // Força a exibição do painel de injeção de sessão
-        const sessionContainer = document.getElementById('session-manager-container');
-        if (sessionContainer) sessionContainer.classList.remove('hidden');
-    } else {
-        container.innerHTML = '';
-        const sessionContainer = document.getElementById('session-manager-container');
-        if (sessionContainer) sessionContainer.classList.add('hidden');
-    }
-    // Re-inicializa ícones Lucide após injeção de HTML
+    let filtered = allComments;
+    if (currentFilter === 'hate') filtered = allComments.filter(c => c.is_hate === true);
+    if (currentFilter === 'critical') filtered = allComments.filter(c => c.is_hate === true && c.confianca_ia >= 0.8);
+
+    container.innerHTML = filtered.map(c => renderThreatCard(c)).join('');
     if (window.lucide) lucide.createIcons();
 }
 
-function renderWorkerEvolution(workers) {
-    const container = document.getElementById('worker-xp-ranking');
-    if (!container) return;
-
-    if (!workers || workers.length === 0) {
-        container.innerHTML = '<p class="text-[10px] text-slate-400">Nenhum worker ativo ainda.</p>';
-        return;
-    }
-
-    container.innerHTML = workers.map(w => `
-        <div class="flex justify-between items-center p-2 bg-slate-50 rounded-md border border-slate-100 hover:bg-slate-100 transition-colors">
-            <div class="flex items-center gap-2">
-                <span class="text-[10px] font-mono font-bold text-slate-600">${w.worker_id || w.worker_name}</span>
-            </div>
-            <div class="flex gap-3 items-center">
-                <span class="text-[9px] font-black text-yellow-500 bg-yellow-50 px-1.5 py-0.5 rounded">Nv ${w.current_level || 1}</span>
-                <span class="text-[9px] font-bold text-blue-600">${w.current_xp || 0} XP</span>
-            </div>
-        </div>
-    `).join('');
-}
-
-function updateWorkerXPUI(workerData) {
-    // Simplesmente re-busca o status para atualizar a UI
-    fetchSystemStatus();
-}
-
-// 2. MAPEAMENTO VISUAL DO PASA v16.4
-const PASA_THREAT_PROFILE = {
-    'AMEACA': { color: 'bg-red-600', label: 'Ameaça', badge: 'bg-red-50 text-red-600' },
-    'ODIO_IDENTITARIO': { color: 'bg-orange-500', label: 'Ódio Identitário', badge: 'bg-orange-50 text-orange-600' },
-    'VIOLENCIA_GENERO': { color: 'bg-purple-500', label: 'Violência de Gênero', badge: 'bg-purple-50 text-purple-600' },
-    'RIGOR_CRIMINAL': { color: 'bg-yellow-500', label: 'Rigor Criminal', badge: 'bg-yellow-50 text-yellow-700' },
-    'INSULTO_AD_HOMINEM': { color: 'bg-amber-500', label: 'Ad Hominem', badge: 'bg-amber-50 text-amber-700' },
-    'ATAQUE_INSTITUCIONAL': { color: 'bg-blue-500', label: 'Ataque Institucional', badge: 'bg-blue-50 text-blue-600' },
-    'NEUTRO': { color: 'bg-slate-300', label: 'Neutro', badge: 'bg-slate-100 text-slate-500' }
-};
-
-/**
- * PASA v25.1 - Motor de Triagem Visual: Classificação por Severidade
- */
-export function renderThreatCard(comment) {
-    let borderColor = 'bg-slate-300'; // Padrão
-    let badgeColor = 'bg-slate-100 text-slate-500';
-    let badgeText = 'Não Classificado';
-    let quoteStyle = 'bg-slate-50 border-slate-300 text-slate-700';
-    let iconColor = 'text-slate-400';
+function renderThreatCard(c) {
+    let borderColor = 'bg-slate-300', badgeColor = 'bg-slate-100 text-slate-500', badgeText = 'Pendente', quoteStyle = 'bg-slate-50 border-slate-300 text-slate-700', iconColor = 'text-slate-400';
     
-    // Lógica de Triagem PASA v25
-    if (comment.is_hate === true) {
-        borderColor = 'bg-red-500';
-        badgeColor = 'bg-red-100 text-red-600';
-        badgeText = 'Ameaça Detectada';
-        quoteStyle = 'bg-red-50 border-red-400 text-red-800';
-        iconColor = 'text-red-500';
-    } else if (comment.is_hate === false) {
-        borderColor = 'bg-emerald-400';
-        badgeColor = 'bg-emerald-100 text-emerald-600';
-        badgeText = 'Seguro';
-        quoteStyle = 'bg-emerald-50 border-emerald-300 text-emerald-800';
-        iconColor = 'text-emerald-500';
-    } else if (comment.classification_status === 'PENDENTE' || comment.is_hate === null) {
-        borderColor = 'bg-yellow-500';
-        badgeColor = 'bg-yellow-100 text-yellow-600';
-        badgeText = 'Pendente';
-        quoteStyle = 'bg-yellow-50 border-yellow-300 text-yellow-800';
-        iconColor = 'text-yellow-500';
+    if (c.is_hate === true && c.categoria_ia) {
+        borderColor = 'bg-red-500'; iconColor = 'text-red-500';
+        const catMap = {
+            'ODIO_IDENTITARIO': { bg: 'bg-purple-100 text-purple-600', txt: `Ódio Identitário ${c.direcao_odio ? '→ ' + c.direcao_odio : ''}`, q: 'bg-purple-50 border-purple-400 text-purple-800' },
+            'VIOLENCIA_GENERO': { bg: 'bg-pink-100 text-pink-600', txt: `Violência de Gênero ${c.direcao_odio ? '→ ' + c.direcao_odio : ''}`, q: 'bg-pink-50 border-pink-400 text-pink-800' },
+            'AMEACA': { bg: 'bg-red-100 text-red-700', txt: 'Ameaça Física/Morte', q: 'bg-red-100 border-red-500 text-red-900' },
+            'INSULTO_AD_HOMINEM': { bg: 'bg-rose-100 text-rose-600', txt: 'Insulto Ad Hominem', q: 'bg-rose-50 border-rose-400 text-rose-800' },
+            'ATAQUE_INSTITUCIONAL': { bg: 'bg-cyan-100 text-cyan-700', txt: `Ataque Institucional ${c.direcao_odio ? '→ ' + c.direcao_odio : ''}`, q: 'bg-cyan-50 border-cyan-400 text-cyan-800' },
+            'RIGOR_CRIMINAL': { bg: 'bg-amber-100 text-amber-700', txt: 'Rigor Criminal (Sem Prova)', q: 'bg-amber-50 border-amber-400 text-amber-800' }
+        };
+        const cat = catMap[c.categoria_ia] || { bg: 'bg-red-100 text-red-600', txt: 'Ameaça', q: 'bg-red-50 border-red-400 text-red-800' };
+        badgeColor = cat.bg; badgeText = cat.txt; quoteStyle = cat.q;
+    } else if (c.processado_ia === true) {
+        borderColor = 'bg-emerald-400'; badgeColor = 'bg-emerald-100 text-emerald-600'; badgeText = 'Seguro'; quoteStyle = 'bg-emerald-50 border-emerald-300 text-emerald-800'; iconColor = 'text-emerald-500';
     }
 
-    // Sanitização de texto
-    const cleanText = (comment.texto || '').replace(/&nbsp;/g, ' ').replace(/\n/g, ' ').trim();
-    const cleanAuthor = (comment.autor || 'Anônimo').split('\n')[0];
+    const cleanText = (c.texto_limpo || '').replace(/&nbsp;/g, ' ').trim();
+    const cleanAuthor = (c.autor_username || 'Anônimo').split('\n')[0];
 
     return `
-        <div class="threat-card bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all overflow-hidden group mb-4">
+        <div class="threat-card bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all overflow-hidden group">
             <div class="flex">
                 <div class="w-1 ${borderColor} flex-shrink-0 transition-colors"></div>
                 <div class="flex-1 p-4">
@@ -203,11 +148,11 @@ export function renderThreatCard(comment) {
                                 <img src="./assets/sentinela_small.webp" class="w-full h-full object-cover" onerror="this.style.display='none'">
                             </div>
                             <div>
-                                <span class="text-sm font-bold text-slate-800">@${cleanAuthor}</span>
+                                <span class="text-sm font-bold text-slate-800"> @${cleanAuthor}</span>
                                 <span class="text-[10px] ml-2 font-bold ${badgeColor} px-2 py-0.5 rounded-full uppercase tracking-wider">${badgeText}</span>
                             </div>
                         </div>
-                        <span class="text-[10px] font-mono text-slate-400">${timeAgo(comment.data_coleta)}</span>
+                        <span class="text-[10px] font-mono text-slate-400">${timeAgo(c.data_coleta)}</span>
                     </div>
                     <div class="${quoteStyle} border-l-2 rounded-r-lg p-3 mb-3">
                         <p class="text-sm italic leading-relaxed">"${cleanText}"</p>
@@ -215,238 +160,119 @@ export function renderThreatCard(comment) {
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-4">
                             <span class="flex items-center gap-1 text-[10px] font-bold uppercase ${iconColor}">
-                                <i data-lucide="shield-alert" class="w-3 h-3"></i> ${badgeText.split(' ')[0]}
+                                <i data-lucide="shield-alert" class="w-3 h-3"></i> ${c.categoria_ia || 'N/A'}
                             </span>
                             <span class="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase">
-                                <i data-lucide="share-2" class="w-3 h-3"></i> ${(comment.plataforma || 'IG').toUpperCase()}
+                                <i data-lucide="share-2" class="w-3 h-3"></i> ${(c.candidato_id || 'IG').substring(0,10)}
                             </span>
                         </div>
-                        ${comment.is_hate === true ? `
+                        ${c.is_hate === true ? `
                         <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onclick="window.auditComment('${comment.id}', 'not_hate')" class="text-[9px] bg-emerald-500 hover:bg-emerald-600 text-white px-2 py-1 rounded font-bold">Validado</button>
-                            <button onclick="window.auditComment('${comment.id}', 'hate')" class="text-[9px] bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded font-bold">Padrão Ouro</button>
+                            <button onclick="window.auditComment('${c.id}', 'not_hate')" class="text-[9px] bg-emerald-500 hover:bg-emerald-600 text-white px-2 py-1 rounded font-bold">Falso Positivo</button>
+                            <button onclick="window.auditComment('${c.id}', 'hate')" class="text-[9px] bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded font-bold">Padrão Ouro</button>
                         </div>
                         ` : ''}
                     </div>
                 </div>
             </div>
-        </div>`;
+        </div>
+    `;
 }
 
-// Utilitário de tempo relativo
-function timeAgo(dateString) {
-    if (!dateString) return 'agora';
-    const date = new Date(dateString);
-    const now = new Date();
-    const diff = Math.floor((now - date) / 60000); // minutos
-    if (diff < 1) return 'agora';
-    if (diff < 60) return `${diff}m atrás`;
-    if (diff < 1440) return `${Math.floor(diff/60)}h atrás`;
-    return `${Math.floor(diff/1440)}d atrás`;
-}
-
-// Função global para os botões de auditoria no feed
-window.auditComment = async (commentId, rotulo) => {
-    try {
-        const res = await fetch('/api/v1/audit/validate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                comment_id: commentId, 
-                rotulo_correto: rotulo, 
-                validado_por: 'thi.macedo@gmail.com' 
-            })
-        });
-        if (res.ok) {
-            alert('Comentário auditado com sucesso! Padrão Ouro atualizado.');
-            location.reload();
-        } else {
-            alert('Erro ao auditar comentário.');
-        }
-    } catch (e) {
-        console.error(e);
-    }
-};
-
-async function fetchHotTargets() {
-    try {
-        // Busca candidatos ordenados pela maior nota_relevancia (Densidade de Ódio)
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/candidatos?select=username,nome_completo,nota_relevancia,comentarios_odio_count&order=nota_relevancia.desc&limit=5`, {
-            headers: {
-                'apikey': SUPABASE_ANON_KEY,
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-            }
-        });
-        const targets = await response.json();
-        renderHotTargets(targets);
-    } catch (e) {
-        console.error('Erro ao buscar alvos críticos:', e);
+function renderKPIs(data) {
+    if (data.queue_health) {
+        updateKPI('kpi-monitorados', data.queue_health.pending + data.queue_health.processing);
     }
 }
 
-function renderHotTargets(targets) {
-    const container = document.getElementById('chartMain');
+function renderProfilerStream(stream) {
+    const container = document.getElementById('profiler-stream-feed');
     if (!container) return;
-
-    if (!targets || targets.length === 0) {
-        container.innerHTML = '<p class="text-[10px] text-slate-400 text-center py-4">Nenhum alvo crítico mapeado ainda.</p>';
+    
+    if (!stream || stream.length === 0) {
+        container.innerHTML = '<p class="text-[10px] text-slate-400 text-center">Aguardando dados da mineração...</p>';
         return;
     }
 
-    container.innerHTML = targets.map(t => {
-        const density = t.nota_relevancia || 0;
-        const color = density > 40 ? 'bg-red-500' : density > 20 ? 'bg-orange-500' : 'bg-yellow-500';
+    // Inverte para mostrar os mais recentes primeiro
+    const reversedStream = stream.slice().reverse();
+    container.innerHTML = reversedStream.map(item => {
+        const color = item.density > 40 ? 'text-red-600 bg-red-50' : item.density > 10 ? 'text-orange-600 bg-orange-50' : 'text-slate-700 bg-white';
+        const barColor = item.density > 40 ? 'bg-red-500' : item.density > 10 ? 'bg-orange-500' : 'bg-emerald-500';
         return `
-            <div class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
-                <div class="flex items-center gap-2">
-                    <span class="text-xs font-bold text-slate-700">@${t.username}</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-[10px] font-mono text-red-600 font-bold">${density}%</span>
-                    <div class="w-16 bg-slate-100 rounded-full h-1.5">
-                        <div class="${color} h-1.5 rounded-full" style="width: ${Math.min(density, 100)}%"></div>
+            <div class="flex items-center gap-2 p-2 rounded border border-slate-100 ${color} transition-all">
+                <div class="flex-1">
+                    <p class="text-[10px] font-bold truncate">@${item.user}</p>
+                    <div class="w-full bg-slate-200 rounded-full h-1 mt-1">
+                        <div class="${barColor} h-1 rounded-full" style="width: ${Math.min(item.density, 100)}%"></div>
                     </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs font-black">${item.density}%</p>
+                    <p class="text-[8px] text-slate-500">${item.hate}/${item.total}</p>
                 </div>
             </div>
         `;
     }).join('');
 }
 
-// 4. FUNÇÃO PRINCIPAL DE CARGA DO BANCO
-async function loadSentinelaDashboard() {
-    const feedContainer = document.getElementById('feed-alertas');
-    const skeleton = document.getElementById('skeleton-container');
-    
-    if(!feedContainer) return;
-
-    if (!supabaseClient) {
-        console.error("❌ Supabase não inicializado. Verifique as credenciais.");
-        feedContainer.innerHTML = '<p class="text-center text-red-400 text-sm py-8">Erro: Credenciais do Banco não configuradas no app.js.</p>';
-        if(skeleton) skeleton.style.display = 'none';
-        return;
-    }
-
-    try {
-        console.log("🔍 Buscando alertas reais no Supabase (tabela comentarios)...");
-        
-        // A. BUSCAR ALERTAS REAIS
-        const { data: alerts, error: alertError } = await supabaseClient
-            .from('comentarios') // MUDOU AQUI
-            .select('*')
-            .order('data_publicacao', { ascending: false }) // MUDOU AQUI
-            .limit(20);
-
-        if (alertError) {
-            console.error("❌ Erro do Supabase:", alertError.message);
-            throw alertError;
-        }
-
-        console.log(`✅ ${alerts ? alerts.length : 0} alertas encontrados.`, alerts);
-
-        feedContainer.innerHTML = '';
-        if (alerts && alerts.length > 0) {
-            alerts.forEach(alert => {
-                // MAPEAMENTO PARA O MOTOR DE TRIAGEM PASA v25.1
-                const mappedAlert = {
-                    id: alert.id || 'unknown',
-                    autor: alert.autor_username || alert.candidato_id || 'Desconhecido',
-                    texto: alert.texto_bruto || 'Sem texto',
-                    is_hate: alert.is_hate,
-                    classification_status: alert.processado_ia ? 'CLASSIFIED' : 'PENDENTE',
-                    plataforma: alert.plataforma || 'IG',
-                    data_coleta: alert.data_publicacao || alert.data_coleta || new Date().toISOString()
-                };
-                feedContainer.innerHTML += renderThreatCard(mappedAlert);
-            });
-        } else {
-            feedContainer.innerHTML = '<p class="text-center text-slate-400 text-sm py-8">Nenhum alerta encontrado no banco.</p>';
-        }
-
-        // B. ATUALIZAR ALVOS CRÍTICOS (Via API Supabase filtrada)
-        await fetchHotTargets();
-
-        // C. ATUALIZAR KPIs
-        document.getElementById('kpi-monitorados').innerText = new Set(alerts.map(a => a.candidato_id)).size; // MUDOU AQUI
-        document.getElementById('kpi-hate').innerText = alerts.filter(a => a.is_hate).length; // MUDOU AQUI
-        document.getElementById('kpi-total').innerText = alerts.length;
-        document.getElementById('kpi-res').innerText = '99.8%';
-
-    } catch (err) {
-        console.error("❌ Falha geral:", err);
-        feedContainer.innerHTML = '<p class="text-center text-red-500 text-sm py-8">Erro ao buscar dados. Verifique o Console (F12).</p>';
-    } finally {
-        if(skeleton) skeleton.style.display = 'none';
-        if (window.lucide) lucide.createIcons();
-    }
+function renderWorkerEvolution(workers) {
+    const container = document.getElementById('worker-xp-ranking');
+    if (!container || !workers || workers.length === 0) return;
+    container.innerHTML = workers.map(w => `
+        <div class="flex justify-between items-center p-2 bg-slate-50 rounded-md border border-slate-100">
+            <span class="text-[10px] font-mono font-bold text-slate-600">${w.worker_id}</span>
+            <div class="flex gap-2 items-center">
+                <span class="text-[9px] font-black text-yellow-500 bg-yellow-50 px-1.5 py-0.5 rounded">Nv ${w.current_level}</span>
+                <span class="text-[9px] font-bold text-blue-600">${w.current_xp} XP</span>
+            </div>
+        </div>
+    `).join('');
 }
 
-// 5. NAVEGAÇÃO SPA (Single Page Application)
-// ==========================================
-// ROUTER - Controlador de Navegação da Sidebar
-// ==========================================
-function setupSidebarNavigation() {
-    const navItems = document.querySelectorAll('.side-nav .nav-item');
-    navItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.preventDefault(); // Impede o comportamento padrão do link
+// --- UTILITIES & EVENTS ---
 
-            // 1. Remove a classe 'active' de todos os itens do menu
-            navItems.forEach(nav => nav.classList.remove('active'));
-            
-            // 2. Adiciona 'active' ao item clicado
-            item.classList.add('active');
+function updateKPI(id, value) { const el = document.getElementById(id); if (el) el.textContent = value; }
 
-            // 3. Determina qual seção mostrar baseado no href ou id
-            const targetId = item.getAttribute('href')?.replace('#', 'view-') || item.id.replace('nav-', 'view-');
-            const targetSection = document.getElementById(targetId);
+function timeAgo(dateString) {
+    if (!dateString) return 'agora';
+    const diff = Math.floor((new Date() - new Date(dateString)) / 60000);
+    if (diff < 1) return 'agora'; if (diff < 60) return `${diff}m`; return `${Math.floor(diff/60)}h`;
+}
 
-            if (targetSection) {
-                // Esconde todas as seções
-                document.querySelectorAll('.view-content').forEach(section => {
-                    section.classList.remove('active-view');
-                    // Garante que a seção ocupe espaço apenas quando ativa
-                    section.style.display = 'none';
-                });
+function setupFilters() {
+    window.setDashboardFilter = (filter) => {
+        currentFilter = filter;
+        document.querySelectorAll('#btn-filter-all, #btn-filter-hate, #btn-filter-critical').forEach(b => b.classList.remove('active'));
+        document.getElementById(`btn-filter-${filter}`)?.classList.add('active');
+        renderFeed();
+    };
+}
 
-                // Mostra a seção alvo
-                targetSection.classList.add('active-view');
-                targetSection.style.display = 'block';
-
-                // 4. Atualiza a URL
-                const hash = item.getAttribute('href') || `#${item.id.replace('nav-', '')}`;
-                history.pushState(null, '', hash);
-            }
+function setupSearch() {
+    const input = document.getElementById('dashboard-search-input');
+    if(input) {
+        input.addEventListener('keyup', (e) => {
+            const term = e.target.value.toLowerCase();
+            if(!term) { fetchComments(); return; }
+            const filtered = allComments.filter(c => (c.texto_limpo || '').toLowerCase().includes(term) || (c.autor_username || '').toLowerCase().includes(term));
+            renderFeedWithData(filtered);
         });
-    });
-
-    // Lida com o botão "Voltar" do navegador
-    window.addEventListener('popstate', () => {
-        const hash = location.hash || '#monitor';
-        const activeLink = document.querySelector(`.side-nav .nav-item[href="${hash}"]`);
-        if (activeLink) activeLink.click();
-    });
+    }
 }
 
-// 6. INICIALIZAÇÃO
-document.addEventListener('DOMContentLoaded', () => {
-    // Inicializa as funcionalidades PASA v24 (XP, Sessions, CB)
-    initPasaDashboard();
+function renderFeedWithData(data) {
+    const container = document.getElementById('feed-alertas');
+    if (!container) return;
+    container.innerHTML = data.map(c => renderThreatCard(c)).join('');
+    if (window.lucide) lucide.createIcons();
+}
 
-    // Inicializa os dados do Dashboard
-    loadSentinelaDashboard();
-
-    // Inicializa a navegação da Sidebar
-    setupSidebarNavigation();
-
-    // Carrega a view correta baseada na URL inicial (ex: se abrir #networks)
-    const initialHash = location.hash || '#monitor';
-    const initialLink = document.querySelector(`.side-nav .nav-item[href="${initialHash}"]`);
-    
-    if (initialLink) {
-        initialLink.click();
-    } else {
-        // Fallback para o monitor se a URL tiver um hash inválido
-        const monitorNav = document.getElementById('nav-monitor') || document.querySelector('.side-nav .nav-item[href="#monitor"]');
-        if (monitorNav) monitorNav.click();
-    }
-});
+window.auditComment = async (commentId, rotulo) => {
+    const res = await fetch('/api/v1/audit/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ comment_id: commentId, rotulo_correto: rotulo, validado_por: getCurrentUserEmail() })
+    });
+    if (res.ok) { alert('Auditado! Padrão Ouro atualizado.'); fetchComments(); }
+};

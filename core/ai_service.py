@@ -1,130 +1,45 @@
-
-import sys
-if hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-if hasattr(sys.stderr, 'reconfigure'):
-    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 import json
 import httpx
 import asyncio
 import time
 import logging
+import os
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional, List
 from core.config import settings
 from core.forensics_service import forensics_service
 
-# --- SENTINELA | Diamond Intelligence Engine v16.4 ---
-# Refatoração Implacável: Cascata Resiliente e Latência Zero.
+# --- SENTINELA | Diamond Intelligence Engine v42.1 ---
+# IntegraÃ§Ã£o MCF v2.0: Cascata Resiliente e CCF Framework.
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("sentinela-ai")
 
-class GeminiAgentAdapter:
-    """
-    Adaptador de API para agentes Gemini (Protocolo de Assinatura de Pensamento).
-    Captura thought_signatures de chamadas de ferramentas e injeta-as em respostas futuras.
-    """
-    def __init__(self):
-        self.pending_signatures: Dict[str, str] = {}
-
-    def process_response_parts(self, parts: List[Dict[str, Any]]):
-        """Captura assinaturas de pensamento de partes da resposta do modelo."""
-        for part in parts:
-            if "functionCall" in part:
-                tool_name = part["functionCall"]["name"]
-                # Se o modelo fornecer uma assinatura para esta chamada, guardamos
-                if "thought_signature" in part:
-                    self.pending_signatures[tool_name] = part["thought_signature"]
-                    logger.debug(f"🔑 [AI] Assinatura capturada para ferramenta: {tool_name}")
-
-    def build_tool_response(self, tool_name: str, result: Any) -> Dict[str, Any]:
-        """Constrói o payload de resposta da ferramenta injetando a assinatura se disponível."""
-        part_payload = {
-            "functionResponse": {
-                "name": tool_name,
-                "response": result
-            }
-        }
-        
-        # Injeção automática da assinatura para evitar Erro 400
-        if tool_name in self.pending_signatures:
-            part_payload["thought_signature"] = self.pending_signatures.pop(tool_name)
-            logger.debug(f"💉 [AI] Assinatura injetada na resposta da ferramenta: {tool_name}")
-            
-        return {
-            "role": "function",
-            "parts": [part_payload]
-        }
-
 class AIEngine(ABC):
     """Classe base para motores de IA do Sentinela."""
-    
+
     @abstractmethod
     async def classify(self, text: str) -> Optional[Dict[str, Any]]:
         pass
 
 class GeminiEngine(AIEngine):
-    def __init__(self):
-        self.adapter = GeminiAgentAdapter()
-        self.current_key_index = 0
-
     async def classify(self, text: str) -> Optional[Dict[str, Any]]:
-        if not settings.GEMINI_API_KEYS:
-            logger.warning("⚠️ [AI] Nenhuma chave GEMINI_API_KEYS configurada.")
-            return None
-            
-        # Tenta rotacionar por todas as chaves disponíveis
-        num_keys = len(settings.GEMINI_API_KEYS)
-        for _ in range(num_keys):
-            api_key = settings.GEMINI_API_KEYS[self.current_key_index]
-            
-            # Proteção básica contra chaves inválidas
-            if not api_key.startswith("AIza"):
-                logger.warning(f"⚠️ [AI] Gemini Key index {self.current_key_index} parece inválida. Pulando.")
-                self.current_key_index = (self.current_key_index + 1) % num_keys
-                continue
-                
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
-            system_prompt = forensics_service.get_system_prompt()
-            payload = {
-                "contents": [{"parts": [{"text": f"{system_prompt}\n\nTEXTO: \"{text}\""}]}],
-                "generationConfig": {"response_mime_type": "application/json"}
-            }
-            
-            async with httpx.AsyncClient() as client:
-                try:
-                    resp = await client.post(url, json=payload, timeout=30.0)
-                    
-                    # Se erro de quota (429) ou erro de autenticação (401), rotaciona
-                    if resp.status_code in [429, 401]:
-                        logger.warning(f"🔄 [AI] Gemini Key {self.current_key_index} falhou ({resp.status_code}). Rotacionando...")
-                        self.current_key_index = (self.current_key_index + 1) % num_keys
-                        continue
-
-                    # Auto-Healing: Se houver erro de assinatura ausente, logamos e tratamos
-                    if resp.status_code == 400 and "thought_signature" in resp.text:
-                        logger.error(f"🚨 [AI] Falha de Assinatura Detectada: {resp.text}")
-                        return None
-
-                    if resp.status_code == 200:
-                        data = resp.json()
-                        candidates = data.get('candidates', [])
-                        if not candidates: return None
-                        
-                        parts = candidates[0].get('content', {}).get('parts', [])
-                        self.adapter.process_response_parts(parts)
-                        
-                        raw_text = parts[0]['text']
-                        return forensics_service.parse_verdict(raw_text)
-                    else:
-                        logger.warning(f"⚠️ [AI] Gemini status {resp.status_code}: {resp.text}")
-                        # Outros erros também podem disparar rotação se for o caso
-                        self.current_key_index = (self.current_key_index + 1) % num_keys
-                except Exception as e:
-                    logger.warning(f"⚠️ [AI] Gemini failure with key {self.current_key_index}: {e}")
-                    self.current_key_index = (self.current_key_index + 1) % num_keys
-        
+        if not settings.GEMINI_API_KEY: return None
+        # Usando v1beta para suporte a response_mime_type: application/json
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={settings.GEMINI_API_KEY}"
+        system_prompt = forensics_service.get_system_prompt()
+        payload = {
+            "contents": [{"parts": [{"text": f"{system_prompt}\n\nTEXTO: \"{text}\""}]}],
+            "generationConfig": {"response_mime_type": "application/json"}
+        }
+        async with httpx.AsyncClient() as client:
+            try:
+                resp = await client.post(url, json=payload, timeout=15.0)
+                if resp.status_code == 200:
+                    raw_text = resp.json()['candidates'][0]['content']['parts'][0]['text']
+                    return forensics_service.parse_verdict(raw_text)
+            except Exception as e:
+                logger.warning(f"âš ï¸ [AI] Gemini failure: {e}")
         return None
 
 class GroqEngine(AIEngine):
@@ -143,14 +58,12 @@ class GroqEngine(AIEngine):
         }
         async with httpx.AsyncClient() as client:
             try:
-                resp = await client.post(url, headers=headers, json=payload, timeout=30.0)
+                resp = await client.post(url, headers=headers, json=payload, timeout=15.0)
                 if resp.status_code == 200:
                     raw_text = resp.json()['choices'][0]['message']['content']
                     return forensics_service.parse_verdict(raw_text)
-                else:
-                    logger.warning(f"⚠️ [AI] Groq status {resp.status_code}: {resp.text}")
             except Exception as e:
-                logger.warning(f"⚠️ [AI] Groq failure: {e}")
+                logger.warning(f"âš ï¸ [AI] Groq failure: {e}")
         return None
 
 class OllamaEngine(AIEngine):
@@ -158,7 +71,7 @@ class OllamaEngine(AIEngine):
         url = f"{settings.OLLAMA_BASE_URL}/api/chat"
         system_prompt = forensics_service.get_system_prompt()
         payload = {
-            "model": settings.OLLAMA_MODEL,
+            "model": "gemma:2b",
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"TEXTO: \"{text}\""}
@@ -169,61 +82,29 @@ class OllamaEngine(AIEngine):
         }
         async with httpx.AsyncClient() as client:
             try:
-                resp = await client.post(url, json=payload, timeout=60.0)
+                resp = await client.post(url, json=payload, timeout=30.0)
                 if resp.status_code == 200:
                     raw_text = resp.json().get("message", {}).get("content", "")
                     return forensics_service.parse_verdict(raw_text)
-                else:
-                    logger.warning(f"⚠️ [AI] Ollama status {resp.status_code}: {resp.text}")
             except Exception as e:
-                logger.warning(f"⚠️ [AI] Ollama failure: {e}")
-        return None
-
-class MistralEngine(AIEngine):
-    async def classify(self, text: str) -> Optional[Dict[str, Any]]:
-        if not settings.MISTRAL_API_KEY: return None
-        url = "https://api.mistral.ai/v1/chat/completions"
-        headers = {"Authorization": f"Bearer {settings.MISTRAL_API_KEY}"}
-        system_prompt = forensics_service.get_system_prompt()
-        payload = {
-            "model": "mistral-large-latest",
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"TEXTO: \"{text}\""}
-            ],
-            "response_format": {"type": "json_object"}
-        }
-        async with httpx.AsyncClient() as client:
-            try:
-                resp = await client.post(url, headers=headers, json=payload, timeout=30.0)
-                if resp.status_code == 200:
-                    raw_text = resp.json()['choices'][0]['message']['content']
-                    return forensics_service.parse_verdict(raw_text)
-                else:
-                    logger.warning(f"⚠️ [AI] Mistral status {resp.status_code}: {resp.text}")
-            except Exception as e:
-                logger.warning(f"⚠️ [AI] Mistral failure: {e}")
+                logger.warning(f"âš ï¸ [AI] Ollama failure: {e}")
         return None
 
 class AIService:
     def __init__(self, db_client=None):
         self.db = db_client
         self.engines: Dict[str, AIEngine] = {}
-        # Lista inicial. Usaremos um sistema de pontuação para ordenar dinamicamente.
         self.engine_scores: Dict[str, int] = {
-            "gemini": 50, # Iniciando com score reduzido devido ao rate limit
-            "groq": 100,
-            "ollama": 80,
-            "mistral": 100 # Novo motor com score máximo
+            "gemini": 100,
+            "groq": 90,
+            "ollama": 80
         }
         self.engine_latencies: Dict[str, float] = {}
-        
-        # Auto-registro padrão
+
+        # Auto-registro padrÃ£o
         self.register_engine("gemini", GeminiEngine())
         self.register_engine("groq", GroqEngine())
         self.register_engine("ollama", OllamaEngine())
-        self.register_engine("mistral", MistralEngine()) # Registra o novo motor Mistral
-
 
     def register_engine(self, name: str, engine: AIEngine):
         """Registra um novo motor de IA."""
@@ -233,107 +114,96 @@ class AIService:
         logger.debug(f"[AI] Motor registrado: {name}")
 
     def _get_cascade_order(self) -> List[str]:
-        """Retorna a ordem dos motores baseada em pontuação."""
+        """Retorna a ordem dos motores baseada em pontuaÃ§Ã£o."""
         return sorted(self.engines.keys(), key=lambda k: self.engine_scores.get(k, 0), reverse=True)
 
     async def classify(self, text: str) -> Dict[str, Any]:
-        """Classifica texto usando cascata de motores com sistema de recompensa e penalidade de latência."""
+        """Classifica texto usando cascata de motores com sistema de recompensa e penalidade de latÃªncia."""
         if not text or not text.strip():
-            return {"category": "NEUTRO", "confidence": 1.0, "is_hate": False, "reason": "Input vazio", "engine": "none"}
+            return {"categoria_ia": "NEUTRO", "confianca_ia": 1.0, "is_hate": False, "reason": "Input vazio", "engine": "none"}
 
         start_time = time.perf_counter()
         cascade_order = self._get_cascade_order()
-        
+
         for engine_name in cascade_order:
             engine = self.engines.get(engine_name)
             if not engine: continue
-            
+
             result = await engine.classify(text)
             if result:
                 latency = time.perf_counter() - start_time
-                
+
                 # Registro de auditoria PASA
                 forensics_service.log_audit(text, result, engine_name, latency)
-                
+
                 if self.engine_scores[engine_name] >= 100:
                     last_latency = self.engine_latencies.get(engine_name, float('inf'))
                     if latency >= last_latency:
-                        # Penalidade de latência se estiver no topo mas não for mais rápido
                         self.engine_scores[engine_name] -= 5
-                        logger.warning(f"📉 [AI] {engine_name.upper()} penalizado por lentidão ({latency:.2f}s >= {last_latency:.2f}s). Novo score: {self.engine_scores[engine_name]}")
                     else:
-                        logger.info(f"⚡ [AI] {engine_name.upper()} bateu recorde de velocidade ({latency:.2f}s < {last_latency:.2f}s). Mantendo 100.")
+                        logger.info(f"âš¡ [AI] {engine_name.upper()} bateu recorde de velocidade ({latency:.2f}s).")
                 else:
-                    # Recompensa normal por sucesso
                     self.engine_scores[engine_name] = min(100, self.engine_scores[engine_name] + 2)
-                
+
                 self.engine_latencies[engine_name] = latency
                 result["latency"] = latency
                 result["engine"] = engine_name
-                logger.info(f"📊 [AI] {engine_name.upper()} | {result['category']} | {result['latency']:.2f}s | Score: {self.engine_scores[engine_name]}")
+                logger.info(f"ðŸ“Š [AI] {engine_name.upper()} | {result.get('categoria_ia')} | {result['latency']:.2f}s")
                 return result
             else:
-                # Penalidade pesada por falha (ex: 429 ou 404)
                 self.engine_scores[engine_name] = max(0, self.engine_scores[engine_name] - 15)
-                logger.warning(f"📉 [AI] Penalizando {engine_name.upper()} por falha. Novo score: {self.engine_scores[engine_name]}")
-                
-                # PAUSA ADAPTATIVA: Se detectarmos falha generalizada (score baixo), esperamos o resfriamento
-                if self.engine_scores[engine_name] < 40:
-                    logger.info("⏳ [AI] Rate limit provável. Iniciando pausa adaptativa de 45s...")
-                    await asyncio.sleep(45)
-
-        # Se todos falharem, tentar recuperar um pouco a pontuação de todos para não travarem no 0 para sempre
-        for k in self.engine_scores.keys():
-             self.engine_scores[k] = min(100, self.engine_scores[k] + 5)
 
         return {
-            "category": "NEUTRO", 
-            "confidence": 0.0, 
-            "is_hate": False, 
-            "reason": "Cascata de IA esgotada", 
+            "categoria_ia": "NEUTRO",
+            "confianca_ia": 0.0,
+            "is_hate": False,
+            "reason": "Cascata de IA esgotada",
             "engine": "fail",
             "latency": time.perf_counter() - start_time
         }
 
     async def run_batch_classification(self, limit: int = 200, force_retry_failures: bool = False):
-        """Processamento em lote com persistência via DB injetado."""
-        from core.supabase_service import get_supabase_client
+        """Processamento em lote com persistÃªncia via DB injetado."""
+        from core.db import db_client
         from core.pasa_auditor import PASAAuditor
-        self.db = get_supabase_client()
+        self.db = db_client
         pasa_auditor = PASAAuditor(ai_service_instance=self)
 
         total_processed = 0
 
-        # Processar comentários
         if force_retry_failures:
-            logger.info("🔍 [AI] Iniciando limpeza de FALHA_IA em comentários...")
-            res = self.db.table('comentarios').select('*').eq('categoria_ia', 'FALHA_IA').limit(limit).execute()
+            logger.info("ðŸ” [AI] Iniciando limpeza de FALHA_IA...")
+            res = self.db.client.table('comentarios').select('*').eq('categoria_ia', 'FALHA_IA').limit(limit).execute()
             comentarios = res.data
         else:
             comentarios = await self.db.fetch_unprocessed_comments(limit=limit)
-            
+
         if comentarios:
-            logger.info(f"🧠 [AI] Processando lote de {len(comentarios)} comentários...")
+            logger.info(f"ðŸ§  [AI] Processando lote de {len(comentarios)} comentÃ¡rios...")
             updates = []
             for c in comentarios:
-                result = await pasa_auditor.process(c.get('texto_bruto', ''))
-                engine = result["classification"].get("engine", "none") if result.get("classification") else "none"
+                result_full = await pasa_auditor.process(c.get('texto_bruto', ''))
+                res = result_full.get("classification", {})
+                engine = res.get("engine", "none")
+                
                 updates.append({
                     "id": c['id'],
-                    "id_externo": c.get('id_externo'), # Reenvia o ID externo para evitar violação de constraint no upsert do PostgREST
-                    "mined": c.get('mined', True),     # Garante que mined não seja nulo
-                    "is_hate": result['is_hate'],
-                    "categoria_ia": result['category'],
-                    "confianca_ia": result["classification"].get('confidence', 0) if result.get("classification") else 0,
+                    "is_hate": res.get('is_hate', False),
+                    "categoria_ia": res.get('categoria_ia', 'NEUTRO'),
+                    "direcao_odio": res.get('direcao_odio'),
+                    "ccf_density": res.get('ccf_density', 0.0),
+                    "ccf_sync": res.get('ccf_sync', 0.0),
+                    "ccf_performativity": res.get('ccf_performativity', 0.0),
+                    "confianza_ia": res.get('confianca_ia', 0.0),
                     "processado_ia": True if engine != 'fail' else False
                 })
 
             if updates:
                 await self.db.batch_update_comments(updates)
-                logger.info(f"💾 [AI] Persistidos {len(updates)} comentários.")
+                logger.info(f"ðŸ’¾ [AI] Persistidos {len(updates)} comentÃ¡rios com CCF Framework.")
                 total_processed += len(updates)
 
         return total_processed
 
-# Singleton para uso global, mas permite injeção via construtor
+# Singleton
 ai_service = AIService()

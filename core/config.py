@@ -1,14 +1,7 @@
-
-import sys
-if hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-if hasattr(sys.stderr, 'reconfigure'):
-    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 import os
-from typing import List
 from dotenv import load_dotenv
 
-load_dotenv(override=True)
+load_dotenv()
 
 class Settings:
     PROJECT_NAME: str = "Sentinela Democrática"
@@ -20,13 +13,7 @@ class Settings:
     
     # AI Cloud APIs
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
-    MISTRAL_API_KEY: str = os.getenv("MISTRAL_API_KEY", "")
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
-    GEMINI_API_KEYS: List[str] = [k.strip() for k in os.getenv("GEMINI_API_KEYS", "").split(",") if k.strip()]
-    
-    # Se GEMINI_API_KEYS estiver vazio mas GEMINI_API_KEY tiver valor, popula a lista
-    if not GEMINI_API_KEYS and GEMINI_API_KEY:
-        GEMINI_API_KEYS = [GEMINI_API_KEY]
     
     # AI Local (Ollama)
     OLLAMA_BASE_URL: str = os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434")

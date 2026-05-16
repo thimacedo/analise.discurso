@@ -33,12 +33,6 @@ with open(os.path.join(session_dir, "plan_2026-05-07.md"), "w", encoding="utf-8"
 # Write Plan Review
 plan_review_content = """# Plan Review: Implement Repository Architecture Documentation
 
-import sys
-if hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-if hasattr(sys.stderr, 'reconfigure'):
-    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
-
 **Status**: ✅ APPROVED
 **Reviewed**: 2026-05-07
 

@@ -1,9 +1,3 @@
-
-import sys
-if hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-if hasattr(sys.stderr, 'reconfigure'):
-    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 import subprocess
 import sys
 import os
@@ -37,8 +31,8 @@ def run_orchestrator():
             state = f.read()
         
         if query_gemma_decision(state):
-            print(f"🚀 [{datetime.now()}] Gemma autorizou: Iniciando ciclo de povoamento (Centralizado)...")
-            subprocess.run([sys.executable, "-m", "core.orquestrador"], check=False)
+            print(f"🚀 [{datetime.now()}] Gemma autorizou: Iniciando ciclo de povoamento...")
+            subprocess.run([sys.executable, "workers/worker_sentinela.py", "--once"], check=False)
         else:
             print(f"💤 [{datetime.now()}] Gemma descansando: Sem necessidade de raspagem no momento.")
             

@@ -2,132 +2,118 @@ import json
 import logging
 import time
 import re
+import os
 from typing import Dict, Any, List, Optional, Tuple
 from datetime import datetime
 
 logger = logging.getLogger("sentinela-forensics")
 
-# --- Matriz Taxonômica PASA v16.4 (Centralizada) ---
+# --- Matriz TaxonÃ´mica PASA v42 (MTAD) ---
 VALID_CATEGORIES = [
-    "NEUTRO",
-    "ODIO_IDENTITARIO",   # Xenofobia, racismo, regionalismo
-    "VIOLENCIA_GENERO",   # Misoginia, ofensas à condição feminina
-    "AMEACA",             # Incitação a dano físico ou morte
-    "INSULTO_AD_HOMINEM", # Desumanização: lixo, rato, verme, escória
-    "ATAQUE_INSTITUCIONAL",# Deslegitimação de órgãos como STF/TSE
-    "RIGOR_CRIMINAL",     # Imputação de crime sem prova: ladrão, corrupto
-    "XENOFOBIA_REGIONAL", # Específico para ataques a regiões (ex: Nordeste)
-    "MILICIA_DIGITAL"     # Ataques coordenados e desinformação
+    "ODIO_IDENTITARIO",
+    "VIOLENCIA_GENERO",
+    "AMEACA",
+    "ATAQUE_INSTITUCIONAL",
+    "RIGOR_CRIMINAL",
+    "INSULTO_AD_HOMINEM",
+    "NEUTRO"
 ]
 
 class PasaForensicsService:
     """
-    Serviço Centralizado de Peritagem Forense PASA v16.4.
-    Gerencia prompts, parsing e auditoria de classificações de ódio.
+    ServiÃ§o Centralizado de Peritagem Forense PASA v42.
+    Gerencia prompts baseados no MCF v2.0, parsing e auditoria CCF.
     """
-    
-    VERSION = "16.4.1"
+
+    VERSION = "42.1.0"
 
     def __init__(self):
+        self.manual_path = "docs/forensics/MANUAL_CLASSIFICACAO_FORENSE_v2.md"
         self.forbidden_terms = {
-            re.compile(r'\bper[íi]cia(?:s)?\b', re.IGNORECASE): "análise / relatório",
-            re.compile(r'\bper[íi]to(?:s|as|a)?\b', re.IGNORECASE): "analista",
-            re.compile(r'\bpericial\b', re.IGNORECASE): "analítica",
-            re.compile(r'\bforense(?:s)?\b', re.IGNORECASE): "estratégica",
-            re.compile(r'\bprova(?:s)?\b', re.IGNORECASE): "evidências situacionais",
-            re.compile(r'\blaudo(?:s)?\b', re.IGNORECASE): "dossiê"
+            re.compile(r'\bper[Ã­i]cia(?:s)?\b', re.IGNORECASE): "anÃ¡lise / relatÃ³rio",
+            re.compile(r'\bper[Ã­i]to(?:s|as|a)?\b', re.IGNORECASE): "analista",
+            re.compile(r'\bpericial\b', re.IGNORECASE): "analÃ­tica",
+            re.compile(r'\bforense(?:s)?\b', re.IGNORECASE): "estratÃ©gica",
+            re.compile(r'\bprova(?:s)?\b', re.IGNORECASE): "evidÃªncias situacionais",
+            re.compile(r'\blaudo(?:s)?\b', re.IGNORECASE): "dossiÃª"
         }
 
+    def _load_manual(self) -> str:
+        """Carrega o manual MCF v2.0 do disco."""
+        try:
+            # Tenta caminhos relativos diferentes dependendo de onde o processo Ã© iniciado
+            paths = [self.manual_path, f"../{self.manual_path}", f"E:/Projetos/sentinela-democratica/{self.manual_path}"]
+            for p in paths:
+                if os.path.exists(p):
+                    with open(p, 'r', encoding='utf-8') as f:
+                        return f.read()
+            return "AVISO: Manual MCF v2.0 nÃ£o encontrado. Use a taxonomia MTAD e o CCF Framework."
+        except Exception as e:
+            logger.error(f"Erro ao carregar manual: {e}")
+            return "ERRO ao carregar Manual MCF v2.0."
+
     def get_system_prompt(self) -> str:
-        """Retorna o System Prompt padronizado para o Protocolo PASA v16.4, enriquecido com as diretrizes de treinamento."""
+        """Retorna o System Prompt baseado no MCF v2.0 definitivo."""
+        manual = self._load_manual()
         return f"""
-Você é um Perito em Linguística Forense do Sistema Sentinela Democrática.
-Sua missão é classificar o texto segundo o Protocolo PASA v{self.VERSION}, seguindo estritamente as diretrizes abaixo.
+VocÃª Ã© um Analista Forense LinguÃ­stico do Sistema Sentinela DemocrÃ¡tica.
+Siga RIGOROSAMENTE o manual abaixo para classificar os comentÃ¡rios.
 
-## REGRAS DE OURO (IMUTÁVEIS)
+{manual}
 
-1.  **NEUTRO**: Críticas administrativas, discordância política civilizada, debate de ideias, apoio agressivo com gírias/palavrões (ex: "porra", "caralho", "o brabo", "mito"), defesa de mandato contra acusações, metáforas de embate eleitoral ("vamos ocupar o congresso", "inimigos do povo") e expressões de entusiasmo NÃO são ódio. Devem ser classificadas como **NEUTRO**.
-2.  **PERFORMATIVIDADE**: Analise se o discurso busca anular a cidadania, desumanizar ou incitar violência. O foco é a **intenção** e não apenas o vocabulário.
-3.  **RIGOR CRIMINAL**: Imputar crimes (ladrão, corrupto, traficante) sem evidência jornalística é **RIGOR_CRIMINAL** e `is_hate: true`. Ex.: "Parabéns pelo roubo".
-4.  **DESUMANIZAÇÃO**: Termos como 'lixo', 'escória', 'rato', 'verme' são **INSULTO_AD_HOMINEM** e SEMPRE são `is_hate: true`.
-5.  **AMEACA FÍSICA**: Promessas de morte, agressão física (ex: "levar tiro", "paredão") DEVEM ser categorizadas estritamente como **AMEACA**.
-6.  **VIOLÊNCIA DE GÊNERO**: Reserve **VIOLENCIA_GENERO** APENAS para misoginia ou ofensas diretas à condição feminina (ex: "vaca", "puta", "louca").
-7.  **XENOFOBIA/REGIONALISMO**: Ataques baseados em origem regional (ex: "preguiça", "analfabeto", "miserável" direcionados a nordestinos) ou ridicularização de sotaques são **ODIO_IDENTITARIO**.
-8.  **ATAQUE INSTITUCIONAL**: Deslegitimação de órgãos de Estado (ex: "ditadura da toga", "fraude nas urnas", "Xandão", "comprado").
-9.  **IRONIA E SARCASMO**: Identifique dissonância semântica onde palavras positivas são usadas para insultar. Ex.: "Grande democrata esse aí" (em contexto de censura) → **ATAQUE_INSTITUCIONAL**.
-
-## DICIONÁRIO DE ALTA HOSTILIDADE
-- **Ofensas**: lixo, escória, verme, rato, jumento, gado, mortadela.
-- **Institucional**: ditadura, golpe, fraude, urnas, Alexandre, Xandão, careca.
-- **Ideológico**: comunista, fascista, nazista, extrema-direita, esquerda caviar (quando usados para desqualificar).
-
-## BLINDAGEM CONTRA FALSOS POSITIVOS (EXEMPLOS REAIS)
-Os seguintes tipos de texto DEVEM ser classificados como **NEUTRO**:
-- *"O brabo tem nome porra!"* → Apoio agressivo/Gíria.
-- *" @tools\reapericia_alvo.py na Câmara vai ser um presente"* → Elogio/Esperança.
-- *"A ousadia vai ocupar o congresso!"* → Metáfora de vitória eleitoral.
-- *"Querem inviabilizar um mandato sério!"* → Defesa política.
-- *"Mobilizar nas ruas no 1º de maio"* → Direito de reunião.
-
-## CATEGORIAS PERMITIDAS
-{", ".join(VALID_CATEGORIES)}
-
-## FORMATO DE SAÍDA (JSON ESTRITAMENTE)
-{{
-  "category": "CATEGORIA",
-  "confidence": 0.95,
-  "is_hate": true,
-  "reason": "Explicação técnica curta baseada nas regras",
-  "evidence": ["termo1", "termo2"],
-  "pasa_version": "{self.VERSION}"
-}}
+IMPORTANTE: Toda resposta DEVE ser um JSON vÃ¡lido seguindo o Contrato de Dados (SeÃ§Ã£o 7 do Manual).
 """
 
     def parse_verdict(self, raw_text: str) -> Dict[str, Any]:
-        """Parser resiliente para respostas de IA (Diamond Pattern)."""
+        """Parser resiliente para respostas de IA (MCF v2.0 Pattern)."""
         try:
-            # Limpeza de markdown e ruídos
+            # Limpeza de markdown
             clean = raw_text.strip()
             if "```json" in clean:
                 clean = clean.split("```json")[1].split("```")[0]
             elif "```" in clean:
                 clean = clean.split("```")[1].split("```")[0]
-            
+
             clean = clean.strip()
             data = json.loads(clean)
-            
-            # Normalização da categoria
-            cat = str(data.get("category", "NEUTRO")).upper().strip()
+
+            # Mapeamento do JSON da IA para o Schema do Supabase
+            cat = str(data.get("categoria_ia", data.get("category", "NEUTRO"))).upper().strip()
             if cat not in VALID_CATEGORIES:
-                # Fallback inteligente
-                if "XENOFOBIA" in cat: cat = "XENOFOBIA_REGIONAL"
-                elif "GENERO" in cat or "MISOGINIA" in cat: cat = "VIOLENCIA_GENERO"
-                elif "INSTITUCIONAL" in cat or "STF" in cat: cat = "ATAQUE_INSTITUCIONAL"
-                else: cat = "NEUTRO"
-            
+                cat = "NEUTRO"
+
+            # Determina o rotulo (is_hate)
+            rotulo = data.get("rotulo", "not_hate")
+            is_hate = True if rotulo == "hate" else False
+            if cat != "NEUTRO": is_hate = True # Garantia forense
+
             return {
+                "id": data.get("id"),
                 "category": cat,
-                "confidence": float(data.get("confidence", 0.0)),
-                "is_hate": bool(data.get("is_hate", False)),
-                "reason": data.get("reason", "Análise automatizada PASA"),
-                "evidence": data.get("evidence", []),
-                "pasa_version": data.get("pasa_version", self.VERSION),
-                "raw_forensic_trace": clean
+                "categoria_ia": cat,
+                "is_hate": is_hate,
+                "rotulo": "hate" if is_hate else "not_hate",
+                "direcao_odio": data.get("direcao_odio"),
+                "ccf_density": float(data.get("ccf_density", 0.0)),
+                "ccf_sync": float(data.get("ccf_sync", 0.0)),
+                "ccf_performativity": float(data.get("ccf_performativity", 0.0)),
+                "confidence": float(data.get("confianca_ia", data.get("confidence", 0.0))),
+                "confianca_ia": float(data.get("confianca_ia", data.get("confidence", 0.0))),
+                "reason": data.get("reason", "AnÃ¡lise PASA v42"),
+                "pasa_version": self.VERSION
             }
         except Exception as e:
-            logger.error(f"[Forensics] Erro de parsing: {e} | Raw: {raw_text[:200]}")
+            logger.error(f"[Forensics] Erro de parsing MCF v2.0: {e}")
             return {
-                "category": "NEUTRO",
-                "confidence": 0.0,
+                "categoria_ia": "NEUTRO",
                 "is_hate": False,
-                "reason": f"Erro de parser forense: {str(e)}",
-                "evidence": [],
-                "pasa_version": self.VERSION,
-                "raw_forensic_trace": raw_text
+                "rotulo": "not_hate",
+                "confianca_ia": 0.0,
+                "reason": f"Erro de parser: {str(e)}"
             }
 
     def audit_terms(self, text: str) -> Tuple[bool, List[Dict]]:
-        """Auditoria terminológica para conformidade jurídica PASA."""
+        """Auditoria terminolÃ³gica para conformidade jurÃ­dica PASA."""
         violations = []
         for pattern, replacement in self.forbidden_terms.items():
             for match in pattern.finditer(text):
@@ -143,15 +129,15 @@ Os seguintes tipos de texto DEVEM ser classificados como **NEUTRO**:
             "timestamp": datetime.now().isoformat(),
             "engine": engine,
             "latency": latency,
-            "category": verdict["category"],
-            "is_hate": verdict["is_hate"],
-            "confidence": verdict["confidence"],
+            "category": verdict.get("categoria_ia", "NEUTRO"),
+            "is_hate": verdict.get("is_hate", False),
+            "confidence": verdict.get("confianca_ia", 0.0),
             "text_preview": text[:100] + "..." if len(text) > 100 else text,
-            "reason": verdict["reason"],
+            "reason": verdict.get("reason", ""),
             "pasa_version": verdict.get("pasa_version", self.VERSION)
         }
-        logger.info(f"⚖️ [PASA AUDIT] {engine.upper()} | {verdict['category']} | {latency:.2f}s | {verdict['reason']}")
+        logger.info(f"âš–ï¸ [PASA AUDIT] {engine.upper()} | {verdict.get('categoria_ia', 'NEUTRO')} | {latency:.2f}s | {verdict.get('reason', '')}")
         return log_entry
 
-# Singleton para acesso fácil
+# Singleton para acesso fÃ¡cil
 forensics_service = PasaForensicsService()

@@ -1,15 +1,9 @@
-
-import sys
-if hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-if hasattr(sys.stderr, 'reconfigure'):
-    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 import logging
 import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Any
 import numpy as np
-from core.supabase_service import get_supabase_client
+from core.db import db_client
 from core.firebase_alerter import send_alert_summary
 
 logger = logging.getLogger("PredictiveService")

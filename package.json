@@ -8,11 +8,9 @@
     "doc": "docs"
   },
   "scripts": {
-    "build": "npm run build:css",
-    "build:css": "postcss ./src/styles/main.css -o ./src/styles/main.css --watch",
     "test": "playwright test tests/",
     "api": "uvicorn api.index:app --reload --host 0.0.0.0 --port 8000",
-    "dev": "concurrently \"npm run api\" \"http-server . -p 3000\" \"npm run build:css\" --names \"Backend,Frontend,CSS Build\" --prefix-colors \"blue,green,red\""
+    "dev": "concurrently \"npm run api\" \"http-server . -p 3000\" --names \"Backend,Frontend\" --prefix-colors \"blue,green\""
   },
   "repository": {
     "type": "git",
@@ -21,13 +19,12 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "module",
+  "type": "commonjs",
   "bugs": {
     "url": "https://github.com/thimacedo/analise.discurso/issues"
   },
   "homepage": "https://github.com/thimacedo/analise.discurso#readme",
   "dependencies": {
-    "@google-ai/generativelanguage": "^3.7.1",
     "axios": "^1.15.2",
     "better-sqlite3": "^12.9.0",
     "dotenv": "^17.4.2",
@@ -36,12 +33,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",
-    "@tailwindcss/postcss": "^4.2.4",
-    "autoprefixer": "^10.5.0",
     "concurrently": "^9.2.1",
-    "http-server": "^14.1.1",
-    "postcss": "^8.5.14",
-    "postcss-cli": "^11.0.1",
-    "tailwindcss": "^4.2.4"
+    "http-server": "^14.1.1"
   }
 }

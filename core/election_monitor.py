@@ -3,12 +3,6 @@ Election Monitor - Busca externa de notícias e pesquisas eleitorais.
 Responsável por identificar novos candidatos e mudanças no cenário eleitoral.
 """
 
-import sys
-if hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-if hasattr(sys.stderr, 'reconfigure'):
-    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
-
 import httpx
 import json
 import asyncio
@@ -16,7 +10,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 from core.config import settings
-from core.supabase_service import get_supabase_client
+from core.db import db_client
 from core.ai_service import ai_service
 from validator_mcp import validate_worker_standard
 
@@ -32,7 +26,7 @@ class ElectionMonitor:
 
     def __init__(self):
         """Inicializa o monitor com configurações do banco e fontes."""
-        self.db = get_supabase_client()
+        self.db = db_client
         self.rapidapi_key = settings.RAPIDAPI_KEY
         self.news_sources = [
             "google-news-br",
@@ -81,7 +75,7 @@ class ElectionMonitor:
             if 'candidates' in poll:
                 mentioned_names.update(poll['candidates'])
 
-        existing_candidates = self.db.table('candidatos').select('username').execute()
+        existing_candidates = self.db.client.table('candidatos').select('username').execute()
         existing_names = {c['username'].lower().strip() for c in existing_candidates.data}
 
         for name in mentioned_names:
@@ -138,7 +132,7 @@ class ElectionMonitor:
 
     async def add_candidate(self, candidate: Dict) -> bool:
         try:
-            resp = self.db.table('candidatos').insert(candidate).execute()
+            resp = self.db.client.table('candidatos').insert(candidate).execute()
             return len(resp.data) > 0
         except Exception: return False
 

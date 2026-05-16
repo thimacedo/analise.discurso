@@ -1,9 +1,3 @@
-
-import sys
-if hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-if hasattr(sys.stderr, 'reconfigure'):
-    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 import os, time, yt_dlp, uuid
 from supabase import create_client, Client
 from dotenv import load_dotenv

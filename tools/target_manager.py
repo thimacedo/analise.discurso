@@ -1,12 +1,6 @@
-
-import sys
-if hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-if hasattr(sys.stderr, 'reconfigure'):
-    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 import os
 from datetime import datetime, timedelta, UTC
-from core.supabase_service import get_supabase_client
+from supabase import create_client
 from dotenv import load_dotenv
 import httpx
 import asyncio
@@ -17,7 +11,7 @@ load_dotenv()
 
 class TargetManager:
     def __init__(self, hours_threshold=24, stale_days=3):
-        self.supabase = get_supabase_client()
+        self.supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
         self.threshold = hours_threshold
         self.stale_days = stale_days
         self.recently_scraped = set()

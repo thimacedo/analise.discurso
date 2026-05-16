@@ -1,9 +1,3 @@
-
-import sys
-if hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-if hasattr(sys.stderr, 'reconfigure'):
-    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 import os, uuid, random
 from datetime import datetime, timedelta
 from supabase import create_client, Client
@@ -40,7 +34,7 @@ for i in range(200):
         "processado_ia": True,
         "is_hate": tpl['h'],
         "categoria_ia": tpl['c'],
-        "confianca_ia": round(random.uniform(0.8, 0.99), 2)
+        "confianza_ia": round(random.uniform(0.8, 0.99), 2)
     }).execute()
 
 print("200 injetados.")

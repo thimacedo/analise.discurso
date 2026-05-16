@@ -1,9 +1,3 @@
-
-import sys
-if hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-if hasattr(sys.stderr, 'reconfigure'):
-    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 import pandas as pd
 import numpy as np
 from collections import Counter
@@ -12,7 +6,7 @@ from sklearn.cluster import KMeans
 import os
 import logging
 from .common import BaseWorker
-from core.supabase_service import get_supabase_client
+from core.db import db_client
 from typing import List, Dict, Any
 
 class DataMiner(BaseWorker):

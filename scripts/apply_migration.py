@@ -38,10 +38,10 @@ def main():
         conn = psycopg2.connect(DB_URL)
         
         # 1. Criar a tabela base se não existir
-        apply_sql_file(r"C:\projetos\sentinela-democratica\scripts\create_anuncios_table.sql", conn)
+        apply_sql_file(r"E:\Projetos\sentinela-democratica\scripts\create_anuncios_table.sql", conn)
         
         # 2. Aplicar a migração PASA v16.4
-        apply_sql_file(r"C:\projetos\sentinela-democratica\scripts\migration_v22.1_anuncios_pasa.sql", conn)
+        apply_sql_file(r"E:\Projetos\sentinela-democratica\scripts\migration_v22.1_anuncios_pasa.sql", conn)
         
         conn.close()
         print("✨ [MIGRATION] Processo concluído com sucesso!")

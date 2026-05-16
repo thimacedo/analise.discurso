@@ -1,9 +1,3 @@
-
-import sys
-if hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-if hasattr(sys.stderr, 'reconfigure'):
-    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 import asyncio
 import json
 from unittest.mock import AsyncMock, patch, MagicMock
@@ -48,7 +42,7 @@ async def test_meta_ai_integration():
         expected_updates = [{
             "id": "ad_uuid_1",
             "categoria_ia": "INSULTO_AD_HOMINEM",
-            "confianca_ia": 0.98,
+            "confianza_ia": 0.98,
             "is_hate": True,
             "processado_ia": True
         }]

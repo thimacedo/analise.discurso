@@ -20,7 +20,7 @@ class SentinelDataService {
         const cached = this.cache.get(cacheKey);
         if (cached && Date.now() - cached.timestamp < this.cacheTTL) return cached.data;
 
-        try {
+        const tryFetch = async (baseUrl) => {
             const headers = {};
             if (state.currentOrganizationId) {
                 headers['X-Organization-Id'] = state.currentOrganizationId;
@@ -29,16 +29,24 @@ class SentinelDataService {
                 headers['Authorization'] = `Bearer ${authService.session.access_token}`;
             }
 
-            const response = await fetch(`${API_BASE}${path}`, { headers });
+            const response = await fetch(`${baseUrl}${path}`, { headers });
             if (!response.ok) throw new Error(`API Error: ${response.status}`);
-            const data = await response.json();
-            
+            return await response.json();
+        };
+
+        try {
+            const data = await tryFetch(window.SENTINELA_CONFIG.apiUrl);
             state.lastSyncAt = new Date().toISOString();
             this.cache.set(cacheKey, { data, timestamp: Date.now() });
             return data;
         } catch (error) {
-            console.error(`[SentinelDataService] Fetch failed for ${endpoint}:`, error);
-            return this.getFallbackData(endpoint);
+            console.warn(`[SentinelDataService] Primary path failed. Retrying fallback for ${endpoint}...`);
+            try {
+                return await tryFetch(window.SENTINELA_CONFIG.localFallbackUrl);
+            } catch (fbError) {
+                console.warn(`[SentinelDataService] All paths failed for ${endpoint}`);
+                return this.getFallbackData(endpoint);
+            }
         }
     }
 
@@ -81,7 +89,7 @@ class SentinelDataService {
     async postJson(endpoint, body = {}) {
         const path = endpoint;
         
-        try {
+        const tryPost = async (baseUrl) => {
             const headers = { 'Content-Type': 'application/json' };
             if (state.currentOrganizationId) {
                 headers['X-Organization-Id'] = state.currentOrganizationId;
@@ -90,16 +98,27 @@ class SentinelDataService {
                 headers['Authorization'] = `Bearer ${authService.session.access_token}`;
             }
 
-            const response = await fetch(`${API_BASE}${path}`, {
+            const response = await fetch(`${baseUrl}${path}`, {
                 method: 'POST',
                 headers: headers,
                 body: JSON.stringify(body)
             });
             if (!response.ok) throw new Error(`API Post Error: ${response.status}`);
             return await response.json();
+        };
+
+        try {
+            // TENTATIVA 1: Prioridade Vercel
+            return await tryPost(window.SENTINELA_CONFIG.apiUrl);
         } catch (error) {
-            console.error(`[SentinelDataService] POST failed for ${endpoint}:`, error);
-            throw error;
+            // TENTATIVA 2: Fallback Local
+            console.warn(`[SentinelDataService] POST failed. Retrying fallback for ${endpoint}...`);
+            try {
+                return await tryPost(window.SENTINELA_CONFIG.localFallbackUrl);
+            } catch (fbError) {
+                console.error(`[SentinelDataService] All POST paths failed for ${endpoint}`);
+                throw fbError;
+            }
         }
     }
 
@@ -142,20 +161,6 @@ class SentinelDataService {
     // ── Geolocalização (Mapa) ──
     async getGeoUF() {
         return this.fetchJson('/geo/uf');
-    }
-
-    // ── Worker Metrics & Credits ──
-    async getWorkersMetrics() {
-        return this.fetchJson('/monitor/workers');
-    }
-
-    // ── Instagram Session Management ──
-    async getInstagramSessionStatus() {
-        return this.fetchJson('/sessions/instagram/status');
-    }
-
-    async updateInstagramSession(sessionData) {
-        return this.postJson('/sessions/instagram/update', sessionData);
     }
 
     // ── Invalidação Manual de Cache ──

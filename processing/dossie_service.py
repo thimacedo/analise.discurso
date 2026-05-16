@@ -1,14 +1,8 @@
-
-import sys
-if hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-if hasattr(sys.stderr, 'reconfigure'):
-    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 import hashlib
 import pandas as pd
 from datetime import datetime
 from processing.report_generator import ReportGenerator
-from core.supabase_service import SupabaseService
+from core.db import db_client
 
 class DossieService:
     """
@@ -17,7 +11,6 @@ class DossieService:
     """
     def __init__(self):
         self.generator = ReportGenerator()
-        self.supabase_service = SupabaseService()
 
     async def generate_dossie(self, data, path, candidato_id: str):
         """
@@ -51,7 +44,7 @@ class DossieService:
                 "arquivo_path": pdf_path,
                 "versao_pasa": "v16.4"
             }
-            await self.supabase_service.get_client().table('dossies').insert(dossie_meta).execute()
+            await db_client.persist_dossier(dossie_meta)
             print(f"✨ [DossieService] Inteligência do dossiê {data_hash[:10]} persistida no repositório.")
             
         return pdf_path

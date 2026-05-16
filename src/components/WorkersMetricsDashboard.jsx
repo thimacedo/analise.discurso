@@ -11,7 +11,7 @@ const WorkersMetricsDashboard = () => {
     const fetchMetrics = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/v1/monitor/workers');
+        const response = await fetch('/api/v1/workers/dashboard');
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
         setMetrics(data);

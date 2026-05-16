@@ -1,181 +1,162 @@
 """
-PASA v36.1 - Sentinela Local Node: Servidor de Raspagem com Log de Operações
+PASA v44 - Sentinela Local Node: Master Server (Audit Edition)
+Unifica Fila Inteligente, Cooldown Dinâmico, Monitor de Ameaças, Descanso Produtivo e Auditoria Anti-Alucinação.
 """
 import time
+import subprocess
 import os
 import sys
-import json
+import logging
+import asyncio
+from datetime import datetime, timezone
 
-# Garante que o diretório raiz do projeto esteja no Python Path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Ajuste de path para encontrar core e scripts
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'workers'))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'scripts'))
 
-from datetime import datetime
-from core.supabase_service import get_supabase_client
+try:
+    from core.db import db_client as db
+    from workers.scrapers.instagram_scraper import InstagramScraper
+    from scripts.update_threat_profiles import calculate_hate_density
+    from scripts.mass_classify import process_mass_classification
+    from workers.audit_worker import run_audit
+    from scripts.check_drift import check_category_drift
+except ImportError:
+    pass
 
-# Configurações Padrão (Fallback)
-CYCLE_PAUSE = 900 # 15 minutos
-SCRAPE_PAUSE = 45 # Pausa entre perfis
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - SERVER - %(message)s')
+logger = logging.getLogger("SentinelaServer")
 
-def load_runtime_config():
-    """Carrega configurações dinâmicas geradas pelo AutoUpdater."""
-    global CYCLE_PAUSE, SCRAPE_PAUSE
-    config_path = "data/cache/runtime_config.json"
-    if os.path.exists(config_path):
-        try:
-            with open(config_path, 'r') as f:
-                config = json.load(f)
-                CYCLE_PAUSE = config.get('CYCLE_PAUSE', CYCLE_PAUSE)
-                SCRAPE_PAUSE = config.get('SCRAPE_PAUSE', SCRAPE_PAUSE)
-        except Exception:
-            pass
+# Configurações do Ciclo
+CYCLE_PAUSE = 900
+SCRAPE_PAUSE = 45
+COOLDOWN_HOURS = 6
 
 class WarRoomUI:
     @staticmethod
-    def clear():
+    def render(status, db_status, queue_size, cycle, logs):
         os.system('cls' if os.name == 'nt' else 'clear')
+        print("="*75)
+        print(f" SENTINELA DEMOCRÁTICA | WAR ROOM | {datetime.now().strftime('%H:%M:%S')}")
+        print("="*75)
+        print(f" STATUS: {status}")
+        print(f" DB: {db_status} | FILA: {queue_size} | CICLO: {cycle}")
+        print("-"*75)
+        print(" LOGS DE OPERAÇÃO RECENTES:")
+        for log in logs[-8:]:
+            print(f" > {log}")
+        print("="*75)
+        print(" [PASA v44] Audit Edition - Integridade Forense e Anti-Alucinação")
+        print("="*75)
 
-    @staticmethod
-    def render(status: str, supabase_status: str, queue_size: int, cycle_num: int, ops_log: list):
-        WarRoomUI.clear()
-        print("╔══════════════════════════════════════════════════════════════╗")
-        print("║         SENTINELA DEMOCRÁTICA - LOCAL NODE v36.1           ║")
-        print("╠══════════════════════════════════════════════════════════════╣")
-        print(f"║  Status: {status:<49}║")
-        print(f"║  Supabase: {supabase_status:<48}║")
-        print(f"║  Fila Offline: {queue_size:<44}║")
-        print(f"║  Ciclo Atual: {cycle_num:<45}║")
-        print("╚══════════════════════════════════════════════════════════════╝")
-        
-        print("\n[ 📜 LOG DE OPERAÇÕES ]")
-        if not ops_log:
-            print("  Aguardando inicialização...")
-        else:
-            # Exibe os últimos 7 eventos
-            for log in ops_log[-7:]:
-                print(f"  {log}")
-            
-        print("\n [Ctrl+C] para encerrar o servidor com segurança.\n")
+def log_event(log_list, msg):
+    log_list.append(f"[{datetime.now().strftime('%H:%M')}] {msg}")
+    logger.info(msg)
 
-def log_event(ops_log: list, message: str):
-    """Adiciona evento ao log com timestamp."""
-    timestamp = datetime.now().strftime("%H:%M:%S")
-    ops_log.append(f"[{timestamp}] {message}")
+async def run_server():
+    try:
+        worker = InstagramScraper("init")
+    except Exception as e:
+        logger.error(f"Erro ao inicializar worker: {e}")
+        return
 
-from core.offline_cache import save_to_queue, flush_queue, load_queue
-from app.workers.instagram_worker import InstagramWorker
-from scripts.mass_classify import process_mass_classification
-from scripts.update_threat_profiles import calculate_hate_density
-
-# Configurações Padrão (Fallback)
-CYCLE_PAUSE = 900 # 15 minutos
-SCRAPE_PAUSE = 45 # Pausa entre perfis
-
-def load_runtime_config():
-    """Carrega configurações dinâmicas geradas pelo AutoUpdater."""
-    global CYCLE_PAUSE, SCRAPE_PAUSE
-    config_path = "data/cache/runtime_config.json"
-    if os.path.exists(config_path):
-        try:
-            with open(config_path, 'r') as f:
-                config = json.load(f)
-                CYCLE_PAUSE = config.get('CYCLE_PAUSE', CYCLE_PAUSE)
-                SCRAPE_PAUSE = config.get('SCRAPE_PAUSE', SCRAPE_PAUSE)
-        except Exception:
-            pass
-
-def main_loop():
-    db = get_supabase_client()
-    worker = InstagramWorker()
     cycle_count = 0
     ops_log = []
-
-    try:
-        while True:
-            cycle_count += 1
-            load_runtime_config() # PASA v37: Carrega configs dinâmicas
-            log_event(ops_log, f"=== INÍCIO DO CICLO {cycle_count} ===")
-            supabase_status = "🟢 ONLINE"
-            
-            # 1. Sincronizar Cache Offline
-            WarRoomUI.render("🔄 SINCRONIZANDO", supabase_status, len(load_queue()), cycle_count, ops_log)
+    
+    while True:
+        cycle_count += 1
+        supabase_status = "🟢 ONLINE" if db.client else "🔴 OFFLINE"
+        log_event(ops_log, f"Iniciando ciclo #{cycle_count}")
+        
+        # 1. Fase de Raspagem Inteligente
+        PROFILES_PER_CYCLE = 5
+        profiles_scraped_this_cycle = 0
+        
+        while profiles_scraped_this_cycle < PROFILES_PER_CYCLE:
             try:
-                synced = flush_queue(db)
-                if synced > 0:
-                    log_event(ops_log, f"Sincronizados {synced} itens offline com o Supabase.")
-            except Exception as e:
-                supabase_status = "🔴 OFFLINE"
-                log_event(ops_log, f"Falha ao sincronizar cache: {str(e)[:40]}")
+                res_pend = db.client.table('fila_coleta').select('id', count='exact').eq('status', 'PENDENTE').execute()
+                queue_size = res_pend.count if res_pend.count is not None else 0
+                
+                WarRoomUI.render(f"🟡 RASPAGEM: ALVO {profiles_scraped_this_cycle+1}/{PROFILES_PER_CYCLE}", supabase_status, queue_size, cycle_count, ops_log)
+                
+                pending = db.client.table('fila_coleta').select('id, target_id').eq('status', 'PENDENTE').limit(10).execute()
+                
+                if not pending.data: break
 
-            # 2. Fase de Raspagem (Batch Serial Resiliente)
-            PROFILES_PER_CYCLE = 5 # PASA v38: Processa 5 alvos por ciclo antes da hibernação
-            
-            for i in range(PROFILES_PER_CYCLE):
-                WarRoomUI.render(f"🟡 RASPANDO INSTAGRAM ({i+1}/{PROFILES_PER_CYCLE})", supabase_status, len(load_queue()), cycle_count, ops_log)
-                try:
-                    # PASA v37.2: Removido filtro de 'plataforma' pois a coluna não existe na tabela real
-                    pending = db.table('fila_coleta').select('id, target_id').eq('status', 'PENDENTE').limit(1).execute()
+                target_item = None
+                for p in pending.data:
+                    target_id = p['target_id']
+                    cand = db.client.table('candidatos').select('last_scraped_at').eq('username', target_id).execute()
                     
-                    if pending.data:
-                        target = pending.data[0]['target_id']
-                        item_id = pending.data[0]['id']
-                        
-                        db.table('fila_coleta').update({'status': 'PROCESSANDO'}).eq('id', item_id).execute()
-                        log_event(ops_log, f"Iniciando raspagem de @{target}")
-
+                    if cand.data and cand.data[0].get('last_scraped_at'):
+                        last_scraped_str = cand.data[0]['last_scraped_at']
                         try:
-                            success = worker.run(target=target)
-                            new_status = 'CONCLUIDO' if success else 'FALHOU'
-                            db.table('fila_coleta').update({'status': new_status}).eq('id', item_id).execute()
-                            log_event(ops_log, f"Raspagem de @{target} finalizada: {new_status}")
-                        except Exception as e:
-                            db.table('fila_coleta').update({'status': 'FALHOU'}).eq('id', item_id).execute()
-                            log_event(ops_log, f"ERRO CRÍTICO em @{target}: {str(e)[:40]}")
+                            last_scraped = datetime.fromisoformat(last_scraped_str.replace('Z', '+00:00'))
+                            if (datetime.now(timezone.utc) - last_scraped).total_seconds() / 3600 < COOLDOWN_HOURS:
+                                db.client.table('fila_coleta').update({'status': 'CONCLUIDO'}).eq('id', p['id']).execute()
+                                continue
+                        except Exception: pass
+                    
+                    target_item = p
+                    break
+                
+                if not target_item: break
 
-                        # Pausa respirada entre perfis DENTRO do ciclo
-                        if i < PROFILES_PER_CYCLE - 1:
-                            time.sleep(SCRAPE_PAUSE)
-                    else:
-                        log_event(ops_log, "Fila de raspagem vazia. Encerrando batch antecipadamente.")
-                        break # Sai do loop do batch se a fila acabou
-                        
+                target_id = target_item['target_id']
+                db.client.table('fila_coleta').update({'status': 'PROCESSANDO'}).eq('id', target_item['id']).execute()
+                
+                try:
+                    worker.target_profile = target_id
+                    posts = worker.fetch_recent_posts()
+                    for post in posts:
+                        comments = worker.fetch_comments(post['shortcode'])
+                        if comments: db.client.table('comentarios').upsert(comments).execute()
+                    
+                    db.client.table('fila_coleta').update({'status': 'CONCLUIDO'}).eq('id', target_item['id']).execute()
+                    db.client.table('candidatos').update({'last_scraped_at': datetime.now(timezone.utc).isoformat()}).eq('username', target_id).execute()
+                    log_event(ops_log, f"@{target_id} concluído.")
+                    profiles_scraped_this_cycle += 1
                 except Exception as e:
-                    supabase_status = "🔴 OFFLINE"
-                    # PASA v37.2: Log detalhado do erro real do Supabase
-                    log_event(ops_log, f"Erro Supabase (Fila): {str(e)[:80]}")
-                    break # Interrompe o batch se o banco cair
+                    db.client.table('fila_coleta').update({'status': 'FALHOU'}).eq('id', target_item['id']).execute()
+                    log_event(ops_log, f"Falha em @{target_id}: {str(e)[:40]}")
 
-            # 3. Fase de Processamento IA (Batch)
-            WarRoomUI.render("🧠 PROCESSANDO IA", supabase_status, len(load_queue()), cycle_count, ops_log)
-            try:
-                process_mass_classification()
-                log_event(ops_log, "Lote de IA classificado com sucesso.")
-            except Exception as e:
-                log_event(ops_log, f"Falha no processamento de IA: {str(e)[:40]}")
+                time.sleep(SCRAPE_PAUSE)
+            except Exception: break
 
-            # 4. Fase de Profiling de Ameaças
-            WarRoomUI.render("🎯 ATUALIZANDO AMEAÇAS", supabase_status, len(load_queue()), cycle_count, ops_log)
-            try:
-                calculate_hate_density()
-                log_event(ops_log, "Densidade de ódio dos alvos atualizada.")
-            except Exception as e:
-                log_event(ops_log, f"Falha ao calcular densidade de ódio: {str(e)[:40]}")
-
-            # 5. Sono Estratégico
-            log_event(ops_log, f"Ciclo concluído. Descansando {CYCLE_PAUSE//60} min.")
-            for i in range(CYCLE_PAUSE, 0, -1):
-                if i % 60 == 0 or i == CYCLE_PAUSE: # Atualiza a cada minuto
-                    WarRoomUI.render("🟢 AGUARDANDO PRÓXIMO CICLO", supabase_status, len(load_queue()), cycle_count, ops_log + [f"Próximo ciclo em {i//60} min..."])
-                time.sleep(1)
-
-    except KeyboardInterrupt:
-        WarRoomUI.clear()
-        print("\n🛑 Servidor Sentinela encerrado manualmente. Sincronizando antes de sair...")
+        # 2. Profiling e Git Sync
+        WarRoomUI.render("📊 ATUALIZANDO PROFILER", supabase_status, "---", cycle_count, ops_log)
         try:
-            flush_queue(db)
-        except:
-            pass
-        print("Concluído. Até a próxima, analista.")
-        sys.exit(0)
+            calculate_hate_density()
+            subprocess.run(['git', 'add', 'docs/profiler_stream.json', 'docs/kpis.json'], capture_output=True)
+            subprocess.run(['git', 'commit', '-m', 'data: atualizar monitor de ameacas (PASA v44)'], capture_output=True)
+            log_event(ops_log, "Frontend sincronizado.")
+        except Exception: pass
+
+        # 3. Descanso Produtivo e IA
+        rest_end_time = time.time() + CYCLE_PAUSE
+        while time.time() < rest_end_time:
+            try:
+                res_ia = db.client.table('comentarios').select('id', count='exact').eq('processado_ia', False).limit(1).execute()
+                pending_ia = res_ia.count if res_ia.count is not None else 0
+                
+                if pending_ia > 0:
+                    WarRoomUI.render(f"🧠 IA EM FUNDO: {pending_ia} PENDENTES", supabase_status, "Zzz", cycle_count, ops_log)
+                    await process_mass_classification(limit=50)
+                    time.sleep(10)
+                else:
+                    # 4. Auditoria e Deriva (PASA v44)
+                    WarRoomUI.render("🔍 AUDITORIA CRUZADA", supabase_status, "OK", cycle_count, ops_log)
+                    await run_audit(sample_size=5)
+                    check_category_drift()
+                    log_event(ops_log, "Auditoria e Drift Check concluídos.")
+                    time.sleep(60)
+            except Exception as e:
+                log_event(ops_log, f"Erro IA/Audit: {e}")
+                time.sleep(60)
 
 if __name__ == "__main__":
-    main_loop()
+    try:
+        asyncio.run(run_server())
+    except KeyboardInterrupt:
+        print("\nServidor finalizado.")

@@ -1,9 +1,3 @@
-
-import sys
-if hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-if hasattr(sys.stderr, 'reconfigure'):
-    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 import os
 import sys
 import asyncio
@@ -14,7 +8,7 @@ from dotenv import load_dotenv
 sys.path.append(os.getcwd())
 
 from core.ai_service import run_batch_classification
-from core.supabase_service import get_supabase_client
+from core.db import db_client
 
 async def main():
     print("🚀 IA TURBO: Processando fila de comentários (Sem Scraper)...")

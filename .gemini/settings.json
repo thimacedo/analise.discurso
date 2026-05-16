@@ -10,7 +10,7 @@
     },
     "modelSteering": true,
     "directWebFetch": true,
-    "memoryV2": false,
+    "memoryV2": true,
     "autoMemory": true,
     "generalistProfile": true,
     "contextManagement": true
@@ -18,28 +18,16 @@
   "general": {
     "defaultApprovalMode": "auto_edit",
     "enableAutoUpdate": true,
-    "enableNotifications": false,
+    "enableNotifications": true,
     "notificationMethod": "auto"
   },
   "ui": {
     "hideBanner": true,
-    "loadingPhrases": "off",
-    "errorVerbosity": "low",
+    "loadingPhrases": "all",
+    "errorVerbosity": "full",
     "accessibility": {
       "screenReader": false
-    },
-    "hideWindowTitle": false,
-    "inlineThinkingMode": "off",
-    "dynamicWindowTitle": true,
-    "showStatusInTitle": true,
-    "hideTips": true,
-    "hideContextSummary": true,
-    "footer": {
-      "hideSandboxStatus": true
-    },
-    "showMemoryUsage": true,
-    "showLineNumbers": false,
-    "showModelInfoInChat": true
+    }
   },
   "ide": {
     "enabled": true
@@ -50,15 +38,5 @@
   "security": {
     "autoAddToPolicyByDefault": true,
     "enablePermanentToolApproval": true
-  },
-  "mcpServers": {
-    "supabase": {
-      "url": "https://mcp.supabase.com/mcp?project_ref=vhamejkldzxbeibqeqpk",
-      "type": "http"
-    }
-  },
-  "billing": {
-    "overageStrategy": "never"
-  },
-  "systemPrompt": "undefined\n\n6. AMBIENTE DE TERMINAL: O ambiente de execução local é Windows PowerShell. É ESTRITAMENTE PROIBIDO usar o operador && para encadear comandos no shell (ex: git add . && git commit). Você DEVE usar o ponto e vírgula ; (ex: git add . ; git commit) ou executar as ações em passos separados."
+  }
 }

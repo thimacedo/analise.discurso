@@ -1,64 +1,43 @@
 """
-PASA v31.1 - Mass Classify: Processamento com Schema Real
+PASA v42.1 - Mass Classify Script: Motor de Classificação Massiva MCF v2.0
 """
-from core.supabase_service import get_supabase_client
-from app.ai.classifier_engine import classify_batch, VALID_CATEGORIAS
+import asyncio
+import sys
+import os
+import logging
+from datetime import datetime
 
-# Inicializa o cliente Supabase
-db = get_supabase_client()
+# Ajuste de path para encontrar core
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 
-BATCH_SIZE = 30 
+try:
+    from core.ai_service import ai_service
+    from core.config import settings
+except ImportError:
+    print("Erro ao importar core.ai_service. Verifique se o PYTHONPATH está correto.")
+    sys.exit(1)
 
-def process_mass_classification():
-    offset = 0
-    total_classified = 0
-    
-    while True:
-        # Busca comentários onde processado_ia é falso ou nulo
-        pending = db.table('comentarios')\
-            .select('id, texto_limpo')\
-            .neq('processado_ia', True)\
-            .limit(BATCH_SIZE)\
-            .offset(offset)\
-            .execute()
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - CLASSIFY - %(message)s')
+logger = logging.getLogger("MassClassify")
 
-        if not pending.data:
-            print(f"[MassClassify] Fim do processamento. Total classificado: {total_classified}")
-            break
-
-        batch = pending.data
-        # Ajusta para o formato que a engine espera
-        formatted_batch = [{'id': c['id'], 'texto': c['texto_limpo'] or ""} for c in batch]
-        print(f"[MassClassify] Processando lote de {len(formatted_batch)} comentários...")
-
-        classifications = classify_batch(formatted_batch)
-
-        if not classifications:
-            offset += BATCH_SIZE
-            continue
-
-        for c in classifications:
-            if not c.get('id'): continue
-            
-            is_hate = c.get('rotulo') == 'hate'
-            categoria = c.get('categoria_ia', 'NEUTRO')
-            direcao = c.get('direcao_odio') if is_hate else None
-            confianca = float(c.get('confianca_ia', 0.5))
-            
-            if categoria not in VALID_CATEGORIAS:
-                categoria = "NEUTRO"
-
-            # Mapeamento exato para o schema do Supabase
-            db.table('comentarios').update({
-                'is_hate': is_hate,
-                'processado_ia': True,
-                'categoria_ia': categoria,
-                'direcao_odio': direcao,
-                'confianca_ia': confianca
-            }).eq('id', c['id']).execute()
-
-        total_classified += len(classifications)
-        offset += BATCH_SIZE
+async def process_mass_classification(limit: int = 50):
+    """
+    Executa a classificação em lote usando o protocolo MCF v2.0 e CCF Framework.
+    """
+    logger.info(f"Iniciando lote de classificação (limite: {limit})...")
+    try:
+        processed_count = await ai_service.run_batch_classification(limit=limit)
+        if processed_count > 0:
+            logger.info(f"Sucesso: {processed_count} comentários processados e persistidos.")
+        else:
+            logger.info("Nenhum comentário pendente para classificação.")
+        return processed_count
+    except Exception as e:
+        logger.error(f"Falha na classificação em lote: {e}")
+        return 0
 
 if __name__ == "__main__":
-    process_mass_classification()
+    # Permite rodar como script independente
+    print(f"--- [PASA v42.1] Mass Classify Engine (Provider: {settings.IA_PROVIDER}) ---")
+    asyncio.run(process_mass_classification())

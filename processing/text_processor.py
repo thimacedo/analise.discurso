@@ -1,9 +1,3 @@
-
-import sys
-if hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-if hasattr(sys.stderr, 'reconfigure'):
-    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 import re
 from typing import Optional
 
@@ -27,15 +21,3 @@ def clean_comment(text: str, author_username: str) -> Optional[str]:
         return None
         
     return text
-
-class TextProcessor:
-    """
-    Processador de texto forense para análise de discurso.
-    """
-    def __init__(self):
-        pass
-
-    def clean_text(self, text: str, author: str = "") -> str:
-        """Limpa o texto preservando a integridade para análise."""
-        cleaned = clean_comment(text, author)
-        return cleaned if cleaned else ""

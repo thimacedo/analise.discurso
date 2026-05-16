@@ -39,7 +39,7 @@ async def test_pasa_v16_4_ironia(auditor):
 
 @pytest.mark.asyncio
 async def test_pasa_v16_4_ameaca(auditor):
-    text = "Vou te matar na rua, tem que levar tiro no paredão."
+    text = "Tem que levar tiro no paredão."
     result = await auditor.process(text)
     assert result["is_hate"] is True
     assert result["category"] == "AMEACA"
