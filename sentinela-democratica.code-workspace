@@ -1,21 +1,50 @@
 {
-	"folders": [
-		{
-			"path": "."
-		}
-	],
-	"settings": {
-		"terminal.integrated.defaultProfile.windows": "PowerShell",
-		"ollama-copilot.model": "qwen2.5:3b",
-		"ollama-copilot.chatModel": "qwen2.5:3b",
-		"ollama-copilot.maxTokens": 10000,
-		"chat.disableAIFeatures": true,
-		"workbench.editor.defaultBinaryEditor": "vscode.markdown.preview.editor",
-		"workbench.editor.pinnedTabSizing": "compact",
-		"workbench.editor.showIcons": true,
-		"workbench.editor.showTabIndex": true,
-		"workbench.editor.useModal": "all",
-		"workbench.editor.wrapTabs": true,
-		"window.density.editorTabHeight": "compact"
-	}
+  "folders": [
+    {
+      "path": ".",
+      "name": "Sentinela Democrática"
+    }
+  ],
+  "settings": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "tailwindCSS.experimental.classRegex": [
+      "tw\\`([^`]*)`",
+      "tw\\\"([^\\\"]*)\\\"",
+      "tw\\'([^\\']*)\\'",
+      "cn\\(([^)]*)\\)",
+      "clsx\\(([^)]*)\\)"
+    ],
+    "supabase.typescript.enabled": true,
+    "lucide-vscode.iconsPath": "src/assets/icons",
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/.git": true,
+      "**/*.lock": true,
+      "**/__pycache__": true,
+      "**/.venv": true
+    },
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    "files.autoSave": "afterDelay",
+    "locale": "pt-BR",
+    "workbench.editor.pinnedTabSizing": "compact",
+    "workbench.editor.showIcons": true,
+    "workbench.editor.showTabIndex": true,
+    "window.density.editorTabHeight": "compact"
+  },
+  "extensions": {
+    "recommendations": [
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "bradlc.vscode-tailwindcss",
+      "rashidkisvu.lucide-vscode",
+      "supabase.supabase-vscode",
+      "wix.vscode-import-cost",
+      "christian-kohler.path-intellisense",
+      "MS-CEINTL.vscode-language-pack-pt-BR",
+      "ms-python.python",
+      "ms-python.vscode-pylance"
+    ]
+  }
 }

@@ -1,43 +1,36 @@
-1 {
-    2     "version": "0.2.0",
-    3     "configurations": [
-    4         {
-    5             "name": "🛡️ Sentinela: Backend (FastAPI)",
-    6             "type": "python",
-    7             "request": "launch",
-    8             "module": "uvicorn",
-    9             "args": [
-   10                 "api.index:app",
-   11                 "--host", "0.0.0.0",
-   12                 "--port", "8000",
-   13                 "--reload"
-   14             ],
-   15             "justMyCode": true,
-   16             "envFile": "${workspaceFolder}/.env"
-   17         },
-   18         {
-   19             "name": "🧠 Sentinela: Gemini ↔ Gemma Bridge",
-   20             "type": "python",
-   21             "request": "launch",
-   22             "program": "${workspaceFolder}/../gemini_gemma_bridge.py",
-   23             "console": "integratedTerminal",
-   24             "justMyCode": true,
-   25             "envFile": "${workspaceFolder}/.env"
-   26         },
-   27         {
-   28             "name": "🔍 Debug: Script Atual",
-   29             "type": "python",
-   30             "request": "launch",
-   31             "program": "${file}",
-   32             "console": "integratedTerminal",
-   33             "envFile": "${workspaceFolder}/.env"
-   34         },
-   35         {
-   36             "type": "chrome",
-   37             "request": "launch",
-   38             "name": "🌐 View Dashboard (Local)",
-   39             "url": "http://localhost:3000",
-   40             "webRoot": "${workspaceFolder}"
-   41         }
-   42     ]
-   43 }
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: Sentinela Main Runner",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/main_runner.py",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "python": "${workspaceFolder}/.venv/Scripts/python.exe"
+    },
+    {
+      "name": "Python: API Uvicorn",
+      "type": "python",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "api.index:app",
+        "--reload",
+        "--port",
+        "8000"
+      ],
+      "jinja": true,
+      "justMyCode": true,
+      "python": "${workspaceFolder}/.venv/Scripts/python.exe"
+    },
+    {
+      "name": "Chrome: Debug Frontend",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}"
+    }
+  ]
+}

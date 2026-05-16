@@ -3,44 +3,20 @@
  * Single source of truth for all UI state
  */
 export const State = {
-    // UI State
-    view: 'monitor', // monitor, networks, directory, dossie, ads, workers
-    sidebarCollapsed: false,
-    rightSidebarCollapsed: false,
-    
-    // Data State
-    comments: [],
-    workers: [],
-    profilerStream: [],
-    kpis: {
-        targets: 0,
-        hate: 0,
-        total: 0,
-        resilience: 100
-    },
-    
-    // Interaction State
-    currentFilter: 'all',
-    searchTerm: '',
-    selectedTarget: null,
-    
-    // Loading States
-    isLoading: {
-        comments: false,
-        workers: false,
-        profiler: false,
-        kpis: false
-    },
-    
-    // Error States
-    error: null,
-    
-    // Pagination
-    pagination: {
-        page: 1,
-        limit: 20,
-        hasMore: true
-    }
+  view: 'monitor',
+  comments: [],
+  workers: [],
+  profilerStream: [],
+  kpis: { targets: 0, hate: 0, total: 0, resiliencia: 100 },
+  currentFilter: 'all',
+  searchTerm: '',
+  isLoading: { comments: false, workers: false, profiler: false, kpis: false },
+  error: null,
+  pagination: { page: 1, limit: 20, hasMore: true },
+  // Mantendo campos necessários para a UI atual
+  sidebarCollapsed: false,
+  rightSidebarCollapsed: false,
+  selectedTarget: null
 };
 
 // State mutation functions (pure functions)
