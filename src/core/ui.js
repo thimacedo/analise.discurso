@@ -10,13 +10,13 @@ export const UI = {
             targets: document.getElementById('kpi-targets'),
             hate: document.getElementById('kpi-hate'),
             total: document.getElementById('kpi-total'),
-            resilience: document.getElementById('kpi-res')
+            resiliencia: document.getElementById('kpi-res')
         };
 
         if (elements.targets) elements.targets.textContent = kpis.targets || '-';
         if (elements.hate) elements.hate.textContent = kpis.hate || '-';
         if (elements.total) elements.total.textContent = kpis.total || '-';
-        if (elements.resilience) elements.resilience.textContent = `${kpis.resilience || 100}%`;
+        if (elements.resiliencia) elements.resiliencia.textContent = `${kpis.resiliencia || 100}%`;
     },
 
     renderProfilerStream(stream) {

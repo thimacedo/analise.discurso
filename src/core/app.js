@@ -124,7 +124,7 @@ async function fetchProfilerData() {
                 targets: kpis.targets || 0,
                 hate: kpis.alerts || 0,
                 total: kpis.db_sample || 0,
-                resilience: kpis.db_sample > 0 ? 
+                resiliencia: kpis.db_sample > 0 ? 
                     ((kpis.db_sample - kpis.alerts) / kpis.db_sample * 100).toFixed(1) : 
                     100
             });
