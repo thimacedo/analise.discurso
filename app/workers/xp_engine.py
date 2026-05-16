@@ -1,5 +1,5 @@
 """
-PASA v17 - XP Engine: Motor de Recompensas e Gamificação
+PASA v49 - XP Engine: Motor de Recompensas e Gamificação
 """
 
 # Constantes de Recompensa
