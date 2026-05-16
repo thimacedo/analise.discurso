@@ -4,6 +4,7 @@ Foco: Resiliência, tratamento rigoroso de sessão e sanitização de dados.
 """
 import time
 import random
+import uuid
 from datetime import datetime
 from app.workers.base_worker import BaseWorker
 from core.supabase_service import supabase
@@ -15,10 +16,17 @@ class InstagramWorker(BaseWorker):
         self.worker_id = "InstagramWorker"
 
     def _sanitize_comment(self, raw_comment: dict, content_type: str = "POST") -> dict:
-        """Garante que o dicionário de comentário tenha apenas dados válidos e tipados."""
+        """Garante que o dicionário de comentário mapeie EXATAMENTE para o schema do Supabase."""
         text = str(raw_comment.get('text', ''))[:2000]
+        raw_id = str(raw_comment.get('id', ''))
+        
+        # PASA v49.3: Gera UUID determinístico (v5) a partir do ID do Instagram
+        # Isso garante que o mesmo comentário sempre gere o mesmo UUID, permitindo upsert
+        namespace = uuid.NAMESPACE_URL
+        deterministic_uuid = str(uuid.uuid5(namespace, f"instagram.com/{raw_id}"))
+        
         return {
-            'id': str(raw_comment.get('id', '')),
+            'id': deterministic_uuid,
             'texto_bruto': text,
             'texto_limpo': text, 
             'autor_username': str(raw_comment.get('ownerUsername', 'unknown')),
