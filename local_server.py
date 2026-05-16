@@ -63,6 +63,11 @@ async def run_server():
 
     cycle_count = 0
     ops_log = []
+
+    print("\n" + "="*60)
+    print("📊 DICA: Abra no navegador o painel de inspeção local:")
+    print("file:///" + os.path.abspath("local_dashboard.html").replace("\\", "/"))
+    print("="*60 + "\n")
     
     while True:
         cycle_count += 1
