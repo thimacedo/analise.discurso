@@ -1,4 +1,4 @@
-fastapi
+﻿fastapi
 uvicorn
 supabase
 python-dotenv
@@ -112,7 +112,6 @@ postgrest
 realtime
 storage3
 StrEnum
-strict-yaml
 stubs
 tenacity
 tqdm
