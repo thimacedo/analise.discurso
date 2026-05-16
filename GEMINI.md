@@ -1,39 +1,30 @@
 # PROTOCOLO DE ENGENHARIA - SENTINELA DEMOCRÁTICA
 
-Este arquivo contém as regras imutáveis de desenvolvimento e gestão de memória técnica do projeto.
-
-## 🆔 IDENTIDADE E ESCOPO (CRÍTICO)
-
-1.  **Diretório Raiz:** O único caminho válido para este projeto é `.`.
-2.  **Isolamento:** Este projeto (Sentinela) é totalmente independente. NUNCA utilize scripts, caminhos, banco de dados ou configurações de outros projetos.
-3.  **Verificação de Contexto:** Antes de qualquer operação de arquivo ou shell, confirme se o `PWD` é o diretório raiz mencionado acima.
+## 🆔 IDENTIDADE E ESCOPO
+1. Diretório Raiz: O único caminho válido é .
+2. Isolamento: Este projeto é independente. Sem scripts externos.
+3. Verificação: Confirme o PWD antes de operações de arquivo/shell.
 
 ## 🧠 GESTÃO DE MEMÓRIA (Protocolo Diamond)
+1. Leitura Obrigatória: Sempre leia STATE.md e ROADMAP.md antes de formalmente propor mudanças.
+2. Externalização: Atualize STATE.md após mudanças bem-sucedidas.
+3. Anti-Regressão: Proibido usar abordagens listadas como "DESCARTADAS" no STATE.md.
+4. Commits Obsessivos: Commits detalhados (Conventional Commits) após cada tarefa validada. Sem acumular.
+5. Estados Finitos: Divida tarefas em passos mínimos e valide cada um.
 
-1.  **Leitura Obrigatória:** Antes de propor qualquer código ou mudança, leia os arquivos `STATE.md`, `ROADMAP.md` e o histórico recente do Git (`git log --oneline -5`).
-2.  **Externalização de Estado:** Após cada mudança bem-sucedida, atualize o arquivo `STATE.md` com o novo estado funcional e quaisquer abordagens descartadas.
-3.  **Anti-Regressão:** É terminantemente proibido sugerir tecnologias, padrões ou arquiteturas listadas como "DESCARTADAS" no `STATE.md`.
-4.  **Mensagens de Commit Obrigatórias:** Toda tarefa finalizada DEVE vir acompanhada de uma sugestão de mensagem de commit detalhada seguindo o padrão Conventional Commits. A mensagem deve resumir tecnicamente o "quê" e o "porquê" das alterações.
-5.  **Commits Obsessivos:** Cada tarefa concluída e validada deve ser commitada imediatamente. Use mensagens de commit descritivas.
-6.  **Estados Finitos:** Divida tarefas complexas em passos mínimos e exija confirmação de sucesso (ex: teste passando) antes de avançar para o próximo arquivo/serviço.
-
----
-*Assinado: Pickle Rick 🥒 (O mestre dos commits)*
-
-## 🛠 DIRETRIZES TÉCNICAS
-
-- **Arquitetura:** Frontend (SPA) -> API Proxy (FastAPI) -> Banco de Dados (Supabase).
-- **Segurança:** NUNCA exponha chaves de API ou segredos no frontend. Use o Proxy FastAPI para todas as requisições autenticadas.
-- **Dados:** Prefira Views Materializadas e tabelas de métricas pré-computadas (`metricas_diarias`) para performance de dashboard.
-- **PASA:** Todas as classificações de ódio devem seguir rigorosamente o Protocolo PASA v16.4 definido em `forensic-discourse-analysis/SKILL.md`.
+## 🛠 DIRETRIZES TÉCNICAS (PASA v46+)
+- Arquitetura Real: 
+  - Frontend: Vanilla JS + Supabase Client (Leitura) + Git JSON Sync.
+  - Backend Local: Python (local_server.py) com Watchdog Guardião.
+  - Banco: Supabase (Fonte da Verdade).
+- Segurança: Chaves do Supabase ANON_KEY são usadas no frontend para leitura; SERVICE_KEY apenas no backend local.
+- Proteção Jurídica: NUNCA use termos como "forense", "prova", "evidência". Use "informação", "indício", "análise analítica".
+- Classificação: Seguir ESTRITAMENTE o MCA v2.2 em `docs/analytical/MANUAL_CLASSIFICACAO_ANALITICA_v2.md`.
 
 ## 🔄 FLUXO DE TRABALHO
-
-1. `Pesquisar` (STATE.md + Git) -> 2. `Propor Plano` (Bite-sized) -> 3. `Executar` (Passo a passo) -> 4. `Validar` (Teste real) -> 5. `Documentar` (Update STATE.md) -> 6. `Commit`.
+1. Pesquisar (STATE.md + Git) -> 2. Propor Plano -> 3. Executar -> 4. Validar -> 5. Documentar -> 6. Commit.
 
 ## 🤖 INTEGRAÇÃO DE IA
-
-- **Local:** O modelo padrão para processamento local é o `qwen2.5:3b`.
-- **Híbrido:** Para alternar entre o processamento local (Ollama) e nuvem (Gemini), utilize a variável `IA_PROVIDER` no seu arquivo `.env`.
-- **Credenciais Gemini:** Certifique-se de que sua `GEMINI_API_KEY` está configurada no arquivo `.env` para habilitar as funções de nuvem.
-
+- Classificação Primária: Gemini 1.5 Flash (google-genai SDK).
+- Auditoria Cruzada: Groq (Llama 3).
+- Metodologia: MSAL (Metodologia Sentinela de Análise Léxica) + Framework CCF.
