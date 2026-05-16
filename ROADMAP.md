@@ -26,10 +26,11 @@
 
 ## 🚀 Próximos Passos (Backlog)
 
-### Expansão de Plataformas (v45+)
-- [ ] Ativação do `youtube_scraper.py` para canais de Tier 1.
-- [ ] Integração com TikTok Scraper (playwright).
-- [ ] Fila multi-plataforma unificada no `local_server.py`.
+### Maestria Instagram (v45+)
+- [ ] Expansão de escopo: Raspagem de Reels, Stories e comentários em threads encadeadas.
+- [ ] Mapeamento de shadowbans: Detectar quando o alvo esconde comentários automaticamente.
+- [ ] Otimização de sessão: Rotação automática de contas de scraping para evitar bloqueios humanos.
+- [ ] Análise de engajamento: Correlacionar número de likes com a severidade do discurso.
 
 ### Governança de Dados
 - [ ] Interface Web para gerenciamento de `scraping_accounts` (Sessões).
