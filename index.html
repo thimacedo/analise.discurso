@@ -78,11 +78,50 @@
         </header>
 
         <div class="views-container p-6">
+            <!-- PANORAMA (MONITOR) -->
             <section id="view-monitor" class="view-content active-view">
                 <div id="feed-alertas" class="social-feed grid grid-cols-1 gap-4">
                     <!-- Cards de Alerta aqui -->
                 </div>
                 <div id="scroll-sentinel" class="h-10"></div>
+            </section>
+
+            <!-- REDES (NETWORKS) -->
+            <section id="view-networks" class="view-content">
+                <div id="networks-container" class="w-full h-full min-h-[600px] bg-white rounded-3xl border border-slate-200 overflow-hidden relative">
+                    <div class="p-8 text-center">
+                        <div class="spinner m-auto mb-4"></div>
+                        <p class="text-xs font-black text-slate-400 uppercase tracking-widest">Mapeando Redes de Influência...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PERFIS (DIRECTORY) -->
+            <section id="view-directory" class="view-content">
+                <div id="directory-container" class="w-full">
+                    <div class="p-8 text-center bg-white rounded-3xl border border-slate-200">
+                        <p class="text-xs font-black text-slate-400 uppercase tracking-widest">Carregando Diretório de Perfis...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RELATÓRIOS (DOSSIE) -->
+            <section id="view-dossie" class="view-content">
+                <div id="dossie-container" class="w-full">
+                    <div class="p-8 text-center bg-white rounded-3xl border border-slate-200">
+                        <p class="text-xs font-black text-slate-400 uppercase tracking-widest">Acessando Motor de Relatórios...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ANÚNCIOS (ADS) -->
+            <section id="view-ads" class="view-content">
+                <div id="ads-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    <div class="p-12 text-center bg-white border border-slate-200 rounded-3xl col-span-full">
+                        <div class="spinner m-auto mb-4"></div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Varrendo Biblioteca de Anúncios...</span>
+                    </div>
+                </div>
             </section>
         </div>
     </main>
