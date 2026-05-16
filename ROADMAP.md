@@ -1,6 +1,6 @@
 # 🗺️ ROADMAP.md - Sentinela Democrática
 
-## ✅ Concluído (PASA v17 - v44)
+## ✅ Concluído (PASA v17 - v47.10)
 
 ### Fundação e Core (v17 - v24)
 - [x] Arquitetura BaseWorker com Event Bus e Gamificação (XP/Level).
@@ -22,20 +22,26 @@
 - [x] Proteção Jurídica e Acadêmica (Remoção de termos forenses, criação da MSAL).
 - [x] Auditoria Cruzada Anti-Alucinação (Groq/Llama 3) e Métricas de Deriva.
 
+### Governança e Otimização Serverless (v45 - v47.10)
+- [x] Interface Web para gerenciamento de `scraping_accounts` (Sessões).
+- [x] Otimização de bundle size do Vercel (<300MB) para backend Python.
+- [x] Sistema de monitoramento de saúde de workers (`workers_metrics`).
+- [x] Backend refatorado para compatibilidade total com Vercel Serverless.
+- [x] Rotação automática de contas de scraping configurável via UI.
+
 ---
 
 ## 🚀 Próximos Passos (Backlog)
 
-### Maestria Instagram (v45+)
+### Maestria Instagram (v48+)
 - [ ] Expansão de escopo: Raspagem de Reels, Stories e comentários em threads encadeadas.
 - [ ] Mapeamento de shadowbans: Detectar quando o alvo esconde comentários automaticamente.
-- [ ] Otimização de sessão: Rotação automática de contas de scraping para evitar bloqueios humanos.
 - [ ] Análise de engajamento: Correlacionar número de likes com a severidade do discurso.
 
-### Governança de Dados
-- [ ] Interface Web para gerenciamento de `scraping_accounts` (Sessões).
+### Refinamento de Dados
 - [ ] Dashboard de Auditoria Humana para revisão de `audit_discrepancy = True`.
 - [ ] Exportação de Relatórios em PDF (Indícios de Risco) para stakeholders.
+- [ ] Mapeamento de redes coordenadas com grafos interativos no frontend.
 
 ### Refinamento de IA
 - [ ] Few-shot dinâmico baseado no `audit_gold_standards` (Padrão Ouro).

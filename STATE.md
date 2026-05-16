@@ -1,32 +1,30 @@
 # 📊 STATE.md - Sentinela Democrática
 
-**Última Atualização:** 2026-05-15
-**Versão Core:** PASA v44.0
-**Status do Sistema:** Operação Contínua e Autônoma
+**Última Atualização:** 2026-05-16
+**Versão Core:** PASA v47.10 (Diamond Edition)
+**Status do Sistema:** Operação Estabilizada e Otimizada
 
 ## 1. Estado Atual do Ecossistema
-O Sentinela Democrática opera como um sistema distribuído de inteligência de dados, focado na análise informacional de discurso político em redes sociais. O scraping e o processamento de IA ocorrem em um Nó Local protegido, enquanto a visualização e consumo de dados ocorrem em uma interface web online.
+O Sentinela Democrática opera agora com um backend serverless de alto desempenho no Vercel, integrado a um Nó Local robusto. A infraestrutura foi otimizada para manter o bundle size abaixo dos limites do Lambda (<300MB), permitindo escalabilidade sem comprometer a densidade analítica.
 
-## 2. Componentes Principais (v44)
+## 2. Componentes Principais (v47.10)
 
-### Nó Local (Master Server)
-- **Orquestrador:** `local_server.py` (Execução Serial, Fila Inteligente, Cooldown de 6h).
-- **Guardião:** `watchdog.py` (Auto-cura, reinício em caso de crash, alertas WhatsApp via CallMeBot).
-- **Interface:** War Room (Terminal CLI com log de operações em tempo real).
-- **Sincronização:** Git Push automático de JSONs de perfil de ameaças para o frontend online.
+### Backend Serverless (Vercel)
+- **API Engine:** FastAPI (Python 3.12) com `mangum` para Vercel.
+- **Segurança:** Governança de sessões centralizada para gerenciamento de contas de raspagem.
+- **Métricas:** Sistema de monitoramento de workers em tempo real (`workers_metrics`).
+- **Otimização:** Bundle reduzido de 843MB para ~289MB através de exclusão estratégica de dependências locais e caches.
 
-### Motor de Inteligência
-- **Classificador Primário:** Gemini 1.5 Flash (Integrado com o MCA v2.2 e Framework CCF).
-- **Auditor Cruzado:** Groq (Llama 3) para verificação anti-alucinação de amostras de alta confiança.
-- **Análise de Deriva:** Monitoramento contínuo da distribuição de categorias para detecção de viés.
-- **Metodologia:** MSAL (Metodologia Sentinela de Análise Léxica).
+### Nó Local & Scraping
+- **Governança de Sessões:** Interface web para injeção de cookies e controle de rotação automática.
+- **Orquestrador:** Sincronização direta com Supabase para priorização de perfis e cooldowns.
+- **Auto-healing:** Watchdog ativo com alertas de saúde do sistema.
 
-### Infraestrutura de Dados (Supabase)
-- **Fonte da Verdade:** Tabela `comentarios` com métricas CCF (`ccf_density`, `ccf_sync`, `ccf_performativity`).
-- **Fila de Coleta:** `fila_coleta` com controle de status e cooldown temporal.
-- **Gamificação:** `worker_ledger` registrando XP e Níveis dos agentes.
+### Inteligência Analítica
+- **Modelagem:** Gemini 1.5 Flash + Groq (Llama 3) para auditoria cruzada.
+- **Protocolo PASA:** Versionamento v47.10 com foco em métricas CCF e densidade de hostilidade.
+- **Relatórios:** Motor de geração de PDFs (fpdf2) integrado à API para exportação de indícios.
 
-## 3. Proteções Jurídicas e Acadêmicas Ativas
-- O sistema produz **Indícios e Informações de Risco**, NÃO produz laudos, provas ou análises forenses.
-- A metodologia operacional é denominada **MSAL**, desvinculando nomes de pesquisadores do fluxo de processamento.
-- As referências acadêmicas (ex: Vichi, UFSCar) estão isoladas na seção de referências do MCA v2.2.
+## 3. Proteções Jurídicas e Acadêmicas
+- **Nomenclatura:** Uso estrito de "Análise Analítica" e "Indícios de Risco" (PASA v47.x).
+- **Isolamento:** Metodologia MSAL consolidada como padrão de processamento.
