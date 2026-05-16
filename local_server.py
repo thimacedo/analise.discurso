@@ -138,8 +138,10 @@ async def run_server():
             log_event(ops_log, "Frontend sincronizado.")
         except Exception: pass
 
-        # 3. Descanso Produtivo e IA
+        # 3. Descanso Produtivo e IA (Otimizado PASA v45)
         rest_end_time = time.time() + CYCLE_PAUSE
+        audit_done_this_rest = False
+        
         while time.time() < rest_end_time:
             try:
                 res_ia = db.client.table('comentarios').select('id', count='exact').eq('processado_ia', False).limit(1).execute()
@@ -150,11 +152,24 @@ async def run_server():
                     await process_mass_classification(limit=50)
                     time.sleep(10)
                 else:
-                    # 4. Auditoria e Deriva (PASA v44)
-                    WarRoomUI.render("🔍 AUDITORIA CRUZADA", supabase_status, "OK", cycle_count, ops_log)
-                    await run_audit(sample_size=5)
-                    check_category_drift()
-                    log_event(ops_log, "Auditoria e Drift Check concluídos.")
+                    # 4. Auditoria e Deriva (PASA v45 - Apenas 1x por ciclo de descanso)
+                    if not audit_done_this_rest:
+                        WarRoomUI.render("🔍 AUDITORIA CRUZADA", supabase_status, "CHECKING", cycle_count, ops_log)
+                        try:
+                            # Tenta validar colunas antes de rodar
+                            from scripts.db_migrate import apply_audit_columns
+                            apply_audit_columns()
+                            
+                            await run_audit(sample_size=3)
+                            check_category_drift()
+                            log_event(ops_log, "Auditoria e Drift Check concluídos.")
+                        except Exception as audit_e:
+                            log_event(ops_log, f"Falha na auditoria: {str(audit_e)[:40]}")
+                        
+                        audit_done_this_rest = True
+                    
+                    # Mantém o War Room em modo de hibernação
+                    WarRoomUI.render("😴 HIBERNANDO (DESCANSO PRODUTIVO)", supabase_status, "IA OK", cycle_count, ops_log)
                     time.sleep(60)
             except Exception as e:
                 log_event(ops_log, f"Erro IA/Audit: {e}")
