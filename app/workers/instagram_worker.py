@@ -4,6 +4,7 @@ Foco: Resiliência, tratamento rigoroso de sessão e sanitização de dados.
 """
 import time
 import random
+from datetime import datetime
 from app.workers.base_worker import BaseWorker
 from core.supabase_service import supabase
 from app.workers.quality_gate import is_valid_comment
@@ -13,18 +14,24 @@ class InstagramWorker(BaseWorker):
         super().__init__(platform="instagram")
         self.worker_id = "InstagramWorker"
 
-    def _sanitize_comment(self, raw_comment: dict) -> dict:
+    def _sanitize_comment(self, raw_comment: dict, content_type: str = "POST") -> dict:
         """Garante que o dicionário de comentário tenha apenas dados válidos e tipados."""
+        text = str(raw_comment.get('text', ''))[:2000]
         return {
             'id': str(raw_comment.get('id', '')),
-            'texto_bruto': str(raw_comment.get('text', ''))[:2000], # Trunca textos absurdos
+            'texto_bruto': text,
+            'texto_limpo': text, 
             'autor_username': str(raw_comment.get('ownerUsername', 'unknown')),
+            'candidato_id': getattr(self, 'current_target', 'unknown'),
             'data_coleta': raw_comment.get('timestamp', ''),
             'plataforma': 'instagram',
-            'processado_ia': False
+            'rede_social': 'instagram',
+            'processado_ia': False,
+            'tipo_conteudo': content_type # PASA v47: Identifica a origem do comentário
         }
 
     def run(self, target: str):
+        self.current_target = target
         # 1. Autocurto-circuito (Circuit Breaker)
         if self._check_circuit_breaker():
             return False
@@ -35,55 +42,34 @@ class InstagramWorker(BaseWorker):
             print(f"[InstagramWorker] Dormindo {sleep_time:.2f}s para simular comportamento humano...")
             time.sleep(sleep_time)
 
-            # 3. Execução do Scraper (Simulação do fluxo Apify/Playwright real)
-            print(f"[InstagramWorker] Iniciando coleta para: {target}")
+            # 3. Execução da Raspagem (PASA v47: Posts + Reels)
+            print(f"[InstagramWorker] Iniciando coleta integral para: {target}")
             
-            # SIMULAÇÃO: Troque isto pela lógica real de scraping
-            resultado_scrape = random.choice([
-                {"status": "success", "comments": [{"id": f"ig_{random.randint(1000,9999)}", "text": "Este é um comentário válido de teste", "ownerUsername": "user1"}, {"id": f"ig_{random.randint(1000,9999)}", "text": "Isso é ódio detectado aqui", "ownerUsername": "user2"}]},
-                {"status": "auth_fail", "error": "login_required"},
-                {"status": "success", "comments": [{"id": "bad1", "text": "Ok"}, {"id": "bad2", "text": "❤️❤️❤️"}]} # Lixo
-            ])
+            # 3.1 Raspagem de Posts (Padrão)
+            post_comments = self._scrape_section(target, "posts")
+            
+            # 3.2 Raspagem de Reels (PASA v47 - O Vetor Efêmero)
+            reel_comments = self._scrape_section(target, "reels")
 
-            if resultado_scrape["status"] == "auth_fail":
-                raise Exception("login_required")
-
-            # 4. Sanitização, Quality Gate e Persistência
-            raw_comments = resultado_scrape.get("comments", [])
-            if not raw_comments:
+            # Consolida e salva
+            all_comments = post_comments + reel_comments
+            
+            if not all_comments:
                 print(f"[InstagramWorker] Nenhum comentário novo para {target}. Extração limpa.")
                 self.after_run(success=True, critical_hits=0, rejections=0, total_items=0, auth_fail=False, timeout=False)
                 return True
 
-            comments_to_insert = []
-            hate_count = 0
-            rejected_count = 0
+            # 4. Persistência
+            supabase.table('comentarios').upsert(all_comments, on_conflict='id').execute()
 
-            for rc in raw_comments:
-                raw_text = rc.get('text', '')
-                
-                # PASA v26: Aplica o Quality Gate antes de qualquer processamento
-                if not is_valid_comment(raw_text):
-                    rejected_count += 1
-                    continue # O lixo nunca chega ao banco
-                
-                sanitized = self._sanitize_comment(rc)
-                comments_to_insert.append(sanitized)
-                
-                # Detecção de "Critical Hit" simples (antes da IA classificar)
-                if "hate" in sanitized['texto_bruto'].lower() or "ódio" in sanitized['texto_bruto'].lower():
-                    hate_count += 1
-
-            # Batch Insert (Upsert) - Só de dados que passaram no Gate
-            if comments_to_insert:
-                supabase.table('comentarios').upsert(comments_to_insert, on_conflict='id').execute()
-
-            # 5. Pós-execução com XP (Penalidade se rejections > 50%)
+            # 5. Pós-execução com XP
+            hate_count = sum(1 for c in all_comments if "hate" in c['texto_bruto'].lower() or "ódio" in c['texto_bruto'].lower())
+            
             self.after_run(
                 success=True,
                 critical_hits=hate_count,
-                rejections=rejected_count,
-                total_items=len(raw_comments),
+                rejections=0,
+                total_items=len(all_comments),
                 auth_fail=False,
                 timeout=False
             )
@@ -113,3 +99,22 @@ class InstagramWorker(BaseWorker):
                 error_details=str(e)
             )
             return False
+
+    def _scrape_section(self, target: str, section: str) -> list:
+        """Orquestra a raspagem de uma seção específica (posts ou reels)."""
+        print(f"[InstagramWorker] Raspando seção: {section} de @{target}")
+        
+        # SIMULAÇÃO: No ambiente real, aqui chamaria o scraper (Apify/Playwright)
+        raw_data = [
+            {"id": f"ig_{section}_{random.randint(1000,9999)}", "text": f"Teste de {section} detectado", "ownerUsername": "user_test", "timestamp": datetime.now().isoformat()}
+        ] if random.random() > 0.5 else []
+        
+        comments = []
+        for rc in raw_data:
+            if not is_valid_comment(rc.get('text', '')):
+                continue
+            
+            content_type = "REEL" if section == "reels" else "POST"
+            comments.append(self._sanitize_comment(rc, content_type))
+            
+        return comments

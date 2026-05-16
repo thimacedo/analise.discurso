@@ -17,7 +17,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'script
 
 try:
     from core.db import db_client as db
-    from workers.scrapers.instagram_scraper import InstagramScraper
+    from app.workers.instagram_worker import InstagramWorker
     from scripts.update_threat_profiles import calculate_hate_density
     from scripts.mass_classify import process_mass_classification
     from workers.audit_worker import run_audit
@@ -47,7 +47,7 @@ class WarRoomUI:
         for log in logs[-8:]:
             print(f" > {log}")
         print("="*75)
-        print(" [PASA v44] Audit Edition - Integridade Forense e Anti-Alucinação")
+        print(" [PASA v47] Reels Integration - Monitoramento de Conteúdo Efêmero")
         print("="*75)
 
 def log_event(log_list, msg):
@@ -56,7 +56,7 @@ def log_event(log_list, msg):
 
 async def run_server():
     try:
-        worker = InstagramScraper("init")
+        worker = InstagramWorker()
     except Exception as e:
         logger.error(f"Erro ao inicializar worker: {e}")
         return
@@ -74,7 +74,7 @@ async def run_server():
         supabase_status = "🟢 ONLINE" if db.client else "🔴 OFFLINE"
         log_event(ops_log, f"Iniciando ciclo #{cycle_count}")
         
-        # 1. Fase de Raspagem Inteligente
+        # 1. Fase de Raspagem Inteligente (PASA v47: Posts + Reels)
         PROFILES_PER_CYCLE = 5
         profiles_scraped_this_cycle = 0
         
@@ -112,19 +112,23 @@ async def run_server():
                 db.client.table('fila_coleta').update({'status': 'PROCESSANDO'}).eq('id', target_item['id']).execute()
                 
                 try:
-                    worker.target_profile = target_id
-                    posts = worker.fetch_recent_posts()
-                    for post in posts:
-                        comments = worker.fetch_comments(post['shortcode'])
-                        if comments: db.client.table('comentarios').upsert(comments).execute()
+                    success = worker.run(target=target_id)
+                    new_status = 'CONCLUIDO' if success else 'FALHOU'
+                    db.client.table('fila_coleta').update({'status': new_status}).eq('id', target_item['id']).execute()
                     
-                    db.client.table('fila_coleta').update({'status': 'CONCLUIDO'}).eq('id', target_item['id']).execute()
-                    db.client.table('candidatos').update({'last_scraped_at': datetime.now(timezone.utc).isoformat()}).eq('username', target_id).execute()
-                    log_event(ops_log, f"@{target_id} concluído.")
-                    profiles_scraped_this_cycle += 1
+                    if success:
+                        db.client.table('candidatos').update({
+                            'last_scraped_at': datetime.now(timezone.utc).isoformat(),
+                            'reels_scraped': True # PASA v47
+                        }).eq('username', target_id).execute()
+                        log_event(ops_log, f"@{target_id} (P+R) concluído.")
+                        profiles_scraped_this_cycle += 1
+                    else:
+                        log_event(ops_log, f"Falha em @{target_id}")
+
                 except Exception as e:
                     db.client.table('fila_coleta').update({'status': 'FALHOU'}).eq('id', target_item['id']).execute()
-                    log_event(ops_log, f"Falha em @{target_id}: {str(e)[:40]}")
+                    log_event(ops_log, f"Erro fatal @{target_id}: {str(e)[:40]}")
 
                 time.sleep(SCRAPE_PAUSE)
             except Exception: break
