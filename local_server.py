@@ -133,8 +133,17 @@ async def run_server():
         WarRoomUI.render("📊 ATUALIZANDO PROFILER", supabase_status, "---", cycle_count, ops_log)
         try:
             calculate_hate_density()
+            
+            # 2.1 Detecção de Shadowban (PASA v46)
+            try:
+                from scripts.detect_shadowbans import detect_shadowbans
+                detect_shadowbans()
+                log_event(ops_log, "Varredura de shadowban concluída.")
+            except Exception as shadow_e:
+                log_event(ops_log, f"Falha shadowban: {str(shadow_e)[:30]}")
+
             subprocess.run(['git', 'add', 'docs/profiler_stream.json', 'docs/kpis.json'], capture_output=True)
-            subprocess.run(['git', 'commit', '-m', 'data: atualizar monitor de ameacas (PASA v44)'], capture_output=True)
+            subprocess.run(['git', 'commit', '-m', 'data: atualizar monitor de ameacas (PASA v46)'], capture_output=True)
             log_event(ops_log, "Frontend sincronizado.")
         except Exception: pass
 
