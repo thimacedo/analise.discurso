@@ -1,6 +1,6 @@
 """
 Serviço de conexão centralizado com o Supabase.
-PASA v44.2: Auto-load do .env para evitar crashes no Watchdog.
+PASA v48.2: Adaptado para usar ANON_KEY se SERVICE_KEY não estiver presente.
 """
 import os
 from dotenv import load_dotenv
@@ -27,13 +27,14 @@ class SupabaseService:
         """Retorna o cliente Supabase. Conecta apenas na primeira chamada."""
         if self._client is None:
             url = os.getenv("SUPABASE_URL")
-            key = os.getenv("SUPABASE_SERVICE_KEY") or os.getenv("SUPABASE_KEY")
-            
+            # Ordem de preferência: SERVICE_KEY (bypass RLS) -> KEY -> ANON_KEY
+            key = os.getenv("SUPABASE_SERVICE_KEY") or os.getenv("SUPABASE_KEY") or os.getenv("SUPABASE_ANON_KEY")
+
             if not url or not key:
-                raise ValueError("❌ SUPABASE_URL ou SUPABASE_SERVICE_KEY não encontradas no .env")
-            
+                raise ValueError("❌ SUPABASE_URL ou SUPABASE_KEY não encontradas no .env")
+
             self._client = create_client(url, key)
-            print("✅ Conexão com Supabase estabelecida (PASA v44.2 Resilience).")
+            print("✅ Conexão com Supabase estabelecida (PASA v48.2 REST).")
         return self._client
 
 # Função de conveniência para não precisar instanciar a classe em todo lugar
@@ -67,7 +68,7 @@ def get_next_targets_to_scrape(limit: int = 5) -> list:
             .order('last_scraped_at', desc=False) \
             .limit(limit) \
             .execute()
-        
+
         return response.data
     except Exception as e:
         print(f"❌ Erro ao buscar alvos no banco: {e}")
@@ -89,7 +90,7 @@ def save_comments(comments_data: list):
     try:
         supabase_client = get_supabase_client()
         supabase_client.table('comentarios').upsert(
-            comments_data, 
+            comments_data,
             on_conflict="id_externo"
         ).execute()
         return True
