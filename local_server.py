@@ -90,7 +90,7 @@ async def run_server():
                 WarRoomUI.render(f"🟡 BUSCANDO ALVO ({profiles_scraped_this_cycle+1}/{PROFILES_PER_CYCLE})", supabase_status, queue_size, cycle_count, ops_log)
                 
                 # Busca lote de alvos pendentes
-                pending = db.client.table('fila_coleta').select('id, target_id').eq('status', 'PENDENTE').limit(PROFILES_PER_CYCLE).execute()
+                pending = db.client.table('fila_coleta').select('id, candidato_id').eq('status', 'PENDENTE').limit(PROFILES_PER_CYCLE).execute()
                 
                 if not pending.data:
                     log_event(ops_log, "Fila de raspagem completamente vazia.")
@@ -98,7 +98,7 @@ async def run_server():
 
                 viable_found_in_batch = False
                 for p in pending.data:
-                    target_id = p['target_id']
+                    target_id = p['candidato_id']
                     
                     # Verifica Cooldown
                     cand = db.client.table('candidatos').select('last_scraped_at').eq('username', target_id).execute()
