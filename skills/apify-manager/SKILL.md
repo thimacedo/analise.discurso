@@ -12,7 +12,7 @@ Este skill automatiza a interação com o Apify MCP, garantindo que o agente uti
 ### 1. Descoberta e Configuração
 - Antes de coletar, verifique se o Actor ideal está configurado.
 - Use `mcp_apify_search-actors` para buscar novos scrapers.
-- Consulte `E:\Projetos\sentinela-democratica\APIFY_TOOLS.md` para referência rápida.
+- Consulte `.\APIFY_TOOLS.md` para referência rápida.
 
 ### 2. Coleta de Dados Sociais (Instagram)
 - **Posts e Comentários:** Use `apify/instagram-scraper`.

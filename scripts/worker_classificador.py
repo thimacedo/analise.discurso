@@ -8,7 +8,7 @@ if sys.platform == "win32":
     sys.stdout.reconfigure(encoding='utf-8')
 
 # Ajusta path
-sys.path.append(r"E:\Projetos\sentinela-democratica")
+sys.path.append(r".")
 from core.ai_service import ai_service
 from core.config import settings
 

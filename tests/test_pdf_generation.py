@@ -27,7 +27,7 @@ async def test_generate_basic_dossie():
         }
     ]
     
-    output_dir = "E:\\projetos\\sentinela-democratica\\data\\reports"
+    output_dir = ".\\data\\reports"
     os.makedirs(output_dir, exist_ok=True)
     
     filename = f"test_dossie_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"

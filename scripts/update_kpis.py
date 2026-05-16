@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 
 # Ajusta path
-sys.path.append(r"E:\Projetos\sentinela-democratica")
+sys.path.append(r".")
 from core.orquestrador import Orchestrator
 from core.config import settings
 

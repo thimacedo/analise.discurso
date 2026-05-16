@@ -13,7 +13,7 @@ from typing import List, Dict
 
 # Import do contrato BaseWorker e DB
 import sys
-sys.path.append(r"E:\Projetos\sentinela-democratica")
+sys.path.append(r".")
 from workers.core.base_worker import BaseWorker
 from core.db import db_client
 
@@ -25,7 +25,7 @@ except ImportError:
 class CandidateScannerWorker(BaseWorker):
     def __init__(self):
         super().__init__("CandidateScanner")
-        self.base_path = Path(r"E:\Projetos\sentinela-democratica\bases_pesquisas")
+        self.base_path = Path(r".\bases_pesquisas")
         self.processed_table = "pesquisas_processadas"
         self.candidate_table = "candidatos"
         self.queue_table = "fila_coleta"

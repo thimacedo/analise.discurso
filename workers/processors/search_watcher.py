@@ -11,17 +11,17 @@ from datetime import datetime, UTC
 from typing import Set
 
 import sys
-sys.path.append(r"E:\Projetos\sentinela-democratica")
+sys.path.append(r".")
 from workers.core.base_worker import BaseWorker
 from core.db import db_client
 
 class SearchWatcherWorker(BaseWorker):
     def __init__(self):
         super().__init__("SearchWatcher")
-        self.base_path = Path(r"E:\Projetos\sentinela-democratica\bases_pesquisas")
+        self.base_path = Path(r".\bases_pesquisas")
         self.processed_table = "pesquisas_processadas"
-        self.scan_script = Path(r"E:\Projetos\sentinela-democratica\workers\processors\candidate_scanner.py")
-        self.python_exe = Path(r"E:\Projetos\sentinela-democratica\.venv\Scripts\python.exe")
+        self.scan_script = Path(r".\workers\processors\candidate_scanner.py")
+        self.python_exe = Path(r".\.venv\Scripts\python.exe")
 
     async def _run(self, *args, **kwargs):
         """

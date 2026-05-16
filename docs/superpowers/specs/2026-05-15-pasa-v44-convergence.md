@@ -1,4 +1,5 @@
 # Design Spec: Convergência PASA v44
+
 **Data**: 2026-05-15
 **Status**: IMPLEMENTADO
 

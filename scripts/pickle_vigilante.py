@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import asyncio
 
 # Core imports
-sys.path.append(r"E:\Projetos\sentinela-democratica")
+sys.path.append(r".")
 from core.db import db_client
 from core.whatsapp_alerter import send_whatsapp_summary
 

@@ -8,7 +8,7 @@ from datetime import datetime, UTC, timedelta
 from typing import List, Dict
 
 import sys
-sys.path.append(r"E:\Projetos\sentinela-democratica")
+sys.path.append(r".")
 from workers.core.base_worker import BaseWorker
 from core.db import db_client
 
