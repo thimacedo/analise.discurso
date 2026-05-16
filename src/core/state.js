@@ -1,22 +1,31 @@
 /**
- * PASA v47.1 - State Manager: Centralized Application State
+ * PASA v47.2 - State Manager: Centralized Application State
  * Single source of truth for all UI state
  */
 export const State = {
   view: 'monitor',
   comments: [],
   workers: [],
+  sessions: [], // PASA v47.2: Governança de contas
   profilerStream: [],
   kpis: { targets: 0, hate: 0, total: 0, resiliencia: 100 },
   currentFilter: 'all',
   searchTerm: '',
-  isLoading: { comments: false, workers: false, profiler: false, kpis: false },
+  isLoading: { 
+    comments: false, 
+    workers: false, 
+    profiler: false, 
+    kpis: false,
+    sessions: false // PASA v47.2
+  },
   error: null,
   pagination: { page: 1, limit: 20, hasMore: true },
-  // Mantendo campos necessários para a UI atual
+  
+  // UI State
   sidebarCollapsed: false,
   rightSidebarCollapsed: false,
-  selectedTarget: null
+  selectedTarget: null,
+  currentSession: null // PASA v47.2
 };
 
 // State mutation functions (pure functions)
@@ -47,6 +56,21 @@ export const stateMutations = {
     setWorkers: (state, workers) => {
         state.workers = workers;
         state.isLoading.workers = false;
+    },
+
+    setSessions: (state, sessions) => {
+        state.sessions = sessions.map(s => ({
+            ...s,
+            autoRotate: s.autoRotate || { enabled: false, intervalHours: 6, nextRotation: null }
+        }));
+        state.isLoading.sessions = false;
+    },
+
+    updateSessionConfig: (state, { id, config }) => {
+        const index = state.sessions.findIndex(s => s.id === id);
+        if (index !== -1) {
+            state.sessions[index].autoRotate = { ...state.sessions[index].autoRotate, ...config };
+        }
     },
     
     setProfilerStream: (state, stream) => {

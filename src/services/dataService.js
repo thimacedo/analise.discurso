@@ -1,5 +1,5 @@
 /**
- * PASA v47.1 - Data Service: Centralized API Communication
+ * PASA v47.2 - Data Service: Centralized API Communication
  * Single source for all data fetching with caching and error handling
  */
 import { State } from '../core/state.js';
@@ -121,7 +121,8 @@ class SentinelDataService {
                 workers: [],
                 healthy_workers: 0,
                 total_workers: 0
-            }
+            },
+            '/sessions/instagram': [] // PASA v47.2
         };
         
         return fallbacks[endpoint] || null;
@@ -212,6 +213,38 @@ class SentinelDataService {
 
     async getKPIs() {
         return this.fetchJson('/monitor/status');
+    }
+
+    // ── PASA v47.2: Governança de Contas ──
+    
+    async getSessions() {
+        return this.fetchJson('/sessions/instagram');
+    }
+
+    async addSession(cookies) {
+        const data = await this.fetchJson('/sessions/instagram/cookies', {}, {
+            method: 'POST',
+            body: JSON.stringify({ cookies })
+        });
+        this.invalidateCache('/sessions/instagram');
+        return data;
+    }
+
+    async rotateSession() {
+        return this.fetchJson('/sessions/instagram/rotate', {}, { method: 'POST' });
+    }
+
+    async deleteSession(id) {
+        return this.fetchJson(`/sessions/instagram/${id}`, {}, { method: 'DELETE' });
+    }
+
+    async updateSessionRotation(id, { enabled, intervalHours }) {
+        const data = await this.fetchJson(`/sessions/instagram/${id}/rotation`, {}, {
+            method: 'PATCH',
+            body: JSON.stringify({ enabled, intervalHours })
+        });
+        this.invalidateCache('/sessions/instagram');
+        return data;
     }
 }
 

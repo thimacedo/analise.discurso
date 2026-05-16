@@ -1,11 +1,12 @@
 /**
- * PASA v47.1 - App Orchestrator: Central Application Coordinator
+ * PASA v47.3 - App Orchestrator: Central Application Coordinator
  * Manages application lifecycle, state updates, and side effects
  */
 import { State, stateMutations, selectors } from './state.js';
 import { UI } from './ui.js';
 import { initAuth, getCurrentUserEmail } from './auth.js';
 import { renderSessionManager } from '../components/session-manager.js';
+import { renderSessionsView } from '../components/session-table.js';
 import { dataService } from '../services/dataService.js';
 
 // Configuration
@@ -46,6 +47,7 @@ async function loadInitialData() {
         stateMutations.setLoading(State, 'workers', true);
         stateMutations.setLoading(State, 'profiler', true);
         stateMutations.setLoading(State, 'kpis', true);
+        stateMutations.setLoading(State, 'sessions', true);
         
         // Initial partial render
         renderApplication();
@@ -55,7 +57,8 @@ async function loadInitialData() {
             fetchComments(),
             fetchWorkersTelemetry(),
             fetchProfilerData(),
-            fetchKPIs()
+            fetchKPIs(),
+            fetchSessions()
         ]);
         
         // Final render after data load
@@ -69,6 +72,7 @@ async function loadInitialData() {
         stateMutations.setLoading(State, 'workers', false);
         stateMutations.setLoading(State, 'profiler', false);
         stateMutations.setLoading(State, 'kpis', false);
+        stateMutations.setLoading(State, 'sessions', false);
     }
 }
 
@@ -153,6 +157,15 @@ async function fetchKPIs() {
         });
     } catch (error) {
         console.error('Failed to fetch KPIs:', error);
+    }
+}
+
+async function fetchSessions() {
+    try {
+        const sessions = await dataService.getSessions();
+        stateMutations.setSessions(State, sessions || []);
+    } catch (error) {
+        console.error('Failed to fetch sessions:', error);
     }
 }
 
@@ -313,6 +326,9 @@ function renderApplication() {
             break;
         case 'workers':
             import('../components/workers-dashboard.js').then(m => m.renderWorkersView());
+            break;
+        case 'sessions':
+            renderSessionsView();
             break;
         // Other views handled by their containers
     }
