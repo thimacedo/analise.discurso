@@ -1,35 +1,5 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "*.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "src/**",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "assets/**",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "public/**",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "favicon.ico",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "*.png",
-      "use": "@vercel/static"
-    }
-  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
@@ -38,9 +8,8 @@
   ],
   "functions": {
     "api/**/*.py": {
-      "runtime": "python3.12",
       "maxDuration": 15,
-      "includeFiles": ["api/**/*", "processing/*.py", "core/*.py"]
+      "includeFiles": "api/**"
     }
   }
 }

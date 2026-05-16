@@ -1,1 +1,16 @@
-{"projectId":"prj_hbfDAwwIfrz6nJgIkZWLNacCWpeq","orgId":"team_J3uQys8jZlaeCulPDXLNknKk","projectName":"sentinela-democratica"}
+{
+  "projectId": "prj_hbfDAwwIfrz6nJgIkZWLNacCWpeq",
+  "orgId": "team_J3uQys8jZlaeCulPDXLNknKk",
+  "projectName": "sentinela-democratica",
+  "settings": {
+    "createdAt": 1776825285157,
+    "framework": null,
+    "devCommand": null,
+    "installCommand": null,
+    "buildCommand": "echo 'Skip build'",
+    "outputDirectory": "",
+    "rootDirectory": null,
+    "directoryListing": false,
+    "nodeVersion": "24.x"
+  }
+}
