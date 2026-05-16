@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Sentinela Democrática - Monitoramento estratégico de discurso de ódio e tendências políticas no Brasil com inteligência estratégica.">
+    <meta name="description" content="Sentinela Democrática - Inteligência de dados e análise informacional estratégica.">
     <!-- Google Tools -->
     <meta name="google-site-verification" content="ALWjqhKFnwzKBPGcQPsygASHuoRaJmrXxhuCuxCorgI" />
     <meta name="google-adsense-account" content="ca-pub-1827611269042960">
@@ -20,19 +20,16 @@
     <!-- Performance Optimization -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://cdn.tailwindcss.com">
     <link rel="preconnect" href="https://unpkg.com">
-    <link rel="preconnect" href="https://d3js.org">
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
 
-    <title>SENTINELA | Diamond Edition v40.1</title>
+    <title>SENTINELA | Diamond Edition v44.2</title>
     <link rel="icon" type="image/png" href="/assets/sentinela_small.png">
 
-    <!-- Critical Scripts -->
-    <script src="https://cdn.tailwindcss.com" defer></script>
+    <!-- PASA v44.2: Tailwind CSS Compilado para Produção (Remove aviso de CDN) -->
+    <link href="https://unpkg.com/tailwindcss@3.4.1/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest" defer></script>
-    <link rel="stylesheet" href="/src/styles/main.css?v=40.1">
+    <link rel="stylesheet" href="/src/styles/main.css?v=44.2">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 </head>
 <body class="custom-scrollbar bg-slate-50">
@@ -75,7 +72,8 @@
     <!-- FEED CENTRAL -->
     <main class="main-feed-container custom-scrollbar dashboard-main">
         <header class="p-6 border-b border-slate-200 bg-white sticky top-0 z-30 flex justify-between items-center">
-             <h2 class="text-lg font-black text-slate-800">Sala de Situação <span class="text-blue-500">Forensics</span></h2>
+             <!-- PASA v44.2: Proteção Jurídica - Substituído "Forensics" por "Informacional" -->
+             <h2 class="text-lg font-black text-slate-800">Sala de Situação <span class="text-blue-500">Informacional</span></h2>
              <div id="session-manager-container"></div>
         </header>
 
@@ -143,6 +141,6 @@
     <!-- Scripts -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>lucide.createIcons();</script>
-    <script type="module" src="./src/core/app.js?v=40.1"></script>
+    <script type="module" src="./src/core/app.js?v=44.2"></script>
 </body>
 </html>
