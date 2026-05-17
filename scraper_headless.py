@@ -119,10 +119,33 @@ class InstagramScraperHeadless:
                             if span_element:
                                 caption = await span_element.inner_text()
 
+                        # --- NOVO: Extração de Comentários ---
+                        comments = []
+                        # Seletores comuns para texto de comentário no Instagram
+                        comment_selectors = [
+                            'div[role="dialog"] ul div[role="menuitem"] span[dir="auto"]',
+                            'div[role="dialog"] ul li span'
+                        ]
+                        
+                        for selector_cmd in comment_selectors:
+                            elements = await page.query_selector_all(selector_cmd)
+                            for el in elements:
+                                text_cmd = await el.inner_text()
+                                # Filtra a legenda (geralmente é o primeiro) e textos curtos
+                                if text_cmd and text_cmd != caption and len(text_cmd) > 2:
+                                    comments.append({
+                                        "text": text_cmd,
+                                        "ownerUsername": "unknown", # Playwright extrai texto puro aqui
+                                        "timestamp": datetime.now(timezone.utc).isoformat()
+                                    })
+                                if len(comments) >= 10: break # Limite por post
+                            if comments: break
+
                         detailed_posts.append({
                             "shortcode": shortcode,
                             "text": caption.strip(),
-                            "timestamp": date_str
+                            "timestamp": date_str,
+                            "comments": comments
                         })
                         
                         # Fecha o modal usando a tecla Escape (muito mais limpo que clicar no X)

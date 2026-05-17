@@ -195,8 +195,6 @@ class AIService:
                     "ccf_sync": res.get('ccf_sync', 0.0),
                     "ccf_performativity": res.get('ccf_performativity', 0.0),
                     "confianca_ia": res.get('confianca_ia', 0.0),
-                    "confidence_score": res.get('confidence_score', 0),
-                    "evidence_extracted": res.get('evidence_extracted', ''),
                     "processado_ia": True if engine != 'fail' else False
                 })
 
