@@ -1,1374 +1,1374 @@
 [
   {
-    "user": "danielvorcaro",
-    "total": 1,
-    "hate": 0,
-    "density": 0.0,
-    "updated_at": "2026-05-17T07:07:00.114986"
-  },
-  {
-    "user": "cironogueira",
-    "total": 60,
-    "hate": 5,
-    "density": 8.33,
-    "updated_at": "2026-05-17T07:07:00.479616"
-  },
-  {
-    "user": "aldorebelo",
-    "total": 8,
-    "hate": 0,
-    "density": 0.0,
-    "updated_at": "2026-05-17T07:07:00.845515"
-  },
-  {
-    "user": "augustocury",
-    "total": 69,
-    "hate": 1,
-    "density": 1.45,
-    "updated_at": "2026-05-17T07:07:01.228456"
-  },
-  {
-    "user": "rogeriomarinho",
-    "total": 1,
-    "hate": 0,
-    "density": 0.0,
-    "updated_at": "2026-05-17T07:07:01.593480"
-  },
-  {
-    "user": "professor_eronpt",
-    "total": 3,
-    "hate": 0,
-    "density": 0.0,
-    "updated_at": "2026-05-17T07:07:01.959791"
-  },
-  {
     "user": "andre_mendonca_stf",
     "total": 54,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:02.325581"
+    "updated_at": "2026-05-17T07:23:55.210645"
   },
   {
     "user": "ratinho_junior",
     "total": 61,
     "hate": 1,
     "density": 1.64,
-    "updated_at": "2026-05-17T07:07:02.691541"
+    "updated_at": "2026-05-17T07:23:55.585211"
   },
   {
     "user": "edinhosilvapt",
     "total": 50,
     "hate": 2,
     "density": 4.0,
-    "updated_at": "2026-05-17T07:07:03.056743"
+    "updated_at": "2026-05-17T07:23:55.951078"
   },
   {
     "user": "phcosta_brb",
     "total": 3,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:03.423078"
+    "updated_at": "2026-05-17T07:23:56.316424"
   },
   {
     "user": "baleia.rossi",
     "total": 76,
     "hate": 9,
     "density": 11.84,
-    "updated_at": "2026-05-17T07:07:03.787865"
+    "updated_at": "2026-05-17T07:23:56.697706"
   },
   {
     "user": "sostenescavalcante",
     "total": 82,
     "hate": 17,
     "density": 20.73,
-    "updated_at": "2026-05-17T07:07:04.153411"
-  },
-  {
-    "user": "gabrielcesarrn",
-    "total": 69,
-    "hate": 1,
-    "density": 1.45,
-    "updated_at": "2026-05-17T07:07:04.519480"
-  },
-  {
-    "user": "odenise_domingos",
-    "total": 2,
-    "hate": 0,
-    "density": 0.0,
-    "updated_at": "2026-05-17T07:07:04.885513"
+    "updated_at": "2026-05-17T07:23:57.062785"
   },
   {
     "user": "renansantosmbl",
     "total": 95,
     "hate": 8,
     "density": 8.42,
-    "updated_at": "2026-05-17T07:07:05.250842"
+    "updated_at": "2026-05-17T07:23:57.428541"
   },
   {
     "user": "cabodaciolo",
     "total": 29,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:05.600902"
+    "updated_at": "2026-05-17T07:23:57.793275"
   },
   {
     "user": "danielrizzioficial",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:05.972948"
+    "updated_at": "2026-05-17T07:23:58.158923"
   },
   {
     "user": "carlosjordy",
     "total": 7,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:06.333137"
+    "updated_at": "2026-05-17T07:23:58.515399"
   },
   {
     "user": "julianagarcia.br",
     "total": 24,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:06.699014"
+    "updated_at": "2026-05-17T07:23:58.880149"
   },
   {
     "user": "thiagocartaxo_",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:07.064945"
+    "updated_at": "2026-05-17T07:23:59.262246"
   },
   {
-    "user": "michellebolsonaro",
-    "total": 44,
+    "user": "danielvorcaro",
+    "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:07.415130"
+    "updated_at": "2026-05-17T07:23:59.627217"
   },
   {
-    "user": "isoldadantaspt",
-    "total": 51,
+    "user": "cironogueira",
+    "total": 60,
+    "hate": 5,
+    "density": 8.33,
+    "updated_at": "2026-05-17T07:24:00.008470"
+  },
+  {
+    "user": "aldorebelo",
+    "total": 8,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:07.780114"
+    "updated_at": "2026-05-17T07:24:00.373916"
   },
   {
-    "user": "drazenaide",
-    "total": 48,
+    "user": "augustocury",
+    "total": 69,
     "hate": 1,
-    "density": 2.08,
-    "updated_at": "2026-05-17T07:07:08.146072"
+    "density": 1.45,
+    "updated_at": "2026-05-17T07:24:00.738322"
   },
   {
-    "user": "marcelofreixo",
-    "total": 52,
+    "user": "rogeriomarinho",
+    "total": 1,
+    "hate": 0,
+    "density": 0.0,
+    "updated_at": "2026-05-17T07:24:01.087985"
+  },
+  {
+    "user": "gabrielcesarrn",
+    "total": 69,
     "hate": 1,
-    "density": 1.92,
-    "updated_at": "2026-05-17T07:07:08.510808"
+    "density": 1.45,
+    "updated_at": "2026-05-17T07:24:01.453529"
   },
   {
-    "user": "walteralvesrn",
-    "total": 16,
+    "user": "odenise_domingos",
+    "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:08.876142"
+    "updated_at": "2026-05-17T07:24:01.819289"
   },
   {
-    "user": "allysonbezerra.rn",
-    "total": 13,
+    "user": "professor_eronpt",
+    "total": 3,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:09.242354"
+    "updated_at": "2026-05-17T07:24:02.185268"
   },
   {
     "user": "ronaldocaiado",
     "total": 25,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:09.607909"
+    "updated_at": "2026-05-17T07:24:02.550898"
   },
   {
     "user": "professor_italo",
     "total": 11,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:09.975296"
+    "updated_at": "2026-05-17T07:24:02.919486"
   },
   {
     "user": "comunicadorluizalmir",
     "total": 3,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:10.339840"
+    "updated_at": "2026-05-17T07:24:03.282088"
   },
   {
     "user": "nataliabonavides",
     "total": 62,
     "hate": 3,
     "density": 4.84,
-    "updated_at": "2026-05-17T07:07:10.706125"
+    "updated_at": "2026-05-17T07:24:03.647797"
   },
   {
     "user": "lucaspavanato",
     "total": 42,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:11.070659"
+    "updated_at": "2026-05-17T07:24:04.014238"
   },
   {
     "user": "aniellefranco",
     "total": 31,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:11.435517"
+    "updated_at": "2026-05-17T07:24:04.380278"
+  },
+  {
+    "user": "michellebolsonaro",
+    "total": 44,
+    "hate": 0,
+    "density": 0.0,
+    "updated_at": "2026-05-17T07:24:04.745293"
+  },
+  {
+    "user": "isoldadantaspt",
+    "total": 51,
+    "hate": 0,
+    "density": 0.0,
+    "updated_at": "2026-05-17T07:24:05.111019"
+  },
+  {
+    "user": "drazenaide",
+    "total": 48,
+    "hate": 1,
+    "density": 2.08,
+    "updated_at": "2026-05-17T07:24:05.475533"
+  },
+  {
+    "user": "marcelofreixo",
+    "total": 52,
+    "hate": 1,
+    "density": 1.92,
+    "updated_at": "2026-05-17T07:24:05.841465"
+  },
+  {
+    "user": "walteralvesrn",
+    "total": 16,
+    "hate": 0,
+    "density": 0.0,
+    "updated_at": "2026-05-17T07:24:06.206398"
+  },
+  {
+    "user": "allysonbezerra.rn",
+    "total": 13,
+    "hate": 0,
+    "density": 0.0,
+    "updated_at": "2026-05-17T07:24:06.570793"
   },
   {
     "user": "faustinorn",
     "total": 47,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:11.801405"
+    "updated_at": "2026-05-17T07:24:06.934832"
   },
   {
     "user": "rinhonader",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:12.150629"
+    "updated_at": "2026-05-17T07:24:07.299723"
   },
   {
     "user": "gleisihoffmann",
     "total": 14,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:12.515905"
+    "updated_at": "2026-05-17T07:24:07.649139"
   },
   {
     "user": "jeronimorodriguesba",
     "total": 13,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:12.880505"
+    "updated_at": "2026-05-17T07:24:08.024615"
   },
   {
     "user": "flaviobolsonaro",
     "total": 9,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:13.246360"
+    "updated_at": "2026-05-17T07:24:08.380848"
   },
   {
     "user": "verpretoaquino",
     "total": 33,
     "hate": 2,
     "density": 6.06,
-    "updated_at": "2026-05-17T07:07:13.611709"
+    "updated_at": "2026-05-17T07:24:08.746472"
   },
   {
     "user": "tombafarias",
     "total": 59,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:13.978953"
+    "updated_at": "2026-05-17T07:24:09.111607"
   },
   {
     "user": "binhodeambrosio",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:14.326243"
+    "updated_at": "2026-05-17T07:24:09.476662"
   },
   {
     "user": "jones.manoel",
     "total": 8,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:14.693208"
+    "updated_at": "2026-05-17T07:24:09.842084"
   },
   {
     "user": "lulaoficial",
     "total": 108,
     "hate": 6,
     "density": 5.56,
-    "updated_at": "2026-05-17T07:07:15.058678"
-  },
-  {
-    "user": "mauricioquintellaoficial",
-    "total": 1,
-    "hate": 0,
-    "density": 0.0,
-    "updated_at": "2026-05-17T07:07:15.422818"
-  },
-  {
-    "user": "vereadormarquinhosdaclimep",
-    "total": 54,
-    "hate": 1,
-    "density": 1.85,
-    "updated_at": "2026-05-17T07:07:15.787765"
-  },
-  {
-    "user": "generalpazuello.oficial",
-    "total": 1,
-    "hate": 0,
-    "density": 0.0,
-    "updated_at": "2026-05-17T07:07:16.152471"
+    "updated_at": "2026-05-17T07:24:10.207156"
   },
   {
     "user": "coronelbrilhantern",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:16.502765"
+    "updated_at": "2026-05-17T07:24:10.572232"
   },
   {
     "user": "gladsoncameli",
     "total": 17,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:16.868005"
+    "updated_at": "2026-05-17T07:24:10.938524"
   },
   {
     "user": "papaleopaesoficial",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:17.233890"
-  },
-  {
-    "user": "talescastroap",
-    "total": 1,
-    "hate": 0,
-    "density": 0.0,
-    "updated_at": "2026-05-17T07:07:17.583424"
+    "updated_at": "2026-05-17T07:24:11.303447"
   },
   {
     "user": "coronelazevedo22",
     "total": 39,
     "hate": 1,
     "density": 2.56,
-    "updated_at": "2026-05-17T07:07:17.948770"
+    "updated_at": "2026-05-17T07:24:11.653273"
   },
   {
     "user": "neyamorimoficial",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:18.314134"
+    "updated_at": "2026-05-17T07:24:12.028543"
   },
   {
     "user": "rodrigocruz_rn",
     "total": 7,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:18.682737"
+    "updated_at": "2026-05-17T07:24:12.398428"
   },
   {
     "user": "majorrochaoficial",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:19.045193"
+    "updated_at": "2026-05-17T07:24:12.746883"
   },
   {
     "user": "josewanderleynetoficial",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:19.394615"
+    "updated_at": "2026-05-17T07:24:13.122908"
   },
   {
     "user": "lucianobarbosaoficial",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:19.759421"
+    "updated_at": "2026-05-17T07:24:13.477529"
   },
   {
     "user": "danilocabraloficial",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:20.124570"
+    "updated_at": "2026-05-17T07:24:13.846032"
   },
   {
     "user": "jorgevianaoficial",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:20.490139"
+    "updated_at": "2026-05-17T07:24:14.209801"
   },
   {
     "user": "janainacavalcanteoficial",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:20.840049"
+    "updated_at": "2026-05-17T07:24:14.576412"
   },
   {
     "user": "pastorhenriquevieira",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:21.205289"
+    "updated_at": "2026-05-17T07:24:14.937796"
   },
   {
     "user": "robinsonfariasoficial",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:21.570676"
+    "updated_at": "2026-05-17T07:24:15.302365"
   },
   {
     "user": "fatimabezerra13",
     "total": 37,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:21.934185"
+    "updated_at": "2026-05-17T07:24:15.666217"
   },
   {
     "user": "fativanalvesoficial",
     "total": 14,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:22.300078"
+    "updated_at": "2026-05-17T07:24:16.031014"
   },
   {
     "user": "novaparnamirimnoticias",
     "total": 50,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:22.665950"
+    "updated_at": "2026-05-17T07:24:16.393074"
   },
   {
     "user": "tabataamaralsp",
     "total": 3,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:23.015235"
+    "updated_at": "2026-05-17T07:24:16.757876"
   },
   {
     "user": "simonetebet",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:23.386766"
+    "updated_at": "2026-05-17T07:24:17.131326"
   },
   {
     "user": "sergiopetecao",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:23.746442"
+    "updated_at": "2026-05-17T07:24:17.491263"
   },
   {
     "user": "paulinhofreirern",
     "total": 23,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:24.350614"
+    "updated_at": "2026-05-17T07:24:17.857605"
   },
   {
     "user": "waldezgoesoficial",
     "total": 4,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:24.953819"
+    "updated_at": "2026-05-17T07:24:18.223309"
   },
   {
     "user": "deputadotaveirajr",
     "total": 23,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:25.319788"
+    "updated_at": "2026-05-17T07:24:18.588728"
   },
   {
-    "user": "camilosantanaoficial",
-    "total": 8,
+    "user": "mauricioquintellaoficial",
+    "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:25.907383"
+    "updated_at": "2026-05-17T07:24:19.432836"
+  },
+  {
+    "user": "vereadormarquinhosdaclimep",
+    "total": 54,
+    "hate": 1,
+    "density": 1.85,
+    "updated_at": "2026-05-17T07:24:19.797650"
+  },
+  {
+    "user": "generalpazuello.oficial",
+    "total": 1,
+    "hate": 0,
+    "density": 0.0,
+    "updated_at": "2026-05-17T07:24:20.163459"
+  },
+  {
+    "user": "talescastroap",
+    "total": 1,
+    "hate": 0,
+    "density": 0.0,
+    "updated_at": "2026-05-17T07:24:20.533771"
   },
   {
     "user": "geraldomagelaoficial",
     "total": 4,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:26.271636"
+    "updated_at": "2026-05-17T07:24:21.134136"
   },
   {
     "user": "andremoreiraoficial",
     "total": 3,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:26.874842"
+    "updated_at": "2026-05-17T07:24:21.497566"
   },
   {
     "user": "orlandoteixeiraoficial",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:27.240106"
+    "updated_at": "2026-05-17T07:24:22.101316"
   },
   {
     "user": "robertoclaudiooficial",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:27.605373"
+    "updated_at": "2026-05-17T07:24:22.467057"
   },
   {
     "user": "celinaleaooficial",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:27.955127"
+    "updated_at": "2026-05-17T07:24:22.835632"
   },
   {
     "user": "sergiovigaloficial",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:28.320660"
+    "updated_at": "2026-05-17T07:24:23.198501"
   },
   {
     "user": "ruicostaoficial",
     "total": 11,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:28.691771"
+    "updated_at": "2026-05-17T07:24:23.562903"
   },
   {
     "user": "marconiperillooficial",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:29.050823"
+    "updated_at": "2026-05-17T07:24:23.928375"
   },
   {
     "user": "jacqueswagneroficial",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:29.416076"
+    "updated_at": "2026-05-17T07:24:24.294090"
   },
   {
     "user": "joaoleaooficial",
     "total": 11,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:29.781550"
+    "updated_at": "2026-05-17T07:24:24.660225"
   },
   {
     "user": "carlosmotaoficial",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:30.147518"
+    "updated_at": "2026-05-17T07:24:25.010877"
   },
   {
     "user": "rogeriorossooficial",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:30.750540"
+    "updated_at": "2026-05-17T07:24:25.376110"
   },
   {
     "user": "jaquelinemoraesoficial",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:31.114140"
+    "updated_at": "2026-05-17T07:24:25.995730"
   },
   {
     "user": "renatocasagrandeoficial",
     "total": 9,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:31.718399"
+    "updated_at": "2026-05-17T07:24:26.345690"
   },
   {
     "user": "gustavosartorioficial",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:32.084537"
+    "updated_at": "2026-05-17T07:24:26.964326"
   },
   {
     "user": "euniciooliveiraoficial",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:32.450927"
+    "updated_at": "2026-05-17T07:24:27.330495"
   },
   {
     "user": "elmanofreitasoficial",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:32.801279"
+    "updated_at": "2026-05-17T07:24:27.696397"
   },
   {
     "user": "jeronomorodriguesoficial",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:34.850176"
+    "updated_at": "2026-05-17T07:24:28.046730"
   },
   {
     "user": "eduardobragaoficial",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:35.216226"
+    "updated_at": "2026-05-17T07:24:30.128681"
   },
   {
     "user": "ronaldocaiadooficial",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:35.582405"
+    "updated_at": "2026-05-17T07:24:30.494087"
   },
   {
     "user": "lincolntejotaoficial",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:35.948154"
+    "updated_at": "2026-05-17T07:24:30.858110"
   },
   {
     "user": "wilsonlimaoficial",
     "total": 4,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:36.313498"
+    "updated_at": "2026-05-17T07:24:31.223261"
   },
   {
     "user": "leilabarrosbrasiloficial",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:36.662936"
+    "updated_at": "2026-05-17T07:24:31.588777"
   },
   {
     "user": "vilmarrochaoficial",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:37.266166"
+    "updated_at": "2026-05-17T07:24:31.952414"
   },
   {
     "user": "danielvilelaoficial",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:37.870774"
+    "updated_at": "2026-05-17T07:24:32.555383"
   },
   {
     "user": "josericardowendlingoficial",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:38.236996"
+    "updated_at": "2026-05-17T07:24:33.159511"
+  },
+  {
+    "user": "camilosantanaoficial",
+    "total": 8,
+    "hate": 0,
+    "density": 0.0,
+    "updated_at": "2026-05-17T07:24:33.525000"
   },
   {
     "user": "ari.do.ovo",
     "total": 3,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:48.737168"
-  },
-  {
-    "user": "helderbarbalho",
-    "total": 1,
-    "hate": 0,
-    "density": 0.0,
-    "updated_at": "2026-05-17T07:07:52.475599"
+    "updated_at": "2026-05-17T07:24:44.190203"
   },
   {
     "user": "michaelborgesrn",
     "total": 9,
     "hate": 1,
     "density": 11.11,
-    "updated_at": "2026-05-17T07:07:54.281160"
+    "updated_at": "2026-05-17T07:24:47.953465"
   },
   {
     "user": "styvensonvalentim",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:54.880542"
+    "updated_at": "2026-05-17T07:24:49.759516"
   },
   {
     "user": "alvarodiasrn",
     "total": 9,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:07:59.086620"
+    "updated_at": "2026-05-17T07:24:50.363930"
   },
   {
-    "user": "rafaeladenilda",
+    "user": "helderbarbalho",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:00.183545"
+    "updated_at": "2026-05-17T07:24:53.415948"
   },
   {
     "user": "vereadorleolima",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:00.549763"
+    "updated_at": "2026-05-17T07:24:55.720255"
   },
   {
     "user": "thainarafaria13",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:00.899107"
+    "updated_at": "2026-05-17T07:24:56.085851"
   },
   {
     "user": "juliaarruda.rn",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:01.263750"
+    "updated_at": "2026-05-17T07:24:56.460170"
   },
   {
     "user": "eupimenta",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:01.628787"
+    "updated_at": "2026-05-17T07:24:56.816637"
   },
   {
     "user": "divaneidebasilio",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:01.994856"
+    "updated_at": "2026-05-17T07:24:57.182736"
   },
   {
     "user": "robinsonfaria",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:02.343618"
+    "updated_at": "2026-05-17T07:24:57.548373"
   },
   {
     "user": "eduardoleiteoficial",
     "total": 3,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:02.709564"
+    "updated_at": "2026-05-17T07:24:57.913698"
   },
   {
     "user": "marciamaia_",
     "total": 4,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:03.075874"
+    "updated_at": "2026-05-17T07:24:58.278895"
   },
   {
     "user": "jairmessiasbolsonaro",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:03.441412"
+    "updated_at": "2026-05-17T07:24:58.633085"
   },
   {
     "user": "wolneyfrancarn",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:03.805900"
+    "updated_at": "2026-05-17T07:24:58.999285"
   },
   {
     "user": "thiagofernandesrn",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:04.170562"
+    "updated_at": "2026-05-17T07:24:59.369234"
   },
   {
     "user": "janjalula",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:04.772917"
+    "updated_at": "2026-05-17T07:24:59.730085"
   },
   {
     "user": "duda_salabert",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:05.125276"
+    "updated_at": "2026-05-17T07:25:00.333950"
   },
   {
     "user": "vereadora_nina",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:05.488482"
+    "updated_at": "2026-05-17T07:25:00.684296"
   },
   {
     "user": "babapereirarn",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:05.854338"
+    "updated_at": "2026-05-17T07:25:01.064517"
   },
   {
     "user": "erikahiltonoficial",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:06.220585"
+    "updated_at": "2026-05-17T07:25:01.422009"
   },
   {
     "user": "sf_moro",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:06.586362"
+    "updated_at": "2026-05-17T07:25:01.787909"
   },
   {
     "user": "mineiroptrn",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:07.191058"
+    "updated_at": "2026-05-17T07:25:02.152763"
   },
   {
     "user": "marcianojuniorrn",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:07.556954"
+    "updated_at": "2026-05-17T07:25:02.766798"
   },
   {
     "user": "vereador.vava.azevedo",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:07.907262"
+    "updated_at": "2026-05-17T07:25:03.121529"
   },
   {
     "user": "flaviodino",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:08.272966"
+    "updated_at": "2026-05-17T07:25:03.487350"
   },
   {
     "user": "mauriciodovolei",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:08.638427"
+    "updated_at": "2026-05-17T07:25:03.852754"
   },
   {
     "user": "erikojacome",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:09.003334"
+    "updated_at": "2026-05-17T07:25:04.218550"
   },
   {
     "user": "chico.alencar",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:09.369016"
+    "updated_at": "2026-05-17T07:25:04.583845"
   },
   {
     "user": "sargentofahuroficial",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:09.733941"
+    "updated_at": "2026-05-17T07:25:04.949594"
   },
   {
     "user": "drkerginaldo",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:10.084899"
+    "updated_at": "2026-05-17T07:25:05.315648"
   },
   {
     "user": "wendellagartixaoficial",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:10.448419"
+    "updated_at": "2026-05-17T07:25:05.682273"
   },
   {
     "user": "lindberghfarias",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:10.813812"
+    "updated_at": "2026-05-17T07:25:06.048057"
   },
   {
-    "user": "bolsonaro_jr",
-    "total": 4,
+    "user": "rafaeladenilda",
+    "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:13.101471"
+    "updated_at": "2026-05-17T07:25:06.414136"
   },
   {
     "user": "benesleocadiorn",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:13.468106"
+    "updated_at": "2026-05-17T07:25:08.720571"
   },
   {
     "user": "blogwllanadantas",
     "total": 3,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:13.832651"
+    "updated_at": "2026-05-17T07:25:09.085865"
   },
   {
     "user": "gusgayer",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:14.182614"
+    "updated_at": "2026-05-17T07:25:09.452089"
   },
   {
     "user": "carloseduardoalves",
     "total": 3,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:14.548457"
+    "updated_at": "2026-05-17T07:25:09.817074"
   },
   {
     "user": "depchinaglia",
     "total": 4,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:14.913405"
+    "updated_at": "2026-05-17T07:25:10.174151"
   },
   {
     "user": "vereadorchagascatarino",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:15.279530"
+    "updated_at": "2026-05-17T07:25:10.532397"
   },
   {
     "user": "supremotribunalfederal",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:15.646765"
+    "updated_at": "2026-05-17T07:25:10.897945"
   },
   {
     "user": "depzecarlospt",
     "total": 4,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:15.996961"
+    "updated_at": "2026-05-17T07:25:11.278994"
   },
   {
     "user": "deppaulocamara",
     "total": 4,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:16.600743"
+    "updated_at": "2026-05-17T07:25:11.644635"
   },
   {
     "user": "andrejanones",
     "total": 3,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:16.966466"
+    "updated_at": "2026-05-17T07:25:12.249528"
   },
   {
     "user": "prefeitorosanotaveira",
     "total": 4,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:17.316405"
+    "updated_at": "2026-05-17T07:25:12.615497"
   },
   {
     "user": "caduxavier",
     "total": 80,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:17.682276"
+    "updated_at": "2026-05-17T07:25:12.997942"
   },
   {
     "user": "joaocampos",
     "total": 4,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:18.047510"
+    "updated_at": "2026-05-17T07:25:13.363473"
   },
   {
     "user": "vereadoreuricodajapao",
     "total": 3,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:18.412907"
+    "updated_at": "2026-05-17T07:25:13.729649"
   },
   {
     "user": "ezequielrn",
     "total": 4,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:18.762862"
+    "updated_at": "2026-05-17T07:25:14.094973"
   },
   {
     "user": "sorayathronicke",
     "total": 4,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:19.136839"
+    "updated_at": "2026-05-17T07:25:14.460996"
   },
   {
     "user": "senadorhumberto",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:19.493647"
+    "updated_at": "2026-05-17T07:25:14.827240"
   },
   {
     "user": "trernoficial",
     "total": 3,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:19.843599"
+    "updated_at": "2026-05-17T07:25:15.192472"
   },
   {
     "user": "cabodeyvison",
     "total": 3,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:20.208904"
+    "updated_at": "2026-05-17T07:25:15.555387"
   },
   {
     "user": "drcesarmaia",
     "total": 3,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:20.574196"
+    "updated_at": "2026-05-17T07:25:15.920065"
   },
   {
     "user": "joaomaiarn",
     "total": 4,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:20.939054"
+    "updated_at": "2026-05-17T07:25:16.285298"
   },
   {
     "user": "jaimecaladooficial",
     "total": 4,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:21.305539"
+    "updated_at": "2026-05-17T07:25:16.649407"
   },
   {
     "user": "annelagartixa",
     "total": 3,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:21.908613"
+    "updated_at": "2026-05-17T07:25:17.016030"
   },
   {
     "user": "sorayavieiraf",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:22.273656"
+    "updated_at": "2026-05-17T07:25:17.619273"
   },
   {
     "user": "cirogomes",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:22.637684"
+    "updated_at": "2026-05-17T07:25:17.984375"
   },
   {
     "user": "luizfelipedavila",
     "total": 3,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:23.003141"
+    "updated_at": "2026-05-17T07:25:18.350115"
   },
   {
     "user": "dilmarousseff",
     "total": 54,
     "hate": 1,
     "density": 1.85,
-    "updated_at": "2026-05-17T07:08:23.352275"
+    "updated_at": "2026-05-17T07:25:18.716511"
   },
   {
     "user": "profroberiopaulino",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:23.716511"
+    "updated_at": "2026-05-17T07:25:19.081730"
   },
   {
     "user": "joseagripinomaia",
     "total": 3,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:24.067302"
+    "updated_at": "2026-05-17T07:25:19.432820"
   },
   {
     "user": "braganetto_oficial",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:24.441790"
+    "updated_at": "2026-05-17T07:25:19.798919"
   },
   {
     "user": "mauricioveiculoss",
     "total": 3,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:24.797146"
+    "updated_at": "2026-05-17T07:25:20.163702"
   },
   {
     "user": "carla.zambelli",
     "total": 4,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:25.167388"
+    "updated_at": "2026-05-17T07:25:20.528749"
   },
   {
     "user": "fabiodantasrn",
     "total": 4,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:25.521836"
+    "updated_at": "2026-05-17T07:25:20.895944"
   },
   {
     "user": "adjutodias",
     "total": 3,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:25.887321"
+    "updated_at": "2026-05-17T07:25:21.261191"
   },
   {
-    "user": "taveirarn",
-    "total": 3,
+    "user": "bolsonaro_jr",
+    "total": 4,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:26.490769"
-  },
-  {
-    "user": "hermanomorais",
-    "total": 2,
-    "hate": 0,
-    "density": 0.0,
-    "updated_at": "2026-05-17T07:08:26.843874"
+    "updated_at": "2026-05-17T07:25:21.626206"
   },
   {
     "user": "depzarattini",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:27.206689"
+    "updated_at": "2026-05-17T07:25:22.231350"
   },
   {
     "user": "padilhando",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:27.572087"
+    "updated_at": "2026-05-17T07:25:22.597701"
   },
   {
     "user": "gcarvalhorn",
     "total": 5,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:27.937934"
+    "updated_at": "2026-05-17T07:25:22.962745"
   },
   {
     "user": "vereadorederqueiroz",
     "total": 55,
     "hate": 5,
     "density": 9.09,
-    "updated_at": "2026-05-17T07:08:28.287956"
+    "updated_at": "2026-05-17T07:25:23.320459"
   },
   {
     "user": "carloseduardoe55",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:28.653980"
+    "updated_at": "2026-05-17T07:25:29.943372"
   },
   {
     "user": "garibaldifilhorn",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:31.675006"
+    "updated_at": "2026-05-17T07:25:30.308626"
   },
   {
     "user": "rogerio.smarinho",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:32.025077"
+    "updated_at": "2026-05-17T07:25:30.674917"
   },
   {
     "user": "henriqueeduardoalves",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:32.390322"
+    "updated_at": "2026-05-17T07:25:33.706981"
   },
   {
     "user": "ranierebarbosa.rn",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:32.755834"
+    "updated_at": "2026-05-17T07:25:34.072351"
   },
   {
     "user": "antenorroberto65",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:33.121794"
+    "updated_at": "2026-05-17T07:25:34.439290"
   },
   {
     "user": "eduardosuplicy",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:33.479554"
+    "updated_at": "2026-05-17T07:25:34.804838"
   },
   {
     "user": "tarcisiogdf",
     "total": 85,
     "hate": 2,
     "density": 2.35,
-    "updated_at": "2026-05-17T07:08:33.859677"
+    "updated_at": "2026-05-17T07:25:35.171492"
   },
   {
     "user": "kelpslima",
     "total": 4,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:34.218744"
+    "updated_at": "2026-05-17T07:25:35.551590"
   },
   {
     "user": "pedroponciosp",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:34.568778"
+    "updated_at": "2026-05-17T07:25:35.917713"
   },
   {
     "user": "alexandremottacamara",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:34.934363"
+    "updated_at": "2026-05-17T07:25:36.282979"
   },
   {
     "user": "sargentofahur",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:35.300213"
+    "updated_at": "2026-05-17T07:25:36.648928"
   },
   {
     "user": "kleberrodrigues",
     "total": 3,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:35.665956"
+    "updated_at": "2026-05-17T07:25:37.013991"
   },
   {
     "user": "fernandohaddadoficial",
     "total": 60,
     "hate": 12,
     "density": 20.0,
-    "updated_at": "2026-05-17T07:08:36.031407"
+    "updated_at": "2026-05-17T07:25:37.379929"
   },
   {
     "user": "alvarodias2026",
     "total": 3,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:36.380528"
+    "updated_at": "2026-05-17T07:25:37.745815"
   },
   {
     "user": "jacojacome",
     "total": 1,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:36.762221"
+    "updated_at": "2026-05-17T07:25:38.111955"
   },
   {
-    "user": "brisabracchi13",
-    "total": 119,
+    "user": "taveirarn",
+    "total": 3,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:37.354846"
+    "updated_at": "2026-05-17T07:25:38.461318"
+  },
+  {
+    "user": "hermanomorais",
+    "total": 2,
+    "hate": 0,
+    "density": 0.0,
+    "updated_at": "2026-05-17T07:25:38.826820"
   },
   {
     "user": "drjonasgodeiro",
     "total": 2,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:37.717196"
+    "updated_at": "2026-05-17T07:25:39.446508"
   },
   {
     "user": "hilton_erika",
     "total": 88,
     "hate": 2,
     "density": 2.27,
-    "updated_at": "2026-05-17T07:08:39.371359"
+    "updated_at": "2026-05-17T07:25:39.797519"
   },
   {
     "user": "jandira_feghali",
     "total": 78,
     "hate": 7,
     "density": 8.97,
-    "updated_at": "2026-05-17T07:08:39.751613"
+    "updated_at": "2026-05-17T07:25:41.378794"
   },
   {
     "user": "luizaerundina",
     "total": 78,
     "hate": 8,
     "density": 10.26,
-    "updated_at": "2026-05-17T07:08:41.324724"
+    "updated_at": "2026-05-17T07:25:41.742825"
   },
   {
     "user": "betinhodamala",
     "total": 4,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:41.928927"
+    "updated_at": "2026-05-17T07:25:43.325659"
   },
   {
     "user": "terezinhamaiarn",
     "total": 55,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:44.693062"
+    "updated_at": "2026-05-17T07:25:43.924118"
   },
   {
     "user": "neiltondiogenes",
     "total": 18,
     "hate": 0,
     "density": 0.0,
-    "updated_at": "2026-05-17T07:08:45.059955"
+    "updated_at": "2026-05-17T07:25:46.703352"
+  },
+  {
+    "user": "brisabracchi13",
+    "total": 119,
+    "hate": 0,
+    "density": 0.0,
+    "updated_at": "2026-05-17T07:25:47.054537"
   },
   {
     "user": "bolsonarosp",
     "total": 125,
     "hate": 29,
     "density": 23.2,
-    "updated_at": "2026-05-17T07:08:45.423702"
+    "updated_at": "2026-05-17T07:25:47.433312"
   }
 ]
