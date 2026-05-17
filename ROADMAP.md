@@ -33,6 +33,12 @@
 
 ## 🚀 Próximos Passos (Backlog)
 
+### Migração Frontend: O Salto para Bleeding Edge (Prioridade Máxima)
+- [ ] **Fase 1: Setup Híbrido** - Next.js (App Router), Tailwind v4, Shadcn na raiz, roteando `/api` para o FastAPI via Vercel.
+- [ ] **Fase 2: The God Mode Data Layer** - Conexão nativa SSR via `@supabase/supabase-js` com React Query e Zustand. Sem ORMs lixo.
+- [ ] **Fase 3: UI & Dashboards** - Componentização profissional ("War Room"), migrando gráficos para Recharts.
+- [ ] **Fase 4: Expurgo do Legado** - Deleção do Vanilla JS antigo (`app.js`, `index.html`) e finalização do deploy Vercel unificado.
+
 ### Maestria Instagram (v48+)
 - [ ] Expansão de escopo: Raspagem de Reels, Stories e comentários em threads encadeadas.
 - [ ] Mapeamento de shadowbans: Detectar quando o alvo esconde comentários automaticamente.
