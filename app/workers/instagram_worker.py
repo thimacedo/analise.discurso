@@ -30,6 +30,7 @@ class InstagramWorker(BaseWorker):
         Inclui obrigatoriamente id_externo (NOT NULL).
         """
         text = str(raw_comment.get('text', ''))[:2000]
+        texto_limpo = self._limpar_texto(text)
         
         # 1. Identifica ou gera o id_externo (ID real da rede social)
         id_externo = str(raw_comment.get('id', ''))
@@ -46,14 +47,16 @@ class InstagramWorker(BaseWorker):
             'id': id_interno,
             'id_externo': id_externo,          # ← CAMPO OBRIGATÓRIO (NOT NULL)
             'texto_bruto': text,
-            'texto_limpo': self._limpar_texto(text), 
+            'texto_limpo': texto_limpo, 
             'autor_username': str(raw_comment.get('ownerUsername', 'unknown')),
             'candidato_id': getattr(self, 'current_target', 'unknown'),
             'data_coleta': raw_comment.get('timestamp') or datetime.now(timezone.utc).isoformat(),
             'plataforma': 'instagram',
             'rede_social': 'instagram',
             'processado_ia': False,
-            'tipo_conteudo': content_type
+            'tipo_conteudo': content_type,
+            'confidence_score': 0,
+            'evidence_extracted': None
         }
 
     def run(self, target: str):
@@ -83,8 +86,8 @@ class InstagramWorker(BaseWorker):
             return False
 
         try:
-            # 2. Rate Limiting Humano (Anti-Ban)
-            sleep_time = random.uniform(2.0, 5.0)
+            # 2. Rate Limiting Humano Otimizado (-25% tempo total médio)
+            sleep_time = random.uniform(1.5, 3.5)
             print(f"[InstagramWorker] Sessão [{self.active_session_id[:8]}] ativa. Dormindo {sleep_time:.2f}s...")
             time.sleep(sleep_time)
 
@@ -169,7 +172,9 @@ class InstagramWorker(BaseWorker):
         
         comments = []
         for rc in raw_data:
-            if not is_valid_comment(rc.get('text', '')):
+            texto = rc.get('text', '')
+            texto_limpo = self._limpar_texto(texto)
+            if not texto_limpo or not is_valid_comment(texto):
                 continue
             
             content_type = "REEL" if section == "reels" else "POST"

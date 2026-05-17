@@ -61,7 +61,11 @@ Siga RIGOROSAMENTE o manual abaixo para classificar os comentÃ¡rios.
 
 {manual}
 
-IMPORTANTE: Toda resposta DEVE ser um JSON vÃ¡lido seguindo o Contrato de Dados (SeÃ§Ã£o 7 do Manual).
+IMPORTANTE: Toda resposta DEVE ser um JSON vÃ¡lido contendo obrigatoriamente as chaves:
+- "is_hate" (boolean)
+- "categoria_ia" (string, usar "NEUTRO" se nÃ£o houver risco)
+- "confidence_score" (int de 0 a 100)
+- "evidence_extracted" (string com o trecho exato que justifica a classificaÃ§Ã£o, ou vazio)
 """
 
     def parse_verdict(self, raw_text: str) -> Dict[str, Any]:
@@ -97,9 +101,11 @@ IMPORTANTE: Toda resposta DEVE ser um JSON vÃ¡lido seguindo o Contrato de Dado
                 "ccf_density": float(data.get("ccf_density", 0.0)),
                 "ccf_sync": float(data.get("ccf_sync", 0.0)),
                 "ccf_performativity": float(data.get("ccf_performativity", 0.0)),
-                "confidence": float(data.get("confianca_ia", data.get("confidence", 0.0))),
-                "confianca_ia": float(data.get("confianca_ia", data.get("confidence", 0.0))),
-                "reason": data.get("reason", "AnÃ¡lise PASA v42"),
+                "confidence": float(data.get("confidence_score", data.get("confianca_ia", 0))),
+                "confianca_ia": float(data.get("confidence_score", data.get("confianca_ia", 0))),
+                "confidence_score": int(data.get("confidence_score", 0)),
+                "evidence_extracted": str(data.get("evidence_extracted", data.get("reason", ""))),
+                "reason": str(data.get("evidence_extracted", data.get("reason", "AnÃ¡lise PASA v42"))),
                 "pasa_version": self.VERSION
             }
         except Exception as e:

@@ -374,7 +374,9 @@ function renderCommentCard(comment) {
     const timestamp = comment.data_publicacao || comment.data_coleta;
     const category = comment.processado_ia ? (comment.categoria_ia || 'NEUTRO') : 'NAO_PROCESSADO';
 
-    const confidence = comment.confianca_ia ? (comment.confianca_ia * 100).toFixed(1) : 0;
+    const confidence = comment.confidence_score !== undefined && comment.confidence_score !== null 
+        ? comment.confidence_score 
+        : (comment.confianca_ia ? (comment.confianca_ia * 100).toFixed(1) : 0);
     const confidenceClass = 
         confidence >= 80 ? 'text-success-600' :
         confidence >= 50 ? 'text-warning-600' :
@@ -414,6 +416,18 @@ function renderCommentCard(comment) {
         quoteClass = 'bg-success-50 border-success-400 text-success-800';
         iconColor = 'text-success-500';
     }
+
+    let evidenceHtml = '';
+    if (comment.is_hate === true && comment.evidence_extracted) {
+        evidenceHtml = `
+            <div class="mt-3 bg-white bg-opacity-50 rounded p-3 border border-danger-100">
+                <p class="text-xs font-semibold text-danger-800 mb-1 flex items-center gap-1">
+                    <i data-lucide="microscope" class="w-3 h-3"></i> Evidência Analítica:
+                </p>
+                <p class="text-xs text-danger-900 italic font-medium">"${comment.evidence_extracted}"</p>
+            </div>
+        `;
+    }
     
     return `
         <div class="post-card hover:shadow-lg transition-shadow duration-200">
@@ -436,13 +450,19 @@ function renderCommentCard(comment) {
                             <span class="text-xs font-mono text-base-400 block">
                                 ${timeAgo(timestamp)}
                             </span>
-                            <span class="text-xs font-bold ${confidenceClass} block">
-                                Conf: ${confidence}%
-                            </span>
+                            <div class="flex flex-col items-end mt-1">
+                                <span class="text-[10px] font-bold ${confidenceClass} block">
+                                    Confiança: ${confidence}%
+                                </span>
+                                <div class="w-16 h-1.5 bg-base-200 rounded-full mt-1 overflow-hidden">
+                                    <div class="h-full ${confidenceClass.replace('text-', 'bg-')}" style="width: ${confidence}%"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="${quoteClass} border-l-2 rounded-r-lg p-4 mb-4">
                         <p class="text-sm italic leading-relaxed">"${text}"</p>
+                        ${evidenceHtml}
                     </div>
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-4">
