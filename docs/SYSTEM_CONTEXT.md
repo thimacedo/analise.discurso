@@ -1,38 +1,47 @@
-# Contexto Geral do Sistema: Sentinela Democrática (Análise de Discurso)
+# Sentinela Democrática - Referência Arquitetural de Engenharia (PASA v49.9+)
 
-## 1. Visão Geral
-O Sentinela Democrática é uma plataforma avançada de monitoramento eleitoral e perícia linguística forense. O sistema coleta dados de redes sociais (Meta/Instagram), aplica o protocolo forense PASA (Protocolo de Análise de Sentinela Avançada) via modelos de IA (Gemini/Mistral) e consolida métricas de falsos positivos, resiliência e alertas de discurso de ódio ou violência política em um dashboard em tempo real.
+## 1. Visão de Sistema & Missão
+O Sentinela Democrática é um ecossistema de perícia linguística forense e monitoramento eleitoral em larga escala. Sua missão é a **extração, normalização, classificação semântica e auditoria** de discursos em plataformas Meta, operando sob requisitos rigorosos de resiliência anti-bot, integridade de dados e conformidade legal.
 
-## 2. Stack Tecnológica
-* **Backend & Workers:** Python 3.x (Processamento assíncrono, extração e orquestração).
-* **Frontend & API:** React (Vite) + Supabase Client, hospedado na Vercel.
-* **Bancos de Dados:** 
-    * **Supabase (PostgreSQL):** Fonte da verdade (Ingestão de comentários, perfis, KPIs).
-* **Automação IA:** Gemini CLI / Google Cloud SDK / Groq.
-* **Web Scraping & Anti-Bot (Engine PASA v49.9+):** 
-    * **Motor Principal:** Zyte API (Bypass de Cloudflare/Meta via JSON API, Browser Rendering, e Proxy Mode).
-    * **Fallback:** Playwright (`scraper_headless.py`) em modo stealth.
+## 2. Topologia de Infraestrutura (Asynchronous-Hybrid)
+* **Node Local (Orquestrador):** `local_server.py` executado via `watchdog.py`. Gerencia filas, cooldowns, orquestração de workers e persistência local.
+* **Workers (Processos Assíncronos):** `InstagramWorker` (e outros) processam alvos em paralelo, utilizando `asyncio` para I/O-bound tasks.
+* **Motor de Ingestão (Zyte Integration):** Sistema híbrido `Zyte API` (Primário) + `Playwright` (Fallback). O motor decide dinamicamente a estratégia de extração (API JSON -> Renderização DOM -> Regex/Scraping).
+* **Camada de Persistência (Supabase):** PostgreSQL configurado com Row Level Security (RLS). Estrutura relacional densa (`candidatos`, `comentarios`, `anuncios_pasa`, `fila_coleta`, `worker_sessions`).
+* **Front-end:** SPA React, desacoplada, servida via Vercel, consumindo snapshots JSON/CSV gerados pelo pipeline de backend para evitar query load excessivo no Supabase.
 
-## 3. Topologia de Diretórios (Core)
-* `/core/`: Serviços de banco (`supabase_service.py`), IA (`ai_service.py`), motor de comportamento (`behavior_engine.py`), e o checker de saúde (`zyte_checker.py`).
-* `/app/workers/`: Onde reside o `InstagramWorker` (orquestrador de coleta).
-* `/scripts/`: Automação de manutenção, migrações SQL, e ferramentas de auditoria.
-* `/docs/`: Documentação técnica e de conformidade.
-* `/supabase/migrations/`: Histórico de evolução do esquema SQL.
+## 3. Protocolo PASA (Metodologia de Análise Léxica)
+O núcleo de inteligência é o **PASA v49**. Todo dado coletado passa por este pipeline de transformação:
+1. **Sanitização (InstagramWorker):** Remoção de ruído, normalização de caracteres e limpeza de URLs (Regex + Hash-mapping para ID_EXTERNO).
+2. **Normalização (core.normalizer):** Ajuste léxico para entrada nos modelos de IA.
+3. **Classificação (IA Gateway):** Utiliza motor `Gemini 1.5 Flash` para classificação de risco e detecção de padrões de ódio.
+4. **Auditoria (PASA Auditor):** Cross-check via `Groq/Llama 3` para validação de falsos positivos.
+5. **Persistência Forense:** Registro com data/hora UTC e rastreabilidade total da origem.
 
-## 4. Fluxo de Dados (Zyte-Driven Pipeline)
-1. **Orquestração:** `local_server.py` gerencia o loop de coleta, respeitando cooldowns.
-2. **Ingestão (Zyte):** `InstagramWorker` solicita dados ao `scraper_zyte.py`, que utiliza estratégia tripla (API JSON -> Renderização Browser -> DOM Regex).
-3. **Resiliência:** O `watchdog.py` monitora o status do servidor e a saúde da API Zyte, disparando alertas via WhatsApp (CallMeBot) em caso de falha.
-4. **Persistência:** Sanitização via `InstagramWorker` -> `supabase.table('comentarios').upsert(...)`.
+## 4. Resiliência Operacional (The Guardian Logic)
+O sistema possui mecanismos de auto-cura:
+* **Circuit Breaker:** `InstagramWorker` verifica limites de requisições e falhas consecutivas antes de prosseguir.
+* **Watchdog Guardião:** `watchdog.py` monitora o ciclo de vida do servidor. Se `local_server.py` travar, o watchdog realiza:
+    1. Reinicialização do processo.
+    2. Validação de dependências (`pip install -r requirements.txt`).
+    3. Alerta crítico via WhatsApp (CallMeBot).
+* **Zyte Health Check:** Rotina de ping (`zyte_checker.py`) a cada 30 min para garantir que o motor de scraping não está bloqueado.
 
-## 5. Regras de Negócio (Compliance & Créditos)
-* **Distribuição Igualitária:** Cooldown de 12 horas por perfil. Apenas 3 alvos por ciclo de raspagem (a cada 30 min) para economizar créditos Zyte e evitar bans.
-* **Elite Política (Prioridade 10):** 29 perfis (Presidenciáveis, Governadores, Lideranças Nacionais) possuem prioridade máxima de coleta.
-* **Compliance Legal:** Perfis da família Bolsonaro (com exceção de Eduardo/Carlos) possuem `status_monitoramento` pausado por restrições legais.
-* **Auto-Auditoria:** Falhas de username (erro 404) são logadas automaticamente em `divergent_usernames.log`.
+## 5. Estratégia de Coleta Equalitária
+O sistema evita o gasto predatório de créditos Zyte através de:
+* **Priority-Based Batching:** Apenas alvos com `prioridade_coleta = 10` (Elite) são processados intensivamente.
+* **Temporal Sharding:** Cooldown fixo de 12 horas entre raspagens do mesmo alvo.
+* **Batch Limiting:** Máximo de 3 perfis por ciclo, com pausa de 60 segundos entre cada, suavizando a carga no Instagram e evitando detecção.
 
-## 6. Diretrizes para Agentes de IA
-* **Segurança:** Nunca execute comandos que exponham chaves de API (`.env`).
-* **Supabase:** Utilize sempre o padrão de migrações (`/supabase/migrations/`) para alterações de schema.
-* **Configuração:** Ao realizar mudanças no fluxo de coleta, sempre documente a alteração em `MEMORY.md`.
+## 6. Governança e Compliance
+* **Filtros Jurídicos:** Perfis marcados como `status_monitoramento = 'Pausado'` são saltados pelo orquestrador.
+* **Audit Trail:** Logs de divergência de username em `divergent_usernames.log` para recalibragem humana.
+* **Credenciais:** Uso de `.env` para gestão de segredos. Proibição absoluta de hardcoding.
+
+## 7. SOP de Troubleshooting (Procedimento Padrão)
+| Sintoma | Ação Técnica |
+| :--- | :--- |
+| `[ALERTA USERNAME]` | Verificar username em `divergent_usernames.log` e atualizar banco. |
+| `Supabase 🔴 OFFLINE` | Verificar RLS Policies e conexão em `core/supabase_service.py`. |
+| `Falha Zyte API` | Verificar `ZYTE_API_KEY` no `.env` e rodar `core/zyte_checker.py`. |
+| Drift de KPIs | Executar `scripts/check_drift.py` e forçar `scripts/update_kpis.py`. |

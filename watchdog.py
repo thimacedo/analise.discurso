@@ -23,6 +23,15 @@ RESTART_DELAY = 30
 ZYTE_CHECK_INTERVAL = 1800 # 30 min
 REQUIREMENTS_FILE = "requirements.txt"
 
+# Configurações de Drive (Resiliência)
+CACHE_DIR = r"E:\sentinela_temp\pip_cache"
+TEMP_DIR = r"E:\sentinela_temp\tmp"
+
+# Ambiente customizado para processos filhos
+CHILD_ENV = os.environ.copy()
+CHILD_ENV["PIP_CACHE_DIR"] = CACHE_DIR
+CHILD_ENV["TMP"] = TEMP_DIR
+CHILD_ENV["TEMP"] = TEMP_DIR
 
 CALLMEBOT_PHONE = "558496066876"
 CALLMEBOT_APIKEY = "8552672"
@@ -48,16 +57,25 @@ def get_python_executable():
     return sys.executable
 
 def heal_dependencies(python_exe):
-    """Verifica e instala dependências para garantir a integridade do ambiente."""
+    """Verifica e instala dependências, com estratégia de auto-cura do cache em caso de erro."""
     print("[Watchdog] Verificando integridade das dependências...")
     try:
         subprocess.run(
             [python_exe, "-m", "pip", "install", "-r", REQUIREMENTS_FILE, "-q"], 
-            check=True
+            check=True, env=CHILD_ENV
         )
         print("[Watchdog] Dependências sincronizadas com sucesso.")
     except Exception as e:
-        print(f"[Watchdog] Falha ao curar dependências: {e}")
+        print(f"[Watchdog] Falha na instalação. Tentando purgar cache do pip para liberar espaço...")
+        try:
+            subprocess.run([python_exe, "-m", "pip", "cache", "purge"], check=True, env=CHILD_ENV)
+            subprocess.run(
+                [python_exe, "-m", "pip", "install", "-r", REQUIREMENTS_FILE, "-q"], 
+                check=True, env=CHILD_ENV
+            )
+            print("[Watchdog] Dependências sincronizadas após purga de cache.")
+        except Exception as e2:
+            print(f"[Watchdog] Falha crítica ao curar dependências: {e2}")
 
 def send_whatsapp_alert(message: str):
     """Dispara alerta síncrono via WhatsApp usando CallMeBot."""
@@ -101,7 +119,7 @@ def guard():
 
         print(f"[Watchdog] Iniciando {SERVER_SCRIPT}...")
         try:
-            process = subprocess.Popen([python_exe, SERVER_SCRIPT])
+            process = subprocess.Popen([python_exe, SERVER_SCRIPT], env=CHILD_ENV)
             
             while True:
                 poll = process.poll()

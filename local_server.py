@@ -34,39 +34,16 @@ COOLDOWN_HOURS = 12 # 12h entre coletas do mesmo alvo (divisão justa)
 class WarRoomUI:
     @staticmethod
     def render(status, db_status, queue_size, cycle, logs):
-        # ANSI Colors para sutileza e destaque
-        CYAN = "\033[36m"
-        BLUE = "\033[34m"
-        GREEN = "\033[32m"
-        YELLOW = "\033[33m"
-        RED = "\033[31m"
-        RESET = "\033[0m"
-        BOLD = "\033[1m"
-        DIM = "\033[2m"
-
         os.system('cls' if os.name == 'nt' else 'clear')
-        
-        # Header Minimalista
-        print(f"{DIM}┌───────────────────────────────────────────────────────────────────────────┐{RESET}")
-        print(f"{DIM}│{RESET}  {BOLD}{CYAN}SENTINELA DEMOCRÁTICA{RESET} {DIM}│{RESET} {BOLD}WAR ROOM{RESET} {DIM}│{RESET} {datetime.now().strftime('%H:%M:%S')} {DIM}│{RESET} {DIM}v49.8.2{RESET}  {DIM}│{RESET}")
-        print(f"{DIM}├───────────────────────────────────────────────────────────────────────────┤{RESET}")
-        
-        # Status de Operação
-        st_color = GREEN if "ONLINE" in db_status else RED
-        print(f"{DIM}│{RESET}  {BOLD}STATUS »{RESET} {YELLOW}{status:<40}{RESET} {DIM}│{RESET}")
-        print(f"{DIM}│{RESET}  {BOLD}BANCO  »{RESET} {st_color}{db_status:<10}{RESET} {DIM}│{RESET} {BOLD}FILA »{RESET} {CYAN}{str(queue_size):<6}{RESET} {DIM}│{RESET} {BOLD}CICLO »{RESET} {BLUE}{str(cycle):<5}{RESET} {DIM}│{RESET}")
-        print(f"{DIM}├───────────────────────────────────────────────────────────────────────────┤{RESET}")
-        
-        # Logs Recentes com sutileza
-        print(f"{DIM}│{RESET}  {BOLD}LOGS DE OPERAÇÃO (REAL-TIME){RESET}                                     {DIM}│{RESET}")
-        for log in logs[-7:]:
-            # Formata log para caber na largura
-            clean_log = log[:68] + "..." if len(log) > 68 else log
-            print(f"{DIM}│{RESET}  {DIM}›{RESET} {clean_log:<71} {DIM}│{RESET}")
-        
-        # Footer
-        print(f"{DIM}└───────────────────────────────────────────────────────────────────────────┘{RESET}")
-        print(f"   {DIM}Iniciando Perícia Analítica em Dados Reais · Diamond Engine{RESET}\n")
+        print(f"SENTINELA v49.9 | Ciclo: {cycle} | {datetime.now().strftime('%H:%M:%S')}")
+        print("-" * 50)
+        print(f"Status: {status}")
+        print(f"Banco:  {db_status} | Fila: {queue_size}")
+        print("-" * 50)
+        print("LOGS RECENTES:")
+        for log in logs[-3:]:
+            print(f"> {log}")
+        print("-" * 50)
 
 def log_event(log_list, msg):
     log_list.append(f"[{datetime.now().strftime('%H:%M')}] {msg}")
@@ -108,8 +85,8 @@ def run_server():
                 candidatos_para_raspar = []
                 if not pending.data:
                     log_event(ops_log, "Fila vazia. Buscando candidatos ativos por prioridade/atividade (Fallback).")
-                    # Busca os candidatos ativos ordenando por prioridade (comentarios de ódio) e atividade (comentarios totais)
-                    fallback_res = db.table('candidatos').select('username').eq('status_monitoramento', 'Ativo').order('comentarios_odio_count', desc=True).order('comentarios_totais_count', desc=True).limit(20).execute()
+                    # Busca os candidatos ativos ordenando por prioridade (prioridade_coleta) e atividade
+                    fallback_res = db.table('candidatos').select('username').eq('status_monitoramento', 'Ativo').order('prioridade_coleta', desc=True).order('comentarios_odio_count', desc=True).limit(20).execute()
                     if fallback_res.data:
                         candidatos_para_raspar = [{'id': None, 'candidato_id': c['username']} for c in fallback_res.data]
                     else:
