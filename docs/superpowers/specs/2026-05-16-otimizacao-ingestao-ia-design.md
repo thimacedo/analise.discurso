@@ -23,10 +23,15 @@ Será necessária uma alteração de schema na tabela `comentarios` para comport
   - `confidence_score` (Int)
   - `evidence_extracted` (String)
 
+### 4. Interface do Usuário (UX/UI Profissional)
+- **Apresentação Visual e Semântica:** A exibição dos resultados no dashboard será altamente profissional. O `confidence_score` utilizará indicadores visuais intuitivos (ex: barras de progresso ou badges baseados nos `RISK_COLORS` do sistema).
+- **Consumo de Evidências:** A `evidence_extracted` será exibida através de modais ou seções expansíveis dinâmicas, permitindo ao analista entender rapidamente o gatilho da classificação de ódio sem poluir a interface primária.
+- **Integração Fluida:** A UX deve transmitir a sensação de uma ferramenta forense de alta precisão ("War Room"), sem re-renderizações desnecessárias e com tipografia/espaçamento consistentes.
+
 ## Tratamento de Falhas (Error Handling)
 - Caso a IA falhe em retornar o JSON validado (fallback), o sistema assumirá `confidence_score=0`, mantendo o `is_hate=False` e gravando um log de falha de parser na coluna `evidence_extracted`, para posterior acionamento da rotina de auditoria.
 - Erros de normalização de strings e unicode corrompido no `InstagramWorker` serão resolvidos capturando a exceção e marcando o comentário para descarte (skip).
 
 ## Limites (Scope)
-- A otimização foca estritamente no fluxo do Instagram e na infraestrutura atual.
+- A otimização foca estritamente no fluxo do Instagram, na infraestrutura atual e na apresentação profissional (UX/UI) das novas métricas.
 - Nenhum modelo LLM local (Ollama) ou infraestrutura dedicada será introduzido nesta etapa.
