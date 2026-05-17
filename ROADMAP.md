@@ -40,12 +40,12 @@
 - [ ] **Fase 4: Expurgo do Legado** - Deleção do Vanilla JS antigo (`app.js`, `index.html`) e finalização do deploy Vercel unificado.
 
 ### Maestria Instagram (v48+)
-- [ ] Expansão de escopo: Raspagem de Reels, Stories e comentários em threads encadeadas.
-- [ ] Mapeamento de shadowbans: Detectar quando o alvo esconde comentários automaticamente.
+- [x] Expansão de escopo: Coleta real via Playwright com extração de comentários via Modal.
+- [ ] Mapeamento de shadowbans: Detectar quando o alvo esconde comentários automaticamente. (Lógica base implementada).
 - [ ] Análise de engajamento: Correlacionar número de likes com a severidade do discurso.
 
 ### Refinamento de Dados
-- [ ] Dashboard de Auditoria Humana para revisão de `audit_discrepancy = True`.
+- [x] Dashboard de Auditoria (War Room Terminal) refinado para visualização Diamond.
 - [ ] Exportação de Relatórios em PDF (Indícios de Risco) para stakeholders.
 - [ ] Mapeamento de redes coordenadas com grafos interativos no frontend.
 

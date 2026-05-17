@@ -64,9 +64,27 @@ class InstagramWorker(BaseWorker):
             return False
 
         # 1.1 Identificação da Sessão (PASA v49.6: Multi-session support)
-        # Note: O ScraperHeadless usa variáveis do .env por padrão, 
-        # mas aqui poderíamos passar os cookies da sessão ativa se quisermos.
+        active_cookies = None
+        session_id = "env_fallback"
         
+        try:
+            session_res = supabase.table('worker_sessions')\
+                .select('id', 'cookies')\
+                .eq('plataforma', 'instagram')\
+                .eq('status', 'active')\
+                .order('updated_at', desc=True)\
+                .limit(1)\
+                .execute()
+            
+            if session_res.data:
+                session_id = session_res.data[0]['id']
+                active_cookies = session_res.data[0]['cookies']
+                print(f"[InstagramWorker] 🔑 Usando sessão ativa do banco: [{session_id[:8]}]")
+            else:
+                print("[InstagramWorker] ⚠️ Nenhuma sessão ativa no banco. Usando fallback do .env.")
+        except Exception as e:
+            print(f"[InstagramWorker] Erro ao carregar sessão do banco: {e}")
+
         try:
             import asyncio
             from scraper_headless import InstagramScraperHeadless
@@ -75,27 +93,36 @@ class InstagramWorker(BaseWorker):
             print(f"[InstagramWorker] 🚀 Iniciando coleta REAL para: {target}")
             scraper = InstagramScraperHeadless(target_profile=target, max_posts=3)
             
-            # Executa a raspagem assíncrona dentro do contexto síncrono do worker
-            posts_data = asyncio.run(scraper.fetch_recent_posts())
+            # Executa a raspagem com os cookies da sessão ativa
+            posts_data = asyncio.run(scraper.fetch_recent_posts(external_cookies=active_cookies))
             
             if not posts_data:
                 print(f"[InstagramWorker] ⚠️ Nenhum dado retornado para {target}. Verifique cookies/sessão.")
+                
+                # Se falhou com sessão do banco, marca como expirada
+                if session_id != "env_fallback":
+                    try:
+                        supabase.table('worker_sessions').update({'status': 'expired'}).eq('id', session_id).execute()
+                        print(f"[InstagramWorker] 🚩 Sessão [{session_id[:8]}] marcada como expirada.")
+                    except: pass
+                
                 self.after_run(success=False, total_items=0, error_details="Nenhum dado retornado")
                 return False
 
             # 3. Processamento e Sanitização dos Comentários
             all_payloads = []
             for post in posts_data:
-                # Opcional: Salva também o texto do post (caption) como se fosse um comentário do próprio autor
-                post_caption = {
-                    'text': post.get('text', ''),
-                    'id': post.get('shortcode', ''),
-                    'ownerUsername': target,
-                    'timestamp': post.get('timestamp')
-                }
-                all_payloads.append(self._sanitize_comment(post_caption, "POST"))
+                # Salva o post caption
+                if post.get('text'):
+                    post_caption = {
+                        'text': post.get('text', ''),
+                        'id': post.get('shortcode', ''),
+                        'ownerUsername': target,
+                        'timestamp': post.get('timestamp')
+                    }
+                    all_payloads.append(self._sanitize_comment(post_caption, "POST"))
                 
-                # Adiciona os comentários extraídos do modal
+                # Adiciona comentários
                 for comment in post.get('comments', []):
                     all_payloads.append(self._sanitize_comment(comment, "COMMENT"))
 

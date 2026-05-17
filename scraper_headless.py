@@ -3,6 +3,8 @@ import sys
 import asyncio
 import logging
 import os
+import json
+from typing import Any
 from dotenv import load_dotenv
 from playwright.async_api import async_playwright
 
@@ -10,6 +12,7 @@ if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
 logger = logging.getLogger("ScraperHeadless")
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 load_dotenv()
 
@@ -20,20 +23,22 @@ class InstagramScraperHeadless:
         self.max_posts = max_posts 
         
         self.session_id = os.getenv("INSTAGRAM_SESSIONID")
+        self.session_id_fallback = os.getenv("INSTAGRAM_SESSIONID_FALLBACK")
         self.ds_user_id = os.getenv("INSTAGRAM_DS_USER_ID")
         self.csrf_token = os.getenv("INSTAGRAM_CSRFTOKEN")
 
-        if not self.session_id or not self.ds_user_id or not self.csrf_token:
-            raise ValueError("❌ Variáveis de sessão do Instagram não encontradas no .env")
+        if not self.session_id and not self.session_id_fallback:
+            raise ValueError("❌ Nenhuma variável de sessão do Instagram (principal ou fallback) encontrada no .env")
 
-    async def _inject_cookies(self, context):
+    async def _inject_cookies(self, context, session_id=None):
+        sid = session_id or self.session_id or self.session_id_fallback
         await context.add_cookies([
-            {"name": "sessionid", "value": self.session_id, "domain": ".instagram.com", "path": "/", "httpOnly": True, "secure": True, "sameSite": "Lax"},
+            {"name": "sessionid", "value": sid, "domain": ".instagram.com", "path": "/", "httpOnly": True, "secure": True, "sameSite": "Lax"},
             {"name": "ds_user_id", "value": self.ds_user_id, "domain": ".instagram.com", "path": "/", "secure": True},
             {"name": "csrftoken", "value": self.csrf_token, "domain": ".instagram.com", "path": "/", "secure": True}
         ])
 
-    async def fetch_recent_posts(self):
+    async def fetch_recent_posts(self, external_cookies: Any = None):
         logger.info(f"🚀 Iniciando Playwright para: {self.target_profile}")
         
         async with async_playwright() as p:
@@ -48,7 +53,50 @@ class InstagramScraperHeadless:
                 locale='pt-BR'
             )
             
-            await self._inject_cookies(context)
+            if external_cookies:
+                logger.info("🔑 Preparando injeção de cookies externos...")
+                try:
+                    cookies_to_inject = []
+                    
+                    # Caso 1: Recebeu uma string (pode ser JSON ou ID puro)
+                    if isinstance(external_cookies, str):
+                        try:
+                            parsed = json.loads(external_cookies)
+                            if isinstance(parsed, list):
+                                cookies_to_inject = parsed
+                            elif isinstance(parsed, dict):
+                                cookies_to_inject = [parsed]
+                            else:
+                                # Se decodificou mas não é lista/dict (ex: "ID_PURO"), trata como string
+                                raise ValueError("JSON decodificado não é objeto/lista")
+                        except (json.JSONDecodeError, ValueError):
+                            logger.info("⚠️ Cookies em formato string simples. Montando objeto...")
+                            cookies_to_inject = [
+                                {"name": "sessionid", "value": external_cookies.strip('"'), "domain": ".instagram.com", "path": "/", "httpOnly": True, "secure": True, "sameSite": "Lax"},
+                                {"name": "ds_user_id", "value": self.ds_user_id, "domain": ".instagram.com", "path": "/", "secure": True},
+                                {"name": "csrftoken", "value": self.csrf_token, "domain": ".instagram.com", "path": "/", "secure": True}
+                            ]
+                    
+                    # Caso 2: Já recebeu uma lista
+                    elif isinstance(external_cookies, list):
+                        cookies_to_inject = external_cookies
+                    
+                    # Caso 3: Já recebeu um dict único
+                    elif isinstance(external_cookies, dict):
+                        cookies_to_inject = [external_cookies]
+
+                    # Validação Final e Injeção
+                    if isinstance(cookies_to_inject, list) and len(cookies_to_inject) > 0:
+                        logger.info(f"✅ Injetando {len(cookies_to_inject)} cookies no contexto.")
+                        await context.add_cookies(cookies_to_inject)
+                    else:
+                        logger.warning("❓ Nenhum cookie válido extraído. Usando fallback.")
+                        await self._inject_cookies(context)
+                except Exception as e:
+                    logger.error(f"❌ Falha crítica ao injetar cookies: {e}")
+                    await self._inject_cookies(context)
+            else:
+                await self._inject_cookies(context)
             
             page = await context.new_page()
             
@@ -61,26 +109,43 @@ class InstagramScraperHeadless:
             try:
                 # 1. Acessa o Perfil
                 logger.info(f"🎯 Navegando para o perfil: {self.profile_url}")
-                await page.goto(self.profile_url, wait_until="domcontentloaded", timeout=30000)
+                await page.goto(self.profile_url, wait_until="load", timeout=60000)
                 
+                # Aguarda um pouco para JS carregar
+                await asyncio.sleep(5)
+                
+                logger.info(f"📄 Página carregada: {await page.title()} | URL Atual: {page.url}")
+
                 if "login" in page.url:
-                    logger.error("❌ Sessão expirada.")
+                    logger.error("❌ Sessão expirada ou bloqueio de login.")
                     return []
 
                 # Tenta fechar pop-ups
                 try:
-                    await page.click('button:has-text("Agora não"), button:has-text("Not Now")', timeout=2000)
+                    await page.click('button:has-text("Agora não"), button:has-text("Not Now")', timeout=3000)
                 except Exception:
                     pass
+
+                # Pequeno scroll para "acordar" o carregamento dinâmico
+                await page.mouse.wheel(0, 500)
+                await asyncio.sleep(2)
 
                 # 2. Captura os elementos dos posts (não os links, mas os objetos clicáveis)
                 logger.info("⏳ Aguardando o grid carregar...")
                 selector = 'a[href*="/p/"], a[href*="/reel/"]'
-                await page.wait_for_selector(selector, timeout=15000)
-                await asyncio.sleep(2)
+                
+                try:
+                    await page.wait_for_selector(selector, timeout=30000)
+                except Exception:
+                    logger.warning("⚠️ Grid de posts não encontrado no tempo limite. Tentando captura direta.")
                 
                 post_elements = await page.query_selector_all(selector)
                 
+                if not post_elements:
+                    logger.error(f"❌ Nenhum post encontrado para @{self.target_profile}. Perfil privado ou bloqueio?")
+                    await page.screenshot(path=f"falha_{self.target_profile}.png")
+                    return []
+
                 # Limita a quantidade
                 post_elements = post_elements[:self.max_posts]
                 logger.info(f"✅ Encontrados {len(post_elements)} posts. Extraindo via Modal...")
@@ -168,7 +233,7 @@ class InstagramScraperHeadless:
                 await browser.close()
 
 async def main():
-    scraper = InstagramScraperHeadless("instagram", max_posts=3) 
+    scraper = InstagramScraperHeadless("cironogueira", max_posts=3) 
     dados = await scraper.fetch_recent_posts()
     
     print("\n" + "="*50)
