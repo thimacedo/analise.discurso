@@ -84,7 +84,7 @@ async function fetchComments() {
         const timestamp = Date.now();
         const response = await fetch(
             `${SUPABASE_URL}/rest/v1/comentarios?` +
-            `select=id,id_externo,autor_username,texto_limpo,texto_bruto,data_coleta,data_publicacao,is_hate,categoria_ia,direcao_odio,confianca_ia,processado_ia,candidato_id,plataforma,ccf_density,ccf_sync,ccf_performativity&` +
+            `select=id,id_externo,autor_username,texto_limpo,texto_bruto,data_coleta,data_publicacao,is_hate,categoria_ia,direcao_odio,confianca_ia,processado_ia,candidato_id,plataforma&` +
             `order=data_coleta.desc&limit=100&t=${timestamp}`, {
             headers: {
                 'apikey': SUPABASE_ANON_KEY,

@@ -62,10 +62,30 @@ class InstagramWorker(BaseWorker):
         if self._check_circuit_breaker():
             return False
 
+        # 1.1 Identificação da Sessão (PASA v49.6: Multi-session support)
+        try:
+            session_res = supabase.table('worker_sessions')\
+                .select('id', 'cookies')\
+                .eq('plataforma', 'instagram')\
+                .eq('status', 'active')\
+                .order('updated_at', desc=True)\
+                .limit(1)\
+                .execute()
+            
+            if not session_res.data:
+                print("[InstagramWorker] 🛑 Erro: Nenhuma sessão ativa disponível no banco.")
+                return False
+                
+            self.active_session_id = session_res.data[0]['id']
+            self.active_cookies = session_res.data[0]['cookies']
+        except Exception as e:
+            print(f"[InstagramWorker] Erro ao carregar sessão: {e}")
+            return False
+
         try:
             # 2. Rate Limiting Humano (Anti-Ban)
             sleep_time = random.uniform(2.0, 5.0)
-            print(f"[InstagramWorker] Dormindo {sleep_time:.2f}s para simular comportamento humano...")
+            print(f"[InstagramWorker] Sessão [{self.active_session_id[:8]}] ativa. Dormindo {sleep_time:.2f}s...")
             time.sleep(sleep_time)
 
             # 3. Execução da Raspagem (PASA v47: Posts + Reels)
@@ -99,7 +119,7 @@ class InstagramWorker(BaseWorker):
             self.after_run(
                 success=True,
                 critical_hits=hate_count,
-                rejections=len(all_comments) - len(valid_payloads) if 'all_comments' in locals() else 0,
+                rejections=len(all_payloads) - len(valid_payloads),
                 total_items=len(valid_payloads),
                 auth_fail=False,
                 timeout=False
@@ -114,11 +134,12 @@ class InstagramWorker(BaseWorker):
             print(f"[InstagramWorker] ERRO CAPTURADO: {error_msg}")
             
             if auth_fail:
-                print(f"[InstagramWorker] ⚠️ Falha de Autenticação detectada! Marcando sessão como expirada.")
+                print(f"[InstagramWorker] ⚠️ Falha na Sessão {self.active_session_id[:8]}! Marcando como expirada.")
                 try:
-                    supabase.table('worker_sessions').update({'status': 'expired'}).eq('plataforma', 'instagram').execute()
+                    # PASA v49.6: Marca apenas a sessão que falhou
+                    supabase.table('worker_sessions').update({'status': 'expired'}).eq('id', self.active_session_id).execute()
                 except Exception as ex:
-                    print(f"Erro ao marcar sessão como expirada: {ex}")
+                    print(f"Erro ao invalidar sessão: {ex}")
 
             self.after_run(
                 success=False,

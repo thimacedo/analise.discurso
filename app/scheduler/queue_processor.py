@@ -58,14 +58,22 @@ class QueueProcessor:
             supabase.table('fila_coleta').update({'status': 'failed'}).eq('id', item_id).execute()
 
     def _check_global_pause(self):
-        """PASA v24: Verifica se a sessão do Instagram está marcada como expirada antes de processar."""
+        """PASA v24/v49.6: Verifica se existe pelo menos UMA sessão do Instagram ativa antes de processar."""
         try:
-            session = supabase.table('worker_sessions').select('status').eq('plataforma', 'instagram').execute()
-            if session.data and session.data[0]['status'] == 'expired':
-                print("[QueueProcessor] Sessão do Instagram expirada. Aguardando injeção de cookies via Dashboard...")
+            # PASA v49.6: Verifica se existe qualquer sessão 'active'
+            session = supabase.table('worker_sessions')\
+                .select('id')\
+                .eq('plataforma', 'instagram')\
+                .eq('status', 'active')\
+                .limit(1)\
+                .execute()
+                
+            if not session.data:
+                print("[QueueProcessor] ⚠️ Nenhuma sessão ATIVA do Instagram encontrada. Aguardando injeção de cookies via Dashboard...")
                 return True
         except Exception as e:
-            # Se a tabela não existir ainda, ignora o pause
+            # Se a tabela não existir ainda ou outro erro, ignora o pause para não travar
+            print(f"[QueueProcessor] Erro ao verificar pausa global: {e}")
             pass
         return False
 

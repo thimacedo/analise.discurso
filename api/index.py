@@ -316,6 +316,26 @@ def get_temporal_series(supa: Client = Depends(get_supa)):
         logger.error(f"Series Error: {e}")
         return []
 
+@app.post("/api/v1/audit/validate")
+async def audit_validate(payload: Dict[str, Any] = Body(...), supa: Client = Depends(get_supa)):
+    """Ponto de auditoria manual do frontend."""
+    try:
+        comment_id = payload.get("comment_id")
+        rotulo = payload.get("rotulo_correto")
+        
+        # Atualiza o comentário original
+        is_hate = rotulo == 'hate'
+        supa.table('comentarios').update({
+            "is_hate": is_hate,
+            "processado_ia": True,
+            "categoria_ia": "VALIDADO_MANUALMENTE"
+        }).eq('id', comment_id).execute()
+        
+        return {"status": "success"}
+    except Exception as e:
+        logger.error(f"Audit Validate Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # --- COMPATIBILITY ALIASES FOR TESTS ---
 @app.get("/api/v1/trends")
 def trends(supa: Client = Depends(get_supa)):
@@ -401,6 +421,32 @@ def register_push_token(payload: PushTokenRegistration, supa: Client = Depends(g
 
 # --- WORKERS METRICS ENDPOINTS (v20.1+) ---
 
+@app.get("/api/v1/workers/telemetry")
+async def get_workers_telemetry():
+    """Alias para compatibilidade com o frontend (PASA v47.3)."""
+    return await workers_stats()
+
+@app.get("/api/v1/monitor/status")
+async def get_monitor_status(supa: Client = Depends(get_supa)):
+    """Status consolidado do monitoramento para o frontend."""
+    try:
+        # Busca estatísticas básicas de saúde do sistema
+        res = supa.table('worker_sessions').select('status').eq('plataforma', 'instagram').execute()
+        sessions = res.data or []
+        active_sessions = sum(1 for s in sessions if s.get('status') == 'active')
+        
+        return {
+            "status": "operational",
+            "queue_health": {
+                "active_sessions": active_sessions,
+                "total_sessions": len(sessions)
+            },
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Monitor Status Error: {e}")
+        return {"status": "degraded", "queue_health": {}, "error": str(e)}
+
 @app.get("/api/v1/workers/dashboard")
 async def workers_dashboard():
     """Dashboard consolidado de saúde e desempenho dos workers."""
@@ -463,9 +509,36 @@ async def export_metrics(filepath: str = "data/workers_metrics_export.json"):
 
 # --- SESSIONS ENDPOINTS (v47.5) ---
 
+@app.get("/api/v1/sessions/instagram/status")
+async def get_instagram_session_status(supa: Client = Depends(get_supa)):
+    """Verifica o status da sessão do Instagram (Busca a sessão ATIVA mais recente)."""
+    try:
+        # PASA v49.6: Busca a sessão ATIVA mais recente para suporte a fallback
+        res = supa.table('worker_sessions')\
+            .select('*')\
+            .eq('plataforma', 'instagram')\
+            .eq('status', 'active')\
+            .order('updated_at', desc=True)\
+            .limit(1)\
+            .execute()
+            
+        if not res.data:
+            return {"status": "missing", "message": "Nenhuma sessão ativa encontrada"}
+        
+        session = res.data[0]
+        return {
+            "status": "active",
+            "last_updated": session.get('updated_at'),
+            "is_valid": True,
+            "session_id_preview": session.get('cookies', '')[:15] + "..."
+        }
+    except Exception as e:
+        logger.error(f"Session Status Error: {e}")
+        return {"status": "error", "message": str(e)}
+
 @app.get("/api/v1/sessions/instagram")
 async def get_sessions(supa: Client = Depends(get_supa)):
-    """Lista sessões de raspagem do Instagram."""
+    """Lista todas as sessões de raspagem do Instagram."""
     try:
         res = supa.table('worker_sessions').select('*').eq('plataforma', 'instagram').order('updated_at', desc=True).execute()
         return res.data or []
@@ -475,7 +548,7 @@ async def get_sessions(supa: Client = Depends(get_supa)):
 
 @app.post("/api/v1/sessions/instagram/cookies")
 async def add_session(payload: SessionCookieRequest, supa: Client = Depends(get_supa)):
-    """Adiciona/Injeta novos cookies de sessão."""
+    """Adiciona/Injeta novos cookies de sessão (Evita duplicados plataforma+cookies)."""
     try:
         data = {
             "plataforma": "instagram",
@@ -483,7 +556,8 @@ async def add_session(payload: SessionCookieRequest, supa: Client = Depends(get_
             "status": "active",
             "updated_at": datetime.now(timezone.utc).isoformat()
         }
-        res = supa.table('worker_sessions').insert(data).execute()
+        # PASA v49.6: on_conflict agora usa a restrição composta
+        res = supa.table('worker_sessions').upsert(data, on_conflict='plataforma,cookies').execute()
         return {"status": "success", "data": res.data[0] if res.data else {}}
     except Exception as e:
         logger.error(f"Add Session Error: {e}")
