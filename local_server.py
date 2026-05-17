@@ -34,19 +34,39 @@ COOLDOWN_HOURS = 6
 class WarRoomUI:
     @staticmethod
     def render(status, db_status, queue_size, cycle, logs):
+        # ANSI Colors para sutileza e destaque
+        CYAN = "\033[36m"
+        BLUE = "\033[34m"
+        GREEN = "\033[32m"
+        YELLOW = "\033[33m"
+        RED = "\033[31m"
+        RESET = "\033[0m"
+        BOLD = "\033[1m"
+        DIM = "\033[2m"
+
         os.system('cls' if os.name == 'nt' else 'clear')
-        print("="*75)
-        print(f" SENTINELA DEMOCRÁTICA | WAR ROOM | {datetime.now().strftime('%H:%M:%S')}")
-        print("="*75)
-        print(f" STATUS: {status}")
-        print(f" DB: {db_status} | FILA: {queue_size} | CICLO: {cycle}")
-        print("-"*75)
-        print(" LOGS DE OPERAÇÃO RECENTES:")
-        for log in logs[-8:]:
-            print(f" > {log}")
-        print("="*75)
-        print(" [PASA v49] Clean Architecture")
-        print("="*75)
+        
+        # Header Minimalista
+        print(f"{DIM}┌───────────────────────────────────────────────────────────────────────────┐{RESET}")
+        print(f"{DIM}│{RESET}  {BOLD}{CYAN}SENTINELA DEMOCRÁTICA{RESET} {DIM}│{RESET} {BOLD}WAR ROOM{RESET} {DIM}│{RESET} {datetime.now().strftime('%H:%M:%S')} {DIM}│{RESET} {DIM}v49.8.2{RESET}  {DIM}│{RESET}")
+        print(f"{DIM}├───────────────────────────────────────────────────────────────────────────┤{RESET}")
+        
+        # Status de Operação
+        st_color = GREEN if "ONLINE" in db_status else RED
+        print(f"{DIM}│{RESET}  {BOLD}STATUS »{RESET} {YELLOW}{status:<40}{RESET} {DIM}│{RESET}")
+        print(f"{DIM}│{RESET}  {BOLD}BANCO  »{RESET} {st_color}{db_status:<10}{RESET} {DIM}│{RESET} {BOLD}FILA »{RESET} {CYAN}{str(queue_size):<6}{RESET} {DIM}│{RESET} {BOLD}CICLO »{RESET} {BLUE}{str(cycle):<5}{RESET} {DIM}│{RESET}")
+        print(f"{DIM}├───────────────────────────────────────────────────────────────────────────┤{RESET}")
+        
+        # Logs Recentes com sutileza
+        print(f"{DIM}│{RESET}  {BOLD}LOGS DE OPERAÇÃO (REAL-TIME){RESET}                                     {DIM}│{RESET}")
+        for log in logs[-7:]:
+            # Formata log para caber na largura
+            clean_log = log[:68] + "..." if len(log) > 68 else log
+            print(f"{DIM}│{RESET}  {DIM}›{RESET} {clean_log:<71} {DIM}│{RESET}")
+        
+        # Footer
+        print(f"{DIM}└───────────────────────────────────────────────────────────────────────────┘{RESET}")
+        print(f"   {DIM}Iniciando Perícia Analítica em Dados Reais · Diamond Engine{RESET}\n")
 
 def log_event(log_list, msg):
     log_list.append(f"[{datetime.now().strftime('%H:%M')}] {msg}")
