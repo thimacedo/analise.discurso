@@ -33,3 +33,4 @@ data/cache/
 logs/
 *.log
 .vercel
+proposta_frontend
