@@ -13,12 +13,16 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 try:
     from core.auto_updater import check_for_updates
+    from core.zyte_checker import check_zyte_health
 except ImportError:
     check_for_updates = lambda: False
+    check_zyte_health = lambda: (True, "Skipped")
 
 SERVER_SCRIPT = "local_server.py"
 RESTART_DELAY = 30
+ZYTE_CHECK_INTERVAL = 1800 # 30 min
 REQUIREMENTS_FILE = "requirements.txt"
+
 
 CALLMEBOT_PHONE = "558496066876"
 CALLMEBOT_APIKEY = "8552672"
@@ -71,10 +75,23 @@ def send_whatsapp_alert(message: str):
 def guard():
     print("🐕 Watchdog Sentinela v49 ativado. Guardando o Nó Local.")
     python_exe = get_python_executable()
+    last_zyte_check = 0
     
     while True:
+        # 0. Verificação de Saúde do Motor Zyte
+        if time.time() - last_zyte_check > ZYTE_CHECK_INTERVAL:
+            print("[Watchdog] Verificando saúde do Zyte API...")
+            zyte_ok, zyte_msg = check_zyte_health()
+            if not zyte_ok:
+                error_msg = f"🚩 *ZYTE API ALERT* 🚩\n\nFalha no motor de coleta!\nMotivo: `{zyte_msg}`\n\nO sistema tentará operar via Playwright fallback."
+                send_whatsapp_alert(error_msg)
+            else:
+                print("[Watchdog] Motor Zyte operacional.")
+            last_zyte_check = time.time()
+
         try:
             if check_for_updates():
+
                 print("[Watchdog] Atualização detectada. Curando dependências...")
                 heal_dependencies(python_exe)
         except Exception as e:

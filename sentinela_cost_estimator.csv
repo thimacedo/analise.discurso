@@ -1,0 +1,3 @@
+Domain,Requests per month,Rendered HTML,Screenshot,Data Extraction,Extraction Source
+instagram.com,57600,0,0,,httpResponseBody
+instagram.com,2880,1,0,,browserHtml
