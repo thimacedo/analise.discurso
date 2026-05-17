@@ -53,8 +53,14 @@ class InstagramScraperZyte:
             if response.status_code == 200:
                 res_data = response.json()
                 
+                # Verifica status da página alvo (Instagram)
+                target_status = res_data.get("statusCode", 200)
+                if target_status == 404:
+                    logger.error(f"⚠️ [Username Inválido] Perfil não encontrado (404): {url}")
+                    return {"error": "not_found", "statusCode": 404}
+                
                 if use_browser:
-                    return {"browserHtml": res_data.get("browserHtml")}
+                    return {"browserHtml": res_data.get("browserHtml"), "statusCode": target_status}
                 
                 import base64
                 body_b64 = res_data.get("httpResponseBody")

@@ -95,13 +95,22 @@ class InstagramWorker(BaseWorker):
             else:
                 print(f"[InstagramWorker] 🚀 Iniciando coleta de PERFIL via ZYTE: {target}")
                 zyte_scraper = InstagramScraperZyte(target_profile=target, max_posts=3)
+                # fetch_recent_posts pode retornar erro 404 mapeado
                 posts_data = asyncio.run(zyte_scraper.fetch_recent_posts(external_cookies=active_cookies))
+                
+                # Verificação específica de Divergência de Username
+                if isinstance(posts_data, dict) and posts_data.get("statusCode") == 404:
+                    print(f"\n[ALERTA USERNAME] ❌ O perfil @{target} não existe ou o username está divergente.")
+                    with open("divergent_usernames.log", "a", encoding="utf-8") as f:
+                        f.write(f"[{datetime.now().strftime('%Y-%m-%d %H:%M')}] @{target} - 404 Not Found\n")
+                    posts_data = [] # Limpa para não dar erro de iteração
             
             # 3. Fallback: Playwright (Apenas Perfil)
             if not posts_data and not is_url:
                 print(f"[InstagramWorker] ⚠️ Zyte falhou. Tentando FALLBACK Playwright...")
                 headless_scraper = InstagramScraperHeadless(target_profile=target, max_posts=3)
                 posts_data = asyncio.run(headless_scraper.fetch_recent_posts(external_cookies=active_cookies))
+
             
             if not posts_data:
                 print(f"[InstagramWorker] ❌ Nenhum dado retornado para {target}.")

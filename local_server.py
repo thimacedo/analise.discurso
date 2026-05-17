@@ -26,10 +26,10 @@ except ImportError as e:
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - SERVER - %(message)s')
 logger = logging.getLogger("SentinelaServer")
 
-# Configurações do Ciclo
-CYCLE_PAUSE = 900
-SCRAPE_PAUSE = 45
-COOLDOWN_HOURS = 6
+# Configurações do Ciclo (Otimizadas para Zyte Equalitário)
+CYCLE_PAUSE = 1800  # 30 min
+SCRAPE_PAUSE = 60   # 1 min entre alvos
+COOLDOWN_HOURS = 12 # 12h entre coletas do mesmo alvo (divisão justa)
 
 class WarRoomUI:
     @staticmethod
