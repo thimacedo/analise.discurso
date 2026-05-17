@@ -59,14 +59,21 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 
 def get_supa() -> Client:
-    """Dependency para obter cliente Supabase."""
-    if not SUPABASE_URL or not SUPABASE_KEY:
-        raise HTTPException(status_code=500, detail="Database credentials (SUPABASE_URL/KEY) missing in environment")
+    """Dependency para obter cliente Supabase com diagnóstico aprimorado."""
+    url = os.getenv("SUPABASE_URL")
+    key = os.getenv("SUPABASE_KEY")
+    
+    if not url or not key:
+        logger.error(f"❌ CREDENCIAIS AUSENTES: URL={bool(url)}, KEY={bool(key)}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Database credentials missing in environment (URL:{bool(url)}, KEY:{bool(key)})"
+        )
     try:
-        return create_client(SUPABASE_URL, SUPABASE_KEY)
+        return create_client(url, key)
     except Exception as e:
-        logger.error(f"Supabase Client Error: {e}")
-        raise HTTPException(status_code=500, detail="Failed to connect to Supabase")
+        logger.error(f"❌ SUPABASE CONNECTION ERROR: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to connect to Supabase: {str(e)}")
 
 # --- MODELS ---
 class CheckoutRequest(BaseModel):
@@ -445,7 +452,7 @@ async def get_monitor_status(supa: Client = Depends(get_supa)):
         }
     except Exception as e:
         logger.error(f"Monitor Status Error: {e}")
-        return {"status": "degraded", "queue_health": {}, "error": str(e)}
+        raise HTTPException(status_code=500, detail=f"Monitor Status Error: {str(e)}")
 
 @app.get("/api/v1/workers/dashboard")
 async def workers_dashboard():
@@ -534,7 +541,7 @@ async def get_instagram_session_status(supa: Client = Depends(get_supa)):
         }
     except Exception as e:
         logger.error(f"Session Status Error: {e}")
-        return {"status": "error", "message": str(e)}
+        raise HTTPException(status_code=500, detail=f"Session Status Error: {str(e)}")
 
 @app.get("/api/v1/sessions/instagram")
 async def get_sessions(supa: Client = Depends(get_supa)):
@@ -544,7 +551,7 @@ async def get_sessions(supa: Client = Depends(get_supa)):
         return res.data or []
     except Exception as e:
         logger.error(f"Get Sessions Error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Get Sessions Error: {str(e)}")
 
 @app.post("/api/v1/sessions/instagram/cookies")
 async def add_session(payload: SessionCookieRequest, supa: Client = Depends(get_supa)):

@@ -2,18 +2,12 @@
  * PASA v44.2 - Auth Module: Integração Supabase Auth
  * Resolve erro 404 no import do app.js
  */
-const supabaseUrl = window.SENTINELA_CONFIG?.supabaseUrl;
-const supabaseKey = window.SENTINELA_CONFIG?.supabaseKey;
-
-let supabase;
-if (supabaseUrl && supabaseKey && window.supabase) {
-    supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-}
-
+import { getSupabase } from './supabase.js';
 
 let currentUser = null;
 
 export async function initAuth() {
+    const supabase = getSupabase();
     if (!supabase) return;
     
     const { data: { session } } = await supabase.auth.getSession();

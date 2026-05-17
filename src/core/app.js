@@ -4,6 +4,7 @@
  */
 import { State, stateMutations, selectors } from './state.js';
 import { UI } from './ui.js';
+import { getSupabase } from './supabase.js';
 import { initAuth, getCurrentUserEmail } from './auth.js';
 import { renderSessionManager } from '../components/session-manager.js';
 import { renderSessionsView } from '../components/session-table.js';
@@ -78,24 +79,17 @@ async function loadInitialData() {
 
 // Data fetching functions
 async function fetchComments() {
-    if (!SUPABASE_URL) return;
+    const supabase = getSupabase();
+    if (!supabase) return;
     
     try {
-        const timestamp = Date.now();
-        const response = await fetch(
-            `${SUPABASE_URL}/rest/v1/comentarios?` +
-            `select=id,id_externo,autor_username,texto_limpo,texto_bruto,data_coleta,data_publicacao,is_hate,categoria_ia,direcao_odio,confianca_ia,processado_ia,candidato_id,plataforma&` +
-            `order=data_coleta.desc&limit=100&t=${timestamp}`, {
-            headers: {
-                'apikey': SUPABASE_ANON_KEY,
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                'Cache-Control': 'no-cache',
-                'Pragma': 'no-cache'
-            }
-        });
+        const { data: comments, error } = await supabase
+            .from('comentarios')
+            .select('id,id_externo,autor_username,texto_limpo,texto_bruto,data_coleta,data_publicacao,is_hate,categoria_ia,direcao_odio,confianca_ia,processado_ia,candidato_id,plataforma')
+            .order('data_coleta', { ascending: false })
+            .limit(100);
         
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const comments = await response.json();
+        if (error) throw error;
         stateMutations.setComments(State, comments);
     } catch (error) {
         console.error('Failed to fetch comments:', error);

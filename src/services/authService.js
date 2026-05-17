@@ -2,17 +2,12 @@
  * PASA v44.2 - Auth Service: Supabase Authentication Wrapper
  * Handles user authentication and session management
  */
-const SENTINELA_CONFIG = window.SENTINELA_CONFIG;
+import { getSupabase } from '../core/supabase.js';
 
 class SentinelAuthService {
     constructor() {
-        // Initialize Supabase client using global window.supabase
-        if (SENTINELA_CONFIG && window.supabase) {
-            this.supabase = window.supabase.createClient(
-                SENTINELA_CONFIG.supabaseUrl,
-                SENTINELA_CONFIG.supabaseKey
-            );
-        }
+        // Initialize Supabase client using global provider
+        this.supabase = getSupabase();
         
         this.user = null;
         this.session = null;
