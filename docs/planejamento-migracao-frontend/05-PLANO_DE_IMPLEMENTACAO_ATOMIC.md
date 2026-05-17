@@ -7,7 +7,8 @@ Transformar o amontoado de Vanilla JS em um frontend robusto e "Solenya-tight" u
 ### In Scope
 - Setup de Next.js na raiz do projeto.
 - Configuração de dependências Frontend (`package.json` unificado ou gerenciado separadamente).
-- Migração visual: Componentização dos dashboards, painéis e gráficos usando Shadcn e Recharts baseados no `PROPOSTA.MD`.
+- Migração visual: Componentização de TODAS as 7 abas do protótipo (War Room, Análise Forense, Alvos, Dossiês, Alertas, Rede e Fila de Coleta) usando Shadcn e Recharts.
+- CSS/Estética Tática: Migrar os estilos globais (`globals.css`) que incluem as animações de scan line, glow pulses e corner brackets descritas no `worklog.md` do protótipo base.
 - Estado: Substituir `state.js` por `Zustand` e injetar chamadas via `React Query`.
 - Autenticação e Queries: Instalação e uso estrito de `@supabase/supabase-js` (abandonando a ideia do Prisma citada no protótipo).
 - Roteamento Híbrido: Preservar o funcionamento do `vercel.json` para que a rota `/api/*` continue a chamar `api/index.py`.
@@ -42,14 +43,15 @@ Transformar o amontoado de Vanilla JS em um frontend robusto e "Solenya-tight" u
   3. [ ] Criar os hooks customizados com `TanStack React Query` para buscar `comentarios`, `candidatos`, `dossies` e `fila_coleta`.
 - **Verification**: O frontend no painel do Next.js consegue logar e puxar a lista de comentários em JSON do banco.
 
-### Phase 3: UI & Dashboards (Shadcn + Recharts)
-- **Goal**: Construir a interface "War Room" profissional.
+### Phase 3: UI, Tematização Tática e as 7 Abas (Shadcn + Recharts)
+- **Goal**: Construir a interface "War Room" profissional garantindo os 7 módulos do protótipo.
 - **Steps**:
-  1. [ ] Inicializar os componentes base do Shadcn: Card, Avatar, Badge, Tabs, Table.
-  2. [ ] Construir o componente `<Dashboard />` recriando as métricas e KPI's.
-  3. [ ] Migrar os gráficos temporais e de categorias usando `<LineChart>` e `<BarChart>` do Recharts baseados no hook de dados de Supabase (Phase 2).
-  4. [ ] Implementar o feed de Alertas Críticos (Tabela/Feed contínuo) reaproveitando o estilo da prova de conceito do `PROPOSTA.MD`.
-- **Verification**: Navegar pelo painel e verificar se a estilização de Tailwind v4/Shadcn aplicou corretamente com os dados dinâmicos do banco (nada de mock data).
+  1. [ ] Configurar a tematização tática global (`globals.css`) incluindo as animações de scan line, grids e "glow pulse" mapeadas no `worklog.md`.
+  2. [ ] Inicializar os componentes base do Shadcn: Card, Avatar, Badge, Tabs, Table.
+  3. [ ] Construir e rotear as 7 Abas principais: War Room, Análise Forense, Alvos, Dossiês, Alertas, Rede (Análise de Grafos) e Fila de Coleta.
+  4. [ ] Migrar os gráficos temporais e de distribuição de categorias usando Recharts (Radar, Linha e Barras).
+  5. [ ] Implementar o `CommentDetailModal` global para visualização profunda de comentários a partir de qualquer aba.
+- **Verification**: Navegar pelas 7 abas do painel e verificar se a tematização e dados dinâmicos estão 100% integrados à "espinha dorsal" do `PROPOSTA.MD`.
 
 ### Phase 4: Sincronização de Estado Local e Ajustes Finais
 - **Goal**: Garantir que as lógicas e painéis laterais funcionem fluídos usando Zustand.
