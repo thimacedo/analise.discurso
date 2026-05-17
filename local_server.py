@@ -84,11 +84,21 @@ def run_server():
                 
                 pending = db.table('fila_coleta').select('id, candidato_id').eq('status', 'PENDENTE').limit(10).execute()
                 
+                # Dynamic Fallback: se a fila estiver vazia, busca candidatos ativos
+                candidatos_para_raspar = []
                 if not pending.data:
-                    log_event(ops_log, "Fila de raspagem vazia.")
-                    break
+                    log_event(ops_log, "Fila vazia. Buscando candidatos ativos por prioridade/atividade (Fallback).")
+                    # Busca os candidatos ativos ordenando por prioridade (comentarios de ódio) e atividade (comentarios totais)
+                    fallback_res = db.table('candidatos').select('username').eq('status_monitoramento', 'Ativo').order('comentarios_odio_count', desc=True).order('comentarios_totais_count', desc=True).limit(20).execute()
+                    if fallback_res.data:
+                        candidatos_para_raspar = [{'id': None, 'candidato_id': c['username']} for c in fallback_res.data]
+                    else:
+                        log_event(ops_log, "Nenhum candidato ativo encontrado para fallback.")
+                        break
+                else:
+                    candidatos_para_raspar = pending.data
 
-                for p in pending.data:
+                for p in candidatos_para_raspar:
                     if profiles_scraped_this_cycle >= PROFILES_PER_CYCLE: break
                     
                     target_id = p['candidato_id']
@@ -102,8 +112,11 @@ def run_server():
                             last_scraped = datetime.fromisoformat(last_scraped_str.replace('Z', '+00:00'))
                             hours_since = (datetime.now(timezone.utc) - last_scraped).total_seconds() / 3600
                             if hours_since < COOLDOWN_HOURS:
-                                db.table('fila_coleta').delete().eq('id', item_id).execute() # Remove pra não travar a fila
-                                log_event(ops_log, f"@{target_id} em cooldown ({hours_since:.1f}h). Removido.")
+                                if item_id:
+                                    db.table('fila_coleta').delete().eq('id', item_id).execute() # Remove pra não travar a fila
+                                # Não loga no fallback se não tem ID da fila, pra evitar poluição excessiva
+                                if item_id:
+                                    log_event(ops_log, f"@{target_id} em cooldown ({hours_since:.1f}h). Removido da fila.")
                                 continue
                         except Exception: pass
                     
@@ -113,7 +126,8 @@ def run_server():
                     try:
                         success = worker.run(target=target_id)
                         # Deleta da fila após processar (sucesso ou falha)
-                        db.table('fila_coleta').delete().eq('id', item_id).execute()
+                        if item_id:
+                            db.table('fila_coleta').delete().eq('id', item_id).execute()
                         if success:
                             db.table('candidatos').update({'last_scraped_at': datetime.now(timezone.utc).isoformat()}).eq('username', target_id).execute()
                             log_event(ops_log, f"Raspagem de @{target_id} concluída.")
@@ -121,12 +135,18 @@ def run_server():
                         else:
                             log_event(ops_log, f"Falha na raspagem de @{target_id}")
                     except Exception as e:
-                        db.table('fila_coleta').delete().eq('id', item_id).execute()
+                        if item_id:
+                            db.table('fila_coleta').delete().eq('id', item_id).execute()
                         log_event(ops_log, f"ERRO CRÍTICO em @{target_id}: {str(e)[:50]}")
                         break
                     
                     if profiles_scraped_this_cycle < PROFILES_PER_CYCLE:
                         time.sleep(SCRAPE_PAUSE)
+                
+                # Se após tentar a lista inteira (fila ou fallback) não conseguimos nenhum alvo (todos em cooldown), evitamos loop infinito imediato
+                if profiles_scraped_this_cycle == 0:
+                    log_event(ops_log, "Nenhum alvo viável neste momento (Cooldown).")
+                    break
 
             except Exception as e:
                 supabase_status = "🔴 OFFLINE"
