@@ -35,15 +35,15 @@ class WarRoomUI:
     @staticmethod
     def render(status, db_status, queue_size, cycle, logs):
         os.system('cls' if os.name == 'nt' else 'clear')
-        print(f"SENTINELA v49.9 | Ciclo: {cycle} | {datetime.now().strftime('%H:%M:%S')}")
-        print("-" * 50)
+        print(f"--- SENTINELA DEMOCRÁTICA [v49.9] ---")
+        print(f"Tempo: {datetime.now().strftime('%H:%M:%S')} | Ciclo: {cycle}")
         print(f"Status: {status}")
-        print(f"Banco:  {db_status} | Fila: {queue_size}")
-        print("-" * 50)
+        print(f"DB: {db_status} | Fila: {queue_size}")
+        print("------------------------------------")
         print("LOGS RECENTES:")
-        for log in logs[-3:]:
+        for log in logs[-5:]:
             print(f"> {log}")
-        print("-" * 50)
+        print("------------------------------------\n")
 
 def log_event(log_list, msg):
     log_list.append(f"[{datetime.now().strftime('%H:%M')}] {msg}")

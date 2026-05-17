@@ -91,33 +91,26 @@ def send_whatsapp_alert(message: str):
         print(f"[Watchdog] Falha ao enviar alerta WhatsApp: {e}")
 
 def guard():
-    print("🐕 Watchdog Sentinela v49 ativado. Guardando o Nó Local.")
     python_exe = get_python_executable()
     last_zyte_check = 0
     
     while True:
-        # 0. Verificação de Saúde do Motor Zyte
+        # 0. Verificação de Saúde do Motor Zyte (Silencioso se OK)
         if time.time() - last_zyte_check > ZYTE_CHECK_INTERVAL:
-            print("[Watchdog] Verificando saúde do Zyte API...")
             zyte_ok, zyte_msg = check_zyte_health()
             if not zyte_ok:
-                error_msg = f"🚩 *ZYTE API ALERT* 🚩\n\nFalha no motor de coleta!\nMotivo: `{zyte_msg}`\n\nO sistema tentará operar via Playwright fallback."
-                send_whatsapp_alert(error_msg)
-            else:
-                print("[Watchdog] Motor Zyte operacional.")
+                send_whatsapp_alert(f"🚩 *ZYTE API ALERT* 🚩\nMotivo: `{zyte_msg}`")
             last_zyte_check = time.time()
 
         try:
             if check_for_updates():
-
-                print("[Watchdog] Atualização detectada. Curando dependências...")
                 heal_dependencies(python_exe)
-        except Exception as e:
-            print(f"[Watchdog] Erro ao verificar atualizações: {e}")
+        except Exception:
+            pass
         
-        heal_dependencies(python_exe)
+        # Só instala se necessário
+        # heal_dependencies(python_exe) # Removido para evitar log desnecessário a cada ciclo
 
-        print(f"[Watchdog] Iniciando {SERVER_SCRIPT}...")
         try:
             process = subprocess.Popen([python_exe, SERVER_SCRIPT], env=CHILD_ENV)
             
@@ -125,15 +118,14 @@ def guard():
                 poll = process.poll()
                 if poll is not None:
                     if poll != 0:
-                        error_msg = f"🚨 *WATCHDOG ALERT* 🚨\n\nO *Servidor Sentinela* travou!\nCódigo: `{poll}`\n\nReiniciando em {RESTART_DELAY}s."
-                        send_whatsapp_alert(error_msg)
+                        send_whatsapp_alert(f"🚨 *WATCHDOG ALERT* 🚨\nServidor travou (Code: {poll})")
                         heal_dependencies(python_exe)
                     break
                 
                 time.sleep(10)
 
-        except Exception as e:
-            print(f"[Watchdog] Erro ao gerenciar subprocesso: {e}")
+        except Exception:
+            pass
 
         time.sleep(RESTART_DELAY)
 
