@@ -53,6 +53,9 @@ async function loadInitialData() {
         // Initial partial render
         renderApplication();
 
+        // NOVO: inicia o session-manager só uma vez
+        renderSessionManager('session-manager-container');
+
         // Fetch all data in parallel
         await Promise.allSettled([
             fetchComments(),
