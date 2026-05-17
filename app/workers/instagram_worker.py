@@ -1,6 +1,6 @@
 """
-PASA v49.3 - Instagram Worker Fortaleza
-Foco: Resiliência, tratamento rigoroso de schema e persistência garantida.
+PASA v49.7 - Instagram Worker Fortaleza
+Foco: Resiliência Multi-Motor (Zyte + Playwright) e suporte a URLs diretas.
 """
 import time
 import random
@@ -25,27 +25,21 @@ class InstagramWorker(BaseWorker):
         return texto
 
     def _sanitize_comment(self, raw_comment: dict, content_type: str = "POST") -> dict:
-        """
-        Garante que o dicionário de comentário mapeie EXATAMENTE para o schema do Supabase.
-        Inclui obrigatoriamente id_externo (NOT NULL).
-        """
+        """Garante mapeamento exato para o schema do Supabase."""
         text = str(raw_comment.get('text', ''))[:2000]
         texto_limpo = self._limpar_texto(text)
         
-        # 1. Identifica ou gera o id_externo (ID real da rede social)
         id_externo = str(raw_comment.get('id', ''))
         if not id_externo or id_externo == 'None':
-             # Fallback determinístico baseado no conteúdo para dados de teste ou incompletos
              hash_input = f"{getattr(self, 'current_target', 'unknown')}_{content_type}_{text}"
              id_externo = f"ig_gen_{hashlib.md5(hash_input.encode()).hexdigest()[:16]}"
 
-        # 2. Gera UUID determinístico (v5) a partir do id_externo para o ID interno (PK)
         namespace = uuid.NAMESPACE_URL
         id_interno = str(uuid.uuid5(namespace, f"instagram.com/{id_externo}"))
         
         return {
             'id': id_interno,
-            'id_externo': id_externo,          # ← CAMPO OBRIGATÓRIO (NOT NULL)
+            'id_externo': id_externo,
             'texto_bruto': text,
             'texto_limpo': texto_limpo, 
             'autor_username': str(raw_comment.get('ownerUsername', 'unknown')),
@@ -59,11 +53,12 @@ class InstagramWorker(BaseWorker):
 
     def run(self, target: str):
         self.current_target = target
-        # 1. Autocurto-circuito (Circuit Breaker)
         if self._check_circuit_breaker():
             return False
 
-        # 1.1 Identificação da Sessão (PASA v49.6: Multi-session support)
+        # 1. Identificação da Sessão e Tipo de Alvo
+        is_url = target.startswith("http")
+        target_username = target if not is_url else "url_source"
         active_cookies = None
         session_id = "env_fallback"
         
@@ -79,76 +74,71 @@ class InstagramWorker(BaseWorker):
             if session_res.data:
                 session_id = session_res.data[0]['id']
                 active_cookies = session_res.data[0]['cookies']
-                print(f"[InstagramWorker] 🔑 Usando sessão ativa do banco: [{session_id[:8]}]")
-            else:
-                print("[InstagramWorker] ⚠️ Nenhuma sessão ativa no banco. Usando fallback do .env.")
+                print(f"[InstagramWorker] 🔑 Usando sessão ativa: [{session_id[:8]}]")
         except Exception as e:
-            print(f"[InstagramWorker] Erro ao carregar sessão do banco: {e}")
+            print(f"[InstagramWorker] Erro ao carregar sessão: {e}")
 
         try:
             import asyncio
+            from scraper_zyte import InstagramScraperZyte
             from scraper_headless import InstagramScraperHeadless
             
-            # 2. Execução da Raspagem Real via Playwright
-            print(f"[InstagramWorker] 🚀 Iniciando coleta REAL para: {target}")
-            scraper = InstagramScraperHeadless(target_profile=target, max_posts=3)
+            posts_data = []
+
+            # 2. Motor Principal: Zyte API
+            if is_url:
+                print(f"[InstagramWorker] 🔗 Processando URL direta via ZYTE: {target}")
+                zyte_scraper = InstagramScraperZyte(target_profile="url_mode")
+                single_post = asyncio.run(zyte_scraper.fetch_post_comments(post_url=target, external_cookies=active_cookies))
+                if single_post and single_post.get('comments'):
+                    posts_data = [single_post]
+            else:
+                print(f"[InstagramWorker] 🚀 Iniciando coleta de PERFIL via ZYTE: {target}")
+                zyte_scraper = InstagramScraperZyte(target_profile=target, max_posts=3)
+                posts_data = asyncio.run(zyte_scraper.fetch_recent_posts(external_cookies=active_cookies))
             
-            # Executa a raspagem com os cookies da sessão ativa
-            posts_data = asyncio.run(scraper.fetch_recent_posts(external_cookies=active_cookies))
+            # 3. Fallback: Playwright (Apenas Perfil)
+            if not posts_data and not is_url:
+                print(f"[InstagramWorker] ⚠️ Zyte falhou. Tentando FALLBACK Playwright...")
+                headless_scraper = InstagramScraperHeadless(target_profile=target, max_posts=3)
+                posts_data = asyncio.run(headless_scraper.fetch_recent_posts(external_cookies=active_cookies))
             
             if not posts_data:
-                print(f"[InstagramWorker] ⚠️ Nenhum dado retornado para {target}. Verifique cookies/sessão.")
-                
-                # Se falhou com sessão do banco, marca como expirada
-                if session_id != "env_fallback":
-                    try:
-                        supabase.table('worker_sessions').update({'status': 'expired'}).eq('id', session_id).execute()
-                        print(f"[InstagramWorker] 🚩 Sessão [{session_id[:8]}] marcada como expirada.")
-                    except: pass
-                
-                self.after_run(success=False, total_items=0, error_details="Nenhum dado retornado")
+                print(f"[InstagramWorker] ❌ Nenhum dado retornado para {target}.")
+                self.after_run(success=False, error_details="Nenhum dado retornado por Zyte/Playwright")
                 return False
 
-            # 3. Processamento e Sanitização dos Comentários
+            # 4. Processamento e Sanitização
             all_payloads = []
             for post in posts_data:
-                # Salva o post caption
                 if post.get('text'):
-                    post_caption = {
-                        'text': post.get('text', ''),
-                        'id': post.get('shortcode', ''),
-                        'ownerUsername': target,
+                    all_payloads.append(self._sanitize_comment({
+                        'text': post.get('text'),
+                        'id': post.get('shortcode'),
+                        'ownerUsername': target_username if not is_url else "unknown",
                         'timestamp': post.get('timestamp')
-                    }
-                    all_payloads.append(self._sanitize_comment(post_caption, "POST"))
+                    }, "POST"))
                 
-                # Adiciona comentários
                 for comment in post.get('comments', []):
                     all_payloads.append(self._sanitize_comment(comment, "COMMENT"))
 
             if not all_payloads:
-                print(f"[InstagramWorker] Nenhum comentário extraído para {target}.")
                 self.after_run(success=True, total_items=0)
                 return True
 
-            # 4. Persistência
+            # 5. Persistência
             valid_payloads = [p for p in all_payloads if p.get('id_externo')]
             if valid_payloads:
                 supabase.table('comentarios').upsert(valid_payloads, on_conflict='id_externo').execute()
-                print(f"[InstagramWorker] ✅ Sucesso: {len(valid_payloads)} itens reais persistidos para @{target}")
+                print(f"[InstagramWorker] ✅ Sucesso: {len(valid_payloads)} itens persistidos.")
 
-            # 5. Pós-execução
-            self.after_run(
-                success=True,
-                total_items=len(valid_payloads)
-            )
+            self.after_run(success=True, total_items=len(valid_payloads))
             return True
 
         except Exception as e:
-            print(f"[InstagramWorker] 💥 ERRO CRÍTICO NA RASPAGEM: {e}")
+            print(f"[InstagramWorker] 💥 ERRO CRÍTICO: {e}")
             self.after_run(success=False, error_details=str(e))
             return False
 
     def _scrape_section(self, target: str, section: str) -> list:
-        """Legado: Agora centralizado no método run via Playwright."""
         return []
