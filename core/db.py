@@ -52,8 +52,8 @@ class DatabaseClient:
             return
 
         try:
-            # O upsert no Supabase funciona como merge se o ID estiver presente
-            self.client.table('comentarios').upsert(updates).execute()
+            # O upsert no Supabase funciona como merge se o id_externo estiver presente
+            self.client.table('comentarios').upsert(updates, on_conflict='id_externo').execute()
             print(f"✅ [DB] {len(updates)} comentários atualizados em lote.")
         except Exception as e:
             print(f"❌ [DB] Erro no batch_update_comments: {e}")

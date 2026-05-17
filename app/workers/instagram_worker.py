@@ -90,7 +90,7 @@ class InstagramWorker(BaseWorker):
             valid_payloads = [p for p in all_payloads if p.get('id_externo')]
             
             if valid_payloads:
-                supabase.table('comentarios').upsert(valid_payloads, on_conflict='id').execute()
+                supabase.table('comentarios').upsert(valid_payloads, on_conflict='id_externo').execute()
                 print(f"[InstagramWorker] Sucesso: {len(valid_payloads)} comentários persistidos para @{target}")
 
             # 5. Pós-execução com XP

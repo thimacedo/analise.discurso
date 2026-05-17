@@ -84,7 +84,7 @@ async function fetchComments() {
         const timestamp = Date.now();
         const response = await fetch(
             `${SUPABASE_URL}/rest/v1/comentarios?` +
-            `select=id,autor_username,texto_limpo,data_coleta,is_hate,categoria_ia,direcao_odio,confianca_ia,processado_ia,candidato_id,ccf_density,ccf_sync,ccf_performativity&` +
+            `select=id,id_externo,autor_username,texto_limpo,texto_bruto,data_coleta,data_publicacao,is_hate,categoria_ia,direcao_odio,confianca_ia,processado_ia,candidato_id,plataforma,ccf_density,ccf_sync,ccf_performativity&` +
             `order=data_coleta.desc&limit=100&t=${timestamp}`, {
             headers: {
                 'apikey': SUPABASE_ANON_KEY,
@@ -372,6 +372,11 @@ function renderMonitorView() {
 }
 
 function renderCommentCard(comment) {
+    // MAPEAMENTO CORRIGIDO PARA O SCHEMA REAL DO BANCO
+    const text = comment.texto_bruto || comment.texto_limpo || 'Sem texto';
+    const timestamp = comment.data_publicacao || comment.data_coleta;
+    const category = comment.processado_ia ? (comment.categoria_ia || 'NEUTRO') : 'NAO_PROCESSADO';
+
     const confidence = comment.confianca_ia ? (comment.confianca_ia * 100).toFixed(1) : 0;
     const confidenceClass = 
         confidence >= 80 ? 'text-success-600' :
@@ -380,7 +385,7 @@ function renderCommentCard(comment) {
     
     let borderColor = 'border-base-200';
     let badgeClass = 'bg-base-100 text-base-500';
-    let badgeText = 'Pendente';
+    let badgeText = category === 'NAO_PROCESSADO' ? 'Pendente' : 'Processado';
     let quoteClass = 'bg-base-50 border-base-200 text-base-700';
     let iconColor = 'text-base-400';
     
@@ -432,7 +437,7 @@ function renderCommentCard(comment) {
                         </div>
                         <div class="text-right">
                             <span class="text-xs font-mono text-base-400 block">
-                                ${timeAgo(comment.data_coleta)}
+                                ${timeAgo(timestamp)}
                             </span>
                             <span class="text-xs font-bold ${confidenceClass} block">
                                 Conf: ${confidence}%
@@ -440,7 +445,7 @@ function renderCommentCard(comment) {
                         </div>
                     </div>
                     <div class="${quoteClass} border-l-2 rounded-r-lg p-4 mb-4">
-                        <p class="text-sm italic leading-relaxed">"${comment.texto_limpo || ''}"</p>
+                        <p class="text-sm italic leading-relaxed">"${text}"</p>
                     </div>
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-4">
