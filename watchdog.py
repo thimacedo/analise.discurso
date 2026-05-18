@@ -36,9 +36,9 @@ def guard():
         if server_process is None or server_process.poll() is not None:
             if server_process is not None:
                 logger.error("[Watchdog] O servidor local (local_server.py) caiu! Reiniciando em 10 segundos...")
-                send_whatsapp_alert("🔥 *SENTINELA DOWN* 🔥
+                send_whatsapp_alert("""🔥 *SENTINELA DOWN* 🔥
 
-O processo `local_server.py` caiu e será reiniciado. Verifique os logs para a causa raiz.")
+O processo `local_server.py` caiu e será reiniciado. Verifique os logs para a causa raiz.""")
                 time.sleep(10)
             
             logger.info(f"[Watchdog] Iniciando o servidor local: {SERVER_SCRIPT}")
@@ -51,8 +51,8 @@ O processo `local_server.py` caiu e será reiniciado. Verifique os logs para a c
             # Check 2.1: Zyte Extraction API
             zyte_ok, zyte_msg = check_zyte_health()
             if not zyte_ok:
-                send_whatsapp_alert(f"🚩 *ZYTE EXTRACTION ALERT* 🚩
-Motivo: `{zyte_msg}`")
+                send_whatsapp_alert(f"""🚩 *ZYTE EXTRACTION ALERT* 🚩
+Motivo: `{zyte_msg}`""")
                 os.environ["ZYTE_DISABLED"] = "true"
                 logger.warning("[Watchdog] Motor Zyte PAUSADO devido a falha crítica.")
             else:
@@ -60,17 +60,17 @@ Motivo: `{zyte_msg}`")
                     # Se o serviço voltou, reabilita e notifica
                     os.environ["ZYTE_DISABLED"] = "false"
                     logger.info("[Watchdog] Motor Zyte RECUPERADO. Retomando uso.")
-                    send_whatsapp_alert("✅ *ZYTE EXTRACTION OK* ✅
+                    send_whatsapp_alert("""✅ *ZYTE EXTRACTION OK* ✅
 
-O serviço da Zyte API foi restaurado. O motor de extração foi reativado.")
+O serviço da Zyte API foi restaurado. O motor de extração foi reativado.""")
             
             # Check 2.2: Scrapy Cloud (Apenas alerta, não pausa nada)
             scrapy_ok, scrapy_msg = check_scrapy_cloud_health()
             if not scrapy_ok:
                 # Alerta apenas se a chave existir (ou seja, se o sistema estiver em uso)
                 if os.getenv("SCRAPY_CLOUD_API_KEY"):
-                    send_whatsapp_alert(f"⚠️ *SCRAPY CLOUD ALERT* ⚠️
-Motivo: `{scrapy_msg}`")
+                    send_whatsapp_alert(f"""⚠️ *SCRAPY CLOUD ALERT* ⚠️
+Motivo: `{scrapy_msg}`""")
             
             last_zyte_check = time.time()
 
@@ -84,6 +84,6 @@ if __name__ == "__main__":
 🛑 Watchdog finalizado pelo usuário.")
     except Exception as e:
         logger.critical(f"Erro fatal no Watchdog: {e}")
-        send_whatsapp_alert(f"💥 *WATCHDOG CRASHED* 💥
+        send_whatsapp_alert(f"""💥 *WATCHDOG CRASHED* 💥
 
-O próprio watchdog encontrou um erro fatal e parou: `{e}`")
+O próprio watchdog encontrou um erro fatal e parou: `{e}`""")
