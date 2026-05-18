@@ -1,0 +1,134 @@
+import scrapy
+import json
+import hashlib
+from datetime import datetime
+from ..items import InstagramCommentItem
+
+class InstagramAPISpider(scrapy.Spider):
+    """
+    Tier 1 (Primário): Usa a API privada do Instagram via GraphQL.
+    Vantagens: Rápido, leve, sem renderização.
+    Desvantagens: Frágil a mudanças de API, necessita sessionid válido.
+    """
+    name = 'instagram_api'
+    
+    custom_settings = {
+        'CONCURRENT_REQUESTS': 2,
+        'DOWNLOAD_DELAY': 1,
+        'COOKIES_ENABLED': True,
+        'ITEM_PIPELINES': {
+            'sentinela_scrapy.pipelines.QualityGatePipeline': 300,
+            'sentinela_scrapy.pipelines.CleanCommentPipeline': 350,
+        }
+    }
+    
+    def __init__(self, username='', sessionid='', max_posts=5, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.username = username
+        self.sessionid = sessionid
+        self.max_posts = int(max_posts)
+        self.user_id = None
+        
+    def start_requests(self):
+        """Primeira request: obtém o user_id do perfil."""
+        url = f"https://www.instagram.com/api/v1/users/web_profile_info/?username={self.username}"
+        
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            'X-IG-App-ID': '936619743392459',
+            'X-ASBD-ID': '198387',
+            'X-IG-WWW-Claim': '0',
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+        
+        yield scrapy.Request(
+            url=url,
+            headers=headers,
+            cookies={'sessionid': self.sessionid},
+            callback=self.parse_profile,
+            errback=self.handle_error,
+            meta={'tier': 1}
+        )
+    
+    def parse_profile(self, response):
+        """Extrai user_id e lista de posts."""
+        try:
+            data = json.loads(response.text)
+            user_data = data.get('data', {}).get('user', {})
+            
+            self.user_id = user_data.get('id')
+            if not self.user_id:
+                self.logger.error("❌ Tier 1: Falha ao obter user_id. API pode ter mudado.")
+                return
+            
+            # Extrai posts
+            posts = user_data.get('edge_owner_to_timeline_media', {}).get('edges', [])[:self.max_posts]
+            
+            self.logger.info(f"✅ Tier 1: Encontrados {len(posts)} posts para @{self.username}")
+            
+            for post in posts:
+                shortcode = post.get('node', {}).get('shortcode')
+                if shortcode:
+                    yield from self.fetch_post_comments(shortcode)
+                    
+        except json.JSONDecodeError as e:
+            self.logger.error(f"❌ Tier 1: JSON inválido. Possível bloqueio ou login wall: {e}")
+        except Exception as e:
+            self.logger.error(f"❌ Tier 1: Erro ao parsear perfil: {e}")
+    
+    def fetch_post_comments(self, shortcode):
+        """Busca comentários de um post via GraphQL."""
+        query_hash = 'bc3296d1ce80a24b1b6e40b1e72903f5'  # Hash da query de comentários
+        
+        variables = {
+            "shortcode": shortcode,
+            "first": 50,
+            "after": None
+        }
+        
+        url = f"https://www.instagram.com/graphql/query/?query_hash={query_hash}&variables={json.dumps(variables)}"
+        
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'X-IG-App-ID': '936619743392459',
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+        
+        yield scrapy.Request(
+            url=url,
+            headers=headers,
+            cookies={'sessionid': self.sessionid},
+            callback=self.parse_comments,
+            errback=self.handle_error,
+            meta={'shortcode': shortcode, 'tier': 1}
+        )
+    
+    def parse_comments(self, response):
+        """Processa comentários do GraphQL."""
+        shortcode = response.meta['shortcode']
+        
+        try:
+            data = json.loads(response.text)
+            edges = data.get('data', {}).get('shortcode_media', {}).get('edge_media_to_parent_comment', {}).get('edges', [])
+            
+            for edge in edges:
+                node = edge.get('node', {})
+                
+                yield InstagramCommentItem(
+                    comment_id=node.get('id'),
+                    post_shortcode=shortcode,
+                    ownerUsername=node.get('owner', {}).get('username'),
+                    text=node.get('text', ''),
+                    created_at=datetime.fromtimestamp(node.get('created_at', 0)).isoformat() if node.get('created_at') else None,
+                    like_count=node.get('edge_liked_by', {}).get('count', 0),
+                    candidato_id=self.username,
+                    tier_used=1
+                )
+                
+        except Exception as e:
+            self.logger.error(f"❌ Tier 1: Erro ao parsear comentários do post {shortcode}: {e}")
+    
+    def handle_error(self, failure):
+        """Log de erros com contexto de tier."""
+        tier = failure.request.meta.get('tier', 1)
+        self.logger.error(f"❌ Tier {tier}: Requisição falhou - {failure.value}")

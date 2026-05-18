@@ -1,18 +1,17 @@
-"""
-PASA v49 - Instagram Worker: Orquestrador Resiliente com Adaptação Operacional (SAO)
-Cascata de IAs (Groq -> Mistral -> OpenRouter) com Circuit Breaker e Autocura.
-"""
-import os
 import asyncio
+import json
 import logging
+import os
+import sys
+import tempfile
+from typing import List, Dict, Any
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
 
 from core.supabase_service import supabase as db
 
 logger = logging.getLogger("InstagramWorker")
 
-# --- Imports Resilientes: Falha silenciosa se o motor não existir ---
+# --- Imports Resilientes ---
 ScraperZyte = None
 ScraperHeadless = None
 ZYTE_AVAILABLE = False
@@ -32,14 +31,20 @@ except ImportError as e:
 
 
 class InstagramWorker:
+    """
+    Orquestrador de Tiers para coleta do Instagram.
+    Tier 1: API GraphQL (Scrapy)
+    Tier 2: DOM Rendering (Scrapy + Playwright)
+    Tier 3: Zyte Cloud
+    Tier 4: Playwright Solo (Fallback local)
+    """
+    
     def __init__(self):
         self.engine_type = "none"
         if ZYTE_AVAILABLE:
             self.engine_type = "zyte"
         elif HEADLESS_AVAILABLE:
             self.engine_type = "playwright"
-        else:
-            logger.error("❌ NENHUM motor de raspagem disponível!")
 
     def _get_active_session(self) -> Optional[Dict[str, Any]]:
         """Busca uma sessão ativa (cookies) no Supabase."""
@@ -59,19 +64,17 @@ class InstagramWorker:
             logger.error(f"Erro ao buscar sessão ativa: {e}")
         return None
 
-    def _check_auth_pause(self) -> bool:
-        """Verifica se há itens pausados por falha de autenticação."""
-        try:
-            res = (
-                db.table("fila_coleta")
-                .select("id")
-                .eq("status", "paused_auth_fail")
-                .limit(1)
-                .execute()
-            )
-            return len(res.data) > 0
-        except Exception:
-            return False
+    def _extract_sessionid(self, cookies: Any) -> str:
+        """Extrai sessionid de diferentes formatos de cookie."""
+        if isinstance(cookies, str):
+            for part in cookies.split(";"):
+                if "sessionid=" in part.strip():
+                    return part.split("=")[1].strip()
+        elif isinstance(cookies, list):
+            for c in cookies:
+                if c.get("name") == "sessionid":
+                    return c.get("value", "")
+        return ""
 
     async def _rotate_session(self, bad_session_id: str) -> Optional[Dict[str, Any]]:
         """Marca a sessão atual como falha e busca uma nova no Supabase."""
@@ -94,10 +97,6 @@ class InstagramWorker:
 
     def run(self, target: str) -> bool:
         """Ponto de entrada síncrono chamado pelo local_server.py"""
-        if not ZYTE_AVAILABLE and not HEADLESS_AVAILABLE:
-            logger.error("❌ Tentativa de execução sem nenhum motor disponível.")
-            return False
-
         try:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
@@ -108,131 +107,148 @@ class InstagramWorker:
             logger.error(f"💥 ERRO CRÍTICO: {e}")
             return False
 
+    async def _run_scrapy_tier(self, spider_name: str, target: str, session_id: str, max_posts: int) -> List[Dict]:
+        """Executa um spider do Scrapy em processo isolado."""
+        with tempfile.NamedTemporaryFile(suffix='.json', delete=False, mode='w', encoding='utf-8') as tmp:
+            output_path = tmp.name
+        
+        try:
+            python_exe = sys.executable
+            # Caminho absoluto para o runner
+            script_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'scripts', 'run_scrapy_spider.py')
+            
+            cmd = [
+                python_exe, script_path,
+                spider_name, target, session_id, str(max_posts), output_path
+            ]
+            
+            tier_num = 1 if 'api' in spider_name else 2
+            logger.info(f"🕷️ Tier {tier_num}: Executando {spider_name} para @{target}")
+            
+            timeout = 90 if spider_name == 'instagram_api' else 240
+            
+            process = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            
+            stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=timeout)
+            
+            if process.returncode != 0:
+                error_msg = stderr.decode('utf-8', errors='ignore')[:300]
+                logger.warning(f"⚠️ Tier {tier_num} ({spider_name}) retornou erro:\n{error_msg}")
+                return []
+            
+            if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
+                with open(output_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                return data if isinstance(data, list) else []
+            
+            return []
+            
+        except asyncio.TimeoutError:
+            logger.error(f"❌ Tier {tier_num} ({spider_name}): Timeout excedido")
+            return []
+        except Exception as e:
+            logger.error(f"❌ Tier {tier_num} ({spider_name}): Erro: {e}")
+            return []
+        finally:
+            if os.path.exists(output_path):
+                try: os.unlink(output_path)
+                except: pass
+
     async def _run_async(self, target: str) -> bool:
-        """Pipeline assíncrona com fallback graceful, deduplicação e adaptação SAO."""
+        """Orquestrador principal com cascata de Tiers."""
         from core.state_manager import WorkerState
         
-        # Carrega o estado evolutivo deste worker
         worker_state = WorkerState("instagram_worker")
         current_level = worker_state.level
         trust = worker_state.trust_score
         
-        # 🧠 MEMÓRIA DE DEDUPLICAÇÃO: Quais posts já raspamos recentemente para este alvo?
         known_shortcodes = worker_state.get(f"{target}_shortcodes", [])
-        
-        logger.info(f"🧬 Worker Nível {current_level} | Trust: {trust:.1f} | Alvo: @{target} | Posts conhecidos: {len(known_shortcodes)}")
+        logger.info(f"🧬 Worker Nível {current_level} | Trust: {trust:.1f} | Alvo: @{target} | Conhecidos: {len(known_shortcodes)}")
         
         session = self._get_active_session()
         cookies = session.get("cookies") if session else None
-
-        # --- LÓGICA ADAPTATIVA POR NÍVEL ---
-        zyte_disabled = os.getenv("ZYTE_DISABLED", "false") == "true"
-        scraped_new_data = False
-        new_posts_found = []
+        session_id = self._extract_sessionid(cookies)
         
-        # 1. Tentativa Zyte
-        if current_level >= 2 and zyte_disabled:
-            logger.info("🧠 [Veterano+] Zyte desabilitado pelo Watchdog. Pulando direto para Playwright.")
-        elif ZYTE_AVAILABLE and not zyte_disabled:
-            try:
-                timeout = 20 if current_level >= 2 else 10
-                logger.info(f"🚀 Iniciando coleta via Zyte: {target} (Timeout: {timeout}s)")
-                zyte = ScraperZyte(target, max_posts=5)
-                # PASSA OS SHORTCODES CONHECIDOS PARA ECONOMIZAR API
-                posts = await zyte.fetch_recent_posts(external_cookies=cookies, skip_shortcodes=known_shortcodes)
-                
-                # Filtra posts que realmente têm comentários novos (não foram marcados como skip pelo scraper)
-                new_posts_found = [p for p in posts if not p.get("is_skipped")]
-                
-                if new_posts_found:
-                    logger.info(f"✅ Zyte: {len(new_posts_found)} posts NOVOS coletados para @{target}")
-                    await self._save_posts(target, new_posts_found)
-                    worker_state.record_success(items_saved=len(new_posts_found))
-                    scraped_new_data = True
-                else:
-                    logger.info(f"✅ Zyte: Nenhum post novo para @{target}. Coleta evitada (economia de recursos).")
-                    worker_state.record_success(items_saved=0)
-                    # Mesmo sem posts novos, atualiza o tempo de coleta
-                    try:
-                        db.table("candidatos").update({
-                            "last_scraped_at": datetime.now(timezone.utc).isoformat(),
-                        }).eq("username", target).execute()
-                    except: pass
-                    return True
-            except Exception as e:
-                logger.warning(f"⚠️ Zyte falhou para @{target}: {e}")
+        scraped_data = []
+        tier_used = 0
 
-        # 2. Fallback Playwright (Elite ganha poderes aqui)
-        if not scraped_new_data and HEADLESS_AVAILABLE:
-            logger.warning(f"⚠️ Tentando FALLBACK Playwright para @{target}...")
-            try:
-                max_p = 7 if current_level >= 3 else 5
-                max_c = 30 if current_level >= 3 else 20
-                
-                headless = ScraperHeadless(target, max_posts=max_p, max_comments=max_c)
-                posts = await headless.fetch_recent_posts(external_cookies=cookies)
-                
-                # Filtra shortcodes conhecidos
-                new_posts_found = [p for p in posts if p.get("shortcode") not in known_shortcodes]
-                
-                # Auto-rotação de sessão (Veteranos tentam sozinhos)
-                if not new_posts_found and cookies and current_level >= 2:
-                    logger.warning("🧠 [Veterano+] Login Wall? Tentando rotacionar sessão...")
-                    new_session = await self._rotate_session(session.get("id") if session else None)
-                    if new_session:
-                        new_cookies = new_session.get("cookies")
-                        headless = ScraperHeadless(target, max_posts=max_p, max_comments=max_c)
-                        posts = await headless.fetch_recent_posts(external_cookies=new_cookies)
-                        new_posts_found = [p for p in posts if p.get("shortcode") not in known_shortcodes]
+        # --- TIER 1: Scrapy API ---
+        if session_id:
+            scraped_data = await self._run_scrapy_tier('instagram_api', target, session_id, max_posts=5)
+            if scraped_data:
+                tier_used = 1
+                logger.info(f"✅ Tier 1 bem-sucedido: {len(scraped_data)} itens")
 
-                if new_posts_found:
-                    logger.info(f"✅ Playwright: {len(new_posts_found)} posts NOVOS coletados para @{target}")
-                    await self._save_posts(target, new_posts_found)
-                    worker_state.record_success(items_saved=len(new_posts_found))
-                    scraped_new_data = True
-                else:
-                    logger.info(f"✅ Playwright: Nenhum post novo para @{target}.")
-                    worker_state.record_success(items_saved=0)
-                    try:
-                        db.table("candidatos").update({
-                            "last_scraped_at": datetime.now(timezone.utc).isoformat(),
-                        }).eq("username", target).execute()
-                    except: pass
-                    return True
-            except Exception as e:
-                logger.error(f"💥 Playwright falhou para @{target}: {e}")
-                worker_state.record_failure(reason="playwright_crash")
-                return False
-        
-        if not scraped_new_data:
-            worker_state.record_failure(reason="no_new_data")
-            return True # Retorna True para não punir o worker por falta de conteúdo novo
+        # --- TIER 2: Scrapy DOM (Fallback se Tier 1 falhou) ---
+        if not scraped_data and session_id:
+            logger.warning("⚠️ Tier 1 falhou. Tentando Tier 2: DOM Rendering...")
+            scraped_data = await self._run_scrapy_tier('instagram_dom', target, session_id, max_posts=3)
+            if scraped_data:
+                tier_used = 2
+                logger.info(f"✅ Tier 2 bem-sucedido: {len(scraped_data)} itens")
 
-        # 🧠 ATUALIZA A MEMÓRIA: Salva os shortcodes que raspamos (novos + antigos)
-        current_shortcodes = [p.get("shortcode") for p in new_posts_found if p.get("shortcode")]
-        all_shortcodes = list(set(known_shortcodes + current_shortcodes))
-        # Mantém apenas os 20 mais recentes para não inflar o arquivo de estado
-        worker_state.save({f"{target}_shortcodes": all_shortcodes[-20:]})
-            
-        return True
+        # --- TIER 3: Zyte Cloud (Fallback Premium) ---
+        if not scraped_data:
+            zyte_disabled = os.getenv("ZYTE_DISABLED", "false") == "true"
+            if not zyte_disabled and ZYTE_AVAILABLE:
+                logger.warning("⚠️ Scrapy Tiers falharam. Tentando Tier 3: Zyte Cloud...")
+                try:
+                    zyte = ScraperZyte(target, max_posts=5)
+                    posts = await zyte.fetch_recent_posts(external_cookies=cookies, skip_shortcodes=known_shortcodes)
+                    # Converte posts do Zyte para o formato de comentários se necessário
+                    # No sistema atual, save_posts aceita o formato de posts do Zyte
+                    if posts and not all(p.get("is_skipped") for p in posts):
+                        await self._save_posts(target, posts)
+                        worker_state.record_success(items_saved=len(posts))
+                        # Atualiza memória
+                        all_sc = list(set(known_shortcodes + [p.get("shortcode") for p in posts if p.get("shortcode")]))
+                        worker_state.save({f"{target}_shortcodes": all_sc[-20:]})
+                        return True
+                except Exception as e:
+                    logger.error(f"❌ Tier 3 (Zyte) falhou: {e}")
+
+        # --- TIER 4: Playwright Solo (Último recurso) ---
+        if not scraped_data and HEADLESS_AVAILABLE:
+             logger.warning("⚠️ Todos os tiers falharam. Tentando Tier 4: Playwright Solo...")
+             try:
+                 headless = ScraperHeadless(target, max_posts=5, max_comments=20)
+                 posts = await headless.fetch_recent_posts(external_cookies=cookies)
+                 if posts:
+                     await self._save_posts(target, posts)
+                     worker_state.record_success(items_saved=len(posts))
+                     return True
+             except Exception as e:
+                 logger.error(f"❌ Tier 4 falhou: {e}")
+
+        # Se chegamos aqui com dados dos Tiers 1 ou 2 (Scrapy)
+        if scraped_data:
+            # Formata dados do Scrapy para o save_posts (que espera Posts com lista de comentários)
+            # Como o Scrapy retorna uma lista flat de comentários:
+            fake_post = {"shortcode": f"tier{tier_used}_bulk", "comments": scraped_data}
+            await self._save_posts(target, [fake_post])
+            worker_state.record_success(items_saved=len(scraped_data))
+            return True
+
+        worker_state.record_failure(reason="all_tiers_failed")
+        return False
 
     async def _save_posts(self, target: str, posts: List[Dict]) -> None:
-        """Salva posts e comentários no Supabase, com Quality Gate e Retry."""
+        """Salva posts e comentários no Supabase com Quality Gate e Retry."""
         try:
             from app.workers.quality_gate import filter_comment
         except ImportError:
             filter_comment = lambda text: len(text.strip()) >= 3
 
         total_saved = 0
-        total_rejected = 0
-        
         for post in posts:
-            for comment in post.get("comments", []):
+            comments = post.get("comments", [])
+            for comment in comments:
                 text = comment.get("text", "")
-                
-                if not filter_comment(text):
-                    total_rejected += 1
-                    continue
+                if not filter_comment(text): continue
 
                 comment_row = {
                     "candidato_id": target,
@@ -244,26 +260,19 @@ class InstagramWorker:
                     "is_hate": False,
                 }
                 
-                # AUTOCURA: Retry de inserção no banco (3 tentativas com backoff)
-                saved = False
                 for attempt in range(3):
                     try:
                         db.table("comentarios").insert(comment_row).execute()
                         total_saved += 1
-                        saved = True
                         break
                     except Exception as e:
-                        if attempt < 2:
-                            logger.warning(f"⚠️ DB Insert falhou (tentativa {attempt+1}/3). Tentando novamente em 5s...")
-                            await asyncio.sleep(5 * (attempt + 1))
-                        else:
-                            logger.error(f"❌ Falha definitiva ao inserir comentário no banco: {e}")
+                        if attempt < 2: await asyncio.sleep(2 * (attempt + 1))
+                        else: logger.error(f"❌ Erro ao salvar comentário: {e}")
 
         if total_saved > 0:
-            logger.info(f"💾 {total_saved} salvos para @{target} (Rejeitados QG: {total_rejected})")
+            logger.info(f"💾 {total_saved} salvos para @{target}")
             try:
                 db.table("candidatos").update({
                     "last_scraped_at": datetime.now(timezone.utc).isoformat(),
                 }).eq("username", target).execute()
-            except Exception:
-                pass
+            except: pass
