@@ -100,13 +100,24 @@ class InstagramWorker:
             return False
 
     async def _save_posts(self, target: str, posts: List[Dict]) -> None:
-        """Salva posts e comentários no Supabase."""
+        """Salva posts e comentários no Supabase, aplicando Quality Gate obrigatório."""
+        # Importação resiliente do Quality Gate
+        try:
+            from app.workers.quality_gate import filter_comment
+        except ImportError:
+            logger.warning("⚠️ Quality Gate não encontrado. Usando filtro básico.")
+            filter_comment = lambda text: len(text.strip()) >= 3
+
         total_saved = 0
+        total_rejected = 0
         for post in posts:
             try:
                 for comment in post.get("comments", []):
                     text = comment.get("text", "")
-                    if not text or len(text.strip()) < 3:
+                    
+                    # 🛡️ QUALITY GATE OBRIGATÓRIO
+                    if not filter_comment(text):
+                        total_rejected += 1
                         continue
 
                     comment_row = {
@@ -125,13 +136,12 @@ class InstagramWorker:
                 logger.error(f"Erro ao salvar post {post.get('shortcode')}: {e}")
 
         if total_saved > 0:
-            logger.info(f"💾 {total_saved} comentários salvos para @{target}")
+            logger.info(f"💾 {total_saved} comentários salvos para @{target} (Rejeitados pelo QG: {total_rejected})")
 
             # Atualiza last_scraped_at e contadores
             try:
                 db.table("candidatos").update({
                     "last_scraped_at": datetime.now(timezone.utc).isoformat(),
-                    "comentarios_totais_count": total_saved,
                 }).eq("username", target).execute()
             except Exception:
                 pass
