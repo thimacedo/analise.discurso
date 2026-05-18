@@ -1,0 +1,16 @@
+# Configuração de deploy do Zyte Scrapy Cloud
+# Projeto: Sentinela Democrática
+
+project: sentinela-democratica
+
+# Requerimentos do projeto (para o Scrapy Cloud instalar as dependências)
+requirements:
+  file: requirements.txt
+
+# Ignorar a pasta do frontend Next.js no deploy do Scrapy Cloud
+# (Isso evita que ele tente processar arquivos JS/Node)
+ignore:
+  - frontend-bleeding-edge/
+
+# Stack Python
+stack: python:3.12
