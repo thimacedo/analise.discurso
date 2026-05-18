@@ -1,11 +1,9 @@
-# sentinela_scrapy/settings.py
-
 BOT_NAME = 'sentinela_scrapy'
 
 SPIDER_MODULES = ['sentinela_scrapy.spiders']
 NEWSPIDER_MODULE = 'sentinela_scrapy.spiders'
 
-# Respeito aos robots.txt (Instagram bloqueia de qualquer forma)
+# Respeito aos robots.txt
 ROBOTSTXT_OBEY = False
 
 # Configurações de concorrência
@@ -17,7 +15,7 @@ RANDOMIZE_DOWNLOAD_DELAY = True
 # User Agent
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 
-# Middlewares
+# Middlewares BÁSICOS (sem Playwright por padrão)
 DOWNLOADER_MIDDLEWARES = {
     'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
     'scrapy.downloadermiddlewares.retry.RetryMiddleware': 90,
@@ -27,6 +25,7 @@ DOWNLOADER_MIDDLEWARES = {
 # Pipelines
 ITEM_PIPELINES = {
     'sentinela_scrapy.pipelines.QualityGatePipeline': 300,
+    'sentinela_scrapy.pipelines.JsonWriterPipeline': 400,
 }
 
 # Cookies
@@ -42,7 +41,7 @@ RETRY_HTTP_CODES = [500, 502, 503, 504, 522, 524, 408, 429]
 LOG_LEVEL = 'INFO'
 LOG_ENCODING = 'utf-8'
 
-# Autothrottle (ajuste automático de velocidade)
+# Autothrottle
 AUTOTHROTTLE_ENABLED = True
 AUTOTHROTTLE_START_DELAY = 2
 AUTOTHROTTLE_MAX_DELAY = 10

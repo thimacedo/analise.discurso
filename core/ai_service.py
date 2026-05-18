@@ -112,3 +112,43 @@ class AIService:
                 "evidencia_lexical": [],
                 "analise_pericial": "Erro de parsing JSON"
             }
+
+    async def run_batch_classification(self, limit: int = 50) -> int:
+        """Busca comentários não processados e classifica em lote."""
+        from core.supabase_service import supabase as db
+        
+        try:
+            # 1. Busca comentários pendentes
+            res = db.table("comentarios").select("id, texto_bruto").eq("processado_ia", False).limit(limit).execute()
+            comments = res.data if res.data else []
+            
+            if not comments:
+                return 0
+                
+            processed_count = 0
+            for comment in comments:
+                try:
+                    # 2. Classifica cada um
+                    result = await self.classify_text(comment["texto_bruto"])
+                    
+                    # 3. Persiste o resultado
+                    db.table("comentarios").update({
+                        "processado_ia": True,
+                        "is_hate": result["is_hate"],
+                        "categoria_ia": result["categoria_ia"],
+                        "confianca_ia": result["confianca_ia"],
+                        "evidencia_lexical": result["evidencia_lexical"],
+                        "analise_pericial": result["analise_pericial"],
+                    }).eq("id", comment["id"]).execute()
+                    
+                    processed_count += 1
+                except Exception as e:
+                    logger.error(f"❌ Erro ao processar comentário {comment['id']}: {e}")
+                    
+            return processed_count
+        except Exception as e:
+            logger.error(f"💥 Falha crítica no lote de classificação: {e}")
+            return 0
+
+# Instância Singleton
+ai_service = AIService()

@@ -1,54 +1,37 @@
+# scripts/run_scrapy_spider.py (VERSÃO FINAL)
+import subprocess
 import sys
-import os
 from pathlib import Path
 
-# Adiciona o diretório raiz ao path
-root_dir = Path(__file__).parent.parent
-sys.path.insert(0, str(root_dir))
-
-def run_spider(spider_name: str, username: str, sessionid: str, max_posts: str, output_file: str):
-    """Executa um spider do Scrapy."""
-    from scrapy.crawler import CrawlerProcess
-    from scrapy.utils.project import get_project_settings
-    
-    os.environ.setdefault('SCRAPY_SETTINGS_MODULE', 'sentinela_scrapy.settings')
-    settings = get_project_settings()
-    
-    # Atualiza settings para salvar no arquivo especificado
-    settings.update({
-        'FEEDS': {
-            output_file: {
-                'format': 'json',
-                'overwrite': True,
-                'encoding': 'utf-8',
-                'item_export_kwargs': {
-                    'ensure_ascii': False,
-                    'indent': 2
-                }
-            }
-        }
-    })
-    
-    process = CrawlerProcess(settings)
-    
-    # Argumentos comuns
-    kwargs = {
-        'username': username,
-        'sessionid': sessionid,
-        'max_posts': int(max_posts)
-    }
-    
-    # Adiciona max_comments apenas para DOM
-    if spider_name == 'instagram_dom':
-        kwargs['max_comments'] = 50
-    
-    process.crawl(spider_name, **kwargs)
-    process.start()
-
-if __name__ == '__main__':
+def main():
     if len(sys.argv) < 6:
-        print("❌ Uso: python run_scrapy_spider.py <spider_name> <username> <sessionid> <max_posts> <output_file>")
-        print("Spiders disponíveis: instagram_api, instagram_dom")
+        print("❌ Uso: python run_scrapy_spider.py <spider> <user> <session> <posts> <output>")
+        print("Exemplo: python run_scrapy_spider.py instagram_api bolsonaro SESSIONID 3 out.json")
         sys.exit(1)
     
-    run_spider(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
+    spider = sys.argv[1]
+    username = sys.argv[2]
+    session = sys.argv[3]
+    posts = sys.argv[4]
+    output = sys.argv[5]
+    
+    # Usa scrapy como módulo (mais confiável e resolve o erro de 'Spider not found')
+    # O cwd deve ser o diretório onde está o scrapy.cfg
+    cmd = [
+        sys.executable, "-m", "scrapy", "crawl", spider,
+        "-a", f"username={username}",
+        "-a", f"sessionid={session}",
+        "-a", f"max_posts={posts}",
+        "-o", str(Path(output).resolve()),
+        "-L", "INFO"
+    ]
+    
+    print(f"🚀 {spider.upper()} - @{username}")
+    print(f"📁 Output: {output}")
+    
+    # O diretório 'sentinela_scrapy' contém o scrapy.cfg necessário
+    result = subprocess.run(cmd, cwd="sentinela_scrapy", capture_output=False)
+    sys.exit(result.returncode)
+
+if __name__ == '__main__':
+    main()

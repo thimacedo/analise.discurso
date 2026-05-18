@@ -41,6 +41,8 @@ CHILD_ENV = os.environ.copy()
 CHILD_ENV["PIP_CACHE_DIR"] = CACHE_DIR
 CHILD_ENV["TMP"] = TEMP_DIR
 CHILD_ENV["TEMP"] = TEMP_DIR
+CHILD_ENV["PYTHONIOENCODING"] = "utf-8"
+CHILD_ENV["PYTHONUTF8"] = "1"
 
 CALLMEBOT_PHONE = "558496066876"
 CALLMEBOT_APIKEY = "8552672"
@@ -75,6 +77,8 @@ class WatchdogState:
         self.fast_crashes = 0
         
     def add_log(self, level: str, message: str):
+        # Print no console para facilitar depuração via terminal
+        print(f"[{time.strftime('%H:%M:%S')}] {level.upper()}: {message}")
         with self.lock:
             log_entry = {"time": time.strftime("%H:%M:%S"), "level": level, "message": message}
             self.logs.append(log_entry)
@@ -333,7 +337,8 @@ def guard():
 
             process = subprocess.Popen(
                 [python_exe, SERVER_SCRIPT], env=ENV_WITH_WATCHDOG,
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, 
+                encoding='utf-8', errors='replace',
                 bufsize=1, universal_newlines=True
             )
             

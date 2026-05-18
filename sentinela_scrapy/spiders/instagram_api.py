@@ -7,8 +7,7 @@ from ..items import InstagramCommentItem
 class InstagramAPISpider(scrapy.Spider):
     """
     Tier 1 (Primário): Usa a API privada do Instagram via GraphQL.
-    Vantagens: Rápido, leve, sem renderização.
-    Desvantagens: Frágil a mudanças de API, necessita sessionid válido.
+    NÃO usa Playwright - apenas requisições HTTP puras.
     """
     name = 'instagram_api'
     
@@ -18,7 +17,7 @@ class InstagramAPISpider(scrapy.Spider):
         'COOKIES_ENABLED': True,
         'ITEM_PIPELINES': {
             'sentinela_scrapy.pipelines.QualityGatePipeline': 300,
-            'sentinela_scrapy.pipelines.CleanCommentPipeline': 350,
+            'sentinela_scrapy.pipelines.JsonWriterPipeline': 400,
         }
     }
     
@@ -34,7 +33,7 @@ class InstagramAPISpider(scrapy.Spider):
         url = f"https://www.instagram.com/api/v1/users/web_profile_info/?username={self.username}"
         
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            'User-Agent': 'Instagram 76.0.0.15.395 Android (24/7.0; 640dpi; 1440x2560; samsung; SM-G930F; herolte; samsungexynos8890; en_US; 138226743)',
             'X-IG-App-ID': '936619743392459',
             'X-ASBD-ID': '198387',
             'X-IG-WWW-Claim': '0',
@@ -47,7 +46,8 @@ class InstagramAPISpider(scrapy.Spider):
             cookies={'sessionid': self.sessionid},
             callback=self.parse_profile,
             errback=self.handle_error,
-            meta={'tier': 1}
+            meta={'tier': 1},
+            dont_filter=True
         )
     
     def parse_profile(self, response):
@@ -78,7 +78,8 @@ class InstagramAPISpider(scrapy.Spider):
     
     def fetch_post_comments(self, shortcode):
         """Busca comentários de um post via GraphQL."""
-        query_hash = 'bc3296d1ce80a24b1b6e40b1e72903f5'  # Hash da query de comentários
+        # Query hash atual do Instagram (pode mudar!)
+        query_hash = 'bc3296d1ce80a24b1b6e40b1e72903f5'
         
         variables = {
             "shortcode": shortcode,
@@ -89,7 +90,7 @@ class InstagramAPISpider(scrapy.Spider):
         url = f"https://www.instagram.com/graphql/query/?query_hash={query_hash}&variables={json.dumps(variables)}"
         
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'User-Agent': 'Instagram 76.0.0.15.395 Android',
             'X-IG-App-ID': '936619743392459',
             'X-Requested-With': 'XMLHttpRequest',
         }
@@ -100,7 +101,8 @@ class InstagramAPISpider(scrapy.Spider):
             cookies={'sessionid': self.sessionid},
             callback=self.parse_comments,
             errback=self.handle_error,
-            meta={'shortcode': shortcode, 'tier': 1}
+            meta={'shortcode': shortcode, 'tier': 1},
+            dont_filter=True
         )
     
     def parse_comments(self, response):
@@ -110,6 +112,8 @@ class InstagramAPISpider(scrapy.Spider):
         try:
             data = json.loads(response.text)
             edges = data.get('data', {}).get('shortcode_media', {}).get('edge_media_to_parent_comment', {}).get('edges', [])
+            
+            self.logger.info(f"✅ Tier 1: Extraindo {len(edges)} comentários do post {shortcode}")
             
             for edge in edges:
                 node = edge.get('node', {})
@@ -125,8 +129,10 @@ class InstagramAPISpider(scrapy.Spider):
                     tier_used=1
                 )
                 
+        except json.JSONDecodeError as e:
+            self.logger.error(f"❌ Tier 1: Erro ao parsear JSON do post {shortcode}: {e}")
         except Exception as e:
-            self.logger.error(f"❌ Tier 1: Erro ao parsear comentários do post {shortcode}: {e}")
+            self.logger.error(f"❌ Tier 1: Erro ao processar comentários: {e}")
     
     def handle_error(self, failure):
         """Log de erros com contexto de tier."""

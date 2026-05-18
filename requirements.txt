@@ -1,17 +1,21 @@
-# PASA v49.9: Root Requirements Otimizado (Compatibilidade Moderna)
-fastapi>=0.124.1
-uvicorn[standard]>=0.34.0
-supabase>=2.4.0
-python-dotenv>=1.0.1
-httpx>=0.28.1
-stripe>=8.5.0
-pydantic>=2.12.0
-pydantic-settings>=2.5.2
-starlette>=0.49.1
-traceback-with-variables>=2.0.4
-mangum>=0.17.0
-fpdf2>=2.7.8
-websockets>=15.0.1
+# Core Scrapy
 scrapy>=2.11.0
-scrapy-user-agents>=0.1.1
 twisted>=23.10.0
+
+# Playwright (apenas para Tier 2)
+scrapy-playwright>=0.0.34
+playwright>=1.40.0
+
+# Utils
+itemadapter>=0.8.0
+python-dateutil>=2.8.2
+
+# Zyte (Tier 3 - opcional)
+zyte-api>=0.5.0
+
+# Ambiente
+python-dotenv>=1.0.0
+
+# FastAPI (Dashboard)
+fastapi>=0.109.0
+uvicorn>=0.27.0

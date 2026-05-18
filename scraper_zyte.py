@@ -31,6 +31,13 @@ class InstagramScraperZyte:
         if not zyte_circuit_breaker.can_execute("zyte_api"):
             return {"error": "circuit_open", "status_code": 999}
 
+        # Injeção de Cookie de Sessão: Seleção aleatória entre múltiplas chaves configuradas
+        session_ids = [val for key, val in os.environ.items() if key.startswith("INSTAGRAM_SESSIONID")]
+        if session_ids:
+            import random
+            session_id = random.choice(session_ids)
+            cookies = f"sessionid={session_id}; {cookies}" if cookies else f"sessionid={session_id}"
+
         payload = {"url": url}
         custom_headers = []
         if headers:
@@ -71,6 +78,14 @@ class InstagramScraperZyte:
                     return {"error": "api_error", "status_code": response.status_code}
                 
                 res_data = response.json()
+                
+                # Validação de Login Wall
+                if use_browser:
+                    html = res_data.get("browserHtml", "")
+                    if 'login-form' in html or 'Página não disponível' in html or 'login' in html.lower():
+                        logger.warning("🚫 [Zyte] Instagram exigiu login ou perfil bloqueado. Abortando para economizar créditos.")
+                        return {"error": "login_required", "statusCode": 401}
+                
                 target_status = res_data.get("statusCode", 200)
                 if target_status == 404:
                     logger.error(f"⚠️ [Username Inválido] Perfil não encontrado (404): {url}")

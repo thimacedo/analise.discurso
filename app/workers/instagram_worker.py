@@ -4,7 +4,7 @@ import logging
 import os
 import sys
 import tempfile
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
 
 from core.supabase_service import supabase as db
