@@ -7,7 +7,9 @@ import random
 import uuid
 import re
 import hashlib
+import asyncio
 from datetime import datetime, timezone
+from typing import List, Dict, Optional
 from app.workers.base_worker import BaseWorker
 from core.supabase_service import supabase
 from app.workers.quality_gate import is_valid_comment
@@ -51,14 +53,93 @@ class InstagramWorker(BaseWorker):
             'tipo_conteudo': content_type
         }
 
+    async def _rotate_session(self, bad_session_id: str) -> Optional[Dict]:
+        """Marca a sessão atual como falha e busca uma nova no Supabase."""
+        if not bad_session_id or bad_session_id == "env_fallback":
+            return None
+            
+        print(f"[InstagramWorker] 🔄 Rotacionando sessão. Marcando {bad_session_id} como expirada...")
+        try:
+            supabase.table("worker_sessions").update({"status": "expired"}).eq("id", bad_session_id).execute()
+        except Exception as e:
+            print(f"[InstagramWorker] Erro ao invalidar sessão: {e}")
+            
+        # Busca uma nova sessão
+        try:
+            session_res = supabase.table('worker_sessions')\
+                .select('id', 'cookies')\
+                .eq('plataforma', 'instagram')\
+                .eq('status', 'active')\
+                .neq('id', bad_session_id)\
+                .order('updated_at', desc=True)\
+                .limit(1)\
+                .execute()
+            
+            if session_res.data:
+                print(f"✅ Nova sessão obtida: {session_res.data[0]['id']}")
+                return session_res.data[0]
+        except Exception as e:
+            print(f"❌ Erro ao buscar nova sessão: {e}")
+            
+        return None
+
+    async def _save_posts(self, target: str, posts_data: List[Dict]) -> int:
+        """Processa e salva os posts com retry na inserção do banco."""
+        all_payloads = []
+        target_username = target if not target.startswith("http") else "url_source"
+        
+        for post in posts_data:
+            if post.get('text'):
+                all_payloads.append(self._sanitize_comment({
+                    'text': post.get('text'),
+                    'id': post.get('shortcode'),
+                    'ownerUsername': target_username,
+                    'timestamp': post.get('timestamp')
+                }, "POST"))
+            
+            for comment in post.get('comments', []):
+                all_payloads.append(self._sanitize_comment(comment, "COMMENT"))
+
+        if not all_payloads:
+            return 0
+
+        total_saved = 0
+        for payload in all_payloads:
+            # Filtro de qualidade (pode ser expandido conforme quality_gate.py)
+            if not is_valid_comment(payload.get('texto_bruto', '')):
+                continue
+                
+            # AUTOCURA: Retry de inserção no banco (3 tentativas com backoff)
+            for attempt in range(3):
+                try:
+                    supabase.table('comentarios').upsert(payload, on_conflict='id').execute()
+                    total_saved += 1
+                    break
+                except Exception as e:
+                    if attempt < 2:
+                        print(f"⚠️ DB Insert falhou (tentativa {attempt+1}/3). Tentando novamente em 5s...")
+                        await asyncio.sleep(5 * (attempt + 1))
+                    else:
+                        print(f"❌ Falha definitiva ao inserir comentário: {e}")
+
+        if total_saved > 0:
+            print(f"[InstagramWorker] 💾 {total_saved} itens salvos para @{target}")
+            try:
+                supabase.table("candidatos").update({
+                    "last_scraped_at": datetime.now(timezone.utc).isoformat(),
+                }).eq("username", target).execute()
+            except Exception:
+                pass
+        
+        return total_saved
+
     def run(self, target: str):
         self.current_target = target
         if self._check_circuit_breaker():
             return False
 
-        # 1. Identificação da Sessão e Tipo de Alvo
+        # 1. Identificação da Sessão
         is_url = target.startswith("http")
-        target_username = target if not is_url else "url_source"
         active_cookies = None
         session_id = "env_fallback"
         
@@ -79,86 +160,55 @@ class InstagramWorker(BaseWorker):
             print(f"[InstagramWorker] Erro ao carregar sessão: {e}")
 
         try:
-            import asyncio
             from scraper_zyte import InstagramScraperZyte
             from scraper_headless import InstagramScraperHeadless
             from core.scraper_weights import get_best_method, update_weight
             
             posts_data = []
 
-            # 2. Motor Principal: Zyte API com X-Engine
+            # 2. Motor Principal: Zyte API
             if is_url:
-                # ... (manter lógica original de URL) ...
                 zyte_scraper = InstagramScraperZyte(target_profile="url_mode")
                 single_post = asyncio.run(zyte_scraper.fetch_post_comments(post_url=target, external_cookies=active_cookies))
                 if single_post and single_post.get('comments'):
                     posts_data = [single_post]
             else:
-                print(f"[InstagramWorker] 🚀 Iniciando coleta via X-Engine (Best: {get_best_method()}): {target}")
-                zyte_scraper = InstagramScraperZyte(target_profile=target, max_posts=3)
-                
-                # Executa com base no melhor método (simplificado para demonstração)
                 best = get_best_method()
+                print(f"[InstagramWorker] 🚀 Coleta via X-Engine (Best: {best}): {target}")
+                zyte_scraper = InstagramScraperZyte(target_profile=target, max_posts=3)
                 posts_data = asyncio.run(zyte_scraper.fetch_recent_posts(external_cookies=active_cookies))
                 
-                # Recompensa/Punição (Simples)
                 if posts_data:
                     update_weight(best, True)
                 else:
                     update_weight(best, False)
-                
-                # ... (manter lógica de erro e fallback) ...
-                
-                # Verificação específica de Divergência de Username
-                if isinstance(posts_data, dict) and posts_data.get("statusCode") == 404:
-                    print(f"\n[ALERTA USERNAME] ❌ O perfil @{target} não existe ou o username está divergente.")
-                    with open("divergent_usernames.log", "a", encoding="utf-8") as f:
-                        f.write(f"[{datetime.now().strftime('%Y-%m-%d %H:%M')}] @{target} - 404 Not Found\n")
-                    posts_data = [] # Limpa para não dar erro de iteração
+                    if isinstance(posts_data, dict) and posts_data.get("statusCode") == 404:
+                        print(f"[ALERTA USERNAME] ❌ @{target} - 404 Not Found")
+                        return False
             
-            # 3. Fallback: Playwright (Apenas Perfil)
+            # 3. Fallback: Playwright com Auto-Rotação
             if not posts_data and not is_url:
                 print(f"[InstagramWorker] ⚠️ Zyte falhou. Tentando FALLBACK Playwright...")
-                headless_scraper = InstagramScraperHeadless(target_profile=target, max_posts=3)
-                posts_data = asyncio.run(headless_scraper.fetch_recent_posts(external_cookies=active_cookies))
+                headless = InstagramScraperHeadless(target, max_posts=3)
+                posts_data = asyncio.run(headless.fetch_recent_posts(external_cookies=active_cookies))
+                
+                # AUTOCURA: Se Login Wall, tenta rotacionar sessão
+                if not posts_data and active_cookies:
+                    new_session = asyncio.run(self._rotate_session(session_id))
+                    if new_session:
+                        print(f"[InstagramWorker] 🔄 Retentando Playwright com nova sessão...")
+                        posts_data = asyncio.run(headless.fetch_recent_posts(external_cookies=new_session.get('cookies')))
 
-            
             if not posts_data:
-                print(f"[InstagramWorker] ❌ Nenhum dado retornado para {target}.")
-                self.after_run(success=False, error_details="Nenhum dado retornado por Zyte/Playwright")
+                self.after_run(success=False, error_details="Nenhum dado retornado.")
                 return False
 
-            # 4. Processamento e Sanitização
-            all_payloads = []
-            for post in posts_data:
-                if post.get('text'):
-                    all_payloads.append(self._sanitize_comment({
-                        'text': post.get('text'),
-                        'id': post.get('shortcode'),
-                        'ownerUsername': target_username if not is_url else "unknown",
-                        'timestamp': post.get('timestamp')
-                    }, "POST"))
-                
-                for comment in post.get('comments', []):
-                    all_payloads.append(self._sanitize_comment(comment, "COMMENT"))
-
-            if not all_payloads:
-                self.after_run(success=True, total_items=0)
-                return True
-
-            # 5. Persistência
-            valid_payloads = [p for p in all_payloads if p.get('id_externo')]
-            if valid_payloads:
-                supabase.table('comentarios').upsert(valid_payloads, on_conflict='id_externo').execute()
-                print(f"[InstagramWorker] ✅ Sucesso: {len(valid_payloads)} itens persistidos.")
-
-            self.after_run(success=True, total_items=len(valid_payloads))
+            # 4. Persistência Resiliente
+            total_saved = asyncio.run(self._save_posts(target, posts_data))
+            self.after_run(success=True, total_items=total_saved)
             return True
 
         except Exception as e:
             print(f"[InstagramWorker] 💥 ERRO CRÍTICO: {e}")
             self.after_run(success=False, error_details=str(e))
             return False
-
-    def _scrape_section(self, target: str, section: str) -> list:
-        return []
