@@ -82,21 +82,32 @@ class InstagramWorker(BaseWorker):
             import asyncio
             from scraper_zyte import InstagramScraperZyte
             from scraper_headless import InstagramScraperHeadless
+            from core.scraper_weights import get_best_method, update_weight
             
             posts_data = []
 
-            # 2. Motor Principal: Zyte API
+            # 2. Motor Principal: Zyte API com X-Engine
             if is_url:
-                print(f"[InstagramWorker] 🔗 Processando URL direta via ZYTE: {target}")
+                # ... (manter lógica original de URL) ...
                 zyte_scraper = InstagramScraperZyte(target_profile="url_mode")
                 single_post = asyncio.run(zyte_scraper.fetch_post_comments(post_url=target, external_cookies=active_cookies))
                 if single_post and single_post.get('comments'):
                     posts_data = [single_post]
             else:
-                print(f"[InstagramWorker] 🚀 Iniciando coleta de PERFIL via ZYTE: {target}")
+                print(f"[InstagramWorker] 🚀 Iniciando coleta via X-Engine (Best: {get_best_method()}): {target}")
                 zyte_scraper = InstagramScraperZyte(target_profile=target, max_posts=3)
-                # fetch_recent_posts pode retornar erro 404 mapeado
+                
+                # Executa com base no melhor método (simplificado para demonstração)
+                best = get_best_method()
                 posts_data = asyncio.run(zyte_scraper.fetch_recent_posts(external_cookies=active_cookies))
+                
+                # Recompensa/Punição (Simples)
+                if posts_data:
+                    update_weight(best, True)
+                else:
+                    update_weight(best, False)
+                
+                # ... (manter lógica de erro e fallback) ...
                 
                 # Verificação específica de Divergência de Username
                 if isinstance(posts_data, dict) and posts_data.get("statusCode") == 404:

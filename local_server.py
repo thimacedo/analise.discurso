@@ -23,7 +23,9 @@ except ImportError as e:
     print(f"Erro crítico de importação: {e}")
     sys.exit(1)
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - SERVER - %(message)s')
+if not os.path.exists('logs'):
+    os.makedirs('logs')
+logging.basicConfig(level=logging.INFO, filename='logs/server.log', format='%(asctime)s - SERVER - %(message)s')
 logger = logging.getLogger("SentinelaServer")
 
 # Configurações do Ciclo (Otimizadas para Zyte Equalitário)
@@ -58,11 +60,6 @@ def run_server():
 
     cycle_count = 0
     ops_log = []
-
-    print("\n" + "="*60)
-    print("📊 DICA: Abra no navegador o painel de inspeção local:")
-    print("file:///" + os.path.abspath("local_dashboard.html").replace("\\", "/"))
-    print("="*60 + "\n")
     
     while True:
         cycle_count += 1
