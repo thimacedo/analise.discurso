@@ -1,36 +1,85 @@
-# PASA v48: Gitignore Blindado - Proteção contra Slop de Sistema
+# Sentinela Democrática: Gitignore Consolidado (PASA v48.1)
 
-# Python
+# --- Código Fonte e Configurações (NUNCA IGNORAR) ---
+!app/__init__.py
+!**/__init__.py
+!.gitignore
+!GEMINI.md
+!README.md
+!requirements*.txt
+!pyproject.toml
+!package.json
+
+# --- Python ---
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python/
-
-# Ambientes Virtuais (CRÍTICO - NUNCA COMMITAR)
-.venv/
-venv/
-ENV/
-
-# Caches de Ferramentas
+build/
+dist/
+*.egg-info/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+
+# --- Ambientes Virtuais ---
+.venv/
+venv/
+ENV/
+env/
+
+# --- Frontend & Node ---
+node_modules/
+.vercel/
+.next/
+.cache/
 .eslintcache/
+dist/
+proposta_frontend/
 
-# Sessões de IA (Transientes)
-.pickle_sessions/
-
-# IDEs
-.vscode/
-.idea/
-
-# Variáveis de Ambiente
+# --- Sessões, Credenciais e Segurança (CRÍTICO) ---
 .env
+*.session
+sentinela_ig_session*
+cookies.txt
+api_zyte.txt
+*.key
+*.pem
+*.cert
 
-# Dados Locais e Logs
-data/cache/
+# --- Logs, Caches e Temporários ---
 logs/
 *.log
-.vercel
-proposta_frontend
+data/cache/
+*.cpuprofile
+repomix-output.xml
+.pickle_sessions/
+
+# --- Arquivos de Auditoria e Relatórios Gerados (Outputs) ---
+audit_report.json
+deep_audit_report.json
+final_prod_test_report.json
+AUDITORIA_WORKSPACE.md
+PROPOSTA.MD
+# Ignorar imagens de falhas/screenshots no root
+/*.png
+/*.jpg
+/*.jpeg
+/*.gif
+# Ignorar PDFs gerados no root ou em data/reports
+/*.pdf
+data/reports/
+data/visuals/
+*.db
+*.sqlite3
+
+# --- Scripts Locais e Utilitários de Terceiros ---
+*.bat
+vendor/
+
+# --- IDEs ---
+.vscode/
+.idea/
+*.swp
+*.swo
