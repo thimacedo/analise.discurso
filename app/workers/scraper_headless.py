@@ -332,11 +332,123 @@ class InstagramScraperHeadless:
 
 
 # ------------------------------------------------------------------ #
-#  Teste Standalone
+#  Teste Standalone - Seleção Ponderada do Supabase
 # ------------------------------------------------------------------ #
 async def main():
-    scraper = InstagramScraperHeadless("cironogueira", max_posts=2)
-    posts = await scraper.fetch_recent_posts()
+    import random
+    from datetime import datetime, timezone
+    from core.supabase_service import supabase as db
+
+    COOLDOWN_HOURS = 12
+
+    target = None
+    nome = ""
+
+    try:
+        # 1. Busca candidatos com métricas de atividade
+        res = db.table('candidatos') \
+            .select('username, nome_completo, last_scraped_at, comentarios_odio_count, comentarios_totais_count, prioridade_coleta') \
+            .eq('status_monitoramento', 'Ativo') \
+            .execute()
+
+        if not res.data:
+            print("❌ Nenhum candidato ativo encontrado no Supabase.")
+            return
+
+        # 2. Filtra candidatos fora de cooldown
+        candidatos_viaveis = []
+        for c in res.data:
+            last = c.get('last_scraped_at')
+            if last:
+                try:
+                    last_dt = datetime.fromisoformat(str(last).replace('Z', '+00:00'))
+                    hours_since = (datetime.now(timezone.utc) - last_dt).total_seconds() / 3600
+                    if hours_since < COOLDOWN_HOURS:
+                        continue
+                except Exception:
+                    pass
+            candidatos_viaveis.append(c)
+
+        if not candidatos_viaveis:
+            print(f"⚠️ Todos os {len(res.data)} candidatos estão em cooldown ({COOLDOWN_HOURS}h).")
+            print("Sorteando entre todos mesmo assim...")
+            candidatos_viaveis = res.data
+
+        # 3. Calcula os Pesos (Roleta Ponderada)
+        PESO_BASE = 10
+        candidatos_com_peso = []
+        
+        for c in candidatos_viaveis:
+            odio = c.get('comentarios_odio_count') or 0
+            total = c.get('comentarios_totais_count') or 0
+            prio = c.get('prioridade_coleta') or 0
+            
+            # Fórmula de prioridade
+            score = PESO_BASE + (odio * 5) + (total * 1) + (prio * 50)
+            
+            candidatos_com_peso.append({
+                "candidato": c,
+                "peso": score
+            })
+
+        # 4. Sorteio utilizando random.choices (suporta pesos nativamente)
+        populacao = [item["candidato"] for item in candidatos_com_peso]
+        pesos = [item["peso"] for item in candidatos_com_peso]
+        
+        # random.choices retorna uma lista, pegamos o primeiro elemento
+        candidato = random.choices(populacao, weights=pesos, k=1)[0]
+        
+        target = candidato['username']
+        nome = candidato.get('nome_completo') or target
+        peso_sorteado = next(item["peso"] for item in candidatos_com_peso if item["candidato"]["username"] == target)
+
+        # Mostra o Top 3 para comparação visual
+        top_3 = sorted(candidatos_com_peso, key=lambda x: x["peso"], reverse=True)[:3]
+
+        print("🎲 ─────────────────────────────────────────")
+        print(f"🎯 Alvo sorteado: @{target} ({nome}) | Peso: {peso_sorteado}")
+        print(f"📊 Viáveis: {len(candidatos_viaveis)}/{len(res.data)} candidatos")
+        print("🏆 Top 3 Mais Prováveis:")
+        for i, t in enumerate(top_3):
+            c = t["candidato"]
+            print(f"   {i+1}. @{c['username']} (Peso: {t['peso']} | Ódio: {c.get('comentarios_odio_count', 0)})")
+        print("─────────────────────────────────────────────")
+
+    except Exception as e:
+        print(f"❌ Erro ao buscar candidatos do Supabase: {e}")
+        import traceback
+        traceback.print_exc()
+        print("⚠️ Usando fallback padrão...")
+        target = "cironogueira"
+
+    # 5. Executa a raspagem
+    scraper = InstagramScraperHeadless(target, max_posts=2, max_comments=15)
+
+    # Tenta buscar cookies de sessão ativa
+    cookies = None
+    try:
+        session_res = db.table("worker_sessions") \
+            .select("cookies") \
+            .eq("plataforma", "instagram") \
+            .eq("status", "active") \
+            .order("updated_at", desc=True) \
+            .limit(1) \
+            .execute()
+        if session_res.data:
+            cookies = session_res.data[0].get("cookies")
+            if cookies:
+                print(f"🔑 Sessão ativa encontrada. Cookies serão injetados.")
+    except Exception:
+        print("⚠️ Sessão de cookies não disponível. Prosseguindo sem autenticação.")
+
+    posts = await scraper.fetch_recent_posts(external_cookies=cookies)
+
+    if posts:
+        total_comments = sum(len(p.get("comments", [])) for p in posts)
+        print(f"\n✅ Coleta concluída: {len(posts)} posts | {total_comments} comentários")
+    else:
+        print(f"\n❌ Nenhum dado coletado para @{target}")
+
     print(json.dumps(posts, indent=2, ensure_ascii=False))
 
 if __name__ == "__main__":

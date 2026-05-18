@@ -3,7 +3,7 @@ PASA v49 - Instagram Worker: Orquestrador Zyte -> Playwright Fallback
 """
 import asyncio
 import logging
-import os
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from core.supabase_service import supabase as db
@@ -15,18 +15,20 @@ logger = logging.getLogger("InstagramWorker")
 
 class InstagramWorker:
     def __init__(self):
-        self.engine_type = "css_dom"  # Default
+        self.engine_type = "css_dom"
 
     def _get_active_session(self) -> Optional[Dict[str, Any]]:
-        """Busca uma sessão ativa (cookies) no Supabase para autenticar o scraping."""
+        """Busca uma sessão ativa (cookies) no Supabase."""
         try:
-            res = db.table("worker_sessions") 
-                .select("id, cookies") 
-                .eq("plataforma", "instagram") 
-                .eq("status", "active") 
-                .order("updated_at", desc=True) 
-                .limit(1) 
+            res = (
+                db.table("worker_sessions")
+                .select("id, cookies")
+                .eq("plataforma", "instagram")
+                .eq("status", "active")
+                .order("updated_at", desc=True)
+                .limit(1)
                 .execute()
+            )
             if res.data and len(res.data) > 0:
                 return res.data[0]
         except Exception as e:
@@ -36,11 +38,13 @@ class InstagramWorker:
     def _check_auth_pause(self) -> bool:
         """Verifica se há itens pausados por falha de autenticação."""
         try:
-            res = db.table("fila_coleta") 
-                .select("id") 
-                .eq("status", "paused_auth_fail") 
-                .limit(1) 
+            res = (
+                db.table("fila_coleta")
+                .select("id")
+                .eq("status", "paused_auth_fail")
+                .limit(1)
                 .execute()
+            )
             return len(res.data) > 0
         except Exception:
             return False
@@ -62,8 +66,13 @@ class InstagramWorker:
         session = self._get_active_session()
         cookies = session.get("cookies") if session else None
 
+        # Verifica pausa por falha de auth
+        if self._check_auth_pause() and not cookies:
+            logger.warning("⚠️ Fila pausada por falha de auth e sem sessão disponível.")
+
         # 1. Tentativa Zyte
         try:
+            logger.info(f"🚀 Iniciando coleta via X-Engine (Best: {self.engine_type}): {target}")
             zyte = InstagramScraperZyte(target, max_posts=5)
             posts = await zyte.fetch_recent_posts(external_cookies=cookies)
             if posts:
@@ -78,7 +87,6 @@ class InstagramWorker:
         # 2. Fallback Playwright com injeção de cookies
         try:
             headless = InstagramScraperHeadless(target, max_posts=5, max_comments=20)
-            # O fetch_recent_posts já recebe external_cookies e chama _inject_cookies internamente
             posts = await headless.fetch_recent_posts(external_cookies=cookies)
             if posts:
                 logger.info(f"✅ Playwright: {len(posts)} posts coletados para @{target}")
@@ -93,29 +101,37 @@ class InstagramWorker:
 
     async def _save_posts(self, target: str, posts: List[Dict]) -> None:
         """Salva posts e comentários no Supabase."""
+        total_saved = 0
         for post in posts:
             try:
-                # Salva comentários
                 for comment in post.get("comments", []):
+                    text = comment.get("text", "")
+                    if not text or len(text.strip()) < 3:
+                        continue
+
                     comment_row = {
                         "candidato_id": target,
-                        "texto_bruto": comment.get("text", ""),
+                        "texto_bruto": text.strip(),
                         "autor_username": comment.get("ownerUsername", "unknown"),
                         "post_shortcode": post.get("shortcode", ""),
-                        "data_coleta": __import__("datetime").datetime.now(
-                            __import__("datetime").timezone.utc
-                        ).isoformat(),
+                        "data_coleta": datetime.now(timezone.utc).isoformat(),
                         "processado_ia": False,
                         "is_hate": False,
                     }
                     db.table("comentarios").insert(comment_row).execute()
-
-                # Atualiza contadores do candidato
-                comment_count = len(post.get("comments", []))
-                db.rpc("increment_comment_count", {
-                    "username": target,
-                    "count": comment_count
-                }).execute()
+                    total_saved += 1
 
             except Exception as e:
                 logger.error(f"Erro ao salvar post {post.get('shortcode')}: {e}")
+
+        if total_saved > 0:
+            logger.info(f"💾 {total_saved} comentários salvos para @{target}")
+
+            # Atualiza last_scraped_at e contadores
+            try:
+                db.table("candidatos").update({
+                    "last_scraped_at": datetime.now(timezone.utc).isoformat(),
+                    "comentarios_totais_count": total_saved,
+                }).eq("username", target).execute()
+            except Exception:
+                pass

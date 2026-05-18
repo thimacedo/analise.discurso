@@ -82,13 +82,26 @@ def run_server():
                 candidatos_para_raspar = []
                 if not pending.data:
                     log_event(ops_log, "Fila vazia. Buscando candidatos ativos por prioridade/atividade (Fallback).")
-                    # Busca os candidatos ativos ordenando por prioridade (prioridade_coleta) e atividade
-                    fallback_res = db.table('candidatos').select('username').eq('status_monitoramento', 'Ativo').order('prioridade_coleta', desc=True).order('comentarios_odio_count', desc=True).limit(20).execute()
+                    import random as rd
+                    log_event(ops_log, "Fila vazia. Buscando candidatos via Roleta Ponderada (Fallback).")
+                    fallback_res = db.table('candidatos').select('username, comentarios_odio_count, comentarios_totais_count, prioridade_coleta').eq('status_monitoramento', 'Ativo').limit(50).execute()
+
                     if fallback_res.data:
-                        candidatos_para_raspar = [{'id': None, 'candidato_id': c['username']} for c in fallback_res.data]
-                    else:
-                        log_event(ops_log, "Nenhum candidato ativo encontrado para fallback.")
-                        break
+                        # Calcula pesos
+                        populacao = []
+                        pesos = []
+                        for c in fallback_res.data:
+                            odio = c.get('comentarios_odio_count') or 0
+                            total = c.get('comentarios_totais_count') or 0
+                            prio = c.get('prioridade_coleta') or 0
+                            score = 10 + (odio * 5) + total + (prio * 50)
+
+                            populacao.append({'id': None, 'candidato_id': c['username']})
+                            pesos.append(score)
+
+                        # Sorteia 5 alvos ponderados para o ciclo atual
+                        candidatos_para_raspar = rd.choices(populacao, weights=pesos, k=PROFILES_PER_CYCLE)
+                        log_event(ops_log, f"Alvos sorteados: {[c['candidato_id'] for c in candidatos_para_raspar]}")
                 else:
                     candidatos_para_raspar = pending.data
 
