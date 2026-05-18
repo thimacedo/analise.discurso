@@ -4,7 +4,7 @@ import os
 import logging
 import asyncio
 import base64
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from dotenv import load_dotenv
 from core.circuit_breaker import zyte_circuit_breaker
 
@@ -60,7 +60,7 @@ class InstagramScraperZyte:
                     delay = base_delay * (2 ** attempt)
                     logger.warning(f"⚠️ [Zyte] 503 Service Unavailable (tentativa {attempt + 1}/{max_retries}). Tentando novamente em {delay}s...")
                     await asyncio.sleep(delay)
-                    continue # Próxima iteração do loop de retentativa
+                    continue 
 
                 # Sucesso ou erro definitivo
                 zyte_circuit_breaker.record_success("zyte_api")
@@ -86,30 +86,25 @@ class InstagramScraperZyte:
                         return json.loads(body_content)
                     return {"raw_body": body_content}
                 
-                return {} # Resposta 200 OK mas vazia
+                return {} 
 
             except httpx.RequestError as e:
                 logger.error(f"🔌 [Zyte] Erro de conexão/rede: {e}")
-                # Não registra falha no CB por erro de rede local, mas quebra o loop
                 return {"error": "connection_error"}
         
-        # Se todas as retentativas falharem (apenas para 503)
         logger.error("❌ [Zyte] Falha definitiva após múltiplas tentativas (503).")
         zyte_circuit_breaker.record_failure("zyte_api", 503)
         return {"error": "service_unavailable", "status_code": 503}
-
 
     def _extract_json_from_html(self, html: str) -> Dict[str, Any]:
         """Extrai o JSON do window._sharedData ou window.__additionalData do HTML do Instagram."""
         import re
         if not html: return {}
-        # Tenta __additionalData
         match = re.search(r'window\.__additionalData\["xdt_api__v1__users__web_profile_info"\s*\]\s*=\s*({.*?});', html, re.DOTALL)
         if match:
             try: return json.loads(match.group(1))
             except: pass
             
-        # Tenta _sharedData
         match = re.search(r'window\._sharedData\s*=\s*({.*?});', html, re.DOTALL)
         if match:
             try: return json.loads(match.group(1))
@@ -138,14 +133,14 @@ class InstagramScraperZyte:
                     break
         return posts
 
-    async def fetch_recent_posts(self, external_cookies: Any = None) -> List[Dict[str, Any]]:
+    async def fetch_recent_posts(self, external_cookies: Any = None, skip_shortcodes: List[str] = None) -> List[Dict[str, Any]]:
         """
-        Orquestra a coleta de posts de um perfil, com múltiplos fallbacks.
-        Retorna uma lista de posts ou uma lista vazia em caso de falha definitiva.
+        Orquestra a coleta de posts de um perfil, com múltiplos fallbacks e deduplicação.
         """
         logger.info(f"🚀 [Zyte] Coletando perfil: {self.target_profile}")
         
         cookie_str = "; ".join([f"{c['name']}={c['value']}" for c in external_cookies]) if isinstance(external_cookies, list) else external_cookies or ""
+        skip_set = set(skip_shortcodes or [])
 
         profile_url = f"https://www.instagram.com/api/v1/users/web_profile_info/?username={self.target_profile}"
         headers = {
@@ -153,61 +148,88 @@ class InstagramScraperZyte:
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
         }
         
-        # Tentativa 1: API JSON direta
         data = await self._zyte_request(profile_url, headers, cookie_str)
         user_data = data.get("data", {}).get("user")
         
-        # Tentativa 2: Fallback para Browser Rendering se a API falhar
-        html_content_for_debug = ""
         if not user_data:
             logger.info("🔄 [Zyte] API JSON falhou. Tentando via Browser Rendering...")
             browser_url = f"https://www.instagram.com/{self.target_profile}/"
             browser_res = await self._zyte_request(browser_url, {"User-Agent": headers["User-Agent"]}, cookie_str, use_browser=True)
             
             html = browser_res.get("browserHtml", "")
-            html_content_for_debug = html # Guarda para depuração
-            
             if html:
                 extracted_data = self._extract_json_from_html(html)
                 user_data = (extracted_data.get("data", {}).get("user") or 
                             extracted_data.get("entry_data", {}).get("ProfilePage", [{}])[0].get("graphql", {}).get("user"))
                 
-                # Tentativa 3: Se JSON no HTML falhar, tenta extrair posts direto do DOM
                 if not user_data:
                     logger.info("🔄 [Zyte] JSON não encontrado no HTML. Tentando extração via seletores CSS...")
                     dom_posts = self._extract_from_dom(html)
-                    if dom_posts:
-                        logger.info(f"✅ [Zyte] Extraídos {len(dom_posts)} posts via seletores CSS.")
-                        return dom_posts
+                    # Filtra posts conhecidos no DOM (embora DOM não tenha IDs de media para comentários)
+                    return [p for p in dom_posts if p["shortcode"] not in skip_set]
 
         if not user_data:
             logger.warning(f"❌ Não foi possível obter dados do perfil @{self.target_profile} por nenhum método Zyte.")
-            # Salva o HTML para análise da falha
-            if html_content_for_debug:
-                with open(f"zyte_debug_response_{self.target_profile}.html", "w", encoding="utf-8") as f:
-                    f.write(html_content_for_debug)
-                logger.info(f"🐛 HTML de depuração salvo em 'zyte_debug_response_{self.target_profile}.html'")
             return []
 
-        # Processamento dos dados obtidos (seja da API ou do JSON embutido)
         edges = user_data.get("edge_owner_to_timeline_media", {}).get("edges", [])
-        # ... (Restante da lógica para processar os posts e comentários, se necessário) ...
-        # Por simplicidade, vamos retornar os dados brutos dos posts aqui
-        posts_data = []
+        detailed_posts = []
+        
         for edge in edges[:self.max_posts]:
-             node = edge.get("node", {})
-             posts_data.append({
-                 "shortcode": node.get("shortcode"),
-                 "text": node.get("edge_media_to_caption", {}).get("edges", [{}])[0].get("node", {}).get("text", ""),
-                 "timestamp": node.get("taken_at_timestamp")
-             })
-        return posts_data
+            node = edge.get("node", {})
+            shortcode = node.get("shortcode")
+            
+            # 🧠 DEDUPLICAÇÃO: Pula posts conhecidos
+            if shortcode in skip_set:
+                logger.info(f"⏭️ [Zyte] Pulando comentários do post {shortcode} (já conhecido).")
+                # Adiciona apenas o dado básico para o worker saber que ele ainda existe
+                detailed_posts.append({
+                    "shortcode": shortcode,
+                    "text": node.get("edge_media_to_caption", {}).get("edges", [{}])[0].get("node", {}).get("text", ""),
+                    "timestamp": node.get("taken_at_timestamp"),
+                    "comments": [],
+                    "is_skipped": True
+                })
+                continue
 
-# ... (código de fetch_post_comments, main, etc., pode ser mantido ou adaptado)
+            media_id = node.get("id")
+            caption = node.get("edge_media_to_caption", {}).get("edges", [{}])[0].get("node", {}).get("text", "")
+
+            post_item = {
+                "shortcode": shortcode,
+                "text": caption,
+                "timestamp": node.get("taken_at_timestamp"),
+                "comments": []
+            }
+
+            # Busca Comentários do Post (Gasto de créditos extra aqui)
+            if media_id:
+                logger.info(f"💬 [Zyte] Coletando comentários do post {shortcode}...")
+                comments_url = f"https://www.instagram.com/api/v1/media/{media_id}/comments/"
+                comments_data = await self._zyte_request(comments_url, headers, cookie_str)
+                
+                if not comments_data.get("error"):
+                    raw_comments = comments_data.get("comments", [])
+                    for c in raw_comments[:10]:
+                        post_item["comments"].append({
+                            "id": c.get("pk"),
+                            "text": c.get("text"),
+                            "ownerUsername": c.get("user", {}).get("username"),
+                            "timestamp": c.get("created_at")
+                        })
+            
+            detailed_posts.append(post_item)
+            
+        return detailed_posts
+
+    async def fetch_post_comments(self, post_url: str, external_cookies: Any = None) -> Dict[str, Any]:
+        """Extrai comentários de uma URL específica de post."""
+        # Implementação básica se necessário
+        return {"comments": []}
+
 async def main():
-    # Exemplo de uso
-    scraper = InstagramScraperZyte("rafaelfontelesoficial", max_posts=3)
-    posts = await scraper.fetch_recent_posts()
+    scraper = InstagramScraperZyte("lulaoficial", max_posts=3)
+    posts = await scraper.fetch_recent_posts(skip_shortcodes=["C7F9z0xOf_a"])
     print(json.dumps(posts, indent=2, ensure_ascii=False))
 
 if __name__ == "__main__":

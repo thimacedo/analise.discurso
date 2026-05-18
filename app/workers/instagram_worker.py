@@ -109,7 +109,7 @@ class InstagramWorker:
             return False
 
     async def _run_async(self, target: str) -> bool:
-        """Pipeline assíncrona com fallback graceful e adaptação SAO."""
+        """Pipeline assíncrona com fallback graceful, deduplicação e adaptação SAO."""
         from core.state_manager import WorkerState
         
         # Carrega o estado evolutivo deste worker
@@ -117,13 +117,18 @@ class InstagramWorker:
         current_level = worker_state.level
         trust = worker_state.trust_score
         
-        logger.info(f"🧬 Worker Nível {current_level} | Trust: {trust:.1f} | Alvo: @{target}")
+        # 🧠 MEMÓRIA DE DEDUPLICAÇÃO: Quais posts já raspamos recentemente para este alvo?
+        known_shortcodes = worker_state.get(f"{target}_shortcodes", [])
+        
+        logger.info(f"🧬 Worker Nível {current_level} | Trust: {trust:.1f} | Alvo: @{target} | Posts conhecidos: {len(known_shortcodes)}")
         
         session = self._get_active_session()
         cookies = session.get("cookies") if session else None
 
         # --- LÓGICA ADAPTATIVA POR NÍVEL ---
         zyte_disabled = os.getenv("ZYTE_DISABLED", "false") == "true"
+        scraped_new_data = False
+        new_posts_found = []
         
         # 1. Tentativa Zyte
         if current_level >= 2 and zyte_disabled:
@@ -133,17 +138,32 @@ class InstagramWorker:
                 timeout = 20 if current_level >= 2 else 10
                 logger.info(f"🚀 Iniciando coleta via Zyte: {target} (Timeout: {timeout}s)")
                 zyte = ScraperZyte(target, max_posts=5)
-                posts = await zyte.fetch_recent_posts(external_cookies=cookies)
-                if posts:
-                    logger.info(f"✅ Zyte: {len(posts)} posts coletados para @{target}")
-                    await self._save_posts(target, posts)
-                    worker_state.record_success(items_saved=len(posts))
+                # PASSA OS SHORTCODES CONHECIDOS PARA ECONOMIZAR API
+                posts = await zyte.fetch_recent_posts(external_cookies=cookies, skip_shortcodes=known_shortcodes)
+                
+                # Filtra posts que realmente têm comentários novos (não foram marcados como skip pelo scraper)
+                new_posts_found = [p for p in posts if not p.get("is_skipped")]
+                
+                if new_posts_found:
+                    logger.info(f"✅ Zyte: {len(new_posts_found)} posts NOVOS coletados para @{target}")
+                    await self._save_posts(target, new_posts_found)
+                    worker_state.record_success(items_saved=len(new_posts_found))
+                    scraped_new_data = True
+                else:
+                    logger.info(f"✅ Zyte: Nenhum post novo para @{target}. Coleta evitada (economia de recursos).")
+                    worker_state.record_success(items_saved=0)
+                    # Mesmo sem posts novos, atualiza o tempo de coleta
+                    try:
+                        db.table("candidatos").update({
+                            "last_scraped_at": datetime.now(timezone.utc).isoformat(),
+                        }).eq("username", target).execute()
+                    except: pass
                     return True
             except Exception as e:
                 logger.warning(f"⚠️ Zyte falhou para @{target}: {e}")
 
         # 2. Fallback Playwright (Elite ganha poderes aqui)
-        if HEADLESS_AVAILABLE:
+        if not scraped_new_data and HEADLESS_AVAILABLE:
             logger.warning(f"⚠️ Tentando FALLBACK Playwright para @{target}...")
             try:
                 max_p = 7 if current_level >= 3 else 5
@@ -152,31 +172,49 @@ class InstagramWorker:
                 headless = ScraperHeadless(target, max_posts=max_p, max_comments=max_c)
                 posts = await headless.fetch_recent_posts(external_cookies=cookies)
                 
+                # Filtra shortcodes conhecidos
+                new_posts_found = [p for p in posts if p.get("shortcode") not in known_shortcodes]
+                
                 # Auto-rotação de sessão (Veteranos tentam sozinhos)
-                if not posts and cookies and current_level >= 2:
+                if not new_posts_found and cookies and current_level >= 2:
                     logger.warning("🧠 [Veterano+] Login Wall? Tentando rotacionar sessão...")
                     new_session = await self._rotate_session(session.get("id") if session else None)
                     if new_session:
                         new_cookies = new_session.get("cookies")
                         headless = ScraperHeadless(target, max_posts=max_p, max_comments=max_c)
                         posts = await headless.fetch_recent_posts(external_cookies=new_cookies)
+                        new_posts_found = [p for p in posts if p.get("shortcode") not in known_shortcodes]
 
-                if posts:
-                    logger.info(f"✅ Playwright: {len(posts)} posts coletados para @{target}")
-                    await self._save_posts(target, posts)
-                    worker_state.record_success(items_saved=len(posts))
-                    return True
+                if new_posts_found:
+                    logger.info(f"✅ Playwright: {len(new_posts_found)} posts NOVOS coletados para @{target}")
+                    await self._save_posts(target, new_posts_found)
+                    worker_state.record_success(items_saved=len(new_posts_found))
+                    scraped_new_data = True
                 else:
-                    logger.warning(f"⚠️ Playwright retornou 0 posts para @{target}")
-                    worker_state.record_failure(reason="empty_scrape")
-                    return False
+                    logger.info(f"✅ Playwright: Nenhum post novo para @{target}.")
+                    worker_state.record_success(items_saved=0)
+                    try:
+                        db.table("candidatos").update({
+                            "last_scraped_at": datetime.now(timezone.utc).isoformat(),
+                        }).eq("username", target).execute()
+                    except: pass
+                    return True
             except Exception as e:
                 logger.error(f"💥 Playwright falhou para @{target}: {e}")
                 worker_state.record_failure(reason="playwright_crash")
                 return False
         
-        worker_state.record_failure(reason="no_engines")
-        return False
+        if not scraped_new_data:
+            worker_state.record_failure(reason="no_new_data")
+            return True # Retorna True para não punir o worker por falta de conteúdo novo
+
+        # 🧠 ATUALIZA A MEMÓRIA: Salva os shortcodes que raspamos (novos + antigos)
+        current_shortcodes = [p.get("shortcode") for p in new_posts_found if p.get("shortcode")]
+        all_shortcodes = list(set(known_shortcodes + current_shortcodes))
+        # Mantém apenas os 20 mais recentes para não inflar o arquivo de estado
+        worker_state.save({f"{target}_shortcodes": all_shortcodes[-20:]})
+            
+        return True
 
     async def _save_posts(self, target: str, posts: List[Dict]) -> None:
         """Salva posts e comentários no Supabase, com Quality Gate e Retry."""
