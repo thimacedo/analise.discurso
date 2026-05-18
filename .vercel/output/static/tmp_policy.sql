@@ -1,0 +1,1 @@
+CREATE POLICY "authenticated can receive broadcasts" ON "realtime"."messages" FOR SELECT TO authenticated USING ( true );
