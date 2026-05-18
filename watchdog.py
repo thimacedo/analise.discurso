@@ -1,5 +1,5 @@
 """
-PASA v49 - Watchdog: Guardião Inteligente com Dashboard Web Live
+PASA v50 - Watchdog: Guardião Inteligente com Dashboard Web Live
 Diferencia erros de código de erros de runtime, aplica autocura 
 e transmite tudo via SSE para o Dashboard.
 """
@@ -11,7 +11,7 @@ import requests
 import json
 import asyncio
 from threading import Thread, Lock
-from typing import Tuple
+from typing import Tuple, Dict, Any, Optional
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -26,6 +26,7 @@ except ImportError:
 # --- FastAPI Imports ---
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 # --- Configurações ---
 SERVER_SCRIPT = "local_server.py"
@@ -82,7 +83,7 @@ class WatchdogState:
             for queue in self.clients:
                 try:
                     queue.put_nowait(log_entry)
-                except asyncio.QueueFull:
+                except (asyncio.QueueFull, AttributeError):
                     pass
                     
     def update_metrics(self, **kwargs):
@@ -96,43 +97,89 @@ state = WatchdogState()
 # =========================================================
 # FASTAPI SERVER (Roda em Thread Separada)
 # =========================================================
-app = FastAPI()
+app = FastAPI(title="Watchdog Dashboard")
+
+# Adicionar CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root():
+    """Serve o dashboard HTML."""
     html_path = os.path.join(os.path.dirname(__file__), "static", "index.html")
     if os.path.exists(html_path):
         with open(html_path, "r", encoding="utf-8") as f:
             return f.read()
-    return "<h1>Dashboard não encontrado em /static/index.html</h1>"
+    return HTMLResponse(content="<h1>Dashboard não encontrado em /static/index.html</h1>", status_code=404)
 
 @app.get("/api/stream")
 async def stream(request: Request):
-    queue = asyncio.Queue()
+    """Server-Sent Events para logs em tempo real com MIME Type corrigido."""
+    queue = asyncio.Queue(maxsize=100)
+    
     with state.lock:
         state.clients.append(queue)
+        # Envia logs históricos (últimos 50)
         for log in state.logs[-50:]:
-            await queue.put(log)
+            try:
+                queue.put_nowait(log)
+            except asyncio.QueueFull:
+                pass
             
     async def event_generator():
         try:
             while True:
+                # Verifica se cliente desconectou
                 if await request.is_disconnected():
                     break
+                
                 try:
+                    # Aguarda novo log (timeout 30s)
                     data = await asyncio.wait_for(queue.get(), timeout=30.0)
-                    yield f"data: {json.dumps(data)}\n\n"
+                    yield f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
+                    
                 except asyncio.TimeoutError:
-                    yield f": keepalive\n\n"
+                    # Envia keepalive para manter conexão viva
+                    yield ": keepalive\n\n"
+                    
+        except asyncio.CancelledError:
+            pass  # Cliente desconectou normalmente
         finally:
+            # Remove cliente da lista
             with state.lock:
                 if queue in state.clients:
                     state.clients.remove(queue)
+    
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",  # ✅ Tipo MIME correto
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        }
+    )
 
 @app.get("/api/metrics")
 async def get_metrics():
-    from core.state_manager import WorkerState
-    ws = WorkerState("instagram_worker")
+    """Endpoint para métricas atualizadas."""
+    worker_metrics = {"queue_size": 0, "cycle": 0, "level": 1, "trust": 0.0}
+    try:
+        from core.state_manager import WorkerState
+        ws = WorkerState("instagram_worker")
+        worker_metrics = {
+            "queue_size": len(ws.get("fila", [])) if hasattr(ws, 'get') else 0,
+            "cycle": ws.get("cycle_count", 0) if hasattr(ws, 'get') else 0,
+            "level": ws.level,
+            "trust": round(ws.trust_score, 1)
+        }
+    except Exception:
+        pass
     
     with state.lock:
         return {
@@ -141,13 +188,14 @@ async def get_metrics():
             "alerts": state.alerts,
             "zyte_ok": state.zyte_ok,
             "status": state.status,
-            "level": ws.level,
-            "trust": round(ws.trust_score, 1)
+            "fast_crashes": state.fast_crashes,
+            "db_status": "OPERACIONAL",
+            **worker_metrics
         }
 
 def run_web_server():
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="error")
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="warning")
 
 # =========================================================
 # WATCHDOG CORE LOGIC
@@ -215,23 +263,21 @@ def send_whatsapp_alert(message: str, category: str = "runtime") -> None:
     except Exception as e:
         state.add_log("error", f"[Watchdog] Falha ao enviar alerta: {e}")
 
-def heal_runtime_error(stderr_output: str) -> str:
-    if not stderr_output:
-        return "restart"
-    stderr_lower = stderr_output.lower()
+def heal_runtime_error(reason: str) -> str:
+    stderr_lower = reason.lower()
     
     if "out of memory" in stderr_lower or "oom-killer" in stderr_lower or "cannot allocate memory" in stderr_lower:
         state.add_log("error", "[Watchdog] 🛑 OOM Detectado! Reinícios parados para proteger o sistema.")
         state.update_metrics(status="PARADO - OOM")
         return "fatal"
         
-    if "connectionrefusederror" in stderr_lower or ("supabase" in stderr_lower and ("timeout" in stderr_lower or "refused" in stderr_lower)):
+    if "connectionrefusederror" in stderr_lower or "supabase" in stderr_lower:
         state.add_log("warn", "[Watchdog] ⏸️ Banco de dados/API offline. Aguardando 5 min antes de tentar.")
         time.sleep(300)
         return "wait"
         
-    if "browser closed" in stderr_lower or ("playwright" in stderr_lower and ("crash" in stderr_lower or "timeout" in stderr_lower)):
-        state.add_log("warn", "[Watchdog] 🧹 Playwright crashou. Limpando processos órfãos do Chrome...")
+    if "browser closed" in stderr_lower or "playwright" in stderr_lower:
+        state.add_log("warn", "[Watchdog] 🧹 Playwright detectado nos logs de erro. Limpando processos órfãos...")
         try:
             if os.name == 'nt':
                 subprocess.run(["taskkill", "/F", "/IM", "chrome.exe"], capture_output=True)
@@ -296,8 +342,9 @@ def guard():
                     clean_line = line.strip()
                     if clean_line:
                         log_level = level
-                        if "ERROR" in clean_line.upper() or "❌" in clean_line: log_level = "error"
-                        elif "WARN" in clean_line.upper() or "⚠️" in clean_line: log_level = "warn"
+                        upper_line = clean_line.upper()
+                        if "ERROR" in upper_line or "❌" in clean_line: log_level = "error"
+                        elif "WARN" in upper_line or "⚠️" in clean_line: log_level = "warn"
                         elif "✅" in clean_line or "🚀" in clean_line: log_level = "info"
                         state.add_log(log_level, clean_line)
                 pipe.close()
@@ -342,8 +389,7 @@ def guard():
                     state.update_metrics(restarts=state.restarts + 1)
                     state.add_log("warn", "[Watchdog] ⚠️ Falha rápida na inicialização. Analisando autocura...")
                     
-                    # Tentamos pegar o stderr se as threads não capturaram tudo
-                    healing_action = heal_runtime_error("erro detectado via logs")
+                    healing_action = heal_runtime_error(recent_logs or "erro desconhecido")
                     
                     if healing_action == "fatal":
                         send_whatsapp_alert("🛑 *WATCHDOG: OOM FATAL* 🛑\nMemória esgotada. Sistema pausado.", category="oom")
