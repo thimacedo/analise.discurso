@@ -23,6 +23,12 @@ O Sentinela Democrática concluiu a transição para o pipeline de dados 100% re
 - **War Room UI:** Redesenhada para visual sutil e moderno com cores ANSI e logs em tempo real.
 - **Watchdog:** Guardião ativo com auto-cura de dependências e alertas via WhatsApp (CallMeBot).
 
+### Resiliência e Checkpointing (Novo)
+- **State Manager:** Motor de persistência leve (`core/state_manager.py`) implementado para combate a OOM e crashes.
+- **Recuperação Automática:** O `local_server.py` detecta quedas anormais, identifica o alvo que causou o crash e o pula na reinicialização para evitar loops de OOM.
+- **Escrita Atômica:** Os estados são salvos via `os.replace`, garantindo que arquivos de checkpoint nunca corrompam em caso de falha no exato momento da escrita.
+- **Memória de Ciclo:** Retoma a contagem de perfis raspados no ciclo atual, evitando retrabalho após reinício.
+
 ## 3. Proteções Jurídicas e Acadêmicas
 - **MCA v2.2:** Manual de Classificação Analítica consolidado.
 - **Terminologia:** Uso estrito de "Indícios Analíticos" e "Informação Situacional" para evitar conflitos forenses.

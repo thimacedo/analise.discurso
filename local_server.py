@@ -19,6 +19,7 @@ try:
     from scripts.mass_classify import process_mass_classification
     from scripts.detect_shadowbans import detect_shadowbans
     from scripts.check_drift import check_category_drift
+    from core.state_manager import WorkerState
 except ImportError as e:
     print(f"Erro crítico de importação: {e}")
     sys.exit(1)
@@ -58,17 +59,32 @@ def run_server():
         logger.error(f"Erro ao inicializar worker: {e}")
         return
 
-    cycle_count = 0
+    # 🧠 INICIALIZAÇÃO DA MEMÓRIA
+    server_state = WorkerState("local_server")
+    crashed_target = server_state.mark_crash_recovery()
+    
+    cycle_count = server_state.get("cycle_count", 0)
     ops_log = []
+    
+    # Se veio de um crash, carrega os logs anteriores brevemente
+    if crashed_target:
+        log_event(ops_log, f"♻️ Sessão anterior caiu processando @{crashed_target}. Pulando para estabilidade.")
     
     while True:
         cycle_count += 1
+        # 🧠 SALVA O ESTADO DO CICLO ATUAL
+        server_state.save({"cycle_count": cycle_count, "last_operation_status": "cycling"})
+        
         supabase_status = "🟢 ONLINE"
         log_event(ops_log, f"Iniciando ciclo #{cycle_count}")
         
         # 1. Fase de Raspagem (Busca Ativa até completar o Batch)
         PROFILES_PER_CYCLE = 5
-        profiles_scraped_this_cycle = 0
+        profiles_scraped_this_cycle = server_state.get("profiles_scraped_this_cycle", 0)
+        
+        # Se veio de um crash no meio do ciclo, tenta completar o ciclo
+        if profiles_scraped_this_cycle > 0 and profiles_scraped_this_cycle < PROFILES_PER_CYCLE:
+            log_event(ops_log, f"Retomando ciclo incompleto: {profiles_scraped_this_cycle}/{PROFILES_PER_CYCLE} perfis coletados")
         
         while profiles_scraped_this_cycle < PROFILES_PER_CYCLE:
             try:
@@ -111,6 +127,13 @@ def run_server():
                     target_id = p['candidato_id']
                     item_id = p['id']
                     
+                    # 🧠 VERIFICA SE É O ALVO QUE CAUSOU O CRASH (OOM)
+                    if target_id == server_state.get("skip_target"):
+                        log_event(ops_log, f"⏭️ Pulando @{target_id} (causou crash na sessão anterior)")
+                        if item_id:
+                            db.table('fila_coleta').delete().eq('id', item_id).execute()
+                        continue
+
                     # Check Cooldown
                     cand = db.table('candidatos').select('last_scraped_at').eq('username', target_id).execute()
                     if cand.data and cand.data[0].get('last_scraped_at'):
@@ -127,7 +150,13 @@ def run_server():
                                 continue
                         except Exception: pass
                     
-                    # Alvo viável
+                    # 🧠 MARCA O ALVO QUE VAI PROCESSAR (Se cair aqui, o recovery vai saber)
+                    server_state.save({
+                        "current_target": target_id,
+                        "last_operation_status": "processing",
+                        "profiles_scraped_this_cycle": profiles_scraped_this_cycle
+                    })
+                    
                     log_event(ops_log, f"Iniciando raspagem de @{target_id}")
                     
                     try:
@@ -139,6 +168,14 @@ def run_server():
                             db.table('candidatos').update({'last_scraped_at': datetime.now(timezone.utc).isoformat()}).eq('username', target_id).execute()
                             log_event(ops_log, f"Raspagem de @{target_id} concluída.")
                             profiles_scraped_this_cycle += 1
+
+                            # 🧠 ATUALIZA O ESTADO DE SUCESSO
+                            server_state.save({
+                                "last_success_target": target_id,
+                                "last_operation_status": "success",
+                                "profiles_scraped_this_cycle": profiles_scraped_this_cycle,
+                                "skip_target": None # Limpa o skip se deu tudo certo
+                            })
                         else:
                             log_event(ops_log, f"Falha na raspagem de @{target_id}")
                     except Exception as e:
@@ -159,6 +196,9 @@ def run_server():
                 supabase_status = "🔴 OFFLINE"
                 log_event(ops_log, f"Erro Supabase: {str(e)[:80]}")
                 break
+
+        # Fim do ciclo de raspagem - reseta o contador parcial
+        server_state.save({"profiles_scraped_this_cycle": 0})
 
         # 2. Profiling, Shadowban e Git Sync
         WarRoomUI.render("📊 ATUALIZANDO PERFIS", supabase_status, "---", cycle_count, ops_log)

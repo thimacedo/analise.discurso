@@ -29,6 +29,13 @@
 - [x] Backend refatorado para compatibilidade total com Vercel Serverless.
 - [x] Rotação automática de contas de scraping configurável via UI.
 
+### Resiliência e Otimização (v49.9)
+- [x] State Manager com Checkpointing Atômico (Combate a OOM/Crashes).
+- [x] Recuperação de Crash e Auto-Proteção (Pula alvos que causaram OOM).
+- [x] Watchdog Inteligente: Classificação de erros (Code vs Runtime) e Anti-Spam de alertas WhatsApp.
+- [x] Unificacao de diretórios de Workers (`app/workers/`).
+- [x] Quality Gate obrigatório no pipeline de inserção do Supabase.
+
 ---
 
 ## 🚀 Próximos Passos (Backlog)

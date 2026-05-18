@@ -34,6 +34,24 @@ Este documento audita o status operacional, funcionalidade e necessidade de refa
 
 ---
 
+## 🧠 Arquitetura de Estado e Checkpointing
+
+Para garantir que o sistema não retorne ao zero após quedas (OOM, travamentos, perda de rede), implementamos o padrão **Write-Ahead Logging (WAL) simplificado** via `core/state_manager.py`.
+
+### Como Funciona
+1. **Instanciação:** Qualquer worker pode criar seu estado: `state = WorkerState("nome_do_worker")`.
+2. **Pre-Write:** Antes de iniciar uma tarefa pesada, o worker salva `{"status": "processing", "target": "fulano"}`.
+3. **Post-Write:** Após o sucesso, salva `{"status": "success"}`.
+4. **Recovery:** Na próxima inicialização, se o status for `"processing"`, o sistema sabe que caiu durante a tarefa e toma ações (ex: pular o alvo problemático).
+
+### Regras de Uso (Obrigatório para Workers de Longo Curso)
+- **Escrita Atômica:** A classe `WorkerState` usa `os.replace()`. Nunca escreva diretamente com `open('w')` em arquivos de estado, sob risco de corrompê-los em um crash.
+- **Leveza:** Salve apenas ponteiros, contadores e IDs. Nunca salve payloads de dados (textos de comentários, HTML) no estado.
+- **Isolamento:** Cada worker tem seu arquivo em `runtime_state/nome_do_worker_state.json`. Não compartilhe o mesmo arquivo entre workers concorrentes.
+- **Gitignore:** O diretório `runtime_state/` está no `.gitignore`. Dados de sessão local não sobem para o repositório.
+
+---
+
 ## 📊 Registros de Ações (PASA v49.9)
 
 ### 1. Desduplicação de Caminhos ✅

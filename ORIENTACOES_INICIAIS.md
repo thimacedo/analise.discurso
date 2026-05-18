@@ -87,6 +87,12 @@
 - **Logs Estruturados:** O `WarRoomUI` e os logs em arquivo dependem de mensagens claras. Use os níveis corretos (`INFO`, `WARNING`, `ERROR`) e prefixos contextuais (ex: `[Zyte]`, `[Playwright]`).
 - **Sem código morto:** Se um worker legado está OFF e sem previsão de uso, não o mantenha no fluxo principal. Arquive ou delete. Código não utilizado é passivo de bugs ocultos.
 
+### 15. 🧠 Memória de Estado (Checkpointing)
+- **Workers com memória:** Todo worker de longo curso ou processamento em lote **deve** utilizar a classe `WorkerState` (`core/state_manager.py`).
+- **Proteção contra OOM:** Se um processo morre por falta de memória, o sistema deve ser capaz de retomar de onde parou na reinicialização, sem retrabalho.
+- **Auto-Proteção:** Se um alvo específico causou a queda (OOM), o sistema deve marcá-lo e pulá-lo no próximo ciclo para evitar loops de crash infinitos.
+- **Nunca escreva estado sem atomicidade:** Em caso de crash durante o salvamento do arquivo, o estado anterior deve permanecer intacto (uso de arquivos `.tmp` + `os.replace`).
+
 ---
 
 **Status do Sistema:** 🟢 OPERACIONAL

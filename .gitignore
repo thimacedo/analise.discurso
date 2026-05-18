@@ -83,3 +83,6 @@ vendor/
 .idea/
 *.swp
 *.swo
+
+# Estado de runtime e recuperação de crash
+runtime_state/
