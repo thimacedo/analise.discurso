@@ -133,18 +133,27 @@ class InstagramWorker:
                 stderr=asyncio.subprocess.PIPE
             )
             
+            logger.info(f"⏳ Tier {tier_num}: Processando @{target}... (aguardando Scrapy)")
             stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=timeout)
             
             if process.returncode != 0:
-                error_msg = stderr.decode('utf-8', errors='ignore')[:300]
-                logger.warning(f"⚠️ Tier {tier_num} ({spider_name}) retornou erro:\n{error_msg}")
+                error_msg = stderr.decode('utf-8', errors='ignore')
+                logger.error(f"❌ Tier {tier_num} ({spider_name}) FALHOU (Code {process.returncode})")
+                if error_msg:
+                    # Loga apenas as últimas 3 linhas do erro para não poluir
+                    last_lines = "\n".join(error_msg.strip().split("\n")[-3:])
+                    logger.error(f"Destaque do erro:\n{last_lines}")
                 return []
             
             if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
                 with open(output_path, 'r', encoding='utf-8') as f:
                     data = json.load(f)
-                return data if isinstance(data, list) else []
+                
+                if data:
+                    logger.info(f"✅ Tier {tier_num}: Scrapy extraiu {len(data)} comentários com sucesso.")
+                    return data
             
+            logger.warning(f"⚠️ Tier {tier_num}: Scrapy terminou sem extrair dados.")
             return []
             
         except asyncio.TimeoutError:

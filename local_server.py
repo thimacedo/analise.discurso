@@ -25,8 +25,20 @@ except ImportError as e:
 
 if not os.path.exists('logs'):
     os.makedirs('logs')
-logging.basicConfig(level=logging.INFO, filename='logs/server.log', format='%(asctime)s - SERVER - %(message)s')
+
+# Configuração de logging dupla: arquivo e console (para o Watchdog capturar)
+log_format = '%(asctime)s - SERVER - %(message)s'
+logging.basicConfig(
+    level=logging.INFO, 
+    format=log_format,
+    handlers=[
+        logging.FileHandler('logs/server.log'),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 logger = logging.getLogger("SentinelaServer")
+
+WATCHDOG_ACTIVE = os.getenv("WATCHDOG_ACTIVE") == "true"
 
 # Configurações do Ciclo (Otimizadas para Zyte Equalitário)
 CYCLE_PAUSE = 1800  # 30 min
@@ -36,6 +48,11 @@ COOLDOWN_HOURS = 12 # 12h entre coletas do mesmo alvo (divisão justa)
 class WarRoomUI:
     @staticmethod
     def render(status, db_status, queue_size, cycle, logs):
+        if WATCHDOG_ACTIVE:
+            # Se o Watchdog está ativo, apenas logamos o status em vez de "desenhar" a UI
+            logger.info(f"STATUS: {status} | DB: {db_status} | Fila: {queue_size} | Ciclo: {cycle}")
+            return
+
         os.system('cls' if os.name == 'nt' else 'clear')
         print(f"--- SENTINELA DEMOCRÁTICA [v49.9] ---")
         print(f"Tempo: {datetime.now().strftime('%H:%M:%S')} | Ciclo: {cycle}")

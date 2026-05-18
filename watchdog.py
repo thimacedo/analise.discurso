@@ -281,27 +281,49 @@ def guard():
         state.update_metrics(status="OPERACIONAL")
         state.add_log("info", "[Watchdog] Iniciando local_server.py...")
         try:
+            ENV_WITH_WATCHDOG = CHILD_ENV.copy()
+            ENV_WITH_WATCHDOG["WATCHDOG_ACTIVE"] = "true"
+            ENV_WITH_WATCHDOG["PYTHONUNBUFFERED"] = "1"
+
             process = subprocess.Popen(
-                [python_exe, SERVER_SCRIPT], env=CHILD_ENV,
+                [python_exe, SERVER_SCRIPT], env=ENV_WITH_WATCHDOG,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                bufsize=1, universal_newlines=True
             )
             
+            def pipe_reader(pipe, level):
+                for line in iter(pipe.readline, ''):
+                    clean_line = line.strip()
+                    if clean_line:
+                        log_level = level
+                        if "ERROR" in clean_line.upper() or "❌" in clean_line: log_level = "error"
+                        elif "WARN" in clean_line.upper() or "⚠️" in clean_line: log_level = "warn"
+                        elif "✅" in clean_line or "🚀" in clean_line: log_level = "info"
+                        state.add_log(log_level, clean_line)
+                pipe.close()
+
+            t_stdout = Thread(target=pipe_reader, args=(process.stdout, "dim"), daemon=True)
+            t_stderr = Thread(target=pipe_reader, args=(process.stderr, "error"), daemon=True)
+            t_stdout.start()
+            t_stderr.start()
+
             while True:
                 poll = process.poll()
                 if poll is not None:
                     break
-                time.sleep(10)
+                time.sleep(2)
+
+            t_stdout.join(timeout=5)
+            t_stderr.join(timeout=5)
 
             if poll != 0:
-                stderr_output = process.stderr.read() if process.stderr else ""
-                error_type = classify_error(stderr_output)
-                
-                if stderr_output:
-                    if len(stderr_output) > 400:
-                        display_stderr = stderr_output[:150] + "\n...\n" + stderr_output[-200:]
-                    else:
-                        display_stderr = stderr_output
-                    state.add_log("dim", f"[Watchdog] STDERR:\n{display_stderr}")
+                error_type = "runtime"
+                with state.lock:
+                    recent_logs = "".join([l["message"] for l in state.logs[-10:]]).lower()
+                    for err_type in CODE_ERRORS:
+                        if err_type in recent_logs:
+                            error_type = "code"
+                            break
                 
                 if error_type == "code":
                     consecutive_code_errors += 1
@@ -320,7 +342,8 @@ def guard():
                     state.update_metrics(restarts=state.restarts + 1)
                     state.add_log("warn", "[Watchdog] ⚠️ Falha rápida na inicialização. Analisando autocura...")
                     
-                    healing_action = heal_runtime_error(stderr_output)
+                    # Tentamos pegar o stderr se as threads não capturaram tudo
+                    healing_action = heal_runtime_error("erro detectado via logs")
                     
                     if healing_action == "fatal":
                         send_whatsapp_alert("🛑 *WATCHDOG: OOM FATAL* 🛑\nMemória esgotada. Sistema pausado.", category="oom")
@@ -353,12 +376,8 @@ def guard():
 
 if __name__ == "__main__":
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
-    
-    # Inicia o servidor web em background
     web_thread = Thread(target=run_web_server, daemon=True)
     web_thread.start()
     print("🚀 Dashboard disponível em: http://localhost:8000")
-    
-    # Inicia o loop do guardião na thread principal
-    print("🛡️ SENTINELA DEMOCRÁTICA - WATCHDOG v49.9")
+    print("🛡️ SENTINELA DEMOCRÁTICA - WATCHDOG v50.0")
     guard()
