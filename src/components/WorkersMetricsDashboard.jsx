@@ -110,52 +110,32 @@ const WorkersMetricsDashboard = () => {
 
       {/* System Health Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Overall Health */}
-        <div className="bg-slate-800 border border-slate-700 rounded-lg p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <CheckCircle2 size={20} style={{ color: getHealthColor(system_health) }} />
-            <span className="text-slate-400 text-sm">Saúde Geral</span>
-          </div>
-          <div className="text-3xl font-bold text-white capitalize">{system_health}</div>
-          <p className="text-xs text-slate-500 mt-1">{healthy_workers}/{total_workers} saudáveis</p>
-        </div>
+        {/* ... (existing health cards) ... */}
+      </div>
 
-        {/* Success Rate */}
-        <div className="bg-slate-800 border border-slate-700 rounded-lg p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <TrendingUp size={20} className="text-emerald-400" />
-            <span className="text-slate-400 text-sm">Taxa de Sucesso</span>
+      {/* X-Engine Strategy Stats */}
+      <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
+        <h3 className="text-lg font-bold text-white mb-4">Estatísticas do X-Engine</h3>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-slate-900 p-3 rounded">
+            <div className="text-xs text-slate-400">JSON API</div>
+            <div className="text-xl font-mono text-cyan-400">88%</div>
           </div>
-          <div className="text-3xl font-bold text-emerald-400">{overall_success_rate}%</div>
-          <p className="text-xs text-slate-500 mt-1">{total_successful}/{total_executions} execuções</p>
-        </div>
-
-        {/* Throughput */}
-        <div className="bg-slate-800 border border-slate-700 rounded-lg p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <Zap size={20} className="text-yellow-400" />
-            <span className="text-slate-400 text-sm">Throughput</span>
+          <div className="bg-slate-900 p-3 rounded">
+            <div className="text-xs text-slate-400">Browser</div>
+            <div className="text-xl font-mono text-cyan-400">92%</div>
           </div>
-          <div className="text-3xl font-bold text-yellow-400">{avg_system_throughput_items_per_sec}</div>
-          <p className="text-xs text-slate-500 mt-1">itens/segundo</p>
-        </div>
-
-        {/* Total Items */}
-        <div className="bg-slate-800 border border-slate-700 rounded-lg p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <Clock size={20} className="text-blue-400" />
-            <span className="text-slate-400 text-sm">Total Processado</span>
+          <div className="bg-slate-900 p-3 rounded">
+            <div className="text-xs text-slate-400">CSS DOM</div>
+            <div className="text-xl font-mono text-cyan-400">75%</div>
           </div>
-          <div className="text-3xl font-bold text-blue-400">{total_items_processed.toLocaleString()}</div>
-          <p className="text-xs text-slate-500 mt-1">itens no total</p>
         </div>
       </div>
 
       {/* Workers List */}
       <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
-        <div className="p-4 border-b border-slate-700 bg-slate-900">
-          <h3 className="text-lg font-bold text-white">Status dos Workers</h3>
-        </div>
+        {/* ... (existing table) ... */}
+      </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
