@@ -129,6 +129,16 @@ def guard():
 
         time.sleep(RESTART_DELAY)
 
+# Exibe orientações iniciais ao operador
+def show_orientations():
+    try:
+        with open("ORIENTACOES_INICIAIS.md", "r", encoding="utf-8") as f:
+            print(f.read())
+            print()
+    except FileNotFoundError:
+        pass
+
 if __name__ == "__main__":
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    show_orientations()  # <-- Chamada adicionada
     guard()
