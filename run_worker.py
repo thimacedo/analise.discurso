@@ -1,57 +1,40 @@
-import subprocess
+"""
+PASA v49 - Worker Runner: Executa workers isoladamente para testes e automação.
+"""
 import sys
 import os
+import argparse
+import subprocess
+from datetime import datetime
 
-# Define o diretório de trabalho como a raiz do projeto
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-os.chdir(project_root)
+# Garante que o diretório raiz esteja no PATH
+project_root = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, project_root)
 
-# Configura o encoding para UTF-8 para stdout e stderr
-# Isso garante que caracteres especiais sejam tratados corretamente no Windows
-if sys.platform == 'win32':
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
-
-# Comando a ser executado (scripts/work_session.py)
-# Usando -X utf8 para forçar o modo UTF-8 nativo do interpretador Python
-command = "python -X utf8 scripts/work_session.py"
-
-print(f"Executando comando: {command}")
-
-try:
-    # Executa o comando e redireciona stdout e stderr para um arquivo de log
-    # O redirecionamento '2>&1' é feito implicitamente pelo subprocess.Popen com stderr=subprocess.STDOUT
-    # e também explicitamente ao abrir o arquivo de log.
-    with open("debug_session.log", "w", encoding="utf-8") as log_file:
-        process = subprocess.Popen(
-            command,
-            shell=True, # Usar shell=True para permitir redirecionamento e outros recursos do shell
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT, # Redireciona stderr para stdout
-            text=True,
-            encoding='utf-8',
-            errors='replace',
-            cwd=project_root # Garante que o comando seja executado na raiz do projeto
-        )
+def run_test_worker(target: str):
+    print(f"🚀 [Runner] Disparando InstagramWorker para @{target}...")
+    
+    try:
+        from app.workers.instagram_worker import InstagramWorker
+        worker = InstagramWorker()
+        success = worker.run(target)
         
-        # Lê a saída em tempo real e a escreve no arquivo de log e no console
-        for line in process.stdout:
-            print(line, end='')
-            log_file.write(line)
-            log_file.flush() # Garante que a linha seja escrita imediatamente no arquivo
-
-        process.wait() # Espera o processo terminar
-        
-        if process.returncode != 0:
-            print(f"
-!!! Comando falhou com código de saída: {process.returncode} !!!")
+        if success:
+            print(f"✅ [Runner] Execução concluída com sucesso para @{target}.")
         else:
-            print(f"
-Comando executado com sucesso.")
+            print(f"⚠️ [Runner] Worker reportou falha ou nenhum dado para @{target}.")
+            
+    except Exception as e:
+        print(f"💥 [Runner] Erro crítico ao instanciar/rodar worker: {e}")
 
-except FileNotFoundError:
-    print(f"
-!!! Erro: Comando '{command.split()[0]}' não encontrado. Verifique se o Python está no PATH e o script existe. !!!")
-except Exception as e:
-    print(f"
-!!! Erro inesperado ao executar o comando: {e} !!!")
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="PASA Worker Test Runner")
+    parser.add_argument("--target", type=str, help="Username ou URL do alvo")
+    parser.add_argument("--force", action="store_true", help="Ignora circuit breaker (não implementado neste runner simples)")
+    
+    args = parser.parse_args()
+    
+    if args.target:
+        run_test_worker(args.target)
+    else:
+        print("❌ Informe um alvo: python run_worker.py --target lulaoficial")

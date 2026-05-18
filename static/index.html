@@ -44,6 +44,14 @@
                         <div class="text-xs text-slate-400 mb-1">Reinícios Automáticos</div>
                         <div class="text-2xl font-bold text-white" id="val-restarts">0</div>
                     </div>
+
+                    <div>
+                        <div class="text-xs text-slate-400 mb-1">Worker Level (SAO)</div>
+                        <div class="flex items-center gap-2">
+                            <div class="text-2xl font-bold text-emerald-400" id="val-level">1</div>
+                            <div class="text-[10px] text-slate-500 font-bold px-1 border border-slate-800 rounded" id="val-trust">TRUST: 5.0</div>
+                        </div>
+                    </div>
                     
                     <div>
                         <div class="text-xs text-slate-400 mb-1">Erros de Código (Fatais)</div>
@@ -111,6 +119,8 @@
             document.getElementById('val-restarts').innerText = state.restarts;
             document.getElementById('val-codeErrors').innerText = state.codeErrors;
             document.getElementById('val-alerts').innerText = state.alerts;
+            document.getElementById('val-level').innerText = state.level || 1;
+            document.getElementById('val-trust').innerText = `TRUST: ${state.trust || '5.0'}`;
             
             const zyteEl = document.getElementById('val-zyte');
             if (state.zyteOk) {
@@ -139,6 +149,8 @@
             codeErrors: 0,
             alerts: 0,
             zyteOk: true,
+            level: 1,
+            trust: 5.0,
             logs: [],
             running: true,
         };
@@ -173,6 +185,8 @@
                 state.codeErrors = metrics.code_errors;
                 state.alerts = metrics.alerts;
                 state.zyteOk = metrics.zyte_ok;
+                state.level = metrics.level;
+                state.trust = metrics.trust;
                 
                 // Atualiza Status Badge
                 if(metrics.status.includes("PARADO")) updateStatus('error', metrics.status);

@@ -134,6 +134,15 @@ class InstagramWorker(BaseWorker):
         return total_saved
 
     def run(self, target: str):
+        from core.state_manager import WorkerState
+        
+        # Carrega o estado evolutivo deste worker (SAO)
+        worker_state = WorkerState("instagram_worker")
+        current_level = worker_state.level
+        trust = worker_state.trust_score
+        
+        print(f"[InstagramWorker] 🧬 Worker Nível {current_level} | Trust: {trust:.1f} | Alvo: @{target}")
+
         self.current_target = target
         if self._check_circuit_breaker():
             return False
@@ -166,49 +175,79 @@ class InstagramWorker(BaseWorker):
             
             posts_data = []
 
+            # --- LÓGICA ADAPTATIVA POR NÍVEL ---
+            zyte_disabled = os.getenv("ZYTE_DISABLED", "false") == "true"
+            
+            skip_zyte = False
+            if current_level >= 2 and zyte_disabled:
+                print("🧠 [Veterano+] Zyte desabilitado pelo Watchdog. Pulando direto para Playwright.")
+                skip_zyte = True
+            elif current_level == 1 and zyte_disabled:
+                print("🥉 [Recruta] Zyte desabilitado. Tentando mesmo assim (Recrutas seguem ordens).")
+
             # 2. Motor Principal: Zyte API
-            if is_url:
-                zyte_scraper = InstagramScraperZyte(target_profile="url_mode")
-                single_post = asyncio.run(zyte_scraper.fetch_post_comments(post_url=target, external_cookies=active_cookies))
-                if single_post and single_post.get('comments'):
-                    posts_data = [single_post]
-            else:
-                best = get_best_method()
-                print(f"[InstagramWorker] 🚀 Coleta via X-Engine (Best: {best}): {target}")
-                zyte_scraper = InstagramScraperZyte(target_profile=target, max_posts=3)
-                posts_data = asyncio.run(zyte_scraper.fetch_recent_posts(external_cookies=active_cookies))
-                
-                if posts_data:
-                    update_weight(best, True)
+            if not skip_zyte:
+                if is_url:
+                    zyte_scraper = InstagramScraperZyte(target_profile="url_mode")
+                    single_post = asyncio.run(zyte_scraper.fetch_post_comments(post_url=target, external_cookies=active_cookies))
+                    if single_post and single_post.get('comments'):
+                        posts_data = [single_post]
                 else:
-                    update_weight(best, False)
-                    if isinstance(posts_data, dict) and posts_data.get("statusCode") == 404:
-                        print(f"[ALERTA USERNAME] ❌ @{target} - 404 Not Found")
-                        return False
+                    best = get_best_method()
+                    print(f"[InstagramWorker] 🚀 Coleta via X-Engine (Best: {best}): {target}")
+                    
+                    # Veteranos/Elite usam limites maiores
+                    m_posts = 5 if current_level >= 3 else 3
+                    
+                    zyte_scraper = InstagramScraperZyte(target_profile=target, max_posts=m_posts)
+                    posts_data = asyncio.run(zyte_scraper.fetch_recent_posts(external_cookies=active_cookies))
+                    
+                    if posts_data:
+                        update_weight(best, True)
+                    else:
+                        update_weight(best, False)
+                        if isinstance(posts_data, dict) and posts_data.get("statusCode") == 404:
+                            print(f"[ALERTA USERNAME] ❌ @{target} - 404 Not Found")
+                            worker_state.record_failure(reason="404_not_found")
+                            return False
             
             # 3. Fallback: Playwright com Auto-Rotação
             if not posts_data and not is_url:
-                print(f"[InstagramWorker] ⚠️ Zyte falhou. Tentando FALLBACK Playwright...")
-                headless = InstagramScraperHeadless(target, max_posts=3)
+                print(f"[InstagramWorker] ⚠️ Tentando FALLBACK Playwright...")
+                
+                # Elite (3+) tenta mais comentários e posts
+                max_p = 7 if current_level >= 3 else 5
+                max_c = 30 if current_level >= 3 else 20
+                
+                headless = InstagramScraperHeadless(target, max_posts=max_p, max_comments=max_c)
                 posts_data = asyncio.run(headless.fetch_recent_posts(external_cookies=active_cookies))
                 
-                # AUTOCURA: Se Login Wall, tenta rotacionar sessão
-                if not posts_data and active_cookies:
+                # Auto-rotação de sessão (Veteranos tentam sozinhos)
+                if not posts_data and active_cookies and current_level >= 2:
+                    print("🧠 [Veterano+] Login Wall ou falha detectada. Tentando rotacionar sessão...")
                     new_session = asyncio.run(self._rotate_session(session_id))
                     if new_session:
                         print(f"[InstagramWorker] 🔄 Retentando Playwright com nova sessão...")
                         posts_data = asyncio.run(headless.fetch_recent_posts(external_cookies=new_session.get('cookies')))
 
             if not posts_data:
+                worker_state.record_failure(reason="no_data_returned")
                 self.after_run(success=False, error_details="Nenhum dado retornado.")
                 return False
 
             # 4. Persistência Resiliente
             total_saved = asyncio.run(self._save_posts(target, posts_data))
+            
+            if total_saved > 0:
+                worker_state.record_success(items_saved=total_saved)
+            else:
+                worker_state.record_failure(reason="zero_items_saved")
+
             self.after_run(success=True, total_items=total_saved)
             return True
 
         except Exception as e:
             print(f"[InstagramWorker] 💥 ERRO CRÍTICO: {e}")
+            worker_state.record_failure(reason=str(type(e).__name__))
             self.after_run(success=False, error_details=str(e))
             return False

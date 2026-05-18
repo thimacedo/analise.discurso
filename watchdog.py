@@ -131,13 +131,18 @@ async def stream(request: Request):
 
 @app.get("/api/metrics")
 async def get_metrics():
+    from core.state_manager import WorkerState
+    ws = WorkerState("instagram_worker")
+    
     with state.lock:
         return {
             "restarts": state.restarts,
             "code_errors": state.code_errors,
             "alerts": state.alerts,
             "zyte_ok": state.zyte_ok,
-            "status": state.status
+            "status": state.status,
+            "level": ws.level,
+            "trust": round(ws.trust_score, 1)
         }
 
 def run_web_server():
