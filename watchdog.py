@@ -1,134 +1,149 @@
-"""
-PASA v49 - Watchdog: Guardião com Auto-Cura e Alerta WhatsApp
-Monitora o local_server.py, reinicia se travar e avisa o operador via CallMeBot.
-"""
-import time
-import subprocess
-import sys
+import httpx
 import os
-import requests
+import logging
+import time
+from dotenv import load_dotenv
 
-# Garante que o diretório raiz do projeto esteja no Python Path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# --- Configuração Inicial ---
+load_dotenv()
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger("SentinelaWatchdog")
 
-try:
-    from core.auto_updater import check_for_updates
-    from core.zyte_checker import check_zyte_health
-except ImportError:
-    check_for_updates = lambda: False
-    check_zyte_health = lambda: (True, "Skipped")
+# --- Constantes ---
+WATCHDOG_INTERVAL = 1800  # 30 minutos
+ZYTE_API_KEY = os.getenv("ZYTE_API_KEY")
+SCRAPY_CLOUD_API_KEY = os.getenv("SCRAPY_CLOUD_API_KEY")
+SCRAPY_CLOUD_BASE_API = "https://app.zyte.com/api"
+CALLMEBOT_PHONE = os.getenv("CALLMEBOT_PHONE")
+CALLMEBOT_API_KEY = os.getenv("CALLMEBOT_API_KEY")
 
-SERVER_SCRIPT = "local_server.py"
-RESTART_DELAY = 30
-ZYTE_CHECK_INTERVAL = 1800 # 30 min
-REQUIREMENTS_FILE = "requirements.txt"
+# --- Funções de Verificação de Saúde ---
 
-# Configurações de Drive (Resiliência)
-CACHE_DIR = r"E:\sentinela_temp\pip_cache"
-TEMP_DIR = r"E:\sentinela_temp\tmp"
+def check_zyte_health(max_retries=3, delay_seconds=5):
+    """Valida a conectividade e autenticação com a Zyte API."""
+    if not ZYTE_API_KEY:
+        return False, "ZYTE_API_KEY ausente no .env"
 
-# Ambiente customizado para processos filhos
-CHILD_ENV = os.environ.copy()
-CHILD_ENV["PIP_CACHE_DIR"] = CACHE_DIR
-CHILD_ENV["TMP"] = TEMP_DIR
-CHILD_ENV["TEMP"] = TEMP_DIR
+    url = "https://api.zyte.com/v1/extract"
+    payload = {"url": "https://toscrape.com", "httpResponseBody": True}
 
-CALLMEBOT_PHONE = "558496066876"
-CALLMEBOT_APIKEY = "8552672"
-CALLMEBOT_URL = "https://api.callmebot.com/whatsapp.php"
-
-def get_python_executable():
-    """Detecta o executável Python do ambiente virtual (venv ou .venv) se disponível."""
-    if sys.prefix != sys.base_prefix:
-        return sys.executable
-    
-    project_root = os.path.dirname(os.path.abspath(__file__))
-    venv_paths = [
-        os.path.join(project_root, ".venv", "Scripts", "python.exe"),
-        os.path.join(project_root, "venv", "Scripts", "python.exe"),
-        os.path.join(project_root, ".venv", "bin", "python"),
-        os.path.join(project_root, "venv", "bin", "python"),
-    ]
-    
-    for path in venv_paths:
-        if os.path.exists(path):
-            return path
-            
-    return sys.executable
-
-def heal_dependencies(python_exe):
-    """Verifica e instala dependências, com estratégia de auto-cura do cache em caso de erro."""
-    print("[Watchdog] Verificando integridade das dependências...")
-    try:
-        subprocess.run(
-            [python_exe, "-m", "pip", "install", "-r", REQUIREMENTS_FILE, "-q"], 
-            check=True, env=CHILD_ENV
-        )
-        print("[Watchdog] Dependências sincronizadas com sucesso.")
-    except Exception as e:
-        print(f"[Watchdog] Falha na instalação. Tentando purgar cache do pip para liberar espaço...")
+    for attempt in range(max_retries):
         try:
-            subprocess.run([python_exe, "-m", "pip", "cache", "purge"], check=True, env=CHILD_ENV)
-            subprocess.run(
-                [python_exe, "-m", "pip", "install", "-r", REQUIREMENTS_FILE, "-q"], 
-                check=True, env=CHILD_ENV
-            )
-            print("[Watchdog] Dependências sincronizadas após purga de cache.")
-        except Exception as e2:
-            print(f"[Watchdog] Falha crítica ao curar dependências: {e2}")
+            with httpx.Client(timeout=15.0) as client:
+                response = client.post(url, auth=(ZYTE_API_KEY, ""), json=payload)
+
+            if response.status_code == 200:
+                return True, "Conectado"
+            elif response.status_code in {401, 403}:
+                logger.error(f"Erro crítico Zyte API {response.status_code}: Chave de API inválida ou suspensa.")
+                return False, f"Erro crítico de autenticação ({response.status_code})."
+            else:
+                logger.warning(f"Tentativa {attempt+1}/{max_retries} - Erro Zyte API {response.status_code}")
+        except httpx.TimeoutException:
+            logger.warning(f"Tentativa {attempt+1}/{max_retries} - Timeout na conexão Zyte API.")
+        except httpx.RequestError as e:
+            logger.warning(f"Tentativa {attempt+1}/{max_retries} - Erro de rede ao conectar com Zyte API: {e}")
+
+        if attempt < max_retries - 1:
+            time.sleep(delay_seconds)
+    
+    return False, f"Falha de conexão após {max_retries} tentativas."
+
+def check_scrapy_cloud_health(max_retries=3, delay_seconds=5):
+    """Valida a conectividade e autenticação com a Scrapy Cloud API."""
+    if not SCRAPY_CLOUD_API_KEY:
+        return False, "SCRAPY_CLOUD_API_KEY ausente no .env"
+
+    auth = (SCRAPY_CLOUD_API_KEY, "")
+    url = f"{SCRAPY_CLOUD_BASE_API}/projects/list.json"
+
+    for attempt in range(max_retries):
+        try:
+            with httpx.Client(timeout=15.0) as client:
+                response = client.get(url, auth=auth)
+            
+            if response.status_code == 200:
+                projects = response.json().get("projects", [])
+                logger.info(f"Scrapy Cloud alcançável. {len(projects)} projetos encontrados.")
+                return True, f"{len(projects)} projetos encontrados"
+            elif response.status_code in {401, 403}:
+                logger.error(f"Erro crítico Scrapy Cloud {response.status_code}: Chave de API inválida ou sem permissão.")
+                return False, f"Erro crítico de autenticação ({response.status_code})."
+            else:
+                logger.warning(f"Tentativa {attempt+1}/{max_retries} - Scrapy Cloud HTTP {response.status_code}")
+        except httpx.TimeoutException:
+            logger.warning(f"Tentativa {attempt+1}/{max_retries} - Timeout na conexão Scrapy Cloud.")
+        except httpx.RequestError as e:
+            logger.warning(f"Tentativa {attempt+1}/{max_retries} - Erro de rede ao conectar com Scrapy Cloud: {e}")
+
+        if attempt < max_retries - 1:
+            time.sleep(delay_seconds)
+
+    return False, f"Falha de conexão após {max_retries} tentativas."
+
+# --- Sistema de Alerta ---
 
 def send_whatsapp_alert(message: str):
-    """Dispara alerta síncrono via WhatsApp usando CallMeBot."""
+    """Envia um alerta via CallMeBot para o WhatsApp."""
+    if not (CALLMEBOT_PHONE and CALLMEBOT_API_KEY):
+        logger.error("Variáveis de ambiente para o CallMeBot não configuradas. Alerta não enviado.")
+        return
+
     try:
-        params = {
-            "phone": CALLMEBOT_PHONE,
-            "apikey": CALLMEBOT_APIKEY,
-            "text": message
-        }
-        requests.get(CALLMEBOT_URL, params=params, timeout=10)
-        print(f"[Watchdog] Alerta WhatsApp enviado.")
+        url = "https://api.callmebot.com/whatsapp.php"
+        params = {"phone": CALLMEBOT_PHONE, "text": message, "apikey": CALLMEBOT_API_KEY}
+        with httpx.Client() as client:
+            client.get(url, params=params)
+        logger.info("Alerta WhatsApp enviado com sucesso.")
     except Exception as e:
-        print(f"[Watchdog] Falha ao enviar alerta WhatsApp: {e}")
+        logger.error(f"Falha ao enviar alerta WhatsApp: {e}")
 
-def guard():
-    python_exe = get_python_executable()
-    last_zyte_check = 0
-    
+# --- Loop Principal do Watchdog ---
+
+def watchdog_loop():
+    logger.info("🚀 Sentinela Watchdog INICIADO. Monitorando saúde dos serviços...")
     while True:
-        # 0. Verificação de Saúde do Motor Zyte (Silencioso se OK)
-        if time.time() - last_zyte_check > ZYTE_CHECK_INTERVAL:
-            zyte_ok, zyte_msg = check_zyte_health()
-            if not zyte_ok:
-                send_whatsapp_alert(f"🚩 *ZYTE API ALERT* 🚩\nMotivo: `{zyte_msg}`")
-            last_zyte_check = time.time()
+        # 1. Verificar Zyte API
+        logger.info("Verificando saúde: Zyte API...")
+        zyte_status, zyte_msg = check_zyte_health()
+        if not zyte_status:
+            alert_text = f"🚨 *ALERTA SENTINELA* 🚨
 
-        try:
-            if check_for_updates():
-                heal_dependencies(python_exe)
-        except Exception:
-            pass
-        
-        # Só instala se necessário
-        # heal_dependencies(python_exe) # Removido para evitar log desnecessário a cada ciclo
+*Serviço*: Zyte API
+*Status*: INDISPONÍVEL
+*Motivo*: {zyte_msg}
 
-        try:
-            process = subprocess.Popen([python_exe, SERVER_SCRIPT], env=CHILD_ENV)
-            
-            while True:
-                poll = process.poll()
-                if poll is not None:
-                    if poll != 0:
-                        send_whatsapp_alert(f"🚨 *WATCHDOG ALERT* 🚨\nServidor travou (Code: {poll})")
-                        heal_dependencies(python_exe)
-                    break
-                
-                time.sleep(10)
+A coleta de dados pode estar comprometida."
+            logger.error(alert_text)
+            send_whatsapp_alert(alert_text)
+        else:
+            logger.info(f"✅ Saúde OK: Zyte API ({zyte_msg})")
 
-        except Exception:
-            pass
+        # Pausa breve entre as checagens
+        time.sleep(10)
 
-        time.sleep(RESTART_DELAY)
+        # 2. Verificar Scrapy Cloud
+        logger.info("Verificando saúde: Scrapy Cloud...")
+        sc_status, sc_msg = check_scrapy_cloud_health()
+        if not sc_status:
+            alert_text = f"🚨 *ALERTA SENTINELA* 🚨
+
+*Serviço*: Scrapy Cloud
+*Status*: INDISPONÍVEL
+*Motivo*: {sc_msg}
+
+O deploy de spiders pode falhar."
+            logger.error(alert_text)
+            send_whatsapp_alert(alert_text)
+        else:
+            logger.info(f"✅ Saúde OK: Scrapy Cloud ({sc_msg})")
+
+        logger.info(f"Próxima verificação em {WATCHDOG_INTERVAL / 60:.0f} minutos.")
+        time.sleep(WATCHDOG_INTERVAL)
 
 if __name__ == "__main__":
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
-    guard()
+    try:
+        watchdog_loop()
+    except KeyboardInterrupt:
+        logger.info("
+🛑 Watchdog finalizado manualmente.")
