@@ -17,9 +17,9 @@
         <button onclick="fetchData()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-bold text-sm transition-colors">Atualizar Dados</button>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Coluna 1: Resumo de Raspagem -->
-        <div>
+        <div class="lg:col-span-2">
             <h2 class="text-lg font-bold text-slate-300 mb-4 flex items-center gap-2">
                 <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Últimas Raspagens (Runs)
             </h2>
@@ -28,13 +28,33 @@
             </div>
         </div>
 
-        <!-- Coluna 2: Últimos Classificados -->
-        <div>
-            <h2 class="text-lg font-bold text-slate-300 mb-4 flex items-center gap-2">
-                <span class="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></span> Últimos Classificados pela IA
-            </h2>
-            <div id="classified-feed" class="space-y-4 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
-                <p class="text-slate-500 text-sm">Carregando classificações...</p>
+        <!-- Coluna 2: Sessões e Classificações -->
+        <div class="space-y-8">
+            <!-- Novo Card de Sessões -->
+            <div class="bg-slate-900 border border-slate-700 rounded-lg p-6">
+                <h3 class="text-base font-semibold text-slate-300 mb-4 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+                    Sessões Ativas
+                </h3>
+                <div id="session-status" class="bg-slate-800 p-4 rounded-md border border-slate-700">
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-400 text-sm">Total Ativas:</span>
+                        <span id="session-count" class="font-bold text-lg text-emerald-400">0</span>
+                    </div>
+                    <div id="session-list" class="mt-4 space-y-2 text-xs font-mono text-slate-500">
+                        Carregando...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Últimos Classificados -->
+            <div>
+                <h2 class="text-lg font-bold text-slate-300 mb-4 flex items-center gap-2">
+                    <span class="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></span> Últimos Classificados
+                </h2>
+                <div id="classified-feed" class="space-y-4 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
+                    <p class="text-slate-500 text-sm">Carregando classificações...</p>
+                </div>
             </div>
         </div>
     </div>
@@ -90,6 +110,25 @@
                     `).join('');
                 } else if (runsError) {
                     console.error("Erro ao buscar runs:", runsError);
+                }
+
+                // 3. Busca Sessões Ativas
+                const { data: sessions, error: sessionError } = await db
+                    .from('worker_sessions')
+                    .select('id, plataforma, updated_at')
+                    .eq('status', 'active')
+                    .order('updated_at', { ascending: false });
+
+                if (!sessionError && sessions) {
+                    document.getElementById('session-count').innerText = sessions.length;
+                    document.getElementById('session-list').innerHTML = sessions.map(s => `
+                        <div class="flex justify-between items-center border-b border-slate-700 pb-1">
+                            <span class="truncate">${s.plataforma} (${s.id.substring(0, 8)})</span>
+                            <span>${new Date(s.updated_at).toLocaleTimeString('pt-BR')}</span>
+                        </div>
+                    `).join('');
+                } else if (sessionError) {
+                    console.error("Erro ao buscar sessões:", sessionError);
                 }
 
                 // 2. Busca Últimos Classificados
