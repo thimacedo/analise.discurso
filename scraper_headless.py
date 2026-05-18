@@ -21,22 +21,7 @@ class InstagramScraperHeadless:
         self.target_profile = target_profile
         self.profile_url = f"https://www.instagram.com/{target_profile}/"
         self.max_posts = max_posts 
-        
-        self.session_id = os.getenv("INSTAGRAM_SESSIONID")
-        self.session_id_fallback = os.getenv("INSTAGRAM_SESSIONID_FALLBACK")
-        self.ds_user_id = os.getenv("INSTAGRAM_DS_USER_ID")
-        self.csrf_token = os.getenv("INSTAGRAM_CSRFTOKEN")
 
-        if not self.session_id and not self.session_id_fallback:
-            raise ValueError("❌ Nenhuma variável de sessão do Instagram (principal ou fallback) encontrada no .env")
-
-    async def _inject_cookies(self, context, session_id=None):
-        sid = session_id or self.session_id or self.session_id_fallback
-        await context.add_cookies([
-            {"name": "sessionid", "value": sid, "domain": ".instagram.com", "path": "/", "httpOnly": True, "secure": True, "sameSite": "Lax"},
-            {"name": "ds_user_id", "value": self.ds_user_id, "domain": ".instagram.com", "path": "/", "secure": True},
-            {"name": "csrftoken", "value": self.csrf_token, "domain": ".instagram.com", "path": "/", "secure": True}
-        ])
 
     async def fetch_recent_posts(self, external_cookies: Any = None):
         logger.info(f"🚀 Iniciando Playwright para: {self.target_profile}")
@@ -61,39 +46,32 @@ class InstagramScraperHeadless:
                     # Caso 1: Recebeu uma string (pode ser JSON ou ID puro)
                     if isinstance(external_cookies, str):
                         try:
+                            # Tenta decodificar como JSON completo
                             parsed = json.loads(external_cookies)
                             if isinstance(parsed, list):
                                 cookies_to_inject = parsed
-                            elif isinstance(parsed, dict):
-                                cookies_to_inject = [parsed]
                             else:
-                                # Se decodificou mas não é lista/dict (ex: "ID_PURO"), trata como string
-                                raise ValueError("JSON decodificado não é objeto/lista")
+                                cookies_to_inject = [parsed]
                         except (json.JSONDecodeError, ValueError):
-                            logger.info("⚠️ Cookies em formato string simples. Montando objeto...")
+                            # Se falhou, assume que é só o sessionid
+                            logger.info("⚠️ Cookies em formato string simples (SessionID).")
                             cookies_to_inject = [
-                                {"name": "sessionid", "value": external_cookies.strip('"'), "domain": ".instagram.com", "path": "/", "httpOnly": True, "secure": True, "sameSite": "Lax"},
-                                {"name": "ds_user_id", "value": self.ds_user_id, "domain": ".instagram.com", "path": "/", "secure": True},
-                                {"name": "csrftoken", "value": self.csrf_token, "domain": ".instagram.com", "path": "/", "secure": True}
+                                {"name": "sessionid", "value": external_cookies.strip('"'), "domain": ".instagram.com", "path": "/", "httpOnly": True, "secure": True, "sameSite": "Lax"}
                             ]
                     
-                    # Caso 2: Já recebeu uma lista
-                    elif isinstance(external_cookies, list):
-                        cookies_to_inject = external_cookies
-                    
-                    # Caso 3: Já recebeu um dict único
-                    elif isinstance(external_cookies, dict):
-                        cookies_to_inject = [external_cookies]
+                    # Caso 2: Já recebeu uma lista ou dicionário
+                    elif isinstance(external_cookies, (list, dict)):
+                        cookies_to_inject = external_cookies if isinstance(external_cookies, list) else [external_cookies]
 
-                    # Validação Final e Injeção
-                    if isinstance(cookies_to_inject, list) and len(cookies_to_inject) > 0:
+                    # Validação e Injeção
+                    if cookies_to_inject:
                         logger.info(f"✅ Injetando {len(cookies_to_inject)} cookies no contexto.")
                         await context.add_cookies(cookies_to_inject)
                     else:
-                        logger.warning("❓ Nenhum cookie válido extraído. Usando fallback.")
-                        await self._inject_cookies(context)
+                        raise ValueError("Nenhum cookie extraído.")
+                        
                 except Exception as e:
-                    logger.error(f"❌ Falha crítica ao injetar cookies: {e}")
+                    logger.warning(f"⚠️ Falha ao injetar cookies customizados: {e}. Usando fallback do env.")
                     await self._inject_cookies(context)
             else:
                 await self._inject_cookies(context)
