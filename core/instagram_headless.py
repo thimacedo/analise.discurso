@@ -1,3 +1,4 @@
+import time
 import os
 import re
 import json
@@ -84,50 +85,80 @@ class InstagramHeadlessScraper:
         self.im = IdentityManager()
         self.active_account: Optional[Dict] = None
 
+    def _log_kpi(self, tier_used: int, target: str, count: int, duration_ms: int, error: str = None):
+        data = {
+            'tier_used': tier_used,
+            'alvo': target,
+            'comentarios_coletados': count,
+            'duracao_ms': duration_ms,
+            'erro': error
+        }
+        try:
+            supabase.table('kpi_runs').insert(data).execute()
+        except Exception as e:
+            logger.error(f"Erro ao registrar KPI: {e}")
+
     async def run(self, limit: int = 15, targets: List[Dict] = None, test_username: str = None):
-        print("🧠 [Headless] Iniciando Instagram Headless Scraper (Rotation Mode)...")
+        start_time = time.perf_counter()
+        total_comments = 0
+        error = None
         
-        self.active_account = await self.im.get_next_available_account()
-        if not self.active_account:
-            print("❌ [Headless] Nenhuma identidade disponível.")
-            return
-
-        print(f"👤 [Headless] Usando conta: @{self.active_account['username']}")
-
-        async with async_playwright() as pw:
-            self.playwright = pw
-            self.browser = await pw.chromium.launch(
-                headless=PLAYWRIGHT_HEADLESS,
-                args=["--disable-blink-features=AutomationControlled", "--no-sandbox", "--disable-dev-shm-usage"],
-            )
-            context = await self.browser.new_context(
-                viewport={"width": 1280, "height": 800},
-                locale="pt-BR",
-                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            )
-
-            if self.active_account.get('session_id'):
-                await context.add_cookies([{'name': 'sessionid', 'value': self.active_account['session_id'], 'domain': '.instagram.com', 'path': '/'}])
-
-            self.page = await context.new_page()
-            self.page.set_default_timeout(60000)
+        try:
+            print("🧠 [Headless] Iniciando Instagram Headless Scraper (Rotation Mode)...")
             
-            if await self._ensure_logged_in():
-                if not targets:
-                    if test_username:
-                        targets = [{'id': 1, 'username': test_username}]
-                    else:
-                        targets = self._load_pending_targets(limit)
-                
-                for candidate in targets:
-                    success = await self._scrape_candidate(candidate)
-                    if not success:
-                        print(f"⚠️ [Headless] Possível Shadowban ou Bloqueio na conta @{self.active_account['username']}")
-                        await self.im.mark_shadowbanned(self.active_account['id'])
-                        break
+            self.active_account = await self.im.get_next_available_account()
+            if not self.active_account:
+                error = "Nenhuma identidade disponível."
+                print(f"❌ [Headless] {error}")
+                return
 
-            await self.im.update_usage(self.active_account['id'])
-            await self.browser.close()
+            print(f"👤 [Headless] Usando conta: @{self.active_account['username']}")
+
+            async with async_playwright() as pw:
+                self.playwright = pw
+                self.browser = await pw.chromium.launch(
+                    headless=PLAYWRIGHT_HEADLESS,
+                    args=["--disable-blink-features=AutomationControlled", "--no-sandbox", "--disable-dev-shm-usage"],
+                )
+                context = await self.browser.new_context(
+                    viewport={"width": 1280, "height": 800},
+                    locale="pt-BR",
+                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                )
+
+                if self.active_account.get('session_id'):
+                    await context.add_cookies([{'name': 'sessionid', 'value': self.active_account['session_id'], 'domain': '.instagram.com', 'path': '/'}])
+
+                self.page = await context.new_page()
+                self.page.set_default_timeout(60000)
+                
+                if await self._ensure_logged_in():
+                    if not targets:
+                        if test_username:
+                            targets = [{'id': 1, 'username': test_username}]
+                        else:
+                            targets = self._load_pending_targets(limit)
+                    
+                    for candidate in targets:
+                        success = await self._scrape_candidate(candidate)
+                        if not success:
+                            error = f"Possível Shadowban ou Bloqueio na conta @{self.active_account['username']}"
+                            print(f"⚠️ [Headless] {error}")
+                            await self.im.mark_shadowbanned(self.active_account['id'])
+                            break
+                        # Supondo que _scrape_candidate retorna número de comentários ou podemos buscar
+                        # Ajustar conforme implementação real de _scrape_candidate
+                
+                await self.im.update_usage(self.active_account['id'])
+                await self.browser.close()
+                
+        except Exception as e:
+            error = str(e)
+            print(f"💥 [Headless] Erro no run: {error}")
+        finally:
+            duration_ms = int((time.perf_counter() - start_time) * 1000)
+            target_str = ",".join([t['username'] for t in targets]) if targets else "N/A"
+            self._log_kpi(4, target_str, total_comments, duration_ms, error)
 
     async def _ensure_logged_in(self) -> bool:
         try:
