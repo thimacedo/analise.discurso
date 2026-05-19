@@ -192,6 +192,13 @@ class InstagramScraperHeadless:
 
                     # Extração de Comentários
                     comments = []
+                    comments_enabled = True
+                    shadowban_likely = False
+                    
+                    # Verifica se comentários estão desativados
+                    if await self.page.locator('text="Comentários desativados"').count() > 0:
+                        comments_enabled = False
+                    
                     comment_selectors = [
                         'div[role="dialog"] ul div[role="menuitem"] span[dir="auto"]',
                         'div[role="dialog"] ul li span'
@@ -210,11 +217,17 @@ class InstagramScraperHeadless:
                             if len(comments) >= self.max_comments: break
                         if comments: break
 
+                    # Se comentários habilitados mas vazios, marca como potencial shadowban
+                    if comments_enabled and len(comments) == 0:
+                        shadowban_likely = True
+
                     detailed_posts.append({
                         "shortcode": shortcode,
                         "text": caption.strip(),
                         "timestamp": date_str,
-                        "comments": comments
+                        "comments": comments,
+                        "comments_enabled": comments_enabled,
+                        "shadowban_likely": shadowban_likely
                     })
                     
                     await self.page.keyboard.press('Escape')
