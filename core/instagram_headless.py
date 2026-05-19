@@ -347,13 +347,23 @@ class InstagramHeadlessScraper:
         if not valid_text: return
 
         data = {
-            'candidato_id': username, 'post_id': shortcode,
-            'texto_bruto': valid_text, 'plataforma': 'INSTAGRAM',
+            'candidato_id': username, 
+            'post_shortcode': shortcode,
+            'autor_username': 'unknown', # Será atualizado na próxima iteração
+            'texto_bruto': valid_text, 
+            'tier_used': 4, # Headless
+            'like_count': 0, # Placeholder
+            'data_publicacao': datetime.now(timezone.utc).isoformat(),
             'data_coleta': datetime.now(timezone.utc).isoformat(),
             'processado_ia': False
         }
-        try: supabase.table('comentarios').insert(data).execute()
-        except: pass
+        try: 
+            supabase.table('comentarios')\
+                .insert(data)\
+                .header('Prefer', 'return=representation')\
+                .execute()
+        except Exception as e:
+            logger.error(f"Erro na persistência: {e}")
 
 if __name__ == '__main__':
     asyncio.run(InstagramHeadlessScraper().run())
