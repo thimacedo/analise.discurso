@@ -1,13 +1,13 @@
 'use client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import WarRoom from "./page"; // Assumindo que WarRoom é o dashboard principal
-import ForensicTab from "./components/warroom/ForensicTab";
-import TargetsTab from "./components/warroom/TargetsTab";
-import DossiersTab from "./components/warroom/DossiersTab";
-import AlertsTab from "./components/warroom/AlertsTab";
-import NetworkTab from "./components/warroom/NetworkTab";
-import QueueTab from "./components/warroom/QueueTab";
+import WarRoom from "./page";
+import ForensicTab from "@/components/warroom/ForensicTab";
+import TargetsTab from "@/components/warroom/TargetsTab";
+import DossiersTab from "@/components/warroom/DossiersTab";
+import AlertsTab from "@/components/warroom/AlertsTab";
+import NetworkTab from "@/components/warroom/NetworkTab";
+import QueueTab from "@/components/warroom/QueueTab";
 
 export default function Dashboard() {
   return (
