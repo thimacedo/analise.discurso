@@ -342,28 +342,40 @@ class InstagramHeadlessScraper:
                 self._save_comment(username, shortcode, cmd)
         except: pass
 
-    def _save_comment(self, username: str, shortcode: str, text: str):
-        valid_text = clean_comment(text, username)
+    def to_utc_iso(self, dt):
+        if isinstance(dt, (int, float)):  # epoch
+            return datetime.fromtimestamp(dt, tz=timezone.utc).isoformat()
+        if isinstance(dt, str):
+            return datetime.fromisoformat(dt.replace('Z', '+00:00')).astimezone(timezone.utc).isoformat()
+        if isinstance(dt, datetime):
+            return (dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)).astimezone(timezone.utc).isoformat()
+        return datetime.now(timezone.utc).isoformat()
+
+    def _save_comment(self, username: str, shortcode: str, comment_data: Dict):
+        valid_text = clean_comment(comment_data.get('text', ''), username)
         if not valid_text: return
 
         data = {
             'candidato_id': username, 
             'post_shortcode': shortcode,
-            'autor_username': 'unknown', # Será atualizado na próxima iteração
+            'id_externo': comment_data.get('id', 'unknown'),
+            'autor_username': comment_data.get('ownerUsername', 'unknown'),
             'texto_bruto': valid_text, 
             'tier_used': 4, # Headless
-            'like_count': 0, # Placeholder
-            'data_publicacao': datetime.now(timezone.utc).isoformat(),
-            'data_coleta': datetime.now(timezone.utc).isoformat(),
+            'like_count': 0, 
+            'data_publicacao': self.to_utc_iso(comment_data.get('timestamp')),
+            'data_coleta': self.to_utc_iso(None),
             'processado_ia': False
         }
         try: 
+            # Upsert utilizando a restrição única definida no SQL
             supabase.table('comentarios')\
-                .insert(data)\
-                .header('Prefer', 'return=representation')\
+                .upsert(data, on_conflict='candidato_id,post_shortcode,id_externo')\
+                .header('Prefer', 'return=representation, resolution=merge-duplicates')\
+                .header('Content-Profile', 'public')\
                 .execute()
         except Exception as e:
-            logger.error(f"Erro na persistência: {e}")
+            logger.error(f"Erro na persistência (Upsert): {e}")
 
 if __name__ == '__main__':
     asyncio.run(InstagramHeadlessScraper().run())
